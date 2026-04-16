@@ -1,13 +1,21 @@
 import streamlit as st
 import pandas as pd
-import os
 from datetime import datetime
 
-from services.github import salvar_github
+from services.github import salvar_github, carregar_github
 from services.codigos import gerar_codigo_obra
 from services.calculos import *
 
 st.title("FOS ENGENHARIA LTDA")
+
+# =========================
+# CONFIG
+# =========================
+ARQUIVO_EQUIP = "data/equipamentos.csv"
+ARQUIVO_ORC = "data/orcamentos.csv"
+
+TOKEN = st.secrets["GITHUB_TOKEN"]
+REPO = st.secrets["REPO"]
 
 # =========================
 # ESTADO
@@ -17,31 +25,6 @@ if "etapa" not in st.session_state:
 
 if "equipamento_sel" not in st.session_state:
     st.session_state.equipamento_sel = None
-
-if "descricao_obra" not in st.session_state:
-    st.session_state.descricao_obra = ""
-
-# =========================
-# ARQUIVOS
-# =========================
-ARQUIVO_EQUIP = "data/equipamentos.csv"
-ARQUIVO_ORC = "data/orcamentos.csv"
-
-TOKEN = st.secrets["GITHUB_TOKEN"]
-REPO = st.secrets["REPO"]
-
-# =========================
-# GARANTIR CSVs
-# =========================
-if not os.path.exists(ARQUIVO_EQUIP):
-    pd.DataFrame(columns=["Equipamento", "Vazao", "Consumo", "Valor"]).to_csv(ARQUIVO_EQUIP, index=False)
-
-if not os.path.exists(ARQUIVO_ORC):
-    pd.DataFrame(columns=[
-        "Codigo","Data","Descricao","Equipamento",
-        "Volume","Distancia","Produtividade","Tempo_h",
-        "Dias","Custo_Diesel","Receita","Lucro"
-    ]).to_csv(ARQUIVO_ORC, index=False)
 
 # =========================
 # MENU
@@ -62,21 +45,28 @@ if st.session_state.etapa == 0:
         st.session_state.etapa = 400
 
 # =========================
-# EQUIPAMENTOS (CORRIGIDO)
+# EQUIPAMENTOS
 # =========================
 elif st.session_state.etapa == 300:
 
     st.header("🚜 Equipamentos")
 
-    df = pd.read_csv(ARQUIVO_EQUIP)
+    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
+
+    if df.empty:
+        df = pd.DataFrame(columns=["Equipamento", "Vazao", "Consumo", "Valor"])
+
     st.dataframe(df)
+
+    if st.button("🔄 Atualizar dados"):
+        st.rerun()
 
     st.divider()
 
     # EDITAR
     if not df.empty:
 
-        sel = st.selectbox("Selecionar equipamento", df["Equipamento"])
+        sel = st.selectbox("Selecionar", df["Equipamento"])
         linha = df[df["Equipamento"] == sel].iloc[0]
 
         nome = st.text_input("Nome", value=linha["Equipamento"])
@@ -86,7 +76,7 @@ elif st.session_state.etapa == 300:
 
         col1, col2 = st.columns(2)
 
-        if col1.button("Salvar alteração"):
+        if col1.button("Salvar"):
             idx = df["Equipamento"] == sel
 
             df.loc[idx, "Equipamento"] = nome
@@ -96,10 +86,10 @@ elif st.session_state.etapa == 300:
 
             salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
 
-            st.success("Atualizado!")
+            st.success("Atualizado no GitHub!")
             st.rerun()
 
-        if col2.button("Excluir equipamento"):
+        if col2.button("Excluir"):
             df = df[df["Equipamento"] != sel]
 
             salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
@@ -117,15 +107,15 @@ elif st.session_state.etapa == 300:
     consumo_n = st.number_input("Consumo novo", value=60.0)
     valor_n = st.number_input("Valor novo", value=1000000.0)
 
-    if st.button("Adicionar equipamento"):
+    if st.button("Adicionar"):
         novo = pd.DataFrame([[nome_n, vazao_n, consumo_n, valor_n]],
-                            columns=["Equipamento", "Vazao", "Consumo", "Valor"])
+                            columns=df.columns)
 
         df = pd.concat([df, novo], ignore_index=True)
 
         salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
 
-        st.success("Adicionado!")
+        st.success("Adicionado no GitHub!")
         st.rerun()
 
     if st.button("Voltar"):
@@ -138,18 +128,23 @@ elif st.session_state.etapa == 400:
 
     st.header("📈 Histórico de Obras")
 
-    df = pd.read_csv(ARQUIVO_ORC)
+    df = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
 
     if df.empty:
         st.warning("Sem dados ainda")
     else:
+
         st.dataframe(df)
 
         receita = df["Receita"].sum()
         lucro = df["Lucro"].sum()
+        margem = (lucro / receita * 100) if receita > 0 else 0
 
-        st.metric("Receita", f"R$ {receita:,.0f}")
-        st.metric("Lucro", f"R$ {lucro:,.0f}")
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Receita", f"R$ {receita:,.0f}")
+        col2.metric("Lucro", f"R$ {lucro:,.0f}")
+        col3.metric("Margem", f"{margem:.1f}%")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
@@ -159,24 +154,28 @@ elif st.session_state.etapa == 400:
 # =========================
 elif st.session_state.etapa == 1:
 
-    df = pd.read_csv(ARQUIVO_EQUIP)
+    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
 
-    equipamento = st.selectbox("Equipamento", df["Equipamento"])
-    eq = df[df["Equipamento"] == equipamento].iloc[0]
+    if df.empty:
+        st.warning("Cadastre equipamentos primeiro!")
+    else:
 
-    if st.button("Continuar"):
-        st.session_state.equipamento_sel = equipamento
-        st.session_state.etapa = 2
+        equipamento = st.selectbox("Equipamento", df["Equipamento"])
+        eq = df[df["Equipamento"] == equipamento].iloc[0]
+
+        if st.button("Continuar"):
+            st.session_state.equipamento_sel = equipamento
+            st.session_state.etapa = 2
 
 elif st.session_state.etapa == 2:
 
-    df = pd.read_csv(ARQUIVO_EQUIP)
+    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
     eq = df[df["Equipamento"] == st.session_state.equipamento_sel].iloc[0]
 
-    df_orc = pd.read_csv(ARQUIVO_ORC)
+    df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
     codigo = gerar_codigo_obra(df_orc)
 
-    descricao = st.text_input("Descrição")
+    descricao = st.text_input("Descrição da obra")
 
     volume = st.number_input("Volume", value=10000.0)
     distancia = st.number_input("Distância", value=2000.0)
@@ -210,13 +209,22 @@ elif st.session_state.etapa == 3:
     lucro = calcular_lucro(receita, custo)
 
     st.write(f"Código: {d['codigo']}")
+    st.write(f"Descrição: {d['descricao']}")
     st.write(f"Lucro: R$ {lucro:,.0f}")
 
     if st.button("Salvar"):
-        df = pd.read_csv(ARQUIVO_ORC)
+
+        df = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
+
+        if df.empty:
+            df = pd.DataFrame(columns=[
+                "Codigo","Data","Descricao","Equipamento",
+                "Volume","Distancia","Produtividade","Tempo_h",
+                "Dias","Custo_Diesel","Receita","Lucro"
+            ])
 
         novo = pd.DataFrame([[
-            d["codigo"], pd.Timestamp.now(), d["descricao"],
+            d["codigo"], datetime.now(), d["descricao"],
             d["equipamento"], d["volume"], d["distancia"],
             prod, tempo, dias, custo, receita, lucro
         ]], columns=df.columns)
@@ -225,4 +233,4 @@ elif st.session_state.etapa == 3:
 
         salvar_github(df, ARQUIVO_ORC, TOKEN, REPO)
 
-        st.success("Salvo!")
+        st.success("Salvo no GitHub!")
