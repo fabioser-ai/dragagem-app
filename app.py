@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import os
 
 st.title("FOS ENGENHARIA LTDA")
 
@@ -9,25 +11,62 @@ if "etapa" not in st.session_state:
     st.session_state.etapa = 0
 
 # =========================
+# ARQUIVO DE DADOS
+# =========================
+ARQUIVO_FERIAS = "ferias.csv"
+
+if not os.path.exists(ARQUIVO_FERIAS):
+    df_init = pd.DataFrame(columns=["Nome", "Data"])
+    df_init.to_csv(ARQUIVO_FERIAS, index=False)
+
+# =========================
 # ETAPA 0 - MENU PRINCIPAL
 # =========================
 if st.session_state.etapa == 0:
 
     st.header("Menu Principal")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.subheader("Orçamento")
-        st.write("Criar novo orçamento de dragagem")
         if st.button("📊 Criar Orçamento"):
             st.session_state.etapa = 1
 
     with col2:
         st.subheader("Base de Dados")
-        st.write("Atualizar custos e parâmetros")
         if st.button("⚙️ Atualizar Dados"):
             st.session_state.etapa = 100
+
+    with col3:
+        st.subheader("Férias / Folgas")
+        if st.button("📅 Gerenciar"):
+            st.session_state.etapa = 200
+
+# =========================
+# ETAPA 200 - FÉRIAS
+# =========================
+elif st.session_state.etapa == 200:
+
+    st.header("Gestão de Férias / Folgas")
+
+    nome = st.text_input("Nome do funcionário")
+    data = st.date_input("Data")
+
+    if st.button("Salvar"):
+        novo = pd.DataFrame([[nome, data]], columns=["Nome", "Data"])
+        df = pd.read_csv(ARQUIVO_FERIAS)
+        df = pd.concat([df, novo], ignore_index=True)
+        df.to_csv(ARQUIVO_FERIAS, index=False)
+        st.success("Registro salvo!")
+
+    st.subheader("Histórico")
+
+    df = pd.read_csv(ARQUIVO_FERIAS)
+    st.dataframe(df)
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
 
 # =========================
 # ETAPA 100 - BASE DE DADOS
@@ -59,7 +98,7 @@ elif st.session_state.etapa == 100:
             "vazao": vazao,
             "concentracao": concentracao / 100
         }
-        st.success("Dados salvos com sucesso!")
+        st.success("Dados salvos!")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
@@ -81,14 +120,12 @@ elif st.session_state.etapa == 1:
         ]
     )
 
-    col1, col2 = st.columns(2)
-
-    if col1.button("Voltar"):
-        st.session_state.etapa = 0
-
-    if col2.button("Próximo"):
+    if st.button("Próximo"):
         st.session_state.tipo_operacao = tipo_operacao
         st.session_state.etapa = 2
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
 
 # =========================
 # ETAPA 2 - INPUTS
@@ -113,12 +150,7 @@ elif st.session_state.etapa == 2:
     vazao = base.get("vazao", 850.0)
     concentracao = base.get("concentracao", 0.15)
 
-    col1, col2 = st.columns(2)
-
-    if col1.button("Voltar"):
-        st.session_state.etapa = 1
-
-    if col2.button("Calcular"):
+    if st.button("Calcular"):
         st.session_state.dados = {
             "volume": volume,
             "distancia": distancia,
@@ -132,6 +164,9 @@ elif st.session_state.etapa == 2:
             "concentracao": concentracao
         }
         st.session_state.etapa = 3
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 1
 
 # =========================
 # ETAPA 3 - RESULTADOS
