@@ -3,6 +3,8 @@ import pandas as pd
 import os
 import requests
 import base64
+from datetime import datetime
+import re
 
 st.title("FOS ENGENHARIA LTDA")
 
@@ -14,6 +16,9 @@ if "etapa" not in st.session_state:
 
 if "equipamento_sel" not in st.session_state:
     st.session_state.equipamento_sel = None
+
+if "codigo_obra" not in st.session_state:
+    st.session_state.codigo_obra = None
 
 # =========================
 # ARQUIVOS
@@ -45,7 +50,7 @@ def salvar_github(df, arquivo):
     content = base64.b64encode(csv_string.encode()).decode()
 
     data = {
-        "message": "Atualização via app",
+        "message": f"Update {arquivo}",
         "content": content
     }
 
@@ -53,6 +58,29 @@ def salvar_github(df, arquivo):
         data["sha"] = sha
 
     requests.put(url, headers=headers, json=data)
+
+# =========================
+# GERADOR DE CÓDIGO OBRA
+# =========================
+def gerar_codigo_obra(df):
+
+    ano = datetime.now().year
+
+    if df.empty:
+        return f"D_001_{ano}"
+
+    padrao = r"D_(\d+)_"
+
+    numeros = []
+
+    for val in df["Codigo"]:
+        match = re.search(padrao, str(val))
+        if match:
+            numeros.append(int(match.group(1)))
+
+    proximo = max(numeros) + 1 if numeros else 1
+
+    return f"D_{str(proximo).zfill(3)}_{ano}"
 
 # =========================
 # CRIAÇÃO DE ARQUIVOS
@@ -65,9 +93,18 @@ if not os.path.exists(ARQUIVO_EQUIP):
 
 if not os.path.exists(ARQUIVO_ORC):
     pd.DataFrame(columns=[
-        "Data", "Tipo", "Equipamento", "Volume", "Distancia",
-        "Produtividade", "Tempo_h", "Dias", "Custo_Diesel",
-        "Receita", "Lucro"
+        "Codigo",
+        "Data",
+        "Tipo",
+        "Equipamento",
+        "Volume",
+        "Distancia",
+        "Produtividade",
+        "Tempo_h",
+        "Dias",
+        "Custo_Diesel",
+        "Receita",
+        "Lucro"
     ]).to_csv(ARQUIVO_ORC, index=False)
 
 # =========================
@@ -246,9 +283,13 @@ elif st.session_state.etapa == 2:
 
     eq = df[df["Equipamento"] == equipamento].iloc[0]
 
-    st.write(f"Equipamento: {equipamento}")
-    st.write(f"Vazão: {eq['Vazao']} m³/h")
-    st.write(f"Consumo: {eq['Consumo']} L/h")
+    # gerar código da obra
+    df_orc = pd.read_csv(ARQUIVO_ORC)
+    codigo = gerar_codigo_obra(df_orc)
+
+    st.session_state.codigo_obra = codigo
+
+    st.info(f"📌 Código da obra: {codigo}")
 
     volume = st.number_input("Volume (m³)", value=10000.0)
     distancia = st.number_input("Distância (m)", value=2000.0)
@@ -263,7 +304,8 @@ elif st.session_state.etapa == 2:
             "vazao": eq["Vazao"],
             "consumo": eq["Consumo"],
             "horas_dia": horas_dia,
-            "equipamento": equipamento
+            "equipamento": equipamento,
+            "codigo": codigo
         }
         st.session_state.etapa = 3
 
@@ -271,7 +313,7 @@ elif st.session_state.etapa == 2:
         st.session_state.etapa = 1
 
 # =========================
-# RESULTADO
+# RESULTADO + HISTÓRICO
 # =========================
 elif st.session_state.etapa == 3:
 
@@ -298,6 +340,7 @@ elif st.session_state.etapa == 3:
 
     st.header("Resultado")
 
+    st.write(f"📌 Código: {d['codigo']}")
     st.write(f"Equipamento: {d['equipamento']}")
     st.write(f"Produtividade: {prod_real:.2f} m³/h")
     st.write(f"Tempo: {tempo_h:.2f} h")
@@ -307,6 +350,35 @@ elif st.session_state.etapa == 3:
     st.write(f"Receita: R$ {receita:,.2f}")
 
     st.success(f"Lucro: R$ {lucro:,.2f}")
+
+    # =========================
+    # SALVAR HISTÓRICO
+    # =========================
+    if st.button("💾 Salvar orçamento no histórico"):
+
+        df = pd.read_csv(ARQUIVO_ORC)
+
+        novo = pd.DataFrame([[
+            d["codigo"],
+            pd.Timestamp.now(),
+            st.session_state.tipo,
+            d["equipamento"],
+            d["volume"],
+            d["distancia"],
+            prod_real,
+            tempo_h,
+            dias,
+            custo_diesel,
+            receita,
+            lucro
+        ]], columns=df.columns)
+
+        df = pd.concat([df, novo], ignore_index=True)
+
+        salvar_github(df, ARQUIVO_ORC)
+
+        st.success("Orçamento salvo no histórico!")
+        st.rerun()
 
     if st.button("Novo orçamento"):
         st.session_state.etapa = 0
