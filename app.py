@@ -2,25 +2,37 @@ import streamlit as st
 
 st.title("Sistema de Orçamento de Dragagem")
 
-# MENU PRINCIPAL
-tipo_operacao = st.selectbox(
-    "Selecione o tipo de operação:",
-    [
-        "Bombeamento direto",
-        "Desaguamento em geobags",
-        "Desaguamento em centrífuga",
-        "Desaguamento em bacia ecológica"
-    ]
-)
-
-st.write(f"Operação selecionada: **{tipo_operacao}**")
+# CONTROLE DE ETAPA
+if "etapa" not in st.session_state:
+    st.session_state.etapa = 1
 
 # =========================
-# BOMBEAMENTO DIRETO
+# ETAPA 1 - ESCOLHA
 # =========================
-if tipo_operacao == "Bombeamento direto":
+if st.session_state.etapa == 1:
 
-    st.header("Parâmetros - Bombeamento Direto")
+    st.header("Escolha o tipo de operação")
+
+    tipo_operacao = st.selectbox(
+        "Selecione:",
+        [
+            "Bombeamento direto",
+            "Desaguamento em geobags",
+            "Desaguamento em centrífuga",
+            "Desaguamento em bacia ecológica"
+        ]
+    )
+
+    if st.button("Próximo"):
+        st.session_state.tipo_operacao = tipo_operacao
+        st.session_state.etapa = 2
+
+# =========================
+# ETAPA 2 - INPUTS
+# =========================
+elif st.session_state.etapa == 2:
+
+    st.header(f"Parâmetros - {st.session_state.tipo_operacao}")
 
     volume = st.number_input("Volume (m³)", value=10000)
     distancia = st.number_input("Distância (m)", value=2000)
@@ -30,13 +42,39 @@ if tipo_operacao == "Bombeamento direto":
     salario_operador = st.number_input("Salário operador (R$/h)", value=23)
     salario_ajudante = st.number_input("Salário ajudante (R$/h)", value=11)
 
+    col1, col2 = st.columns(2)
+
+    if col1.button("Voltar"):
+        st.session_state.etapa = 1
+
+    if col2.button("Calcular"):
+        st.session_state.dados = {
+            "volume": volume,
+            "distancia": distancia,
+            "diesel": diesel,
+            "preco_m3": preco_m3,
+            "salario_operador": salario_operador,
+            "salario_ajudante": salario_ajudante
+        }
+        st.session_state.etapa = 3
+
+# =========================
+# ETAPA 3 - RESULTADOS
+# =========================
+elif st.session_state.etapa == 3:
+
+    st.header("Resultados")
+
+    dados = st.session_state.dados
+
     # CONSTANTES
     vazao = 850
     concentracao = 0.15
     prod_base = vazao * concentracao
     consumo_diesel = 65
 
-    # FATOR DISTÂNCIA
+    distancia = dados["distancia"]
+
     if distancia <= 1000:
         fator = 1.0
     elif distancia <= 3000:
@@ -45,25 +83,17 @@ if tipo_operacao == "Bombeamento direto":
         fator = 0.55
 
     produtividade = prod_base * fator
+    tempo = dados["volume"] / produtividade
 
-    # TEMPO
-    tempo = volume / produtividade
-
-    # CUSTOS
-    custo_diesel_h = consumo_diesel * diesel
-    custo_mao_obra_h = salario_operador + (2 * salario_ajudante)
+    custo_diesel_h = consumo_diesel * dados["diesel"]
+    custo_mao_obra_h = dados["salario_operador"] + (2 * dados["salario_ajudante"])
     custo_hora = custo_diesel_h + custo_mao_obra_h
 
     custo_total = tempo * custo_hora
+    receita = dados["volume"] * dados["preco_m3"]
 
-    # RECEITA
-    receita = volume * preco_m3
-
-    # RESULTADOS
     lucro = receita - custo_total
     margem = (lucro / receita) * 100 if receita != 0 else 0
-
-    st.subheader("Resultados")
 
     st.write(f"Produtividade: {produtividade:.2f} m³/h")
     st.write(f"Tempo de obra: {tempo:.2f} horas")
@@ -73,20 +103,5 @@ if tipo_operacao == "Bombeamento direto":
     st.success(f"Lucro: R$ {lucro:,.2f}")
     st.info(f"Margem: {margem:.2f}%")
 
-# =========================
-# GEOBAGS
-# =========================
-elif tipo_operacao == "Desaguamento em geobags":
-    st.header("Geobags (em desenvolvimento)")
-
-# =========================
-# CENTRÍFUGA
-# =========================
-elif tipo_operacao == "Desaguamento em centrífuga":
-    st.header("Centrífuga (em desenvolvimento)")
-
-# =========================
-# BACIA ECOLÓGICA
-# =========================
-elif tipo_operacao == "Desaguamento em bacia ecológica":
-    st.header("Bacia ecológica (em desenvolvimento)")
+    if st.button("Novo orçamento"):
+        st.session_state.etapa = 1
