@@ -13,6 +13,7 @@ st.title("FOS ENGENHARIA LTDA")
 # =========================
 ARQUIVO_EQUIP = "data/equipamentos.csv"
 ARQUIVO_ORC = "data/orcamentos.csv"
+ARQUIVO_FERIAS = "data/ferias.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
@@ -33,7 +34,7 @@ if st.session_state.etapa == 0:
 
     st.header("Menu Principal")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     if col1.button("📊 Orçamento"):
         st.session_state.etapa = 1
@@ -41,11 +42,75 @@ if st.session_state.etapa == 0:
     if col2.button("🚜 Equipamentos"):
         st.session_state.etapa = 300
 
-    if col3.button("📈 Obras"):
+    if col3.button("📅 Férias/Folgas"):
+        st.session_state.etapa = 200
+
+    if col4.button("📈 Obras"):
         st.session_state.etapa = 400
 
 # =========================
-# EQUIPAMENTOS
+# FÉRIAS / FOLGAS
+# =========================
+elif st.session_state.etapa == 200:
+
+    st.header("📅 Férias e Folgas")
+
+    df = carregar_github(ARQUIVO_FERIAS, TOKEN, REPO)
+
+    if df.empty:
+        df = pd.DataFrame(columns=["Funcionario","Data_Inicio","Data_Fim","Tipo"])
+
+    st.dataframe(df)
+
+    if st.button("🔄 Atualizar dados"):
+        st.rerun()
+
+    st.divider()
+
+    # NOVO REGISTRO
+    st.subheader("Novo Registro")
+
+    nome = st.text_input("Funcionário")
+    data_inicio = st.date_input("Data início")
+    data_fim = st.date_input("Data fim")
+    tipo = st.selectbox("Tipo", ["Férias", "Folga"])
+
+    if st.button("Salvar registro"):
+
+        novo = pd.DataFrame([[
+            nome,
+            data_inicio,
+            data_fim,
+            tipo
+        ]], columns=df.columns)
+
+        df = pd.concat([df, novo], ignore_index=True)
+
+        salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
+
+        st.success("Salvo!")
+        st.rerun()
+
+    st.divider()
+
+    # EXCLUIR
+    if not df.empty:
+
+        idx = st.selectbox("Selecionar para excluir", df.index)
+
+        if st.button("Excluir registro"):
+            df = df.drop(idx)
+
+            salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
+
+            st.warning("Removido!")
+            st.rerun()
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
+
+# =========================
+# EQUIPAMENTOS (igual antes)
 # =========================
 elif st.session_state.etapa == 300:
 
@@ -63,7 +128,6 @@ elif st.session_state.etapa == 300:
 
     st.divider()
 
-    # EDITAR
     if not df.empty:
 
         sel = st.selectbox("Selecionar", df["Equipamento"])
@@ -86,7 +150,7 @@ elif st.session_state.etapa == 300:
 
             salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
 
-            st.success("Atualizado no GitHub!")
+            st.success("Atualizado!")
             st.rerun()
 
         if col2.button("Excluir"):
@@ -99,7 +163,6 @@ elif st.session_state.etapa == 300:
 
     st.divider()
 
-    # NOVO
     st.subheader("Novo equipamento")
 
     nome_n = st.text_input("Nome novo")
@@ -115,7 +178,7 @@ elif st.session_state.etapa == 300:
 
         salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
 
-        st.success("Adicionado no GitHub!")
+        st.success("Adicionado!")
         st.rerun()
 
     if st.button("Voltar"):
@@ -140,17 +203,15 @@ elif st.session_state.etapa == 400:
         lucro = df["Lucro"].sum()
         margem = (lucro / receita * 100) if receita > 0 else 0
 
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("Receita", f"R$ {receita:,.0f}")
-        col2.metric("Lucro", f"R$ {lucro:,.0f}")
-        col3.metric("Margem", f"{margem:.1f}%")
+        st.metric("Receita", f"R$ {receita:,.0f}")
+        st.metric("Lucro", f"R$ {lucro:,.0f}")
+        st.metric("Margem", f"{margem:.1f}%")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
 
 # =========================
-# ORÇAMENTO
+# ORÇAMENTO (igual antes)
 # =========================
 elif st.session_state.etapa == 1:
 
@@ -233,4 +294,4 @@ elif st.session_state.etapa == 3:
 
         salvar_github(df, ARQUIVO_ORC, TOKEN, REPO)
 
-        st.success("Salvo no GitHub!")
+        st.success("Salvo!")
