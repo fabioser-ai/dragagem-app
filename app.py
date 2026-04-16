@@ -1,56 +1,92 @@
 import streamlit as st
 
-st.title("Orçamento de Dragagem - Draga 14\"")
+st.title("Sistema de Orçamento de Dragagem")
 
-# INPUTS
-volume = st.number_input("Volume (m³)", value=10000)
-distancia = st.number_input("Distância (m)", value=2000)
-diesel = st.number_input("Preço Diesel (R$/L)", value=6.0)
-preco_m3 = st.number_input("Preço por m³ (R$)", value=16.18)
+# MENU PRINCIPAL
+tipo_operacao = st.selectbox(
+    "Selecione o tipo de operação:",
+    [
+        "Bombeamento direto",
+        "Desaguamento em geobags",
+        "Desaguamento em centrífuga",
+        "Desaguamento em bacia ecológica"
+    ]
+)
 
-salario_operador = st.number_input("Salário operador (R$/h)", value=23)
-salario_ajudante = st.number_input("Salário ajudante (R$/h)", value=11)
+st.write(f"Operação selecionada: **{tipo_operacao}**")
 
-# CONSTANTES
-vazao = 850
-concentracao = 0.15
-prod_base = vazao * concentracao  # 127.5 m³/h
+# =========================
+# BOMBEAMENTO DIRETO
+# =========================
+if tipo_operacao == "Bombeamento direto":
 
-consumo_diesel = 65
+    st.header("Parâmetros - Bombeamento Direto")
 
-# FATOR DISTÂNCIA
-if distancia <= 1000:
-    fator = 1.0
-elif distancia <= 3000:
-    fator = 0.75
-else:
-    fator = 0.55
+    volume = st.number_input("Volume (m³)", value=10000)
+    distancia = st.number_input("Distância (m)", value=2000)
+    diesel = st.number_input("Preço Diesel (R$/L)", value=6.0)
+    preco_m3 = st.number_input("Preço por m³ (R$)", value=16.18)
 
-produtividade = prod_base * fator
+    salario_operador = st.number_input("Salário operador (R$/h)", value=23)
+    salario_ajudante = st.number_input("Salário ajudante (R$/h)", value=11)
 
-# TEMPO
-tempo = volume / produtividade
+    # CONSTANTES
+    vazao = 850
+    concentracao = 0.15
+    prod_base = vazao * concentracao
+    consumo_diesel = 65
 
-# CUSTOS
-custo_diesel_h = consumo_diesel * diesel
-custo_mao_obra_h = salario_operador + (2 * salario_ajudante)
-custo_hora = custo_diesel_h + custo_mao_obra_h
+    # FATOR DISTÂNCIA
+    if distancia <= 1000:
+        fator = 1.0
+    elif distancia <= 3000:
+        fator = 0.75
+    else:
+        fator = 0.55
 
-custo_total = tempo * custo_hora
+    produtividade = prod_base * fator
 
-# RECEITA
-receita = volume * preco_m3
+    # TEMPO
+    tempo = volume / produtividade
 
-# RESULTADOS
-lucro = receita - custo_total
-margem = (lucro / receita) * 100 if receita != 0 else 0
+    # CUSTOS
+    custo_diesel_h = consumo_diesel * diesel
+    custo_mao_obra_h = salario_operador + (2 * salario_ajudante)
+    custo_hora = custo_diesel_h + custo_mao_obra_h
 
-st.subheader("Resultados")
+    custo_total = tempo * custo_hora
 
-st.write(f"Produtividade: {produtividade:.2f} m³/h")
-st.write(f"Tempo de obra: {tempo:.2f} horas")
-st.write(f"Custo total: R$ {custo_total:,.2f}")
-st.write(f"Receita: R$ {receita:,.2f}")
+    # RECEITA
+    receita = volume * preco_m3
 
-st.success(f"Lucro: R$ {lucro:,.2f}")
-st.info(f"Margem: {margem:.2f}%")
+    # RESULTADOS
+    lucro = receita - custo_total
+    margem = (lucro / receita) * 100 if receita != 0 else 0
+
+    st.subheader("Resultados")
+
+    st.write(f"Produtividade: {produtividade:.2f} m³/h")
+    st.write(f"Tempo de obra: {tempo:.2f} horas")
+    st.write(f"Custo total: R$ {custo_total:,.2f}")
+    st.write(f"Receita: R$ {receita:,.2f}")
+
+    st.success(f"Lucro: R$ {lucro:,.2f}")
+    st.info(f"Margem: {margem:.2f}%")
+
+# =========================
+# GEOBAGS
+# =========================
+elif tipo_operacao == "Desaguamento em geobags":
+    st.header("Geobags (em desenvolvimento)")
+
+# =========================
+# CENTRÍFUGA
+# =========================
+elif tipo_operacao == "Desaguamento em centrífuga":
+    st.header("Centrífuga (em desenvolvimento)")
+
+# =========================
+# BACIA ECOLÓGICA
+# =========================
+elif tipo_operacao == "Desaguamento em bacia ecológica":
+    st.header("Bacia ecológica (em desenvolvimento)")
