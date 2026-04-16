@@ -18,16 +18,12 @@ if "etapa" not in st.session_state:
 if "equipamento_sel" not in st.session_state:
     st.session_state.equipamento_sel = None
 
-if "codigo_obra" not in st.session_state:
-    st.session_state.codigo_obra = None
-
 if "descricao_obra" not in st.session_state:
     st.session_state.descricao_obra = ""
 
 # =========================
 # ARQUIVOS
 # =========================
-ARQUIVO_FERIAS = "data/ferias.csv"
 ARQUIVO_EQUIP = "data/equipamentos.csv"
 ARQUIVO_ORC = "data/orcamentos.csv"
 
@@ -35,8 +31,11 @@ TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 # =========================
-# CRIAÇÃO DE ARQUIVOS
+# GARANTIR CSVs
 # =========================
+if not os.path.exists(ARQUIVO_EQUIP):
+    pd.DataFrame(columns=["Equipamento", "Vazao", "Consumo", "Valor"]).to_csv(ARQUIVO_EQUIP, index=False)
+
 if not os.path.exists(ARQUIVO_ORC):
     pd.DataFrame(columns=[
         "Codigo","Data","Descricao","Equipamento",
@@ -51,25 +50,89 @@ if st.session_state.etapa == 0:
 
     st.header("Menu Principal")
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3 = st.columns(3)
 
     if col1.button("📊 Orçamento"):
         st.session_state.etapa = 1
 
-    if col2.button("⚙️ Base"):
-        st.session_state.etapa = 100
-
-    if col3.button("📅 Férias"):
-        st.session_state.etapa = 200
-
-    if col4.button("🚜 Equipamentos"):
+    if col2.button("🚜 Equipamentos"):
         st.session_state.etapa = 300
 
-    if col5.button("📈 Obras"):
+    if col3.button("📈 Obras"):
         st.session_state.etapa = 400
 
 # =========================
-# DASHBOARD DE OBRAS
+# EQUIPAMENTOS (CORRIGIDO)
+# =========================
+elif st.session_state.etapa == 300:
+
+    st.header("🚜 Equipamentos")
+
+    df = pd.read_csv(ARQUIVO_EQUIP)
+    st.dataframe(df)
+
+    st.divider()
+
+    # EDITAR
+    if not df.empty:
+
+        sel = st.selectbox("Selecionar equipamento", df["Equipamento"])
+        linha = df[df["Equipamento"] == sel].iloc[0]
+
+        nome = st.text_input("Nome", value=linha["Equipamento"])
+        vazao = st.number_input("Vazão", value=float(linha["Vazao"]))
+        consumo = st.number_input("Consumo", value=float(linha["Consumo"]))
+        valor = st.number_input("Valor", value=float(linha["Valor"]))
+
+        col1, col2 = st.columns(2)
+
+        if col1.button("Salvar alteração"):
+            idx = df["Equipamento"] == sel
+
+            df.loc[idx, "Equipamento"] = nome
+            df.loc[idx, "Vazao"] = vazao
+            df.loc[idx, "Consumo"] = consumo
+            df.loc[idx, "Valor"] = valor
+
+            salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
+
+            st.success("Atualizado!")
+            st.rerun()
+
+        if col2.button("Excluir equipamento"):
+            df = df[df["Equipamento"] != sel]
+
+            salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
+
+            st.warning("Removido!")
+            st.rerun()
+
+    st.divider()
+
+    # NOVO
+    st.subheader("Novo equipamento")
+
+    nome_n = st.text_input("Nome novo")
+    vazao_n = st.number_input("Vazão nova", value=1000.0)
+    consumo_n = st.number_input("Consumo novo", value=60.0)
+    valor_n = st.number_input("Valor novo", value=1000000.0)
+
+    if st.button("Adicionar equipamento"):
+        novo = pd.DataFrame([[nome_n, vazao_n, consumo_n, valor_n]],
+                            columns=["Equipamento", "Vazao", "Consumo", "Valor"])
+
+        df = pd.concat([df, novo], ignore_index=True)
+
+        salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
+
+        st.success("Adicionado!")
+        st.rerun()
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
+
+# =========================
+# DASHBOARD
 # =========================
 elif st.session_state.etapa == 400:
 
@@ -78,79 +141,42 @@ elif st.session_state.etapa == 400:
     df = pd.read_csv(ARQUIVO_ORC)
 
     if df.empty:
-        st.warning("Nenhuma obra registrada ainda")
+        st.warning("Sem dados ainda")
     else:
-
-        # Filtro
-        equipamentos = ["Todos"] + list(df["Equipamento"].unique())
-        filtro = st.selectbox("Filtrar por equipamento", equipamentos)
-
-        if filtro != "Todos":
-            df = df[df["Equipamento"] == filtro]
-
         st.dataframe(df)
 
-        st.divider()
+        receita = df["Receita"].sum()
+        lucro = df["Lucro"].sum()
 
-        # KPIs
-        total_receita = df["Receita"].sum()
-        total_lucro = df["Lucro"].sum()
-        margem = (total_lucro / total_receita * 100) if total_receita > 0 else 0
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("Receita Total", f"R$ {total_receita:,.0f}")
-        col2.metric("Lucro Total", f"R$ {total_lucro:,.0f}")
-        col3.metric("Margem Média", f"{margem:.1f}%")
-
-        st.divider()
-
-        # Ranking
-        st.subheader("🏆 Ranking de Equipamentos")
-
-        ranking = df.groupby("Equipamento")["Lucro"].sum().sort_values(ascending=False)
-
-        st.dataframe(ranking)
+        st.metric("Receita", f"R$ {receita:,.0f}")
+        st.metric("Lucro", f"R$ {lucro:,.0f}")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
 
 # =========================
-# RESTO DO APP (SEM ALTERAÇÃO)
+# ORÇAMENTO
 # =========================
 elif st.session_state.etapa == 1:
-
-    st.header("Selecionar Equipamento")
 
     df = pd.read_csv(ARQUIVO_EQUIP)
 
     equipamento = st.selectbox("Equipamento", df["Equipamento"])
     eq = df[df["Equipamento"] == equipamento].iloc[0]
 
-    st.write(f"Vazão: {eq['Vazao']}")
-    st.write(f"Consumo: {eq['Consumo']}")
-
     if st.button("Continuar"):
         st.session_state.equipamento_sel = equipamento
         st.session_state.etapa = 2
 
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
-
 elif st.session_state.etapa == 2:
 
-    st.header("Parâmetros")
-
     df = pd.read_csv(ARQUIVO_EQUIP)
-    equipamento = st.session_state.equipamento_sel
-    eq = df[df["Equipamento"] == equipamento].iloc[0]
+    eq = df[df["Equipamento"] == st.session_state.equipamento_sel].iloc[0]
 
     df_orc = pd.read_csv(ARQUIVO_ORC)
     codigo = gerar_codigo_obra(df_orc)
 
-    st.info(f"Código: {codigo}")
-
-    descricao = st.text_input("Descrição da obra")
+    descricao = st.text_input("Descrição")
 
     volume = st.number_input("Volume", value=10000.0)
     distancia = st.number_input("Distância", value=2000.0)
@@ -167,7 +193,7 @@ elif st.session_state.etapa == 2:
             "vazao": eq["Vazao"],
             "consumo": eq["Consumo"],
             "horas": horas,
-            "equipamento": equipamento
+            "equipamento": st.session_state.equipamento_sel
         }
         st.session_state.etapa = 3
 
@@ -179,18 +205,14 @@ elif st.session_state.etapa == 3:
     tempo = calcular_tempo(d["volume"], prod)
     dias = calcular_dias(tempo, d["horas"])
 
-    diesel = 6
-    custo = calcular_diesel(d["consumo"], tempo, diesel)
-
+    custo = calcular_diesel(d["consumo"], tempo, 6)
     receita = calcular_receita(d["volume"], d["preco"])
     lucro = calcular_lucro(receita, custo)
 
     st.write(f"Código: {d['codigo']}")
-    st.write(f"Descrição: {d['descricao']}")
     st.write(f"Lucro: R$ {lucro:,.0f}")
 
     if st.button("Salvar"):
-
         df = pd.read_csv(ARQUIVO_ORC)
 
         novo = pd.DataFrame([[
@@ -204,6 +226,3 @@ elif st.session_state.etapa == 3:
         salvar_github(df, ARQUIVO_ORC, TOKEN, REPO)
 
         st.success("Salvo!")
-
-    if st.button("Novo"):
-        st.session_state.etapa = 0
