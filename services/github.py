@@ -1,10 +1,14 @@
 import requests
 import base64
+import pandas as pd
+from io import StringIO
 
+# =========================
+# SALVAR NO GITHUB
+# =========================
 def salvar_github(df, arquivo, token, repo):
 
     url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
-
     headers = {"Authorization": f"token {token}"}
 
     response = requests.get(url, headers=headers)
@@ -23,3 +27,22 @@ def salvar_github(df, arquivo, token, repo):
         data["sha"] = sha
 
     requests.put(url, headers=headers, json=data)
+
+
+# =========================
+# CARREGAR DO GITHUB
+# =========================
+def carregar_github(arquivo, token, repo):
+
+    url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
+    headers = {"Authorization": f"token {token}"}
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        return pd.DataFrame()
+
+    content = response.json()["content"]
+    decoded = base64.b64decode(content).decode()
+
+    return pd.read_csv(StringIO(decoded))
