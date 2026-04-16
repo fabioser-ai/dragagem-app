@@ -84,6 +84,7 @@ elif st.session_state.etapa == 200:
         df = pd.concat([df, novo], ignore_index=True)
         df.to_csv(ARQUIVO_FERIAS, index=False)
         st.success("Salvo!")
+        st.rerun()
 
     st.dataframe(pd.read_csv(ARQUIVO_FERIAS))
 
@@ -99,6 +100,9 @@ elif st.session_state.etapa == 300:
 
     df = pd.read_csv(ARQUIVO_EQUIP)
     st.dataframe(df)
+
+    if st.button("🔄 Atualizar tabela"):
+        st.rerun()
 
     st.divider()
 
@@ -124,11 +128,13 @@ elif st.session_state.etapa == 300:
 
             df.to_csv(ARQUIVO_EQUIP, index=False)
             st.success("Atualizado!")
+            st.rerun()
 
         if col2.button("Excluir"):
             df = df[df["Equipamento"] != sel]
             df.to_csv(ARQUIVO_EQUIP, index=False)
             st.warning("Removido!")
+            st.rerun()
 
     st.divider()
 
@@ -147,6 +153,7 @@ elif st.session_state.etapa == 300:
         df.to_csv(ARQUIVO_EQUIP, index=False)
 
         st.success("Adicionado!")
+        st.rerun()
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
