@@ -11,62 +11,42 @@ if "etapa" not in st.session_state:
     st.session_state.etapa = 0
 
 # =========================
-# ARQUIVO DE DADOS
+# ARQUIVOS
 # =========================
 ARQUIVO_FERIAS = "ferias.csv"
+ARQUIVO_EQUIP = "equipamentos.csv"
 
+# cria arquivos se não existirem (segurança)
 if not os.path.exists(ARQUIVO_FERIAS):
-    df_init = pd.DataFrame(columns=["Nome", "Data"])
-    df_init.to_csv(ARQUIVO_FERIAS, index=False)
+    pd.DataFrame(columns=["Nome", "Data"]).to_csv(ARQUIVO_FERIAS, index=False)
+
+if not os.path.exists(ARQUIVO_EQUIP):
+    pd.DataFrame(columns=["Equipamento", "Vazao", "Concentracao", "Eficiencia", "Horas_dia"]).to_csv(ARQUIVO_EQUIP, index=False)
 
 # =========================
-# ETAPA 0 - MENU PRINCIPAL
+# ETAPA 0 - MENU
 # =========================
 if st.session_state.etapa == 0:
 
     st.header("Menu Principal")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.subheader("Orçamento")
-        if st.button("📊 Criar Orçamento"):
+        if st.button("📊 Orçamento"):
             st.session_state.etapa = 1
 
     with col2:
-        st.subheader("Base de Dados")
-        if st.button("⚙️ Atualizar Dados"):
+        if st.button("⚙️ Base de Dados"):
             st.session_state.etapa = 100
 
     with col3:
-        st.subheader("Férias / Folgas")
-        if st.button("📅 Gerenciar"):
+        if st.button("📅 Férias"):
             st.session_state.etapa = 200
 
-# =========================
-# ETAPA 200 - FÉRIAS
-# =========================
-elif st.session_state.etapa == 200:
-
-    st.header("Gestão de Férias / Folgas")
-
-    nome = st.text_input("Nome do funcionário")
-    data = st.date_input("Data")
-
-    if st.button("Salvar"):
-        novo = pd.DataFrame([[nome, data]], columns=["Nome", "Data"])
-        df = pd.read_csv(ARQUIVO_FERIAS)
-        df = pd.concat([df, novo], ignore_index=True)
-        df.to_csv(ARQUIVO_FERIAS, index=False)
-        st.success("Registro salvo!")
-
-    st.subheader("Histórico")
-
-    df = pd.read_csv(ARQUIVO_FERIAS)
-    st.dataframe(df)
-
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
+    with col4:
+        if st.button("🚜 Equipamentos"):
+            st.session_state.etapa = 300
 
 # =========================
 # ETAPA 100 - BASE DE DADOS
@@ -75,20 +55,17 @@ elif st.session_state.etapa == 100:
 
     st.header("Base de Dados")
 
-    st.subheader("Custos Operacionais")
     diesel = st.number_input("Preço Diesel (R$/L)", value=6.0)
-    consumo = st.number_input("Consumo da draga (L/h)", value=65.0)
+    consumo = st.number_input("Consumo (L/h)", value=65.0)
 
-    st.subheader("Mão de Obra")
-    operador = st.number_input("Salário operador (R$/h)", value=23.0)
-    ajudante = st.number_input("Salário ajudante (R$/h)", value=11.0)
-    qtd_ajudantes = st.number_input("Quantidade de ajudantes", value=2)
+    operador = st.number_input("Operador (R$/h)", value=23.0)
+    ajudante = st.number_input("Ajudante (R$/h)", value=11.0)
+    qtd_ajudantes = st.number_input("Qtd ajudantes", value=2)
 
-    st.subheader("Equipamento")
-    vazao = st.number_input("Vazão nominal (m³/h)", value=850.0)
+    vazao = st.number_input("Vazão padrão", value=850.0)
     concentracao = st.number_input("Concentração (%)", value=15.0)
 
-    if st.button("Salvar dados"):
+    if st.button("Salvar"):
         st.session_state.base_dados = {
             "diesel": diesel,
             "consumo": consumo,
@@ -98,30 +75,87 @@ elif st.session_state.etapa == 100:
             "vazao": vazao,
             "concentracao": concentracao / 100
         }
-        st.success("Dados salvos!")
+        st.success("Salvo!")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
 
 # =========================
-# ETAPA 1 - ESCOLHA OPERAÇÃO
+# ETAPA 200 - FÉRIAS
+# =========================
+elif st.session_state.etapa == 200:
+
+    st.header("Férias / Folgas")
+
+    nome = st.text_input("Nome")
+    data = st.date_input("Data")
+
+    if st.button("Salvar"):
+        df = pd.read_csv(ARQUIVO_FERIAS)
+        novo = pd.DataFrame([[nome, data]], columns=["Nome", "Data"])
+        df = pd.concat([df, novo], ignore_index=True)
+        df.to_csv(ARQUIVO_FERIAS, index=False)
+        st.success("Salvo!")
+
+    st.subheader("Histórico")
+    st.dataframe(pd.read_csv(ARQUIVO_FERIAS))
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
+
+# =========================
+# ETAPA 300 - EQUIPAMENTOS
+# =========================
+elif st.session_state.etapa == 300:
+
+    st.header("Equipamentos")
+
+    df = pd.read_csv(ARQUIVO_EQUIP)
+
+    st.subheader("Lista")
+    st.dataframe(df)
+
+    st.subheader("Adicionar novo")
+
+    nome = st.text_input("Nome equipamento")
+    vazao = st.number_input("Vazão (m³/h)", value=1000.0)
+    concentracao = st.number_input("Concentração (%)", value=15.0)
+    eficiencia = st.number_input("Eficiência (%)", value=70.0)
+    horas_dia = st.number_input("Horas/dia", value=20)
+
+    if st.button("Adicionar"):
+        novo = pd.DataFrame([[
+            nome,
+            vazao,
+            concentracao / 100,
+            eficiencia / 100,
+            horas_dia
+        ]], columns=["Equipamento", "Vazao", "Concentracao", "Eficiencia", "Horas_dia"])
+
+        df = pd.concat([df, novo], ignore_index=True)
+        df.to_csv(ARQUIVO_EQUIP, index=False)
+
+        st.success("Equipamento adicionado!")
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
+
+# =========================
+# ETAPA 1 - TIPO OPERAÇÃO
 # =========================
 elif st.session_state.etapa == 1:
 
-    st.header("Escolha o tipo de operação")
+    st.header("Tipo de Operação")
 
-    tipo_operacao = st.selectbox(
-        "Selecione:",
-        [
-            "Bombeamento direto",
-            "Desaguamento em geobags",
-            "Desaguamento em centrífuga",
-            "Desaguamento em bacia ecológica"
-        ]
-    )
+    tipo = st.selectbox("Escolha", [
+        "Bombeamento direto",
+        "Geobag",
+        "Centrífuga",
+        "Bacia"
+    ])
 
     if st.button("Próximo"):
-        st.session_state.tipo_operacao = tipo_operacao
+        st.session_state.tipo = tipo
         st.session_state.etapa = 2
 
     if st.button("Voltar"):
@@ -132,36 +166,29 @@ elif st.session_state.etapa == 1:
 # =========================
 elif st.session_state.etapa == 2:
 
-    st.header(f"Parâmetros - {st.session_state.tipo_operacao}")
+    st.header("Parâmetros")
 
-    base = st.session_state.get("base_dados", {})
+    df = pd.read_csv(ARQUIVO_EQUIP)
+
+    equipamento = st.selectbox("Equipamento", df["Equipamento"])
+    eq = df[df["Equipamento"] == equipamento].iloc[0]
+
+    st.write(f"Vazão: {eq['Vazao']}")
+    st.write(f"Concentração: {eq['Concentracao']*100:.1f}%")
+    st.write(f"Eficiência: {eq['Eficiencia']*100:.1f}%")
 
     volume = st.number_input("Volume (m³)", value=10000.0)
     distancia = st.number_input("Distância (m)", value=2000.0)
-    preco_m3 = st.number_input("Preço por m³ (R$)", value=16.18)
-
-    diesel = st.number_input("Preço Diesel (R$/L)", value=base.get("diesel", 6.0))
-    consumo = base.get("consumo", 65.0)
-
-    salario_operador = st.number_input("Salário operador (R$/h)", value=base.get("operador", 23.0))
-    salario_ajudante = st.number_input("Salário ajudante (R$/h)", value=base.get("ajudante", 11.0))
-    qtd_ajudantes = base.get("qtd_ajudantes", 2)
-
-    vazao = base.get("vazao", 850.0)
-    concentracao = base.get("concentracao", 0.15)
+    preco = st.number_input("Preço (R$/m³)", value=16.18)
 
     if st.button("Calcular"):
-        st.session_state.dados = {
+        st.session_state.calc = {
             "volume": volume,
             "distancia": distancia,
-            "preco_m3": preco_m3,
-            "diesel": diesel,
-            "consumo": consumo,
-            "salario_operador": salario_operador,
-            "salario_ajudante": salario_ajudante,
-            "qtd_ajudantes": qtd_ajudantes,
-            "vazao": vazao,
-            "concentracao": concentracao
+            "preco": preco,
+            "vazao": eq["Vazao"],
+            "conc": eq["Concentracao"],
+            "ef": eq["Eficiencia"]
         }
         st.session_state.etapa = 3
 
@@ -169,43 +196,31 @@ elif st.session_state.etapa == 2:
         st.session_state.etapa = 1
 
 # =========================
-# ETAPA 3 - RESULTADOS
+# ETAPA 3 - RESULTADO
 # =========================
 elif st.session_state.etapa == 3:
 
-    st.header("Resultados")
+    d = st.session_state.calc
 
-    d = st.session_state.dados
-
-    prod_base = d["vazao"] * d["concentracao"]
+    prod = d["vazao"] * d["conc"] * d["ef"]
 
     if d["distancia"] <= 1000:
-        fator = 1.0
+        fator = 1
     elif d["distancia"] <= 3000:
         fator = 0.75
     else:
         fator = 0.55
 
-    produtividade = prod_base * fator
-    tempo = d["volume"] / produtividade
+    prod_real = prod * fator
+    tempo = d["volume"] / prod_real
 
-    custo_diesel_h = d["consumo"] * d["diesel"]
-    custo_mao_obra_h = d["salario_operador"] + (d["qtd_ajudantes"] * d["salario_ajudante"])
-    custo_hora = custo_diesel_h + custo_mao_obra_h
+    receita = d["volume"] * d["preco"]
 
-    custo_total = tempo * custo_hora
-    receita = d["volume"] * d["preco_m3"]
+    st.header("Resultado")
 
-    lucro = receita - custo_total
-    margem = (lucro / receita) * 100 if receita != 0 else 0
-
-    st.write(f"Produtividade: {produtividade:.2f} m³/h")
-    st.write(f"Tempo de obra: {tempo:.2f} horas")
-    st.write(f"Custo total: R$ {custo_total:,.2f}")
+    st.write(f"Produtividade: {prod_real:.2f} m³/h")
+    st.write(f"Tempo: {tempo:.2f} h")
     st.write(f"Receita: R$ {receita:,.2f}")
 
-    st.success(f"Lucro: R$ {lucro:,.2f}")
-    st.info(f"Margem: {margem:.2f}%")
-
-    if st.button("Novo orçamento"):
+    if st.button("Novo"):
         st.session_state.etapa = 0
