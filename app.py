@@ -13,19 +13,19 @@ if st.session_state.etapa == 0:
 
     st.header("Menu Principal")
 
-    opcao = st.selectbox(
-        "O que deseja fazer?",
-        [
-            "Criar orçamento de dragagem",
-            "Atualizar base de dados"
-        ]
-    )
+    col1, col2 = st.columns(2)
 
-    if st.button("Avançar"):
-        if opcao == "Criar orçamento de dragagem":
+    with col1:
+        st.subheader("Orçamento")
+        st.write("Criar novo orçamento de dragagem")
+        if st.button("📊 Criar Orçamento"):
             st.session_state.etapa = 1
-        else:
-            st.session_state.etapa = 100  # área de dados
+
+    with col2:
+        st.subheader("Base de Dados")
+        st.write("Atualizar custos e parâmetros")
+        if st.button("⚙️ Atualizar Dados"):
+            st.session_state.etapa = 100
 
 # =========================
 # ETAPA 1 - ESCOLHA OPERAÇÃO
