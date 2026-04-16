@@ -97,19 +97,37 @@ elif st.session_state.etapa == 2:
 
     col1, col2 = st.columns(2)
 
-    if col1.button("Voltar"):
-        st.session_state.etapa = 1
+    elif st.session_state.etapa == 100:
 
-    if col2.button("Calcular"):
-        st.session_state.dados = {
-            "volume": volume,
-            "distancia": distancia,
+    st.header("Base de Dados")
+
+    st.subheader("Custos Operacionais")
+    diesel = st.number_input("Preço Diesel (R$/L)", value=6.0)
+    consumo = st.number_input("Consumo da draga (L/h)", value=65.0)
+
+    st.subheader("Mão de Obra")
+    operador = st.number_input("Salário operador (R$/h)", value=23.0)
+    ajudante = st.number_input("Salário ajudante (R$/h)", value=11.0)
+    qtd_ajudantes = st.number_input("Quantidade de ajudantes", value=2)
+
+    st.subheader("Equipamento")
+    vazao = st.number_input("Vazão nominal (m³/h)", value=850.0)
+    concentracao = st.number_input("Concentração (%)", value=15.0)
+
+    if st.button("Salvar dados"):
+        st.session_state.base_dados = {
             "diesel": diesel,
-            "preco_m3": preco_m3,
-            "salario_operador": salario_operador,
-            "salario_ajudante": salario_ajudante
+            "consumo": consumo,
+            "operador": operador,
+            "ajudante": ajudante,
+            "qtd_ajudantes": qtd_ajudantes,
+            "vazao": vazao,
+            "concentracao": concentracao / 100
         }
-        st.session_state.etapa = 3
+        st.success("Dados salvos!")
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
 
 # =========================
 # ETAPA 3 - RESULTADOS
