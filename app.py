@@ -14,6 +14,7 @@ st.title("FOS ENGENHARIA LTDA")
 ARQUIVO_EQUIP = "data/equipamentos.csv"
 ARQUIVO_ORC = "data/orcamentos.csv"
 ARQUIVO_FERIAS = "data/ferias.csv"
+ARQUIVO_SALARIOS = "data/salarios.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
@@ -34,7 +35,7 @@ if st.session_state.etapa == 0:
 
     st.header("Menu Principal")
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     if col1.button("📊 Orçamento"):
         st.session_state.etapa = 1
@@ -47,6 +48,9 @@ if st.session_state.etapa == 0:
 
     if col4.button("📈 Obras"):
         st.session_state.etapa = 400
+
+    if col5.button("💰 Salários"):
+        st.session_state.etapa = 500
 
 # =========================
 # FÉRIAS / FOLGAS
@@ -67,9 +71,6 @@ elif st.session_state.etapa == 200:
 
     st.divider()
 
-    # NOVO REGISTRO
-    st.subheader("Novo Registro")
-
     nome = st.text_input("Funcionário")
     data_inicio = st.date_input("Data início")
     data_fim = st.date_input("Data fim")
@@ -77,12 +78,8 @@ elif st.session_state.etapa == 200:
 
     if st.button("Salvar registro"):
 
-        novo = pd.DataFrame([[
-            nome,
-            data_inicio,
-            data_fim,
-            tipo
-        ]], columns=df.columns)
+        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]],
+                            columns=df.columns)
 
         df = pd.concat([df, novo], ignore_index=True)
 
@@ -93,7 +90,6 @@ elif st.session_state.etapa == 200:
 
     st.divider()
 
-    # EXCLUIR
     if not df.empty:
 
         idx = st.selectbox("Selecionar para excluir", df.index)
@@ -110,7 +106,7 @@ elif st.session_state.etapa == 200:
         st.session_state.etapa = 0
 
 # =========================
-# EQUIPAMENTOS (igual antes)
+# EQUIPAMENTOS
 # =========================
 elif st.session_state.etapa == 300:
 
@@ -185,6 +181,72 @@ elif st.session_state.etapa == 300:
         st.session_state.etapa = 0
 
 # =========================
+# SALÁRIOS
+# =========================
+elif st.session_state.etapa == 500:
+
+    st.header("💰 Salários por Cargo")
+
+    df = carregar_github(ARQUIVO_SALARIOS, TOKEN, REPO)
+
+    if df.empty:
+        df = pd.DataFrame(columns=["Cargo", "Valor_Hora"])
+
+    st.dataframe(df)
+
+    if st.button("🔄 Atualizar dados"):
+        st.rerun()
+
+    st.divider()
+
+    if not df.empty:
+
+        sel = st.selectbox("Selecionar cargo", df["Cargo"])
+        linha = df[df["Cargo"] == sel].iloc[0]
+
+        cargo = st.text_input("Cargo", value=linha["Cargo"])
+        valor = st.number_input("Valor por hora", value=float(linha["Valor_Hora"]))
+
+        col1, col2 = st.columns(2)
+
+        if col1.button("Salvar salário"):
+            idx = df["Cargo"] == sel
+
+            df.loc[idx, "Cargo"] = cargo
+            df.loc[idx, "Valor_Hora"] = valor
+
+            salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
+
+            st.success("Atualizado!")
+            st.rerun()
+
+        if col2.button("Excluir cargo"):
+            df = df[df["Cargo"] != sel]
+
+            salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
+
+            st.warning("Removido!")
+            st.rerun()
+
+    st.divider()
+
+    cargo_n = st.text_input("Novo cargo")
+    valor_n = st.number_input("Valor hora", value=20.0)
+
+    if st.button("Adicionar cargo"):
+        novo = pd.DataFrame([[cargo_n, valor_n]], columns=df.columns)
+
+        df = pd.concat([df, novo], ignore_index=True)
+
+        salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
+
+        st.success("Adicionado!")
+        st.rerun()
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
+
+# =========================
 # DASHBOARD
 # =========================
 elif st.session_state.etapa == 400:
@@ -203,15 +265,17 @@ elif st.session_state.etapa == 400:
         lucro = df["Lucro"].sum()
         margem = (lucro / receita * 100) if receita > 0 else 0
 
-        st.metric("Receita", f"R$ {receita:,.0f}")
-        st.metric("Lucro", f"R$ {lucro:,.0f}")
-        st.metric("Margem", f"{margem:.1f}%")
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Receita", f"R$ {receita:,.0f}")
+        col2.metric("Lucro", f"R$ {lucro:,.0f}")
+        col3.metric("Margem", f"{margem:.1f}%")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
 
 # =========================
-# ORÇAMENTO (igual antes)
+# ORÇAMENTO
 # =========================
 elif st.session_state.etapa == 1:
 
@@ -222,7 +286,6 @@ elif st.session_state.etapa == 1:
     else:
 
         equipamento = st.selectbox("Equipamento", df["Equipamento"])
-        eq = df[df["Equipamento"] == equipamento].iloc[0]
 
         if st.button("Continuar"):
             st.session_state.equipamento_sel = equipamento
