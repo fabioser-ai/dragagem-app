@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
+import requests
+import base64
 
 st.title("FOS ENGENHARIA LTDA")
 
@@ -16,7 +18,44 @@ if "etapa" not in st.session_state:
 ARQUIVO_FERIAS = "ferias.csv"
 ARQUIVO_EQUIP = "equipamentos.csv"
 
-# segurança
+# =========================
+# FUNÇÃO GITHUB
+# =========================
+def salvar_github(df, arquivo):
+
+    token = st.secrets["GITHUB_TOKEN"]
+    repo = st.secrets["REPO"]
+
+    url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
+
+    headers = {
+        "Authorization": f"token {token}"
+    }
+
+    # pega SHA atual
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        sha = response.json()["sha"]
+    else:
+        sha = None
+
+    csv_string = df.to_csv(index=False)
+    content = base64.b64encode(csv_string.encode()).decode()
+
+    data = {
+        "message": "Atualização via app",
+        "content": content
+    }
+
+    if sha:
+        data["sha"] = sha
+
+    requests.put(url, headers=headers, json=data)
+
+# =========================
+# CRIAR ARQUIVOS SE NECESSÁRIO
+# =========================
 if not os.path.exists(ARQUIVO_FERIAS):
     pd.DataFrame(columns=["Nome", "Data"]).to_csv(ARQUIVO_FERIAS, index=False)
 
@@ -82,7 +121,9 @@ elif st.session_state.etapa == 200:
         df = pd.read_csv(ARQUIVO_FERIAS)
         novo = pd.DataFrame([[nome, data]], columns=["Nome", "Data"])
         df = pd.concat([df, novo], ignore_index=True)
-        df.to_csv(ARQUIVO_FERIAS, index=False)
+
+        salvar_github(df, ARQUIVO_FERIAS)
+
         st.success("Salvo!")
         st.rerun()
 
@@ -126,13 +167,16 @@ elif st.session_state.etapa == 300:
             df.loc[idx, "Consumo"] = consumo
             df.loc[idx, "Valor"] = valor
 
-            df.to_csv(ARQUIVO_EQUIP, index=False)
+            salvar_github(df, ARQUIVO_EQUIP)
+
             st.success("Atualizado!")
             st.rerun()
 
         if col2.button("Excluir"):
             df = df[df["Equipamento"] != sel]
-            df.to_csv(ARQUIVO_EQUIP, index=False)
+
+            salvar_github(df, ARQUIVO_EQUIP)
+
             st.warning("Removido!")
             st.rerun()
 
@@ -150,7 +194,8 @@ elif st.session_state.etapa == 300:
                             columns=["Equipamento", "Vazao", "Consumo", "Valor"])
 
         df = pd.concat([df, novo], ignore_index=True)
-        df.to_csv(ARQUIVO_EQUIP, index=False)
+
+        salvar_github(df, ARQUIVO_EQUIP)
 
         st.success("Adicionado!")
         st.rerun()
