@@ -1,15 +1,36 @@
 import streamlit as st
 
-st.title("Sistema de Orçamento de Dragagem")
+st.title("Sistema de Dragagem")
 
 # CONTROLE DE ETAPA
 if "etapa" not in st.session_state:
-    st.session_state.etapa = 1
+    st.session_state.etapa = 0
 
 # =========================
-# ETAPA 1 - ESCOLHA
+# ETAPA 0 - MENU PRINCIPAL
 # =========================
-if st.session_state.etapa == 1:
+if st.session_state.etapa == 0:
+
+    st.header("Menu Principal")
+
+    opcao = st.selectbox(
+        "O que deseja fazer?",
+        [
+            "Criar orçamento de dragagem",
+            "Atualizar base de dados"
+        ]
+    )
+
+    if st.button("Avançar"):
+        if opcao == "Criar orçamento de dragagem":
+            st.session_state.etapa = 1
+        else:
+            st.session_state.etapa = 100  # área de dados
+
+# =========================
+# ETAPA 1 - ESCOLHA OPERAÇÃO
+# =========================
+elif st.session_state.etapa == 1:
 
     st.header("Escolha o tipo de operação")
 
@@ -23,24 +44,55 @@ if st.session_state.etapa == 1:
         ]
     )
 
-    if st.button("Próximo"):
+    col1, col2 = st.columns(2)
+
+    if col1.button("Voltar"):
+        st.session_state.etapa = 0
+
+    if col2.button("Próximo"):
         st.session_state.tipo_operacao = tipo_operacao
         st.session_state.etapa = 2
 
 # =========================
-# ETAPA 2 - INPUTS
+# ETAPA 100 - BASE DE DADOS
+# =========================
+elif st.session_state.etapa == 100:
+
+    st.header("Atualização de Base de Dados")
+
+    st.write("Aqui você poderá definir custos padrão do sistema")
+
+    diesel = st.number_input("Preço Diesel (R$/L)", value=6.0)
+    operador = st.number_input("Salário operador (R$/h)", value=23.0)
+    ajudante = st.number_input("Salário ajudante (R$/h)", value=11.0)
+
+    if st.button("Salvar dados"):
+        st.session_state.base_dados = {
+            "diesel": diesel,
+            "operador": operador,
+            "ajudante": ajudante
+        }
+        st.success("Dados salvos com sucesso!")
+
+    if st.button("Voltar ao menu"):
+        st.session_state.etapa = 0
+
+# =========================
+# ETAPA 2 - INPUTS ORÇAMENTO
 # =========================
 elif st.session_state.etapa == 2:
 
     st.header(f"Parâmetros - {st.session_state.tipo_operacao}")
 
+    base = st.session_state.get("base_dados", {})
+
     volume = st.number_input("Volume (m³)", value=10000)
     distancia = st.number_input("Distância (m)", value=2000)
-    diesel = st.number_input("Preço Diesel (R$/L)", value=6.0)
+    diesel = st.number_input("Preço Diesel (R$/L)", value=base.get("diesel", 6.0))
     preco_m3 = st.number_input("Preço por m³ (R$)", value=16.18)
 
-    salario_operador = st.number_input("Salário operador (R$/h)", value=23)
-    salario_ajudante = st.number_input("Salário ajudante (R$/h)", value=11)
+    salario_operador = st.number_input("Salário operador (R$/h)", value=base.get("operador", 23.0))
+    salario_ajudante = st.number_input("Salário ajudante (R$/h)", value=base.get("ajudante", 11.0))
 
     col1, col2 = st.columns(2)
 
@@ -67,7 +119,6 @@ elif st.session_state.etapa == 3:
 
     dados = st.session_state.dados
 
-    # CONSTANTES
     vazao = 850
     concentracao = 0.15
     prod_base = vazao * concentracao
@@ -104,4 +155,4 @@ elif st.session_state.etapa == 3:
     st.info(f"Margem: {margem:.2f}%")
 
     if st.button("Novo orçamento"):
-        st.session_state.etapa = 1
+        st.session_state.etapa = 0
