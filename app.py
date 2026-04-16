@@ -7,19 +7,23 @@ import base64
 st.title("FOS ENGENHARIA LTDA")
 
 # =========================
-# CONTROLE DE ETAPA
+# ESTADO
 # =========================
 if "etapa" not in st.session_state:
     st.session_state.etapa = 0
+
+if "equipamento_sel" not in st.session_state:
+    st.session_state.equipamento_sel = None
 
 # =========================
 # ARQUIVOS
 # =========================
 ARQUIVO_FERIAS = "ferias.csv"
 ARQUIVO_EQUIP = "equipamentos.csv"
+ARQUIVO_ORC = "orcamentos.csv"
 
 # =========================
-# FUNÇÃO GITHUB
+# GITHUB SAVE
 # =========================
 def salvar_github(df, arquivo):
 
@@ -28,11 +32,8 @@ def salvar_github(df, arquivo):
 
     url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
 
-    headers = {
-        "Authorization": f"token {token}"
-    }
+    headers = {"Authorization": f"token {token}"}
 
-    # pega SHA atual
     response = requests.get(url, headers=headers)
 
     if response.status_code == 200:
@@ -54,7 +55,7 @@ def salvar_github(df, arquivo):
     requests.put(url, headers=headers, json=data)
 
 # =========================
-# CRIAR ARQUIVOS SE NECESSÁRIO
+# CRIAÇÃO DE ARQUIVOS
 # =========================
 if not os.path.exists(ARQUIVO_FERIAS):
     pd.DataFrame(columns=["Nome", "Data"]).to_csv(ARQUIVO_FERIAS, index=False)
@@ -62,8 +63,15 @@ if not os.path.exists(ARQUIVO_FERIAS):
 if not os.path.exists(ARQUIVO_EQUIP):
     pd.DataFrame(columns=["Equipamento", "Vazao", "Consumo", "Valor"]).to_csv(ARQUIVO_EQUIP, index=False)
 
+if not os.path.exists(ARQUIVO_ORC):
+    pd.DataFrame(columns=[
+        "Data", "Tipo", "Equipamento", "Volume", "Distancia",
+        "Produtividade", "Tempo_h", "Dias", "Custo_Diesel",
+        "Receita", "Lucro"
+    ]).to_csv(ARQUIVO_ORC, index=False)
+
 # =========================
-# MENU
+# MENU PRINCIPAL
 # =========================
 if st.session_state.etapa == 0:
 
@@ -142,7 +150,7 @@ elif st.session_state.etapa == 300:
     df = pd.read_csv(ARQUIVO_EQUIP)
     st.dataframe(df)
 
-    if st.button("🔄 Atualizar tabela"):
+    if st.button("🔄 Atualizar"):
         st.rerun()
 
     st.divider()
@@ -204,32 +212,11 @@ elif st.session_state.etapa == 300:
         st.session_state.etapa = 0
 
 # =========================
-# TIPO OPERAÇÃO
+# ORÇAMENTO - ETAPA 1
 # =========================
 elif st.session_state.etapa == 1:
 
-    st.header("Tipo de Operação")
-
-    tipo = st.selectbox("Escolha", [
-        "Bombeamento direto",
-        "Geobag",
-        "Centrífuga",
-        "Bacia"
-    ])
-
-    if st.button("Próximo"):
-        st.session_state.tipo = tipo
-        st.session_state.etapa = 2
-
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
-
-# =========================
-# INPUTS
-# =========================
-elif st.session_state.etapa == 2:
-
-    st.header("Parâmetros")
+    st.header("Selecionar Equipamento")
 
     df = pd.read_csv(ARQUIVO_EQUIP)
 
@@ -239,6 +226,29 @@ elif st.session_state.etapa == 2:
     st.write(f"Vazão: {eq['Vazao']} m³/h")
     st.write(f"Consumo: {eq['Consumo']} L/h")
     st.write(f"Valor: R$ {eq['Valor']:,.2f}")
+
+    if st.button("Continuar"):
+        st.session_state.equipamento_sel = equipamento
+        st.session_state.etapa = 2
+
+    if st.button("Voltar"):
+        st.session_state.etapa = 0
+
+# =========================
+# ORÇAMENTO - ETAPA 2
+# =========================
+elif st.session_state.etapa == 2:
+
+    st.header("Parâmetros da Obra")
+
+    df = pd.read_csv(ARQUIVO_EQUIP)
+    equipamento = st.session_state.equipamento_sel
+
+    eq = df[df["Equipamento"] == equipamento].iloc[0]
+
+    st.write(f"Equipamento: {equipamento}")
+    st.write(f"Vazão: {eq['Vazao']} m³/h")
+    st.write(f"Consumo: {eq['Consumo']} L/h")
 
     volume = st.number_input("Volume (m³)", value=10000.0)
     distancia = st.number_input("Distância (m)", value=2000.0)
@@ -252,7 +262,8 @@ elif st.session_state.etapa == 2:
             "preco": preco,
             "vazao": eq["Vazao"],
             "consumo": eq["Consumo"],
-            "horas_dia": horas_dia
+            "horas_dia": horas_dia,
+            "equipamento": equipamento
         }
         st.session_state.etapa = 3
 
@@ -279,22 +290,23 @@ elif st.session_state.etapa == 3:
     tempo_h = d["volume"] / prod_real
     dias = tempo_h / d["horas_dia"]
 
-    preco_diesel = st.session_state.get("base", {}).get("diesel", 6.0)
-    custo_diesel = d["consumo"] * tempo_h * preco_diesel
+    diesel = st.session_state.get("base", {}).get("diesel", 6.0)
+    custo_diesel = d["consumo"] * tempo_h * diesel
 
     receita = d["volume"] * d["preco"]
     lucro = receita - custo_diesel
 
     st.header("Resultado")
 
+    st.write(f"Equipamento: {d['equipamento']}")
     st.write(f"Produtividade: {prod_real:.2f} m³/h")
     st.write(f"Tempo: {tempo_h:.2f} h")
-    st.write(f"Duração: {dias:.2f} dias")
+    st.write(f"Dias: {dias:.2f}")
 
-    st.write(f"Custo diesel: R$ {custo_diesel:,.2f}")
+    st.write(f"Custo Diesel: R$ {custo_diesel:,.2f}")
     st.write(f"Receita: R$ {receita:,.2f}")
 
     st.success(f"Lucro: R$ {lucro:,.2f}")
 
-    if st.button("Novo"):
+    if st.button("Novo orçamento"):
         st.session_state.etapa = 0
