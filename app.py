@@ -1,18 +1,5 @@
 import streamlit as st
 
-st.markdown(
-    """
-    <style>
-    [data-testid="stAppViewContainer"] {
-        background-image: url("https://images.unsplash.com/photo-1581091215367-59ab6b4c3c69");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 st.title("FOS ENGENHARIA LTDA")
 
