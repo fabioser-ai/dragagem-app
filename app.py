@@ -16,12 +16,12 @@ if "etapa" not in st.session_state:
 ARQUIVO_FERIAS = "ferias.csv"
 ARQUIVO_EQUIP = "equipamentos.csv"
 
-# cria arquivos se não existirem (segurança)
+# segurança
 if not os.path.exists(ARQUIVO_FERIAS):
     pd.DataFrame(columns=["Nome", "Data"]).to_csv(ARQUIVO_FERIAS, index=False)
 
 if not os.path.exists(ARQUIVO_EQUIP):
-    pd.DataFrame(columns=["Equipamento", "Vazao", "Concentracao", "Eficiencia", "Horas_dia"]).to_csv(ARQUIVO_EQUIP, index=False)
+    pd.DataFrame(columns=["Equipamento", "Vazao", "Concentracao", "Eficiencia"]).to_csv(ARQUIVO_EQUIP, index=False)
 
 # =========================
 # ETAPA 0 - MENU
@@ -62,18 +62,13 @@ elif st.session_state.etapa == 100:
     ajudante = st.number_input("Ajudante (R$/h)", value=11.0)
     qtd_ajudantes = st.number_input("Qtd ajudantes", value=2)
 
-    vazao = st.number_input("Vazão padrão", value=850.0)
-    concentracao = st.number_input("Concentração (%)", value=15.0)
-
     if st.button("Salvar"):
         st.session_state.base_dados = {
             "diesel": diesel,
             "consumo": consumo,
             "operador": operador,
             "ajudante": ajudante,
-            "qtd_ajudantes": qtd_ajudantes,
-            "vazao": vazao,
-            "concentracao": concentracao / 100
+            "qtd_ajudantes": qtd_ajudantes
         }
         st.success("Salvo!")
 
@@ -117,75 +112,54 @@ elif st.session_state.etapa == 300:
 
     st.divider()
 
-    # =========================
-    # SELECIONAR PARA EDITAR
-    # =========================
     if not df.empty:
 
         equipamento_sel = st.selectbox("Selecionar equipamento", df["Equipamento"])
-
         linha = df[df["Equipamento"] == equipamento_sel].iloc[0]
-
-        st.subheader("Editar equipamento")
 
         nome = st.text_input("Nome", value=linha["Equipamento"])
         vazao = st.number_input("Vazão (m³/h)", value=float(linha["Vazao"]))
         concentracao = st.number_input("Concentração (%)", value=float(linha["Concentracao"])*100)
         eficiencia = st.number_input("Eficiência (%)", value=float(linha["Eficiencia"])*100)
-        horas_dia = st.number_input("Horas/dia", value=int(linha["Horas_dia"]))
 
         col1, col2 = st.columns(2)
 
-        # =========================
-        # SALVAR ALTERAÇÃO
-        # =========================
         if col1.button("Salvar alteração"):
-
             df.loc[df["Equipamento"] == equipamento_sel] = [
                 nome,
                 vazao,
                 concentracao / 100,
-                eficiencia / 100,
-                horas_dia
+                eficiencia / 100
             ]
-
             df.to_csv(ARQUIVO_EQUIP, index=False)
-            st.success("Equipamento atualizado!")
+            st.success("Atualizado!")
 
-        # =========================
-        # DELETAR
-        # =========================
         if col2.button("Excluir equipamento"):
             df = df[df["Equipamento"] != equipamento_sel]
             df.to_csv(ARQUIVO_EQUIP, index=False)
-            st.warning("Equipamento removido!")
+            st.warning("Removido!")
 
     st.divider()
 
-    # =========================
-    # ADICIONAR NOVO
-    # =========================
     st.subheader("Adicionar novo equipamento")
 
     nome_novo = st.text_input("Nome novo")
     vazao_novo = st.number_input("Vazão nova", value=1000.0)
     conc_novo = st.number_input("Concentração nova (%)", value=15.0)
     ef_novo = st.number_input("Eficiência nova (%)", value=70.0)
-    horas_novo = st.number_input("Horas/dia novo", value=20)
 
-    if st.button("Adicionar novo equipamento"):
+    if st.button("Adicionar equipamento"):
         novo = pd.DataFrame([[
             nome_novo,
             vazao_novo,
             conc_novo / 100,
-            ef_novo / 100,
-            horas_novo
-        ]], columns=["Equipamento", "Vazao", "Concentracao", "Eficiencia", "Horas_dia"])
+            ef_novo / 100
+        ]], columns=["Equipamento", "Vazao", "Concentracao", "Eficiencia"])
 
         df = pd.concat([df, novo], ignore_index=True)
         df.to_csv(ARQUIVO_EQUIP, index=False)
 
-        st.success("Novo equipamento adicionado!")
+        st.success("Adicionado!")
 
     if st.button("Voltar"):
         st.session_state.etapa = 0
@@ -231,6 +205,8 @@ elif st.session_state.etapa == 2:
     distancia = st.number_input("Distância (m)", value=2000.0)
     preco = st.number_input("Preço (R$/m³)", value=16.18)
 
+    horas_dia = st.number_input("Horas de operação por dia", value=20)
+
     if st.button("Calcular"):
         st.session_state.calc = {
             "volume": volume,
@@ -238,7 +214,8 @@ elif st.session_state.etapa == 2:
             "preco": preco,
             "vazao": eq["Vazao"],
             "conc": eq["Concentracao"],
-            "ef": eq["Eficiencia"]
+            "ef": eq["Eficiencia"],
+            "horas_dia": horas_dia
         }
         st.session_state.etapa = 3
 
@@ -262,14 +239,16 @@ elif st.session_state.etapa == 3:
         fator = 0.55
 
     prod_real = prod * fator
-    tempo = d["volume"] / prod_real
+    tempo_horas = d["volume"] / prod_real
+    dias = tempo_horas / d["horas_dia"]
 
     receita = d["volume"] * d["preco"]
 
     st.header("Resultado")
 
     st.write(f"Produtividade: {prod_real:.2f} m³/h")
-    st.write(f"Tempo: {tempo:.2f} h")
+    st.write(f"Tempo total: {tempo_horas:.2f} h")
+    st.write(f"Duração: {dias:.2f} dias")
     st.write(f"Receita: R$ {receita:,.2f}")
 
     if st.button("Novo"):
