@@ -6,6 +6,8 @@ from services.github import salvar_github, carregar_github
 from services.codigos import gerar_codigo_obra
 from services.calculos import *
 
+st.set_page_config(layout="wide")
+
 st.title("FOS ENGENHARIA LTDA")
 
 # =========================
@@ -20,97 +22,104 @@ TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 # =========================
-# ESTADO
+# SIDEBAR MENU
 # =========================
-if "etapa" not in st.session_state:
-    st.session_state.etapa = 0
+st.sidebar.title("Menu")
 
-if "equipamento_sel" not in st.session_state:
-    st.session_state.equipamento_sel = None
-
-# =========================
-# MENU
-# =========================
-if st.session_state.etapa == 0:
-
-    st.header("Menu Principal")
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    if col1.button("📊 Orçamento"):
-        st.session_state.etapa = 1
-
-    if col2.button("🚜 Equipamentos"):
-        st.session_state.etapa = 300
-
-    if col3.button("📅 Férias/Folgas"):
-        st.session_state.etapa = 200
-
-    if col4.button("📈 Obras"):
-        st.session_state.etapa = 400
-
-    if col5.button("💰 Salários"):
-        st.session_state.etapa = 500
+opcao = st.sidebar.radio(
+    "Navegação",
+    [
+        "📊 Orçamento",
+        "🚜 Equipamentos",
+        "📅 Férias/Folgas",
+        "💰 Salários",
+        "📈 Obras"
+    ]
+)
 
 # =========================
-# FÉRIAS / FOLGAS
+# ORÇAMENTO
 # =========================
-elif st.session_state.etapa == 200:
+if opcao == "📊 Orçamento":
 
-    st.header("📅 Férias e Folgas")
+    st.header("Orçamento de Dragagem")
 
-    df = carregar_github(ARQUIVO_FERIAS, TOKEN, REPO)
+    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
 
     if df.empty:
-        df = pd.DataFrame(columns=["Funcionario","Data_Inicio","Data_Fim","Tipo"])
+        st.warning("Cadastre equipamentos primeiro!")
+    else:
 
-    st.dataframe(df)
+        equipamento = st.selectbox("Equipamento", df["Equipamento"])
 
-    if st.button("🔄 Atualizar dados"):
-        st.rerun()
+        eq = df[df["Equipamento"] == equipamento].iloc[0]
 
-    st.divider()
+        df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
+        codigo = gerar_codigo_obra(df_orc)
 
-    nome = st.text_input("Funcionário")
-    data_inicio = st.date_input("Data início")
-    data_fim = st.date_input("Data fim")
-    tipo = st.selectbox("Tipo", ["Férias", "Folga"])
+        st.info(f"Código da obra: {codigo}")
 
-    if st.button("Salvar registro"):
+        descricao = st.text_input("Descrição da obra")
 
-        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]],
-                            columns=df.columns)
+        col1, col2 = st.columns(2)
 
-        df = pd.concat([df, novo], ignore_index=True)
+        with col1:
+            volume = st.number_input("Volume (m³)", value=10000.0)
+            distancia = st.number_input("Distância (m)", value=2000.0)
 
-        salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
+        with col2:
+            preco = st.number_input("Preço (R$/m³)", value=16.18)
+            horas = st.number_input("Horas/dia", value=20)
 
-        st.success("Salvo!")
-        st.rerun()
+        if st.button("Calcular"):
 
-    st.divider()
+            prod = calcular_producao(eq["Vazao"], distancia)
+            tempo = calcular_tempo(volume, prod)
+            dias = calcular_dias(tempo, horas)
 
-    if not df.empty:
+            custo = calcular_diesel(eq["Consumo"], tempo, 6)
+            receita = calcular_receita(volume, preco)
+            lucro = calcular_lucro(receita, custo)
 
-        idx = st.selectbox("Selecionar para excluir", df.index)
+            st.subheader("Resultado")
 
-        if st.button("Excluir registro"):
-            df = df.drop(idx)
+            st.write(f"Produção: {prod:,.0f} m³/h")
+            st.write(f"Tempo: {tempo:,.1f} h")
+            st.write(f"Dias: {dias:,.1f}")
 
-            salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
+            st.write(f"Receita: R$ {receita:,.0f}")
+            st.write(f"Custo Diesel: R$ {custo:,.0f}")
+            st.write(f"Lucro: R$ {lucro:,.0f}")
 
-            st.warning("Removido!")
-            st.rerun()
+            if st.button("Salvar orçamento"):
 
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
+                df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
+
+                if df_orc.empty:
+                    df_orc = pd.DataFrame(columns=[
+                        "Codigo","Data","Descricao","Equipamento",
+                        "Volume","Distancia","Produtividade","Tempo_h",
+                        "Dias","Custo_Diesel","Receita","Lucro"
+                    ])
+
+                novo = pd.DataFrame([[
+                    codigo, datetime.now(), descricao, equipamento,
+                    volume, distancia, prod, tempo,
+                    dias, custo, receita, lucro
+                ]], columns=df_orc.columns)
+
+                df_orc = pd.concat([df_orc, novo], ignore_index=True)
+
+                salvar_github(df_orc, ARQUIVO_ORC, TOKEN, REPO)
+
+                st.success("Orçamento salvo!")
 
 # =========================
 # EQUIPAMENTOS
 # =========================
-elif st.session_state.etapa == 300:
+elif opcao == "🚜 Equipamentos":
 
-    st.header("🚜 Equipamentos")
+    st.header("Equipamentos")
 
     df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
 
@@ -118,9 +127,6 @@ elif st.session_state.etapa == 300:
         df = pd.DataFrame(columns=["Equipamento", "Vazao", "Consumo", "Valor"])
 
     st.dataframe(df)
-
-    if st.button("🔄 Atualizar dados"):
-        st.rerun()
 
     st.divider()
 
@@ -134,9 +140,7 @@ elif st.session_state.etapa == 300:
         consumo = st.number_input("Consumo", value=float(linha["Consumo"]))
         valor = st.number_input("Valor", value=float(linha["Valor"]))
 
-        col1, col2 = st.columns(2)
-
-        if col1.button("Salvar"):
+        if st.button("Salvar alteração"):
             idx = df["Equipamento"] == sel
 
             df.loc[idx, "Equipamento"] = nome
@@ -145,15 +149,13 @@ elif st.session_state.etapa == 300:
             df.loc[idx, "Valor"] = valor
 
             salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
-
             st.success("Atualizado!")
             st.rerun()
 
-        if col2.button("Excluir"):
+        if st.button("Excluir equipamento"):
             df = df[df["Equipamento"] != sel]
 
             salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
-
             st.warning("Removido!")
             st.rerun()
 
@@ -162,9 +164,9 @@ elif st.session_state.etapa == 300:
     st.subheader("Novo equipamento")
 
     nome_n = st.text_input("Nome novo")
-    vazao_n = st.number_input("Vazão nova", value=1000.0)
-    consumo_n = st.number_input("Consumo novo", value=60.0)
-    valor_n = st.number_input("Valor novo", value=1000000.0)
+    vazao_n = st.number_input("Vazão", value=1000.0)
+    consumo_n = st.number_input("Consumo", value=60.0)
+    valor_n = st.number_input("Valor", value=1000000.0)
 
     if st.button("Adicionar"):
         novo = pd.DataFrame([[nome_n, vazao_n, consumo_n, valor_n]],
@@ -173,19 +175,44 @@ elif st.session_state.etapa == 300:
         df = pd.concat([df, novo], ignore_index=True)
 
         salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
-
         st.success("Adicionado!")
         st.rerun()
 
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
+# =========================
+# FÉRIAS
+# =========================
+elif opcao == "📅 Férias/Folgas":
+
+    st.header("Férias e Folgas")
+
+    df = carregar_github(ARQUIVO_FERIAS, TOKEN, REPO)
+
+    if df.empty:
+        df = pd.DataFrame(columns=["Funcionario","Data_Inicio","Data_Fim","Tipo"])
+
+    st.dataframe(df)
+
+    nome = st.text_input("Funcionário")
+    data_inicio = st.date_input("Data início")
+    data_fim = st.date_input("Data fim")
+    tipo = st.selectbox("Tipo", ["Férias", "Folga"])
+
+    if st.button("Salvar"):
+        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]],
+                            columns=df.columns)
+
+        df = pd.concat([df, novo], ignore_index=True)
+
+        salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
+        st.success("Salvo!")
+        st.rerun()
 
 # =========================
 # SALÁRIOS
 # =========================
-elif st.session_state.etapa == 500:
+elif opcao == "💰 Salários":
 
-    st.header("💰 Salários por Cargo")
+    st.header("Salários")
 
     df = carregar_github(ARQUIVO_SALARIOS, TOKEN, REPO)
 
@@ -194,64 +221,24 @@ elif st.session_state.etapa == 500:
 
     st.dataframe(df)
 
-    if st.button("🔄 Atualizar dados"):
-        st.rerun()
+    cargo = st.text_input("Cargo")
+    valor = st.number_input("Valor por hora", value=20.0)
 
-    st.divider()
-
-    if not df.empty:
-
-        sel = st.selectbox("Selecionar cargo", df["Cargo"])
-        linha = df[df["Cargo"] == sel].iloc[0]
-
-        cargo = st.text_input("Cargo", value=linha["Cargo"])
-        valor = st.number_input("Valor por hora", value=float(linha["Valor_Hora"]))
-
-        col1, col2 = st.columns(2)
-
-        if col1.button("Salvar salário"):
-            idx = df["Cargo"] == sel
-
-            df.loc[idx, "Cargo"] = cargo
-            df.loc[idx, "Valor_Hora"] = valor
-
-            salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
-
-            st.success("Atualizado!")
-            st.rerun()
-
-        if col2.button("Excluir cargo"):
-            df = df[df["Cargo"] != sel]
-
-            salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
-
-            st.warning("Removido!")
-            st.rerun()
-
-    st.divider()
-
-    cargo_n = st.text_input("Novo cargo")
-    valor_n = st.number_input("Valor hora", value=20.0)
-
-    if st.button("Adicionar cargo"):
-        novo = pd.DataFrame([[cargo_n, valor_n]], columns=df.columns)
+    if st.button("Adicionar"):
+        novo = pd.DataFrame([[cargo, valor]], columns=df.columns)
 
         df = pd.concat([df, novo], ignore_index=True)
 
         salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
-
-        st.success("Adicionado!")
+        st.success("Salvo!")
         st.rerun()
-
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
 
 # =========================
 # DASHBOARD
 # =========================
-elif st.session_state.etapa == 400:
+elif opcao == "📈 Obras":
 
-    st.header("📈 Histórico de Obras")
+    st.header("Histórico de Obras")
 
     df = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
 
@@ -265,96 +252,6 @@ elif st.session_state.etapa == 400:
         lucro = df["Lucro"].sum()
         margem = (lucro / receita * 100) if receita > 0 else 0
 
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("Receita", f"R$ {receita:,.0f}")
-        col2.metric("Lucro", f"R$ {lucro:,.0f}")
-        col3.metric("Margem", f"{margem:.1f}%")
-
-    if st.button("Voltar"):
-        st.session_state.etapa = 0
-
-# =========================
-# ORÇAMENTO
-# =========================
-elif st.session_state.etapa == 1:
-
-    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
-
-    if df.empty:
-        st.warning("Cadastre equipamentos primeiro!")
-    else:
-
-        equipamento = st.selectbox("Equipamento", df["Equipamento"])
-
-        if st.button("Continuar"):
-            st.session_state.equipamento_sel = equipamento
-            st.session_state.etapa = 2
-
-elif st.session_state.etapa == 2:
-
-    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
-    eq = df[df["Equipamento"] == st.session_state.equipamento_sel].iloc[0]
-
-    df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
-    codigo = gerar_codigo_obra(df_orc)
-
-    descricao = st.text_input("Descrição da obra")
-
-    volume = st.number_input("Volume", value=10000.0)
-    distancia = st.number_input("Distância", value=2000.0)
-    preco = st.number_input("Preço", value=16.18)
-    horas = st.number_input("Horas/dia", value=20)
-
-    if st.button("Calcular"):
-        st.session_state.calc = {
-            "codigo": codigo,
-            "descricao": descricao,
-            "volume": volume,
-            "distancia": distancia,
-            "preco": preco,
-            "vazao": eq["Vazao"],
-            "consumo": eq["Consumo"],
-            "horas": horas,
-            "equipamento": st.session_state.equipamento_sel
-        }
-        st.session_state.etapa = 3
-
-elif st.session_state.etapa == 3:
-
-    d = st.session_state.calc
-
-    prod = calcular_producao(d["vazao"], d["distancia"])
-    tempo = calcular_tempo(d["volume"], prod)
-    dias = calcular_dias(tempo, d["horas"])
-
-    custo = calcular_diesel(d["consumo"], tempo, 6)
-    receita = calcular_receita(d["volume"], d["preco"])
-    lucro = calcular_lucro(receita, custo)
-
-    st.write(f"Código: {d['codigo']}")
-    st.write(f"Descrição: {d['descricao']}")
-    st.write(f"Lucro: R$ {lucro:,.0f}")
-
-    if st.button("Salvar"):
-
-        df = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
-
-        if df.empty:
-            df = pd.DataFrame(columns=[
-                "Codigo","Data","Descricao","Equipamento",
-                "Volume","Distancia","Produtividade","Tempo_h",
-                "Dias","Custo_Diesel","Receita","Lucro"
-            ])
-
-        novo = pd.DataFrame([[
-            d["codigo"], datetime.now(), d["descricao"],
-            d["equipamento"], d["volume"], d["distancia"],
-            prod, tempo, dias, custo, receita, lucro
-        ]], columns=df.columns)
-
-        df = pd.concat([df, novo], ignore_index=True)
-
-        salvar_github(df, ARQUIVO_ORC, TOKEN, REPO)
-
-        st.success("Salvo!")
+        st.metric("Receita", f"R$ {receita:,.0f}")
+        st.metric("Lucro", f"R$ {lucro:,.0f}")
+        st.metric("Margem", f"{margem:.1f}%")
