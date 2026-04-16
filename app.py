@@ -8,6 +8,27 @@ from services.calculos import *
 
 st.set_page_config(layout="wide")
 
+# =========================
+# ESTILO (CSS)
+# =========================
+st.markdown("""
+<style>
+.card {
+    padding: 30px;
+    border-radius: 15px;
+    background-color: #1f2937;
+    color: white;
+    text-align: center;
+    font-size: 20px;
+    transition: 0.3s;
+}
+.card:hover {
+    background-color: #374151;
+    transform: scale(1.03);
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("FOS ENGENHARIA LTDA")
 
 # =========================
@@ -22,27 +43,44 @@ TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 # =========================
-# SIDEBAR MENU
+# ESTADO
 # =========================
-st.sidebar.title("Menu")
+if "tela" not in st.session_state:
+    st.session_state.tela = "menu"
 
-opcao = st.sidebar.radio(
-    "Navegação",
-    [
-        "📊 Orçamento",
-        "🚜 Equipamentos",
-        "📅 Férias/Folgas",
-        "💰 Salários",
-        "📈 Obras"
-    ]
-)
+# =========================
+# MENU DASHBOARD
+# =========================
+if st.session_state.tela == "menu":
+
+    st.subheader("Selecione uma opção")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("📊 ORÇAMENTO", use_container_width=True):
+            st.session_state.tela = "orcamento"
+
+        if st.button("📅 FÉRIAS", use_container_width=True):
+            st.session_state.tela = "ferias"
+
+    with col2:
+        if st.button("🚜 EQUIPAMENTOS", use_container_width=True):
+            st.session_state.tela = "equip"
+
+        if st.button("💰 SALÁRIOS", use_container_width=True):
+            st.session_state.tela = "salarios"
+
+    with col3:
+        if st.button("📈 OBRAS", use_container_width=True):
+            st.session_state.tela = "obras"
 
 # =========================
 # ORÇAMENTO
 # =========================
-if opcao == "📊 Orçamento":
+elif st.session_state.tela == "orcamento":
 
-    st.header("Orçamento de Dragagem")
+    st.header("Orçamento")
 
     df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
 
@@ -51,25 +89,19 @@ if opcao == "📊 Orçamento":
     else:
 
         equipamento = st.selectbox("Equipamento", df["Equipamento"])
-
         eq = df[df["Equipamento"] == equipamento].iloc[0]
 
         df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
         codigo = gerar_codigo_obra(df_orc)
 
-        st.info(f"Código da obra: {codigo}")
+        st.info(f"Código: {codigo}")
 
-        descricao = st.text_input("Descrição da obra")
+        descricao = st.text_input("Descrição")
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            volume = st.number_input("Volume (m³)", value=10000.0)
-            distancia = st.number_input("Distância (m)", value=2000.0)
-
-        with col2:
-            preco = st.number_input("Preço (R$/m³)", value=16.18)
-            horas = st.number_input("Horas/dia", value=20)
+        volume = st.number_input("Volume", value=10000.0)
+        distancia = st.number_input("Distância", value=2000.0)
+        preco = st.number_input("Preço", value=16.18)
+        horas = st.number_input("Horas/dia", value=20)
 
         if st.button("Calcular"):
 
@@ -81,18 +113,9 @@ if opcao == "📊 Orçamento":
             receita = calcular_receita(volume, preco)
             lucro = calcular_lucro(receita, custo)
 
-            st.subheader("Resultado")
-
-            st.write(f"Produção: {prod:,.0f} m³/h")
-            st.write(f"Tempo: {tempo:,.1f} h")
-            st.write(f"Dias: {dias:,.1f}")
-
-            st.write(f"Receita: R$ {receita:,.0f}")
-            st.write(f"Custo Diesel: R$ {custo:,.0f}")
             st.write(f"Lucro: R$ {lucro:,.0f}")
 
-            if st.button("Salvar orçamento"):
-
+            if st.button("Salvar"):
                 df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
 
                 if df_orc.empty:
@@ -112,12 +135,15 @@ if opcao == "📊 Orçamento":
 
                 salvar_github(df_orc, ARQUIVO_ORC, TOKEN, REPO)
 
-                st.success("Orçamento salvo!")
+                st.success("Salvo!")
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
 
 # =========================
 # EQUIPAMENTOS
 # =========================
-elif opcao == "🚜 Equipamentos":
+elif st.session_state.tela == "equip":
 
     st.header("Equipamentos")
 
@@ -128,62 +154,27 @@ elif opcao == "🚜 Equipamentos":
 
     st.dataframe(df)
 
-    st.divider()
-
-    if not df.empty:
-
-        sel = st.selectbox("Selecionar", df["Equipamento"])
-        linha = df[df["Equipamento"] == sel].iloc[0]
-
-        nome = st.text_input("Nome", value=linha["Equipamento"])
-        vazao = st.number_input("Vazão", value=float(linha["Vazao"]))
-        consumo = st.number_input("Consumo", value=float(linha["Consumo"]))
-        valor = st.number_input("Valor", value=float(linha["Valor"]))
-
-        if st.button("Salvar alteração"):
-            idx = df["Equipamento"] == sel
-
-            df.loc[idx, "Equipamento"] = nome
-            df.loc[idx, "Vazao"] = vazao
-            df.loc[idx, "Consumo"] = consumo
-            df.loc[idx, "Valor"] = valor
-
-            salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
-            st.success("Atualizado!")
-            st.rerun()
-
-        if st.button("Excluir equipamento"):
-            df = df[df["Equipamento"] != sel]
-
-            salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
-            st.warning("Removido!")
-            st.rerun()
-
-    st.divider()
-
-    st.subheader("Novo equipamento")
-
-    nome_n = st.text_input("Nome novo")
-    vazao_n = st.number_input("Vazão", value=1000.0)
-    consumo_n = st.number_input("Consumo", value=60.0)
-    valor_n = st.number_input("Valor", value=1000000.0)
+    nome = st.text_input("Nome")
+    vazao = st.number_input("Vazão", value=1000.0)
+    consumo = st.number_input("Consumo", value=60.0)
+    valor = st.number_input("Valor", value=1000000.0)
 
     if st.button("Adicionar"):
-        novo = pd.DataFrame([[nome_n, vazao_n, consumo_n, valor_n]],
-                            columns=df.columns)
-
+        novo = pd.DataFrame([[nome, vazao, consumo, valor]], columns=df.columns)
         df = pd.concat([df, novo], ignore_index=True)
 
         salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
-        st.success("Adicionado!")
-        st.rerun()
+        st.success("Salvo!")
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
 
 # =========================
 # FÉRIAS
 # =========================
-elif opcao == "📅 Férias/Folgas":
+elif st.session_state.tela == "ferias":
 
-    st.header("Férias e Folgas")
+    st.header("Férias")
 
     df = carregar_github(ARQUIVO_FERIAS, TOKEN, REPO)
 
@@ -198,19 +189,19 @@ elif opcao == "📅 Férias/Folgas":
     tipo = st.selectbox("Tipo", ["Férias", "Folga"])
 
     if st.button("Salvar"):
-        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]],
-                            columns=df.columns)
-
+        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]], columns=df.columns)
         df = pd.concat([df, novo], ignore_index=True)
 
         salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
         st.success("Salvo!")
-        st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
 
 # =========================
 # SALÁRIOS
 # =========================
-elif opcao == "💰 Salários":
+elif st.session_state.tela == "salarios":
 
     st.header("Salários")
 
@@ -222,36 +213,29 @@ elif opcao == "💰 Salários":
     st.dataframe(df)
 
     cargo = st.text_input("Cargo")
-    valor = st.number_input("Valor por hora", value=20.0)
+    valor = st.number_input("Valor/hora", value=20.0)
 
-    if st.button("Adicionar"):
+    if st.button("Salvar"):
         novo = pd.DataFrame([[cargo, valor]], columns=df.columns)
-
         df = pd.concat([df, novo], ignore_index=True)
 
         salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
         st.success("Salvo!")
-        st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
 
 # =========================
-# DASHBOARD
+# OBRAS
 # =========================
-elif opcao == "📈 Obras":
+elif st.session_state.tela == "obras":
 
-    st.header("Histórico de Obras")
+    st.header("Histórico")
 
     df = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
 
-    if df.empty:
-        st.warning("Sem dados ainda")
-    else:
-
+    if not df.empty:
         st.dataframe(df)
 
-        receita = df["Receita"].sum()
-        lucro = df["Lucro"].sum()
-        margem = (lucro / receita * 100) if receita > 0 else 0
-
-        st.metric("Receita", f"R$ {receita:,.0f}")
-        st.metric("Lucro", f"R$ {lucro:,.0f}")
-        st.metric("Margem", f"{margem:.1f}%")
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
