@@ -39,9 +39,9 @@ if "tela" not in st.session_state:
     st.session_state.tela = "menu"
 
 # =========================
-# FUNÇÃO CRUD COMPLETA
+# FUNÇÃO CRUD GENÉRICA
 # =========================
-def tela_crud_completa(arquivo, colunas, titulo, voltar, chave):
+def tela_crud_simples(arquivo, colunas, titulo, voltar, chave):
 
     st.header(titulo)
 
@@ -54,7 +54,6 @@ def tela_crud_completa(arquivo, colunas, titulo, voltar, chave):
 
     st.divider()
 
-    # BOTÃO EDITAR
     if st.button("✏️ Editar / Excluir", key=f"edit_{chave}"):
         st.session_state.tela = f"edit_{chave}"
         return
@@ -75,11 +74,10 @@ def tela_crud_completa(arquivo, colunas, titulo, voltar, chave):
     if st.button("⬅ Voltar"):
         st.session_state.tela = voltar
 
-
 # =========================
-# FUNÇÃO TELA EDIÇÃO
+# FUNÇÃO EDIÇÃO GENÉRICA
 # =========================
-def tela_edicao(arquivo, colunas, titulo, voltar, chave):
+def tela_edicao_simples(arquivo, colunas, titulo, voltar, chave):
 
     st.header(f"{titulo} - Edição")
 
@@ -88,12 +86,11 @@ def tela_edicao(arquivo, colunas, titulo, voltar, chave):
     if df.empty:
         st.warning("Sem dados")
     else:
-
         idx_sel = st.selectbox("Selecione", df.index)
 
-        novos_valores = []
+        novos = []
         for c in colunas:
-            novos_valores.append(
+            novos.append(
                 st.text_input(c, value=str(df.loc[idx_sel, c]), key=f"edit_{chave}_{c}")
             )
 
@@ -101,7 +98,7 @@ def tela_edicao(arquivo, colunas, titulo, voltar, chave):
 
         if col1.button("Salvar"):
             for i, c in enumerate(colunas):
-                df.loc[idx_sel, c] = novos_valores[i]
+                df.loc[idx_sel, c] = novos[i]
 
             salvar_github(df, arquivo, TOKEN, REPO)
             st.success("Atualizado!")
@@ -115,7 +112,6 @@ def tela_edicao(arquivo, colunas, titulo, voltar, chave):
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = voltar
-
 
 # =========================
 # MENU PRINCIPAL
@@ -162,40 +158,111 @@ elif st.session_state.tela == "dados":
         st.session_state.tela = "menu"
 
 # =========================
-# CRUD TELAS
+# EQUIPAMENTOS (COM TIPAGEM CORRETA)
 # =========================
 elif st.session_state.tela == "equip":
-    tela_crud_completa(ARQ_EQUIP, ["Equipamento","Vazao","Consumo","Valor"], "Equipamentos", "dados", "equip")
 
-elif st.session_state.tela == "mat":
-    tela_crud_completa(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados", "mat")
+    st.header("Equipamentos")
 
-elif st.session_state.tela == "desag":
-    tela_crud_completa(ARQ_DESAG, ["Tipo"], "Desaguamento", "dados", "desag")
+    df = carregar_github(ARQ_EQUIP, TOKEN, REPO)
 
-elif st.session_state.tela == "hor":
-    tela_crud_completa(ARQ_HOR, ["Inicio","Fim"], "Horários", "dados", "hor")
+    if df.empty:
+        df = pd.DataFrame(columns=["Equipamento","Vazao","Consumo","Valor"])
 
-elif st.session_state.tela == "dias":
-    tela_crud_completa(ARQ_DIAS, ["Descricao"], "Dias", "dados", "dias")
+    st.dataframe(df)
+
+    st.divider()
+
+    if st.button("✏️ Editar / Excluir"):
+        st.session_state.tela = "edit_equip"
+        st.rerun()
+
+    st.subheader("Adicionar novo")
+
+    nome = st.text_input("Nome")
+    vazao = st.number_input("Vazão", value=1000.0)
+    consumo = st.number_input("Consumo", value=60.0)
+    valor = st.number_input("Valor", value=1000000.0)
+
+    if st.button("Adicionar"):
+        novo = pd.DataFrame([[nome, vazao, consumo, valor]], columns=df.columns)
+        df = pd.concat([df, novo], ignore_index=True)
+        salvar_github(df, ARQ_EQUIP, TOKEN, REPO)
+        st.success("Salvo!")
+        st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "dados"
 
 # =========================
-# TELAS DE EDIÇÃO
+# EDIÇÃO EQUIPAMENTOS (FIX DO ERRO)
 # =========================
 elif st.session_state.tela == "edit_equip":
-    tela_edicao(ARQ_EQUIP, ["Equipamento","Vazao","Consumo","Valor"], "Equipamentos", "equip", "equip")
+
+    st.header("Equipamentos - Edição")
+
+    df = carregar_github(ARQ_EQUIP, TOKEN, REPO)
+
+    if df.empty:
+        st.warning("Sem dados")
+    else:
+        equipamento = st.selectbox("Selecione", df["Equipamento"])
+        linha = df[df["Equipamento"] == equipamento].iloc[0]
+
+        nome = st.text_input("Nome", value=linha["Equipamento"])
+        vazao = st.number_input("Vazão", value=float(linha["Vazao"]))
+        consumo = st.number_input("Consumo", value=float(linha["Consumo"]))
+        valor = st.number_input("Valor", value=float(linha["Valor"]))
+
+        col1, col2 = st.columns(2)
+
+        if col1.button("Salvar"):
+            idx = df["Equipamento"] == equipamento
+
+            df.loc[idx, "Equipamento"] = nome
+            df.loc[idx, "Vazao"] = float(vazao)
+            df.loc[idx, "Consumo"] = float(consumo)
+            df.loc[idx, "Valor"] = float(valor)
+
+            salvar_github(df, ARQ_EQUIP, TOKEN, REPO)
+            st.success("Atualizado!")
+            st.rerun()
+
+        if col2.button("Excluir"):
+            df = df[df["Equipamento"] != equipamento]
+            salvar_github(df, ARQ_EQUIP, TOKEN, REPO)
+            st.warning("Removido!")
+            st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "equip"
+
+# =========================
+# OUTROS DADOS (GENÉRICO)
+# =========================
+elif st.session_state.tela == "mat":
+    tela_crud_simples(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados", "mat")
+
+elif st.session_state.tela == "desag":
+    tela_crud_simples(ARQ_DESAG, ["Tipo"], "Desaguamento", "dados", "desag")
+
+elif st.session_state.tela == "hor":
+    tela_crud_simples(ARQ_HOR, ["Inicio","Fim"], "Horários", "dados", "hor")
+
+elif st.session_state.tela == "dias":
+    tela_crud_simples(ARQ_DIAS, ["Descricao"], "Dias", "dados", "dias")
 
 elif st.session_state.tela == "edit_mat":
-    tela_edicao(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "mat", "mat")
+    tela_edicao_simples(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "mat", "mat")
 
 elif st.session_state.tela == "edit_desag":
-    tela_edicao(ARQ_DESAG, ["Tipo"], "Desaguamento", "desag", "desag")
+    tela_edicao_simples(ARQ_DESAG, ["Tipo"], "Desaguamento", "desag", "desag")
 
 elif st.session_state.tela == "edit_hor":
-    tela_edicao(ARQ_HOR, ["Inicio","Fim"], "Horários", "hor", "hor")
+    tela_edicao_simples(ARQ_HOR, ["Inicio","Fim"], "Horários", "hor", "hor")
 
 elif st.session_state.tela == "edit_dias":
-    tela_edicao(ARQ_DIAS, ["Descricao"], "Dias", "dias", "dias")
+    tela_edicao_simples(ARQ_DIAS, ["Descricao"], "Dias", "dias", "dias")
 
 # =========================
 # FÉRIAS
