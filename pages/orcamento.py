@@ -1,18 +1,19 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from services.github import carregar_github
+from services.github import carregar_github, salvar_github
 
 ARQ_EQUIP = "data/equipamentos.csv"
 ARQ_MAT = "data/materiais.csv"
 ARQ_DESAG = "data/desaguamento.csv"
+ARQ_CLIENTES = "data/clientes.csv"
 ARQ_OBRAS = "data/orcamentos.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 # =========================
-# GERAR CÓDIGO OBRA
+# GERAR CÓDIGO
 # =========================
 def gerar_codigo():
 
@@ -37,7 +38,7 @@ def gerar_codigo():
     return f"D_{seq:03d}_{ano}"
 
 # =========================
-# ETAPA 0 - IDENTIFICAÇÃO
+# ETAPA 0
 # =========================
 def etapa0():
 
@@ -45,18 +46,36 @@ def etapa0():
 
     codigo = gerar_codigo()
 
+    # CLIENTES
+    df_clientes = carregar_github(ARQ_CLIENTES, TOKEN, REPO)
+    if df_clientes.empty:
+        df_clientes = pd.DataFrame(columns=["Cliente"])
+
+    lista_clientes = df_clientes["Cliente"].tolist()
+
+    cliente = st.selectbox("Cliente", lista_clientes)
+    novo_cliente = st.text_input("Ou adicionar novo cliente")
+
     nome_obra = st.text_input("Nome da obra")
-    cliente = st.text_input("Cliente")
     data = st.date_input("Data", value=datetime.now())
 
     st.info(f"Código gerado: {codigo}")
 
     if st.button("Continuar"):
 
+        # define cliente final
+        if novo_cliente:
+            cliente_final = novo_cliente
+
+            df_clientes.loc[len(df_clientes)] = [novo_cliente]
+            salvar_github(df_clientes, ARQ_CLIENTES, TOKEN, REPO)
+        else:
+            cliente_final = cliente
+
         st.session_state.orcamento = {
             "codigo": codigo,
             "nome_obra": nome_obra,
-            "cliente": cliente,
+            "cliente": cliente_final,
             "data": str(data)
         }
 
@@ -93,7 +112,6 @@ def etapa1():
 
     if st.button("Continuar"):
 
-        # IMPORTANTE: NÃO sobrescrever
         st.session_state.orcamento.update({
             "vazao": vazao,
             "volume": volume,
@@ -120,9 +138,6 @@ def etapa2():
     dados = st.session_state.orcamento
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
 
-    # =========================
-    # DISTÂNCIA
-    # =========================
     col1, col2 = st.columns(2)
 
     flutuante = col1.number_input("Linha flutuante", value=float(dados["flutuante"]))
@@ -131,9 +146,6 @@ def etapa2():
     distancia_total = flutuante + terrestre
     st.info(f"Distância total: {distancia_total:.0f} m")
 
-    # =========================
-    # CÁLCULO
-    # =========================
     linha = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
     concentracao = float(linha["Solidos_InSitu"]) / 100
 
@@ -148,9 +160,6 @@ def etapa2():
 
     vazao_real = dados["vazao"] * eficiencia * concentracao
 
-    # =========================
-    # EXPLICAÇÃO
-    # =========================
     st.subheader("Cálculo")
 
     st.write(f"Vazão: {dados['vazao']}")
@@ -161,18 +170,12 @@ def etapa2():
 
     st.success(f"Vazão real: {vazao_real:.2f} m³/h")
 
-    # =========================
-    # SALVAR
-    # =========================
     st.session_state.orcamento.update({
         "flutuante": flutuante,
         "terrestre": terrestre,
         "vazao_real": vazao_real
     })
 
-    # =========================
-    # NAVEGAÇÃO
-    # =========================
     col1, col2 = st.columns(2)
 
     if col1.button("⬅ Voltar"):
