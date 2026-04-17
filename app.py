@@ -39,7 +39,7 @@ if "tela" not in st.session_state:
     st.session_state.tela = "menu"
 
 # =========================
-# FUNÇÃO CRUD GENÉRICA
+# FUNÇÕES GENÉRICAS
 # =========================
 def tela_crud_simples(arquivo, colunas, titulo, voltar, chave):
 
@@ -74,9 +74,7 @@ def tela_crud_simples(arquivo, colunas, titulo, voltar, chave):
     if st.button("⬅ Voltar"):
         st.session_state.tela = voltar
 
-# =========================
-# FUNÇÃO EDIÇÃO GENÉRICA
-# =========================
+
 def tela_edicao_simples(arquivo, colunas, titulo, voltar, chave):
 
     st.header(f"{titulo} - Edição")
@@ -158,7 +156,7 @@ elif st.session_state.tela == "dados":
         st.session_state.tela = "menu"
 
 # =========================
-# EQUIPAMENTOS (COM TIPAGEM CORRETA)
+# EQUIPAMENTOS
 # =========================
 elif st.session_state.tela == "equip":
 
@@ -195,7 +193,7 @@ elif st.session_state.tela == "equip":
         st.session_state.tela = "dados"
 
 # =========================
-# EDIÇÃO EQUIPAMENTOS (FIX DO ERRO)
+# EDITAR EQUIPAMENTOS
 # =========================
 elif st.session_state.tela == "edit_equip":
 
@@ -238,7 +236,7 @@ elif st.session_state.tela == "edit_equip":
         st.session_state.tela = "equip"
 
 # =========================
-# OUTROS DADOS (GENÉRICO)
+# OUTROS DADOS
 # =========================
 elif st.session_state.tela == "mat":
     tela_crud_simples(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados", "mat")
@@ -265,12 +263,49 @@ elif st.session_state.tela == "edit_dias":
     tela_edicao_simples(ARQ_DIAS, ["Descricao"], "Dias", "dias", "dias")
 
 # =========================
-# FÉRIAS
+# FÉRIAS (COM INCLUSÃO)
 # =========================
 elif st.session_state.tela == "ferias":
-    st.header("Férias")
+
+    st.header("Férias e Folgas")
+
     df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
+
+    if df.empty:
+        df = pd.DataFrame(columns=["Funcionario","Data_Inicio","Data_Fim","Tipo"])
+
+    st.subheader("Histórico")
     st.dataframe(df)
+
+    st.divider()
+
+    st.subheader("Novo registro")
+
+    nome = st.text_input("Funcionário")
+    data_inicio = st.date_input("Data início")
+    data_fim = st.date_input("Data fim")
+    tipo = st.selectbox("Tipo", ["Férias", "Folga"])
+
+    col1, col2 = st.columns(2)
+
+    if col1.button("Salvar"):
+        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]], columns=df.columns)
+        df = pd.concat([df, novo], ignore_index=True)
+        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+        st.success("Registro salvo!")
+        st.rerun()
+
+    if not df.empty:
+        st.divider()
+        st.subheader("Excluir registro")
+
+        idx = st.selectbox("Selecione o índice", df.index)
+
+        if col2.button("Excluir"):
+            df = df.drop(idx).reset_index(drop=True)
+            salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+            st.warning("Registro removido!")
+            st.rerun()
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
@@ -279,9 +314,15 @@ elif st.session_state.tela == "ferias":
 # OBRAS
 # =========================
 elif st.session_state.tela == "obras":
-    st.header("Obras")
+
+    st.header("Histórico de Obras")
+
     df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
-    st.dataframe(df)
+
+    if df.empty:
+        st.warning("Sem dados ainda")
+    else:
+        st.dataframe(df)
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
@@ -290,6 +331,8 @@ elif st.session_state.tela == "obras":
 # ORÇAMENTO
 # =========================
 elif st.session_state.tela == "orcamento":
+
     st.header("Orçamento (em evolução)")
+
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
