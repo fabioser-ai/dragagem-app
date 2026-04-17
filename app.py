@@ -8,6 +8,18 @@ st.set_page_config(layout="wide")
 st.title("FOS ENGENHARIA LTDA")
 
 # =========================
+# ESTILO
+# =========================
+st.markdown("""
+<style>
+button[kind="secondary"] {
+    height: 80px;
+    font-size: 18px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
 # ARQUIVOS
 # =========================
 ARQ_EQUIP = "data/equipamentos.csv"
@@ -58,7 +70,7 @@ if "tela" not in st.session_state:
     st.session_state.tela = "menu"
 
 # =========================
-# MENU PRINCIPAL
+# MENU PRINCIPAL (CARDS)
 # =========================
 if st.session_state.tela == "menu":
 
@@ -70,9 +82,6 @@ if st.session_state.tela == "menu":
     if col1.button("📅 FÉRIAS", use_container_width=True):
         st.session_state.tela = "ferias"
 
-    if col2.button("🚜 EQUIPAMENTOS", use_container_width=True):
-        st.session_state.tela = "equip"
-
     if col2.button("📈 OBRAS", use_container_width=True):
         st.session_state.tela = "obras"
 
@@ -80,48 +89,38 @@ if st.session_state.tela == "menu":
         st.session_state.tela = "dados"
 
 # =========================
-# MENU DADOS
+# MENU DADOS (CARDS)
 # =========================
 elif st.session_state.tela == "dados":
 
     st.header("Dados do Sistema")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
-    if col1.button("Materiais"):
+    if col1.button("🚜 Equipamentos", use_container_width=True):
+        st.session_state.tela = "equip"
+
+    if col1.button("🧱 Materiais", use_container_width=True):
         st.session_state.tela = "dados_mat"
 
-    if col1.button("Desaguamento"):
+    if col2.button("💧 Desaguamento", use_container_width=True):
         st.session_state.tela = "dados_desag"
 
-    if col2.button("Horários"):
+    if col2.button("⏱ Horários", use_container_width=True):
         st.session_state.tela = "dados_hor"
 
-    if col2.button("Dias de Trabalho"):
+    if col3.button("📅 Dias de Trabalho", use_container_width=True):
         st.session_state.tela = "dados_dias"
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
 
 # =========================
-# TELAS DADOS
-# =========================
-elif st.session_state.tela == "dados_mat":
-    tela_crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados")
-
-elif st.session_state.tela == "dados_desag":
-    tela_crud(ARQ_DESAG, ["Tipo"], "Desaguamento", "dados")
-
-elif st.session_state.tela == "dados_hor":
-    tela_crud(ARQ_HOR, ["Inicio","Fim"], "Horários", "dados")
-
-elif st.session_state.tela == "dados_dias":
-    tela_crud(ARQ_DIAS, ["Descricao"], "Dias de Trabalho", "dados")
-
-# =========================
-# EQUIPAMENTOS
+# EQUIPAMENTOS (AGORA DENTRO DE DADOS)
 # =========================
 elif st.session_state.tela == "equip":
+
+    st.header("Equipamentos")
 
     df = carregar_github(ARQ_EQUIP, TOKEN, REPO)
 
@@ -129,6 +128,8 @@ elif st.session_state.tela == "equip":
         df = pd.DataFrame(columns=["Equipamento","Vazao","Consumo","Valor"])
 
     st.dataframe(df)
+
+    st.divider()
 
     nome = st.text_input("Nome")
     vazao = st.number_input("Vazão", value=1000.0)
@@ -143,7 +144,22 @@ elif st.session_state.tela == "equip":
         st.rerun()
 
     if st.button("⬅ Voltar"):
-        st.session_state.tela = "menu"
+        st.session_state.tela = "dados"
+
+# =========================
+# DADOS
+# =========================
+elif st.session_state.tela == "dados_mat":
+    tela_crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados")
+
+elif st.session_state.tela == "dados_desag":
+    tela_crud(ARQ_DESAG, ["Tipo"], "Desaguamento", "dados")
+
+elif st.session_state.tela == "dados_hor":
+    tela_crud(ARQ_HOR, ["Inicio","Fim"], "Horários", "dados")
+
+elif st.session_state.tela == "dados_dias":
+    tela_crud(ARQ_DIAS, ["Descricao"], "Dias de Trabalho", "dados")
 
 # =========================
 # FÉRIAS
