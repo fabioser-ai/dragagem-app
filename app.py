@@ -67,7 +67,7 @@ if st.session_state.tela == "menu":
             st.session_state.tela = "obras"
 
 # =========================
-# ORÇAMENTO - TELA 1
+# ORÇAMENTO
 # =========================
 elif st.session_state.tela == "orcamento":
 
@@ -79,44 +79,33 @@ elif st.session_state.tela == "orcamento":
         st.warning("Cadastre equipamentos primeiro!")
     else:
 
-        # DRAGA
         draga = st.selectbox("Informe a draga", df["Equipamento"])
         dados = df[df["Equipamento"] == draga].iloc[0]
 
         vazao_padrao = float(dados["Vazao"])
 
-        # CONTROLE DE ESTADO
         if "vazao_input" not in st.session_state:
             st.session_state.vazao_input = vazao_padrao
 
-        # RESET AO TROCAR DRAGA
         if st.session_state.get("ultima_draga") != draga:
             st.session_state.vazao_input = vazao_padrao
             st.session_state.ultima_draga = draga
 
-        vazao = st.number_input(
-            "Vazão (m³/h)",
-            value=st.session_state.vazao_input,
-            key="vazao_input"
-        )
+        vazao = st.number_input("Vazão (m³/h)", value=st.session_state.vazao_input, key="vazao_input")
 
-        # ALERTA
         if vazao != vazao_padrao:
             st.warning("* valor alterado manualmente")
-
-        st.divider()
 
         if st.button("Continuar"):
             st.session_state.draga = draga
             st.session_state.vazao_final = vazao
-
-            st.success("Dados salvos para próxima etapa")
+            st.success("Dados salvos")
 
         if st.button("⬅ Voltar"):
             st.session_state.tela = "menu"
 
 # =========================
-# EQUIPAMENTOS
+# EQUIPAMENTOS - TELA 1
 # =========================
 elif st.session_state.tela == "equip":
 
@@ -130,6 +119,15 @@ elif st.session_state.tela == "equip":
     st.dataframe(df)
 
     st.divider()
+
+    # BOTÃO PARA IR PARA EDIÇÃO
+    if st.button("✏️ Atualizar equipamento"):
+        st.session_state.tela = "equip_edit"
+
+    st.divider()
+
+    # NOVO EQUIPAMENTO
+    st.subheader("Novo equipamento")
 
     nome = st.text_input("Nome")
     vazao = st.number_input("Vazão", value=1000.0)
@@ -146,6 +144,51 @@ elif st.session_state.tela == "equip":
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
+
+# =========================
+# EQUIPAMENTOS - TELA 2 (EDIÇÃO)
+# =========================
+elif st.session_state.tela == "equip_edit":
+
+    st.header("Atualizar Equipamento")
+
+    df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
+
+    if df.empty:
+        st.warning("Sem equipamentos cadastrados")
+    else:
+
+        sel = st.selectbox("Selecione o equipamento", df["Equipamento"])
+        linha = df[df["Equipamento"] == sel].iloc[0]
+
+        nome = st.text_input("Nome", value=linha["Equipamento"])
+        vazao = st.number_input("Vazão", value=float(linha["Vazao"]))
+        consumo = st.number_input("Consumo", value=float(linha["Consumo"]))
+        valor = st.number_input("Valor", value=float(linha["Valor"]))
+
+        col1, col2 = st.columns(2)
+
+        if col1.button("Salvar alteração"):
+            idx = df["Equipamento"] == sel
+
+            df.loc[idx, "Equipamento"] = nome
+            df.loc[idx, "Vazao"] = vazao
+            df.loc[idx, "Consumo"] = consumo
+            df.loc[idx, "Valor"] = valor
+
+            salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
+            st.success("Atualizado!")
+            st.rerun()
+
+        if col2.button("Excluir equipamento"):
+            df = df[df["Equipamento"] != sel]
+
+            salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
+            st.warning("Removido!")
+            st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "equip"
 
 # =========================
 # FÉRIAS
