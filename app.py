@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
 from services.github import salvar_github, carregar_github
 
@@ -14,6 +15,8 @@ ARQ_MAT = "data/materiais.csv"
 ARQ_DESAG = "data/desaguamento.csv"
 ARQ_HOR = "data/horarios.csv"
 ARQ_DIAS = "data/dias.csv"
+ARQ_FERIAS = "data/ferias.csv"
+ARQ_OBRAS = "data/orcamentos.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
@@ -64,8 +67,14 @@ if st.session_state.tela == "menu":
     if col1.button("📊 ORÇAMENTO", use_container_width=True):
         st.session_state.tela = "orcamento"
 
+    if col1.button("📅 FÉRIAS", use_container_width=True):
+        st.session_state.tela = "ferias"
+
     if col2.button("🚜 EQUIPAMENTOS", use_container_width=True):
         st.session_state.tela = "equip"
+
+    if col2.button("📈 OBRAS", use_container_width=True):
+        st.session_state.tela = "obras"
 
     if col3.button("📁 DADOS", use_container_width=True):
         st.session_state.tela = "dados"
@@ -132,6 +141,52 @@ elif st.session_state.tela == "equip":
         salvar_github(df, ARQ_EQUIP, TOKEN, REPO)
         st.success("Salvo!")
         st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
+
+# =========================
+# FÉRIAS
+# =========================
+elif st.session_state.tela == "ferias":
+
+    st.header("Férias e Folgas")
+
+    df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
+
+    if df.empty:
+        df = pd.DataFrame(columns=["Funcionario","Data_Inicio","Data_Fim","Tipo"])
+
+    st.dataframe(df)
+
+    nome = st.text_input("Funcionário")
+    inicio = st.date_input("Data início")
+    fim = st.date_input("Data fim")
+    tipo = st.selectbox("Tipo", ["Férias","Folga"])
+
+    if st.button("Salvar"):
+        novo = pd.DataFrame([[nome, inicio, fim, tipo]], columns=df.columns)
+        df = pd.concat([df, novo], ignore_index=True)
+        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+        st.success("Salvo!")
+        st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
+
+# =========================
+# OBRAS
+# =========================
+elif st.session_state.tela == "obras":
+
+    st.header("Histórico de Obras")
+
+    df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
+
+    if df.empty:
+        st.warning("Sem dados ainda")
+    else:
+        st.dataframe(df)
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
