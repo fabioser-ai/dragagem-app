@@ -44,7 +44,6 @@ if "tela" not in st.session_state:
 def tela_crud_simples(arquivo, colunas, titulo, voltar, chave):
 
     st.header(titulo)
-
     df = carregar_github(arquivo, TOKEN, REPO)
 
     if df.empty:
@@ -56,7 +55,7 @@ def tela_crud_simples(arquivo, colunas, titulo, voltar, chave):
 
     if st.button("✏️ Editar / Excluir", key=f"edit_{chave}"):
         st.session_state.tela = f"edit_{chave}"
-        return
+        st.rerun()
 
     st.subheader("Adicionar novo")
 
@@ -78,32 +77,28 @@ def tela_crud_simples(arquivo, colunas, titulo, voltar, chave):
 def tela_edicao_simples(arquivo, colunas, titulo, voltar, chave):
 
     st.header(f"{titulo} - Edição")
-
     df = carregar_github(arquivo, TOKEN, REPO)
 
     if df.empty:
         st.warning("Sem dados")
     else:
-        idx_sel = st.selectbox("Selecione", df.index)
+        idx = st.selectbox("Selecione", df.index)
+        linha = df.loc[idx]
 
         novos = []
         for c in colunas:
-            novos.append(
-                st.text_input(c, value=str(df.loc[idx_sel, c]), key=f"edit_{chave}_{c}")
-            )
+            novos.append(st.text_input(c, value=str(linha[c]), key=f"edit_{chave}_{c}"))
 
         col1, col2 = st.columns(2)
 
         if col1.button("Salvar"):
-            for i, c in enumerate(colunas):
-                df.loc[idx_sel, c] = novos[i]
-
+            df.loc[idx] = novos
             salvar_github(df, arquivo, TOKEN, REPO)
             st.success("Atualizado!")
             st.rerun()
 
         if col2.button("Excluir"):
-            df = df.drop(idx_sel).reset_index(drop=True)
+            df = df.drop(idx).reset_index(drop=True)
             salvar_github(df, arquivo, TOKEN, REPO)
             st.warning("Removido!")
             st.rerun()
@@ -156,11 +151,11 @@ elif st.session_state.tela == "dados":
         st.session_state.tela = "menu"
 
 # =========================
-# EQUIPAMENTOS (mantido igual)
+# EQUIPAMENTOS
 # =========================
 elif st.session_state.tela == "equip":
-    st.header("Equipamentos")
 
+    st.header("Equipamentos")
     df = carregar_github(ARQ_EQUIP, TOKEN, REPO)
 
     if df.empty:
@@ -178,8 +173,7 @@ elif st.session_state.tela == "equip":
     valor = st.number_input("Valor", value=1000000.0)
 
     if st.button("Adicionar"):
-        novo = pd.DataFrame([[nome, vazao, consumo, valor]], columns=df.columns)
-        df = pd.concat([df, novo], ignore_index=True)
+        df.loc[len(df)] = [nome, vazao, consumo, valor]
         salvar_github(df, ARQ_EQUIP, TOKEN, REPO)
         st.success("Salvo!")
         st.rerun()
@@ -188,8 +182,8 @@ elif st.session_state.tela == "equip":
         st.session_state.tela = "dados"
 
 elif st.session_state.tela == "edit_equip":
-    st.header("Equipamentos - Edição")
 
+    st.header("Equipamentos - Edição")
     df = carregar_github(ARQ_EQUIP, TOKEN, REPO)
 
     equipamento = st.selectbox("Selecione", df["Equipamento"])
@@ -204,7 +198,7 @@ elif st.session_state.tela == "edit_equip":
 
     if col1.button("Salvar"):
         idx = df["Equipamento"] == equipamento
-        df.loc[idx, ["Equipamento","Vazao","Consumo","Valor"]] = [nome, vazao, consumo, valor]
+        df.loc[idx] = [nome, vazao, consumo, valor]
         salvar_github(df, ARQ_EQUIP, TOKEN, REPO)
         st.success("Atualizado!")
         st.rerun()
@@ -246,12 +240,11 @@ elif st.session_state.tela == "edit_dias":
     tela_edicao_simples(ARQ_DIAS, ["Descricao"], "Dias", "dias", "dias")
 
 # =========================
-# FÉRIAS (AGORA COM CRUD COMPLETO)
+# FÉRIAS (CRUD COMPLETO)
 # =========================
 elif st.session_state.tela == "ferias":
 
     st.header("Férias e Folgas")
-
     df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
 
     if df.empty:
@@ -263,18 +256,15 @@ elif st.session_state.tela == "ferias":
         st.session_state.tela = "edit_ferias"
         st.rerun()
 
-    st.subheader("Adicionar novo")
-
     nome = st.text_input("Funcionário")
     data_inicio = st.date_input("Data início")
     data_fim = st.date_input("Data fim")
     tipo = st.selectbox("Tipo", ["Férias","Folga"])
 
-    if st.button("Salvar"):
-        novo = pd.DataFrame([[nome, data_inicio, data_fim, tipo]], columns=df.columns)
-        df = pd.concat([df, novo], ignore_index=True)
+    if st.button("Adicionar"):
+        df.loc[len(df)] = [nome, data_inicio, data_fim, tipo]
         salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
-        st.success("Registro salvo!")
+        st.success("Salvo!")
         st.rerun()
 
     if st.button("⬅ Voltar"):
@@ -283,33 +273,29 @@ elif st.session_state.tela == "ferias":
 elif st.session_state.tela == "edit_ferias":
 
     st.header("Férias - Edição")
-
     df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
 
-    if df.empty:
-        st.warning("Sem dados")
-    else:
-        idx = st.selectbox("Selecione registro", df.index)
-        linha = df.loc[idx]
+    idx = st.selectbox("Selecione", df.index)
+    linha = df.loc[idx]
 
-        nome = st.text_input("Funcionário", value=linha["Funcionario"])
-        data_inicio = st.date_input("Data início", value=pd.to_datetime(linha["Data_Inicio"]))
-        data_fim = st.date_input("Data fim", value=pd.to_datetime(linha["Data_Fim"]))
-        tipo = st.selectbox("Tipo", ["Férias","Folga"])
+    nome = st.text_input("Funcionário", value=linha["Funcionario"])
+    data_inicio = st.date_input("Data início", value=pd.to_datetime(linha["Data_Inicio"]))
+    data_fim = st.date_input("Data fim", value=pd.to_datetime(linha["Data_Fim"]))
+    tipo = st.selectbox("Tipo", ["Férias","Folga"])
 
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-        if col1.button("Salvar"):
-            df.loc[idx] = [nome, data_inicio, data_fim, tipo]
-            salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
-            st.success("Atualizado!")
-            st.rerun()
+    if col1.button("Salvar"):
+        df.loc[idx] = [nome, data_inicio, data_fim, tipo]
+        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+        st.success("Atualizado!")
+        st.rerun()
 
-        if col2.button("Excluir"):
-            df = df.drop(idx).reset_index(drop=True)
-            salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
-            st.warning("Removido!")
-            st.rerun()
+    if col2.button("Excluir"):
+        df = df.drop(idx).reset_index(drop=True)
+        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+        st.warning("Removido!")
+        st.rerun()
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "ferias"
@@ -326,10 +312,61 @@ elif st.session_state.tela == "obras":
         st.session_state.tela = "menu"
 
 # =========================
-# ORÇAMENTO
+# ORÇAMENTO (RESTAURADO)
 # =========================
 elif st.session_state.tela == "orcamento":
-    st.header("Orçamento (em evolução)")
+
+    st.header("Orçamento - Etapa 1")
+
+    df_equip = carregar_github(ARQ_EQUIP, TOKEN, REPO)
+    df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
+    df_desag = carregar_github(ARQ_DESAG, TOKEN, REPO)
+    df_hor = carregar_github(ARQ_HOR, TOKEN, REPO)
+    df_dias = carregar_github(ARQ_DIAS, TOKEN, REPO)
+
+    if df_equip.empty:
+        st.warning("Cadastre equipamentos primeiro!")
+    else:
+
+        draga = st.selectbox("Informe a draga", df_equip["Equipamento"])
+        dados = df_equip[df_equip["Equipamento"] == draga].iloc[0]
+
+        vazao_padrao = float(dados["Vazao"])
+
+        vazao = st.number_input("Vazão (m³/h)", value=vazao_padrao)
+
+        if vazao != vazao_padrao:
+            st.warning("* valor alterado manualmente")
+
+        volume = st.number_input("Volume (m³)")
+
+        material = st.selectbox(
+            "Material",
+            df_mat["Material"] if not df_mat.empty else ["Sem dados"]
+        )
+
+        col1, col2 = st.columns(2)
+        flutuante = col1.number_input("Linha flutuante (m)")
+        terrestre = col2.number_input("Linha terrestre (m)")
+
+        profundidade = st.number_input("Profundidade (m)")
+        espessura = st.number_input("Espessura (m)")
+
+        desag = st.selectbox(
+            "Desaguamento",
+            df_desag["Tipo"] if not df_desag.empty else ["Sem dados"]
+        )
+
+        horario = st.selectbox(
+            "Horário",
+            df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1)
+            if not df_hor.empty else ["Sem dados"]
+        )
+
+        dias = st.selectbox(
+            "Dias",
+            df_dias["Descricao"] if not df_dias.empty else ["Sem dados"]
+        )
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
