@@ -2,20 +2,12 @@ import streamlit as st
 
 from pages import menu, dados, ferias, orcamento
 
-# =========================
-# CONFIGURAÇÃO INICIAL
-# =========================
 st.set_page_config(layout="wide")
 
-# =========================
-# CONTROLE DE NAVEGAÇÃO
-# =========================
 if "tela" not in st.session_state:
     st.session_state.tela = "menu"
 
-# =========================
-# ROTEADOR DE TELAS
-# =========================
+# ROTEADOR
 if st.session_state.tela == "menu":
     menu.render()
 
@@ -25,9 +17,6 @@ elif st.session_state.tela == "dados":
 elif st.session_state.tela == "ferias":
     ferias.render()
 
-# =========================
-# ORÇAMENTO (FLUXO COMPLETO)
-# =========================
 elif st.session_state.tela == "orcamento":
     orcamento.etapa0()
 
