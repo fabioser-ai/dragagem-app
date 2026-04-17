@@ -1,13 +1,71 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 from services.github import carregar_github
 
 ARQ_EQUIP = "data/equipamentos.csv"
 ARQ_MAT = "data/materiais.csv"
 ARQ_DESAG = "data/desaguamento.csv"
+ARQ_OBRAS = "data/orcamentos.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
+
+# =========================
+# GERAR CÓDIGO OBRA
+# =========================
+def gerar_codigo():
+
+    try:
+        df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
+    except:
+        df = pd.DataFrame()
+
+    ano = datetime.now().year
+
+    if df.empty or "Codigo" not in df.columns:
+        seq = 1
+    else:
+        df_ano = df[df["Codigo"].str.contains(str(ano), na=False)]
+
+        if df_ano.empty:
+            seq = 1
+        else:
+            ult = df_ano["Codigo"].iloc[-1]
+            seq = int(ult.split("_")[1]) + 1
+
+    return f"D_{seq:03d}_{ano}"
+
+# =========================
+# ETAPA 0 - IDENTIFICAÇÃO
+# =========================
+def etapa0():
+
+    st.header("Orçamento - Identificação")
+
+    codigo = gerar_codigo()
+
+    nome_obra = st.text_input("Nome da obra")
+    cliente = st.text_input("Cliente")
+    data = st.date_input("Data", value=datetime.now())
+
+    st.info(f"Código gerado: {codigo}")
+
+    if st.button("Continuar"):
+
+        st.session_state.orcamento = {
+            "codigo": codigo,
+            "nome_obra": nome_obra,
+            "cliente": cliente,
+            "data": str(data)
+        }
+
+        st.session_state.tela = "orcamento1"
+        st.rerun()
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
+        st.rerun()
 
 # =========================
 # ETAPA 1
@@ -34,19 +92,22 @@ def etapa1():
     terrestre = col2.number_input("Linha terrestre")
 
     if st.button("Continuar"):
-        st.session_state.orcamento = {
+
+        # IMPORTANTE: NÃO sobrescrever
+        st.session_state.orcamento.update({
             "vazao": vazao,
             "volume": volume,
             "material": material,
             "desag": desag,
             "flutuante": flutuante,
             "terrestre": terrestre
-        }
+        })
+
         st.session_state.tela = "orcamento2"
         st.rerun()
 
     if st.button("⬅ Voltar"):
-        st.session_state.tela = "menu"
+        st.session_state.tela = "orcamento"
         st.rerun()
 
 # =========================
@@ -59,16 +120,20 @@ def etapa2():
     dados = st.session_state.orcamento
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
 
-    # Distância
+    # =========================
+    # DISTÂNCIA
+    # =========================
     col1, col2 = st.columns(2)
 
-    flutuante = col1.number_input("Linha flutuante", value=dados["flutuante"])
-    terrestre = col2.number_input("Linha terrestre", value=dados["terrestre"])
+    flutuante = col1.number_input("Linha flutuante", value=float(dados["flutuante"]))
+    terrestre = col2.number_input("Linha terrestre", value=float(dados["terrestre"]))
 
     distancia_total = flutuante + terrestre
     st.info(f"Distância total: {distancia_total:.0f} m")
 
-    # Cálculo
+    # =========================
+    # CÁLCULO
+    # =========================
     linha = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
     concentracao = float(linha["Solidos_InSitu"]) / 100
 
@@ -83,7 +148,9 @@ def etapa2():
 
     vazao_real = dados["vazao"] * eficiencia * concentracao
 
-    # Explicação
+    # =========================
+    # EXPLICAÇÃO
+    # =========================
     st.subheader("Cálculo")
 
     st.write(f"Vazão: {dados['vazao']}")
@@ -94,14 +161,23 @@ def etapa2():
 
     st.success(f"Vazão real: {vazao_real:.2f} m³/h")
 
-    # salvar
-    st.session_state.orcamento["vazao_real"] = vazao_real
+    # =========================
+    # SALVAR
+    # =========================
+    st.session_state.orcamento.update({
+        "flutuante": flutuante,
+        "terrestre": terrestre,
+        "vazao_real": vazao_real
+    })
 
+    # =========================
+    # NAVEGAÇÃO
+    # =========================
     col1, col2 = st.columns(2)
 
     if col1.button("⬅ Voltar"):
-        st.session_state.tela = "orcamento"
+        st.session_state.tela = "orcamento1"
         st.rerun()
 
     if col2.button("Continuar"):
-        st.success("Próxima etapa em breve")
+        st.success("Próxima etapa em construção")
