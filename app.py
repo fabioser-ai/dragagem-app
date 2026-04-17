@@ -184,90 +184,6 @@ elif st.session_state.tela == "edit_equip":
         st.warning("Removido!")
         st.rerun()
 
-    if st.button("⬅ Voltar"):
-        st.session_state.tela = "equip"
-
-# =========================
-# OUTROS CRUD
-# =========================
-elif st.session_state.tela == "mat":
-    tela_crud_simples(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados", "mat")
-
-elif st.session_state.tela == "desag":
-    tela_crud_simples(ARQ_DESAG, ["Tipo"], "Desaguamento", "dados", "desag")
-
-elif st.session_state.tela == "hor":
-    tela_crud_simples(ARQ_HOR, ["Inicio","Fim"], "Horários", "dados", "hor")
-
-elif st.session_state.tela == "dias":
-    tela_crud_simples(ARQ_DIAS, ["Descricao"], "Dias", "dados", "dias")
-
-elif st.session_state.tela == "edit_mat":
-    tela_edicao_simples(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "mat", "mat")
-
-elif st.session_state.tela == "edit_desag":
-    tela_edicao_simples(ARQ_DESAG, ["Tipo"], "Desaguamento", "desag", "desag")
-
-elif st.session_state.tela == "edit_hor":
-    tela_edicao_simples(ARQ_HOR, ["Inicio","Fim"], "Horários", "hor", "hor")
-
-elif st.session_state.tela == "edit_dias":
-    tela_edicao_simples(ARQ_DIAS, ["Descricao"], "Dias", "dias", "dias")
-
-# =========================
-# FÉRIAS
-# =========================
-elif st.session_state.tela == "ferias":
-    st.header("Férias")
-    df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
-
-    if df.empty:
-        df = pd.DataFrame(columns=["Funcionario","Data_Inicio","Data_Fim","Tipo"])
-
-    st.dataframe(df)
-
-    if st.button("✏️ Editar / Excluir"):
-        st.session_state.tela = "edit_ferias"
-        st.rerun()
-
-    nome = st.text_input("Funcionário")
-    data_inicio = st.date_input("Data início")
-    data_fim = st.date_input("Data fim")
-    tipo = st.selectbox("Tipo", ["Férias","Folga"])
-
-    if st.button("Adicionar"):
-        df.loc[len(df)] = [nome, data_inicio, data_fim, tipo]
-        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
-        st.success("Salvo!")
-        st.rerun()
-
-    if st.button("⬅ Voltar"):
-        st.session_state.tela = "menu"
-
-elif st.session_state.tela == "edit_ferias":
-    st.header("Editar Férias")
-    df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
-
-    idx = st.selectbox("Selecione", df.index)
-    linha = df.loc[idx]
-
-    nome = st.text_input("Funcionário", value=linha["Funcionario"])
-    data_inicio = st.date_input("Data início", value=pd.to_datetime(linha["Data_Inicio"]))
-    data_fim = st.date_input("Data fim", value=pd.to_datetime(linha["Data_Fim"]))
-    tipo = st.selectbox("Tipo", ["Férias","Folga"])
-
-    if st.button("Salvar"):
-        df.loc[idx] = [nome, data_inicio, data_fim, tipo]
-        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
-        st.success("Atualizado!")
-        st.rerun()
-
-    if st.button("Excluir"):
-        df = df.drop(idx).reset_index(drop=True)
-        salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
-        st.warning("Removido!")
-        st.rerun()
-
 # =========================
 # ORÇAMENTO ETAPA 1
 # =========================
@@ -299,7 +215,7 @@ elif st.session_state.tela == "orcamento":
         st.rerun()
 
 # =========================
-# ORÇAMENTO ETAPA 2
+# ORÇAMENTO ETAPA 2 (COM CÁLCULO EXPLICADO)
 # =========================
 elif st.session_state.tela == "orcamento2":
 
@@ -322,7 +238,23 @@ elif st.session_state.tela == "orcamento2":
 
     vazao_real = dados["vazao"] * eficiencia * concentracao
 
-    st.metric("Vazão real (m³/h)", f"{vazao_real:.2f}")
+    # =========================
+    # EXIBIÇÃO
+    # =========================
+    st.subheader("Cálculo da Vazão Real")
+
+    st.write(f"Vazão da draga: {dados['vazao']:.2f} m³/h")
+    st.write(f"Eficiência: {eficiencia:.2f}")
+    st.write(f"Concentração: {concentracao:.2f}")
+
+    st.markdown("### Fórmula aplicada")
+    st.code("Vazão Real = Vazão × Eficiência × Concentração")
+
+    st.markdown("### Substituindo valores")
+    st.code(f"{dados['vazao']:.2f} × {eficiencia:.2f} × {concentracao:.2f}")
+
+    st.markdown("### Resultado final")
+    st.success(f"Vazão Real = {vazao_real:.2f} m³/h")
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "orcamento"
