@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
 from services.github import salvar_github, carregar_github
 
@@ -20,55 +19,9 @@ TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 # =========================
-# ESTADO
+# FUNÇÃO CRUD
 # =========================
-if "tela" not in st.session_state:
-    st.session_state.tela = "menu"
-
-# =========================
-# MENU PRINCIPAL
-# =========================
-if st.session_state.tela == "menu":
-
-    col1, col2, col3 = st.columns(3)
-
-    if col1.button("📊 ORÇAMENTO", use_container_width=True):
-        st.session_state.tela = "orcamento"
-
-    if col2.button("🚜 EQUIPAMENTOS", use_container_width=True):
-        st.session_state.tela = "equip"
-
-    if col3.button("📁 DADOS", use_container_width=True):
-        st.session_state.tela = "dados"
-
-# =========================
-# DADOS MENU
-# =========================
-elif st.session_state.tela == "dados":
-
-    st.header("Dados do Sistema")
-
-    col1, col2 = st.columns(2)
-
-    if col1.button("Materiais"):
-        st.session_state.tela = "dados_mat"
-
-    if col1.button("Desaguamento"):
-        st.session_state.tela = "dados_desag"
-
-    if col2.button("Horários"):
-        st.session_state.tela = "dados_hor"
-
-    if col2.button("Dias de Trabalho"):
-        st.session_state.tela = "dados_dias"
-
-    if st.button("⬅ Voltar"):
-        st.session_state.tela = "menu"
-
-# =========================
-# CRUD GENÉRICO SIMPLES
-# =========================
-def tela_crud(arquivo, colunas, titulo):
+def tela_crud(arquivo, colunas, titulo, voltar):
 
     st.header(titulo)
 
@@ -93,22 +46,68 @@ def tela_crud(arquivo, colunas, titulo):
         st.rerun()
 
     if st.button("⬅ Voltar"):
+        st.session_state.tela = voltar
+
+# =========================
+# ESTADO
+# =========================
+if "tela" not in st.session_state:
+    st.session_state.tela = "menu"
+
+# =========================
+# MENU PRINCIPAL
+# =========================
+if st.session_state.tela == "menu":
+
+    col1, col2, col3 = st.columns(3)
+
+    if col1.button("📊 ORÇAMENTO", use_container_width=True):
+        st.session_state.tela = "orcamento"
+
+    if col2.button("🚜 EQUIPAMENTOS", use_container_width=True):
+        st.session_state.tela = "equip"
+
+    if col3.button("📁 DADOS", use_container_width=True):
         st.session_state.tela = "dados"
+
+# =========================
+# MENU DADOS
+# =========================
+elif st.session_state.tela == "dados":
+
+    st.header("Dados do Sistema")
+
+    col1, col2 = st.columns(2)
+
+    if col1.button("Materiais"):
+        st.session_state.tela = "dados_mat"
+
+    if col1.button("Desaguamento"):
+        st.session_state.tela = "dados_desag"
+
+    if col2.button("Horários"):
+        st.session_state.tela = "dados_hor"
+
+    if col2.button("Dias de Trabalho"):
+        st.session_state.tela = "dados_dias"
+
+    if st.button("⬅ Voltar"):
+        st.session_state.tela = "menu"
 
 # =========================
 # TELAS DADOS
 # =========================
 elif st.session_state.tela == "dados_mat":
-    tela_crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais")
+    tela_crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "dados")
 
 elif st.session_state.tela == "dados_desag":
-    tela_crud(ARQ_DESAG, ["Tipo"], "Tipos de Desaguamento")
+    tela_crud(ARQ_DESAG, ["Tipo"], "Desaguamento", "dados")
 
 elif st.session_state.tela == "dados_hor":
-    tela_crud(ARQ_HOR, ["Inicio","Fim"], "Horários de Trabalho")
+    tela_crud(ARQ_HOR, ["Inicio","Fim"], "Horários", "dados")
 
 elif st.session_state.tela == "dados_dias":
-    tela_crud(ARQ_DIAS, ["Descricao"], "Dias de Trabalho")
+    tela_crud(ARQ_DIAS, ["Descricao"], "Dias de Trabalho", "dados")
 
 # =========================
 # EQUIPAMENTOS
@@ -138,7 +137,7 @@ elif st.session_state.tela == "equip":
         st.session_state.tela = "menu"
 
 # =========================
-# ORÇAMENTO - TELA 1 COMPLETA
+# ORÇAMENTO
 # =========================
 elif st.session_state.tela == "orcamento":
 
@@ -150,52 +149,46 @@ elif st.session_state.tela == "orcamento":
     df_hor = carregar_github(ARQ_HOR, TOKEN, REPO)
     df_dias = carregar_github(ARQ_DIAS, TOKEN, REPO)
 
-    # DRAGA
-    draga = st.selectbox("Informe a draga", df_equip["Equipamento"])
-    dados = df_equip[df_equip["Equipamento"] == draga].iloc[0]
-    vazao_padrao = float(dados["Vazao"])
+    if df_equip.empty:
+        st.warning("Cadastre equipamentos primeiro!")
+    else:
 
-    if "vazao_input" not in st.session_state:
-        st.session_state.vazao_input = vazao_padrao
+        draga = st.selectbox("Informe a draga", df_equip["Equipamento"])
+        dados = df_equip[df_equip["Equipamento"] == draga].iloc[0]
 
-    if st.session_state.get("ultima_draga") != draga:
-        st.session_state.vazao_input = vazao_padrao
-        st.session_state.ultima_draga = draga
+        vazao_padrao = float(dados["Vazao"])
 
-    vazao = st.number_input("Vazão (m³/h)", value=st.session_state.vazao_input)
+        if "vazao_input" not in st.session_state:
+            st.session_state.vazao_input = vazao_padrao
 
-    if vazao != vazao_padrao:
-        st.warning("* valor alterado manualmente")
+        if st.session_state.get("ultima_draga") != draga:
+            st.session_state.vazao_input = vazao_padrao
+            st.session_state.ultima_draga = draga
 
-    # VOLUME
-    volume = st.number_input("Volume a ser dragado (m³)")
+        vazao = st.number_input("Vazão (m³/h)", value=st.session_state.vazao_input)
 
-    # MATERIAL
-    material = st.selectbox("Tipo de material", df_mat["Material"])
+        if vazao != vazao_padrao:
+            st.warning("* valor alterado manualmente")
 
-    # DISTÂNCIA
-    st.subheader("Distância de recalque")
-    col1, col2 = st.columns(2)
-    flutuante = col1.number_input("Linha flutuante (m)")
-    terrestre = col2.number_input("Linha terrestre (m)")
+        volume = st.number_input("Volume (m³)")
 
-    # PROFUNDIDADE
-    profundidade = st.number_input("Profundidade (m)")
+        material = st.selectbox("Material", df_mat["Material"] if not df_mat.empty else ["Sem dados"])
 
-    # ESPESSURA
-    espessura = st.number_input("Espessura média de corte (m)")
+        col1, col2 = st.columns(2)
+        flutuante = col1.number_input("Linha flutuante (m)")
+        terrestre = col2.number_input("Linha terrestre (m)")
 
-    # DESAGUAMENTO
-    desag = st.selectbox("Tipo de desaguamento", df_desag["Tipo"])
+        profundidade = st.number_input("Profundidade (m)")
+        espessura = st.number_input("Espessura corte (m)")
 
-    # HORARIO
-    horario = st.selectbox("Horário de trabalho", df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1))
+        desag = st.selectbox("Desaguamento", df_desag["Tipo"] if not df_desag.empty else ["Sem dados"])
 
-    # DIAS
-    dias = st.selectbox("Dias de trabalho", df_dias["Descricao"])
+        horario = st.selectbox("Horário", df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1) if not df_hor.empty else ["Sem dados"])
 
-    if st.button("Continuar"):
-        st.success("Dados capturados")
+        dias = st.selectbox("Dias", df_dias["Descricao"] if not df_dias.empty else ["Sem dados"])
 
-    if st.button("⬅ Voltar"):
-        st.session_state.tela = "menu"
+        if st.button("Continuar"):
+            st.success("Dados capturados")
+
+        if st.button("⬅ Voltar"):
+            st.session_state.tela = "menu"
