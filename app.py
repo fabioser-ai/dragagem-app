@@ -9,22 +9,13 @@ from services.calculos import *
 st.set_page_config(layout="wide")
 
 # =========================
-# ESTILO (CSS)
+# ESTILO
 # =========================
 st.markdown("""
 <style>
-.card {
-    padding: 30px;
-    border-radius: 15px;
-    background-color: #1f2937;
-    color: white;
-    text-align: center;
-    font-size: 20px;
-    transition: 0.3s;
-}
-.card:hover {
-    background-color: #374151;
-    transform: scale(1.03);
+button[kind="secondary"] {
+    height: 80px;
+    font-size: 18px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -76,11 +67,11 @@ if st.session_state.tela == "menu":
             st.session_state.tela = "obras"
 
 # =========================
-# ORÇAMENTO
+# ORÇAMENTO - TELA 1
 # =========================
 elif st.session_state.tela == "orcamento":
 
-    st.header("Orçamento")
+    st.header("Orçamento - Etapa 1")
 
     df = carregar_github(ARQUIVO_EQUIP, TOKEN, REPO)
 
@@ -88,57 +79,41 @@ elif st.session_state.tela == "orcamento":
         st.warning("Cadastre equipamentos primeiro!")
     else:
 
-        equipamento = st.selectbox("Equipamento", df["Equipamento"])
-        eq = df[df["Equipamento"] == equipamento].iloc[0]
+        # DRAGA
+        draga = st.selectbox("Informe a draga", df["Equipamento"])
+        dados = df[df["Equipamento"] == draga].iloc[0]
 
-        df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
-        codigo = gerar_codigo_obra(df_orc)
+        vazao_padrao = float(dados["Vazao"])
 
-        st.info(f"Código: {codigo}")
+        # CONTROLE DE ESTADO
+        if "vazao_input" not in st.session_state:
+            st.session_state.vazao_input = vazao_padrao
 
-        descricao = st.text_input("Descrição")
+        # RESET AO TROCAR DRAGA
+        if st.session_state.get("ultima_draga") != draga:
+            st.session_state.vazao_input = vazao_padrao
+            st.session_state.ultima_draga = draga
 
-        volume = st.number_input("Volume", value=10000.0)
-        distancia = st.number_input("Distância", value=2000.0)
-        preco = st.number_input("Preço", value=16.18)
-        horas = st.number_input("Horas/dia", value=20)
+        vazao = st.number_input(
+            "Vazão (m³/h)",
+            value=st.session_state.vazao_input,
+            key="vazao_input"
+        )
 
-        if st.button("Calcular"):
+        # ALERTA
+        if vazao != vazao_padrao:
+            st.warning("* valor alterado manualmente")
 
-            prod = calcular_producao(eq["Vazao"], distancia)
-            tempo = calcular_tempo(volume, prod)
-            dias = calcular_dias(tempo, horas)
+        st.divider()
 
-            custo = calcular_diesel(eq["Consumo"], tempo, 6)
-            receita = calcular_receita(volume, preco)
-            lucro = calcular_lucro(receita, custo)
+        if st.button("Continuar"):
+            st.session_state.draga = draga
+            st.session_state.vazao_final = vazao
 
-            st.write(f"Lucro: R$ {lucro:,.0f}")
+            st.success("Dados salvos para próxima etapa")
 
-            if st.button("Salvar"):
-                df_orc = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
-
-                if df_orc.empty:
-                    df_orc = pd.DataFrame(columns=[
-                        "Codigo","Data","Descricao","Equipamento",
-                        "Volume","Distancia","Produtividade","Tempo_h",
-                        "Dias","Custo_Diesel","Receita","Lucro"
-                    ])
-
-                novo = pd.DataFrame([[
-                    codigo, datetime.now(), descricao, equipamento,
-                    volume, distancia, prod, tempo,
-                    dias, custo, receita, lucro
-                ]], columns=df_orc.columns)
-
-                df_orc = pd.concat([df_orc, novo], ignore_index=True)
-
-                salvar_github(df_orc, ARQUIVO_ORC, TOKEN, REPO)
-
-                st.success("Salvo!")
-
-    if st.button("⬅ Voltar"):
-        st.session_state.tela = "menu"
+        if st.button("⬅ Voltar"):
+            st.session_state.tela = "menu"
 
 # =========================
 # EQUIPAMENTOS
@@ -154,6 +129,8 @@ elif st.session_state.tela == "equip":
 
     st.dataframe(df)
 
+    st.divider()
+
     nome = st.text_input("Nome")
     vazao = st.number_input("Vazão", value=1000.0)
     consumo = st.number_input("Consumo", value=60.0)
@@ -165,6 +142,7 @@ elif st.session_state.tela == "equip":
 
         salvar_github(df, ARQUIVO_EQUIP, TOKEN, REPO)
         st.success("Salvo!")
+        st.rerun()
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
@@ -174,7 +152,7 @@ elif st.session_state.tela == "equip":
 # =========================
 elif st.session_state.tela == "ferias":
 
-    st.header("Férias")
+    st.header("Férias e Folgas")
 
     df = carregar_github(ARQUIVO_FERIAS, TOKEN, REPO)
 
@@ -194,6 +172,7 @@ elif st.session_state.tela == "ferias":
 
         salvar_github(df, ARQUIVO_FERIAS, TOKEN, REPO)
         st.success("Salvo!")
+        st.rerun()
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
@@ -221,6 +200,7 @@ elif st.session_state.tela == "salarios":
 
         salvar_github(df, ARQUIVO_SALARIOS, TOKEN, REPO)
         st.success("Salvo!")
+        st.rerun()
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
@@ -230,7 +210,7 @@ elif st.session_state.tela == "salarios":
 # =========================
 elif st.session_state.tela == "obras":
 
-    st.header("Histórico")
+    st.header("Histórico de Obras")
 
     df = carregar_github(ARQUIVO_ORC, TOKEN, REPO)
 
