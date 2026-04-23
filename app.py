@@ -29,8 +29,23 @@ elif st.session_state.tela == "ferias":
 # MÓDULO OBRAS (NOVO)
 # =========================
 elif st.session_state.tela == "obras":
+    import pandas as pd
+    from services.github import carregar_github
+
     st.title("📊 Obras")
-    st.info("Módulo em construção")
+
+    ARQ_OBRAS = "data/orcamentos.csv"
+
+    try:
+        df = carregar_github(ARQ_OBRAS, st.secrets["GITHUB_TOKEN"], st.secrets["REPO"])
+    except:
+        df = pd.DataFrame()
+
+    if df.empty:
+        st.warning("Nenhuma obra cadastrada ainda.")
+    else:
+        st.subheader("Lista de Obras")
+        st.dataframe(df, use_container_width=True)
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
