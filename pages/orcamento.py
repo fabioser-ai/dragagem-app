@@ -243,6 +243,23 @@ def etapa2():
     leis = st.number_input("Leis Sociais (%)", value=110.0)
     fator = 1 + leis / 100
 
+    st.divider()
+
+    # =========================
+    # CABEÇALHO
+    # =========================
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.markdown("**Posição**")
+    col2.markdown("**Valor Hora (R$)**")
+    col3.markdown("**Qtd**")
+    col4.markdown("**C/ Leis (R$)**")
+
+    st.divider()
+
+    # =========================
+    # TABELA
+    # =========================
     total_mensal = 0
 
     for i, row in df_sal.iterrows():
@@ -250,17 +267,28 @@ def etapa2():
         col1, col2, col3, col4 = st.columns(4)
 
         col1.write(row["Posicao"])
-        col2.write(row["Valor_Hora"])
+        col2.write(f"{row['Valor_Hora']:.2f}")
 
-        qtd = col3.number_input("Qtd", key=f"qtd_{i}")
+        qtd = col3.number_input(" ", key=f"qtd_{i}", min_value=0, step=1)
 
         salario = row["Valor_Hora"] * fator
         col4.write(f"{salario:.2f}")
 
         total_mensal += qtd * salario
 
-    st.success(f"Custo mensal: R$ {total_mensal:,.2f}")
+    st.divider()
 
+    st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
+
+    # =========================
+    # SALVAR
+    # =========================
+    st.session_state.orcamento["custo_mensal_equipe"] = total_mensal
+    st.session_state.orcamento["leis_sociais"] = leis
+
+    # =========================
+    # NAVEGAÇÃO
+    # =========================
     col1, col2 = st.columns(2)
 
     if col1.button("⬅ Voltar", key="voltar2"):
