@@ -136,41 +136,131 @@ def etapa0():
 # =========================
 def etapa1():
 
-    st.header("Orçamento - Etapa 1")
+    st.header("Cálculo de Produção da Draga")
+
+    dados = st.session_state.orcamento
 
     df_equip = carregar_github(ARQ_EQUIP, TOKEN, REPO)
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
-    df_desag = carregar_github(ARQ_DESAG, TOKEN, REPO)
+    df_dias = carregar_github("data/dias.csv", TOKEN, REPO)
 
-    draga = st.selectbox("Draga", df_equip["Equipamento"])
-    dados = df_equip[df_equip["Equipamento"] == draga].iloc[0]
+    # =========================
+    # PRODUÇÃO POR HORA
+    # =========================
+    st.subheader("Produção por Hora")
 
-    vazao = st.number_input("Vazão", value=float(dados["Vazao"]))
-    volume = st.number_input("Volume")
+    draga = st.selectbox("Selecionar draga", df_equip["Equipamento"])
+    linha_equip = df_equip[df_equip["Equipamento"] == draga].iloc[0]
 
-    material = st.selectbox("Material", df_mat["Material"])
-    desag = st.selectbox("Desaguamento", df_desag["Tipo"])
+    vazao = float(linha_equip["Vazao"])
 
+    st.write(f"Vazão da draga: {vazao} m³/h")
+
+    # concentração do material
+    linha_mat = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
+    concentracao = float(linha_mat["Solidos_InSitu"]) / 100
+
+    st.write(f"Concentração do material: {concentracao}")
+
+    # eficiência baseada no desaguamento
+    eficiencia_map = {
+        "Geobag": 0.85,
+        "Centrífuga": 0.90,
+        "Bombeamento direto": 0.95,
+        "Bacia ecológica": 0.80
+    }
+
+    eficiencia = eficiencia_map.get(dados["desag"], 0.85)
+
+    st.write(f"Eficiência: {eficiencia}")
+
+    producao_hora = vazao * eficiencia * concentracao
+
+    st.code(f"{vazao} × {eficiencia} × {concentracao}")
+    st.success(f"Produção por hora: {producao_hora:.2f} m³/h")
+
+    # =========================
+    # HORAS MENSAIS
+    # =========================
+    st.subheader("Horas Trabalhadas no Mês")
+
+    # horas por dia (extraído do horário)
+    try:
+        inicio, fim = dados["horario"].split(" - ")
+        h1 = int(inicio.split(":")[0])
+        h2 = int(fim.split(":")[0])
+        horas_dia = h2 - h1
+    except:
+        horas_dia = 8
+
+    st.write(f"Horas por dia: {horas_dia}")
+
+    # dias por mês
+    mapa_dias = {
+        "Segunda a Sexta": 22,
+        "Segunda a Sábado": 26,
+        "Segunda a Domingo": 30
+    }
+
+    dias_mes = mapa_dias.get(dados["dias"], 22)
+
+    st.write(f"Dias trabalhados no mês: {dias_mes}")
+
+    horas_mes = horas_dia * dias_mes
+
+    st.code(f"{horas_dia} × {dias_mes}")
+    st.success(f"Horas mensais: {horas_mes} h")
+
+    # =========================
+    # PRODUÇÃO MENSAL
+    # =========================
+    st.subheader("Produção Mensal da Draga")
+
+    producao_mensal = producao_hora * horas_mes
+
+    st.code(f"{producao_hora:.2f} × {horas_mes}")
+    st.success(f"Produção mensal: {producao_mensal:.2f} m³/mês")
+
+    # =========================
+    # PRAZO DA OBRA
+    # =========================
+    st.subheader("Prazo da Obra")
+
+    volume = dados["volume"]
+
+    if producao_mensal > 0:
+        meses = volume / producao_mensal
+    else:
+        meses = 0
+
+    st.code(f"{volume} ÷ {producao_mensal:.2f}")
+    st.success(f"Prazo estimado: {meses:.2f} meses")
+
+    # =========================
+    # SALVAR NO SESSION
+    # =========================
+    st.session_state.orcamento.update({
+        "draga": draga,
+        "vazao": vazao,
+        "eficiencia": eficiencia,
+        "concentracao": concentracao,
+        "producao_hora": producao_hora,
+        "horas_mes": horas_mes,
+        "producao_mensal": producao_mensal,
+        "prazo_meses": meses
+    })
+
+    # =========================
+    # NAVEGAÇÃO
+    # =========================
     col1, col2 = st.columns(2)
-    flutuante = col1.number_input("Linha flutuante")
-    terrestre = col2.number_input("Linha terrestre")
 
-    if st.button("Continuar"):
-
-        st.session_state.orcamento.update({
-            "vazao": vazao,
-            "volume": volume,
-            "material": material,
-            "desag": desag,
-            "flutuante": flutuante,
-            "terrestre": terrestre
-        })
-
-        st.session_state.tela = "orcamento2"
+    if col1.button("⬅ Voltar"):
+        st.session_state.tela = "orcamento"
         st.rerun()
 
-    if st.button("⬅ Voltar"):
-        st.session_state.tela = "orcamento"
+    if col2.button("Continuar"):
+        st.session_state.tela = "orcamento2"
         st.rerun()
 
 # =========================
