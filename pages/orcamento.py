@@ -152,15 +152,21 @@ def etapa1():
     draga = st.selectbox("Selecionar draga", df_equip["Equipamento"])
     linha_equip = df_equip[df_equip["Equipamento"] == draga].iloc[0]
 
-    vazao = float(linha_equip["Vazao"])
+vazao_base = float(linha_equip["Vazao"])
 
-    st.write(f"Vazão da draga: {vazao} m³/h")
+vazao = st.number_input("Vazão da draga (m³/h)", value=vazao_base)
+
+if vazao != vazao_base:
+    st.warning("*Vazão alterada manualmente")
 
     # concentração do material
     linha_mat = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
-    concentracao = float(linha_mat["Solidos_InSitu"]) / 100
+    conc_base = float(linha_mat["Solidos_InSitu"]) / 100
 
-    st.write(f"Concentração do material: {concentracao}")
+concentracao = st.number_input("Concentração", value=conc_base)
+
+if concentracao != conc_base:
+    st.warning("*Concentração alterada manualmente")
 
     # eficiência baseada no desaguamento
     eficiencia_map = {
@@ -170,9 +176,12 @@ def etapa1():
         "Bacia ecológica": 0.80
     }
 
-    eficiencia = eficiencia_map.get(dados["desag"], 0.85)
+   ef_base = eficiencia_map.get(dados["desag"], 0.85)
 
-    st.write(f"Eficiência: {eficiencia}")
+eficiencia = st.number_input("Eficiência", value=ef_base)
+
+if eficiencia != ef_base:
+    st.warning("*Eficiência alterada manualmente")
 
     producao_hora = vazao * eficiencia * concentracao
 
@@ -189,11 +198,16 @@ def etapa1():
         inicio, fim = dados["horario"].split(" - ")
         h1 = int(inicio.split(":")[0])
         h2 = int(fim.split(":")[0])
-        horas_dia = h2 - h1
+        horas_dia_bruto = h2 - h1
+horas_dia = max(horas_dia_bruto - 1, 0)
     except:
         horas_dia = 8
 
     st.write(f"Horas por dia: {horas_dia}")
+
+st.write(f"Horas por dia (bruto): {horas_dia_bruto}")
+st.write(f"(-1h almoço)")
+st.success(f"Horas líquidas por dia: {horas_dia}")
 
     # dias por mês
     mapa_dias = {
