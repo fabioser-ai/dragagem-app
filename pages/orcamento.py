@@ -282,49 +282,94 @@ def etapa1():
 # =========================
 def etapa2():
 
-    st.header("Orçamento - Produção")
+    st.header("Dimensionamento de Equipe")
 
     dados = st.session_state.orcamento
-    df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
 
+    ARQ_SAL = "data/salarios.csv"
+
+    df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
+
+    if df_sal.empty:
+        st.warning("Base de salários vazia")
+        return
+
+    # =========================
+    # LEIS SOCIAIS
+    # =========================
+    leis = st.number_input("Leis Sociais (%)", value=110.0)
+
+    fator_leis = 1 + (leis / 100)
+
+    st.info(f"Fator aplicado: {fator_leis:.2f}")
+
+    st.divider()
+
+    # =========================
+    # TABELA DE EQUIPE
+    # =========================
+    st.subheader("Equipe")
+
+    total_mensal = 0
+
+    resultados = []
+
+    for i, row in df_sal.iterrows():
+
+        col1, col2, col3, col4 = st.columns([2,2,1,2])
+
+        posicao = row["Posicao"]
+        salario_base = float(row["Valor_Hora"])
+
+        col1.write(posicao)
+        col2.write(f"{salario_base:.2f}")
+
+        qtd = col3.number_input(
+            f"Qtd {posicao}",
+            min_value=0,
+            step=1,
+            key=f"qtd_{i}"
+        )
+
+        salario_com_leis = salario_base * fator_leis
+
+        col4.write(f"{salario_com_leis:.2f}")
+
+        total = qtd * salario_com_leis
+        total_mensal += total
+
+        resultados.append({
+            "Posicao": posicao,
+            "Qtd": qtd,
+            "Salario_Base": salario_base,
+            "Salario_Leis": salario_com_leis,
+            "Total": total
+        })
+
+    st.divider()
+
+    st.success(f"Custo total mensal da equipe: R$ {total_mensal:,.2f}")
+
+    # =========================
+    # SALVAR
+    # =========================
+    st.session_state.orcamento.update({
+        "equipe": resultados,
+        "custo_mensal_equipe": total_mensal,
+        "leis_sociais": leis
+    })
+
+    # =========================
+    # NAVEGAÇÃO
+    # =========================
     col1, col2 = st.columns(2)
 
-    flutuante = col1.number_input("Linha flutuante", value=float(dados["flutuante"]))
-    terrestre = col2.number_input("Linha terrestre", value=float(dados["terrestre"]))
+    if col1.button("⬅ Voltar"):
+        st.session_state.tela = "orcamento1"
+        st.rerun()
 
-    distancia_total = flutuante + terrestre
-    st.info(f"Distância total: {distancia_total:.0f} m")
-
-    linha = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
-    concentracao = float(linha["Solidos_InSitu"]) / 100
-
-    eficiencia_map = {
-        "Geobag": 0.85,
-        "Centrífuga": 0.90,
-        "Bombeamento direto": 0.95,
-        "Bacia ecológica": 0.80
-    }
-
-    eficiencia = eficiencia_map.get(dados["desag"], 0.85)
-
-    vazao_real = dados["vazao"] * eficiencia * concentracao
-
-    st.subheader("Cálculo")
-
-    st.write(f"Vazão: {dados['vazao']}")
-    st.write(f"Eficiência: {eficiencia}")
-    st.write(f"Concentração: {concentracao}")
-
-    st.code(f"{dados['vazao']} × {eficiencia} × {concentracao}")
-
-    st.success(f"Vazão real: {vazao_real:.2f} m³/h")
-
-    # atualizar dados
-    st.session_state.orcamento.update({
-        "flutuante": flutuante,
-        "terrestre": terrestre,
-        "vazao_real": vazao_real
-    })
+    if col2.button("Continuar"):
+        st.success("Próxima etapa: custos operacionais")
 
     # =========================
     # SALVAR ORÇAMENTO
