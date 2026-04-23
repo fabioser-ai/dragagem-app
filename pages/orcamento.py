@@ -142,7 +142,6 @@ def etapa1():
 
     df_equip = carregar_github(ARQ_EQUIP, TOKEN, REPO)
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
-    df_dias = carregar_github("data/dias.csv", TOKEN, REPO)
 
     # =========================
     # PRODUÇÃO POR HORA
@@ -152,23 +151,23 @@ def etapa1():
     draga = st.selectbox("Selecionar draga", df_equip["Equipamento"])
     linha_equip = df_equip[df_equip["Equipamento"] == draga].iloc[0]
 
-vazao_base = float(linha_equip["Vazao"])
+    # VAZÃO EDITÁVEL
+    vazao_base = float(linha_equip["Vazao"])
+    vazao = st.number_input("Vazão da draga (m³/h)", value=vazao_base)
 
-vazao = st.number_input("Vazão da draga (m³/h)", value=vazao_base)
+    if vazao != vazao_base:
+        st.warning("*Vazão alterada manualmente")
 
-if vazao != vazao_base:
-    st.warning("*Vazão alterada manualmente")
-
-    # concentração do material
+    # CONCENTRAÇÃO EDITÁVEL
     linha_mat = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
     conc_base = float(linha_mat["Solidos_InSitu"]) / 100
 
-concentracao = st.number_input("Concentração", value=conc_base)
+    concentracao = st.number_input("Concentração", value=conc_base)
 
-if concentracao != conc_base:
-    st.warning("*Concentração alterada manualmente")
+    if concentracao != conc_base:
+        st.warning("*Concentração alterada manualmente")
 
-    # eficiência baseada no desaguamento
+    # EFICIÊNCIA EDITÁVEL
     eficiencia_map = {
         "Geobag": 0.85,
         "Centrífuga": 0.90,
@@ -176,13 +175,14 @@ if concentracao != conc_base:
         "Bacia ecológica": 0.80
     }
 
-   ef_base = eficiencia_map.get(dados["desag"], 0.85)
+    ef_base = eficiencia_map.get(dados["desag"], 0.85)
 
-eficiencia = st.number_input("Eficiência", value=ef_base)
+    eficiencia = st.number_input("Eficiência", value=ef_base)
 
-if eficiencia != ef_base:
-    st.warning("*Eficiência alterada manualmente")
+    if eficiencia != ef_base:
+        st.warning("*Eficiência alterada manualmente")
 
+    # CÁLCULO PRODUÇÃO
     producao_hora = vazao * eficiencia * concentracao
 
     st.code(f"{vazao} × {eficiencia} × {concentracao}")
@@ -193,23 +193,23 @@ if eficiencia != ef_base:
     # =========================
     st.subheader("Horas Trabalhadas no Mês")
 
-    # horas por dia (extraído do horário)
     try:
         inicio, fim = dados["horario"].split(" - ")
         h1 = int(inicio.split(":")[0])
         h2 = int(fim.split(":")[0])
+
         horas_dia_bruto = h2 - h1
-horas_dia = max(horas_dia_bruto - 1, 0)
+        horas_dia = max(horas_dia_bruto - 1, 0)
+
     except:
-        horas_dia = 8
+        horas_dia_bruto = 8
+        horas_dia = 7
 
-    st.write(f"Horas por dia: {horas_dia}")
+    st.write(f"Horas por dia (bruto): {horas_dia_bruto}")
+    st.write("(-1h almoço)")
+    st.success(f"Horas líquidas por dia: {horas_dia}")
 
-st.write(f"Horas por dia (bruto): {horas_dia_bruto}")
-st.write(f"(-1h almoço)")
-st.success(f"Horas líquidas por dia: {horas_dia}")
-
-    # dias por mês
+    # DIAS NO MÊS
     mapa_dias = {
         "Segunda a Sexta": 22,
         "Segunda a Sábado": 26,
@@ -236,7 +236,7 @@ st.success(f"Horas líquidas por dia: {horas_dia}")
     st.success(f"Produção mensal: {producao_mensal:.2f} m³/mês")
 
     # =========================
-    # PRAZO DA OBRA
+    # PRAZO
     # =========================
     st.subheader("Prazo da Obra")
 
@@ -251,7 +251,7 @@ st.success(f"Horas líquidas por dia: {horas_dia}")
     st.success(f"Prazo estimado: {meses:.2f} meses")
 
     # =========================
-    # SALVAR NO SESSION
+    # SALVAR
     # =========================
     st.session_state.orcamento.update({
         "draga": draga,
