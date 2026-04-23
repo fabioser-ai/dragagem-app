@@ -46,7 +46,6 @@ def etapa0():
 
     codigo = gerar_codigo()
 
-    # CLIENTES
     df_clientes = carregar_github(ARQ_CLIENTES, TOKEN, REPO)
     if df_clientes.empty:
         df_clientes = pd.DataFrame(columns=["Cliente"])
@@ -63,10 +62,8 @@ def etapa0():
 
     if st.button("Continuar"):
 
-        # define cliente final
         if novo_cliente:
             cliente_final = novo_cliente
-
             df_clientes.loc[len(df_clientes)] = [novo_cliente]
             salvar_github(df_clientes, ARQ_CLIENTES, TOKEN, REPO)
         else:
@@ -170,17 +167,49 @@ def etapa2():
 
     st.success(f"Vazão real: {vazao_real:.2f} m³/h")
 
+    # atualizar dados
     st.session_state.orcamento.update({
         "flutuante": flutuante,
         "terrestre": terrestre,
         "vazao_real": vazao_real
     })
 
+    # =========================
+    # SALVAR ORÇAMENTO
+    # =========================
+    if st.button("💾 Salvar orçamento"):
+
+        try:
+            df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
+        except:
+            df = pd.DataFrame(columns=[
+                "Codigo","Nome_Obra","Cliente","Data",
+                "Vazao","Volume","Material","Desaguamento",
+                "Distancia","Vazao_Real"
+            ])
+
+        novo = {
+            "Codigo": dados["codigo"],
+            "Nome_Obra": dados["nome_obra"],
+            "Cliente": dados["cliente"],
+            "Data": dados["data"],
+            "Vazao": dados["vazao"],
+            "Volume": dados["volume"],
+            "Material": dados["material"],
+            "Desaguamento": dados["desag"],
+            "Distancia": distancia_total,
+            "Vazao_Real": vazao_real
+        }
+
+        df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
+
+        salvar_github(df, ARQ_OBRAS, TOKEN, REPO)
+
+        st.success("Orçamento salvo com sucesso!")
+
+    # navegação
     col1, col2 = st.columns(2)
 
     if col1.button("⬅ Voltar"):
         st.session_state.tela = "orcamento1"
         st.rerun()
-
-    if col2.button("Continuar"):
-        st.success("Próxima etapa em construção")
