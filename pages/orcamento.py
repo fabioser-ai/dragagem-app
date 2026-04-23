@@ -42,24 +42,63 @@ def gerar_codigo():
 # =========================
 def etapa0():
 
-    st.header("Orçamento - Identificação")
+    st.header("Informações da Obra")
 
     codigo = gerar_codigo()
 
+    # =========================
+    # CLIENTES
+    # =========================
     df_clientes = carregar_github(ARQ_CLIENTES, TOKEN, REPO)
     if df_clientes.empty:
         df_clientes = pd.DataFrame(columns=["Cliente"])
 
-    lista_clientes = df_clientes["Cliente"].tolist()
-
-    cliente = st.selectbox("Cliente", lista_clientes)
+    cliente = st.selectbox("Cliente", df_clientes["Cliente"])
     novo_cliente = st.text_input("Ou adicionar novo cliente")
 
+    # =========================
+    # DADOS BÁSICOS
+    # =========================
     nome_obra = st.text_input("Nome da obra")
+    local = st.text_input("Local de execução")
+
     data = st.date_input("Data", value=datetime.now())
 
-    st.info(f"Código gerado: {codigo}")
+    st.info(f"Código: {codigo}")
 
+    # =========================
+    # DATABASES
+    # =========================
+    df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
+    df_desag = carregar_github(ARQ_DESAG, TOKEN, REPO)
+    df_med = carregar_github("data/medicao.csv", TOKEN, REPO)
+    df_hor = carregar_github("data/horarios.csv", TOKEN, REPO)
+    df_dias = carregar_github("data/dias.csv", TOKEN, REPO)
+
+    # =========================
+    # DADOS TÉCNICOS
+    # =========================
+    volume = st.number_input("Volume a ser dragado")
+
+    material = st.selectbox("Tipo de material", df_mat["Material"])
+    desag = st.selectbox("Tipo de desaguamento", df_desag["Tipo"])
+
+    col1, col2 = st.columns(2)
+    flutuante = col1.number_input("Linha flutuante (m)")
+    terrestre = col2.number_input("Linha terrestre (m)")
+
+    sistema_med = st.selectbox("Sistema de medição", df_med["Sistema"])
+
+    horario = st.selectbox(
+        "Horário de trabalho",
+        df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1)
+    )
+
+    dias = st.selectbox("Dias de trabalho", df_dias["Descricao"])
+
+    # =========================
+    # CONTINUAR
+    # =========================
     if st.button("Continuar"):
 
         if novo_cliente:
@@ -73,7 +112,16 @@ def etapa0():
             "codigo": codigo,
             "nome_obra": nome_obra,
             "cliente": cliente_final,
-            "data": str(data)
+            "data": str(data),
+            "local": local,
+            "volume": volume,
+            "material": material,
+            "desag": desag,
+            "flutuante": flutuante,
+            "terrestre": terrestre,
+            "medicao": sistema_med,
+            "horario": horario,
+            "dias": dias
         }
 
         st.session_state.tela = "orcamento1"
