@@ -1,2 +1,2 @@
-Codigo,Data,Descricao,Equipamento,Volume,Distancia,Produtividade,Tempo_h,Dias,Custo_Diesel,Receita,Lucro
+Codigo,Nome_Obra,Cliente,Data,Vazao,Volume,Material,Desaguamento,Distancia,Vazao_Real
 D_001_2026,2026-04-16 21:33:18.089103,ARARAQUARA - DAAR,Draga 6,10000.0,2000.0,82.5,121.21212121212122,6.0606060606060606,5090.909090909091,161800.0,156709.0909090909
