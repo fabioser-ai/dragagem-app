@@ -42,7 +42,7 @@ def etapa2():
     st.info(f"Encargos aplicados: {leis:.1f}%")
 
     # =========================
-    # SESSION STATE BASE
+    # SESSION STATE
     # =========================
     if "df_equipe" not in st.session_state:
         df_inicial = df_sal.copy()
@@ -73,16 +73,15 @@ def etapa2():
         calcular = st.form_submit_button("Calcular custos")
 
     # =========================
-    # SALVAR APÓS SUBMIT
+    # CÁLCULO
     # =========================
     if calcular:
+
         st.session_state.df_equipe = df_editado.copy()
 
         df_calc = df_editado.copy()
 
-        # =========================
-        # CÁLCULOS
-        # =========================
+        # cálculos
         df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
         df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
         df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
@@ -99,19 +98,25 @@ def etapa2():
         total_hora = df_calc["Total"].sum()
 
         # =========================
-        # ALERTA
+        # FILTRO (Qtd > 0)
         # =========================
-        if df_calc["Adicional 25%"].any():
+        df_display = df_calc[df_calc["Qtd"] > 0].copy()
+
+        if df_display.empty:
+            st.info("Nenhum funcionário selecionado.")
+            return
+
+        # alerta
+        if df_display["Adicional 25%"].any():
             st.warning("⚠️ Adicional de 25% aplicado")
 
-        # =========================
-        # VISUAL LIMPO
-        # =========================
-        df_display = df_calc.copy()
-
+        # formatação BR
         for col in ["Valor_Hora", "Encargos", "Valor 25%", "Total"]:
             df_display[col] = df_display[col].apply(formatar_real)
 
+        # =========================
+        # RESULTADO
+        # =========================
         st.subheader("Resultado Calculado")
 
         st.dataframe(
@@ -132,7 +137,7 @@ def etapa2():
         st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
 
         # =========================
-        # SALVAR NO ORÇAMENTO
+        # SALVAR
         # =========================
         st.session_state.orcamento.update({
             "equipe": df_calc.to_dict(orient="records"),
