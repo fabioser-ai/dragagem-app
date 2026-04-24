@@ -25,7 +25,7 @@ def etapa2():
         return
 
     # =========================
-    # BASE SALÁRIOS
+    # CARREGAR BASE
     # =========================
     df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
 
@@ -39,8 +39,6 @@ def etapa2():
     # LEIS SOCIAIS
     # =========================
     leis = st.number_input("Leis Sociais (%)", value=110.0)
-    fator_leis = leis / 100  # <-- só o encargo (IMPORTANTE)
-
     st.info(f"Encargos aplicados: {leis:.1f}%")
 
     # =========================
@@ -58,12 +56,6 @@ def etapa2():
         df["Adicional 25%"] = False
 
     # =========================
-    # CÁLCULOS BASE
-    # =========================
-    df["Encargos"] = df["Valor_Hora"] * fator_leis
-    df["Valor c/ Leis"] = df["Valor_Hora"] + df["Encargos"]
-
-    # =========================
     # INPUT
     # =========================
     st.subheader("Entrada de Dados")
@@ -74,8 +66,6 @@ def etapa2():
                 "Qtd",
                 "Posicao",
                 "Valor_Hora",
-                "Encargos",
-                "Valor c/ Leis",
                 "Adicional 25%"
             ]
         ],
@@ -86,23 +76,35 @@ def etapa2():
             "Qtd": st.column_config.NumberColumn("Qtd", min_value=0, step=1),
             "Posicao": st.column_config.TextColumn("Posição", disabled=True),
             "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
-            "Encargos": st.column_config.NumberColumn("Encargos (R$)", disabled=True),
-            "Valor c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
             "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
         },
         key="editor_equipe"
     )
 
     # =========================
-    # CÁLCULOS FINAIS
+    # CÁLCULOS
     # =========================
     df_calc = df_editado.copy()
 
-    df_calc["Fator_25"] = df_calc["Adicional 25%"].apply(lambda x: 1.25 if x else 1.0)
+    # ENCARGOS (SEPARADO)
+    df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
 
-    df_calc["Valor c/ 25%"] = df_calc["Valor c/ Leis"] * df_calc["Fator_25"]
+    # BASE + ENCARGOS
+    df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
 
-    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor c/ 25%"]
+    # VALOR DO 25% (SEPARADO)
+    df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
+
+    # VALOR FINAL
+    df_calc["Valor Final"] = df_calc.apply(
+        lambda row: row["Base + Encargos"] + row["Valor 25%"]
+        if row["Adicional 25%"]
+        else row["Base + Encargos"],
+        axis=1
+    )
+
+    # TOTAL
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
 
     total_hora = df_calc["Total"].sum()
 
@@ -117,11 +119,11 @@ def etapa2():
     # =========================
     df_display = df_calc.copy()
 
-    for col in ["Valor_Hora", "Encargos", "Valor c/ Leis", "Valor c/ 25%", "Total"]:
+    for col in ["Valor_Hora", "Encargos", "Valor 25%", "Valor Final", "Total"]:
         df_display[col] = df_display[col].apply(formatar_real)
 
     # =========================
-    # RESULTADO
+    # RESULTADO FINAL
     # =========================
     st.subheader("Resultado Calculado")
 
@@ -132,9 +134,8 @@ def etapa2():
                 "Posicao",
                 "Valor_Hora",
                 "Encargos",
-                "Valor c/ Leis",
-                "Adicional 25%",
-                "Valor c/ 25%",
+                "Valor 25%",
+                "Valor Final",
                 "Total",
             ]
         ],
