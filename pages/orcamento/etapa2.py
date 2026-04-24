@@ -96,6 +96,7 @@ def etapa2():
         df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
 
         total_hora = df_calc["Total"].sum()
+        st.session_state.orcamento["custo_mensal_equipe"] = total_hora
 
         # =========================
         # FILTRO (Qtd > 0)
