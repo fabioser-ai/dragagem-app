@@ -61,6 +61,10 @@ def etapa0():
     local = st.text_input("Local de execução")
     data = st.date_input("Data", value=datetime.now())
 
+    data_formatada = data.strftime("%d/%m/%Y")
+
+    st.write(f"Data selecionada: {data_formatada}")
+
     st.info(f"Código: {codigo}")
 
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
