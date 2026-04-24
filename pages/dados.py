@@ -13,46 +13,60 @@ ARQ_DIAS = "data/dias.csv"
 ARQ_SAL = "data/salarios.csv"
 
 # =========================
-# NORMALIZAÇÃO (resolve dtype bug)
+# FORMATAR MOEDA BR
 # =========================
-def normalizar_tipos(df):
+def formatar_real(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-    for col in df.columns:
-        if col.lower() in [
+# =========================
+# PARSE MOEDA (BR → FLOAT)
+# =========================
+def parse_moeda(valor):
+
+    if pd.isna(valor) or valor == "":
+        return None
+
+    valor = str(valor).strip()
+    valor = valor.replace("R$", "").replace(" ", "")
+    valor = valor.replace(".", "").replace(",", ".")
+
+    try:
+        return float(valor)
+    except:
+        return None
+
+# =========================
+# CONVERSÃO COM VALIDAÇÃO
+# =========================
+def converter_valores(colunas, valores):
+
+    valores_convertidos = []
+
+    for i, c in enumerate(colunas):
+        valor = valores[i]
+
+        if c.lower() in [
             "vazao",
             "consumo",
             "valor",
             "valor_hora",
             "solidos_insitu",
-            "solidos_desaguado",
+            "solidos_desaguado"
         ]:
-            df[col] = (
-                df[col]
-                .astype(str)
-                .str.replace(".", "", regex=False)
-                .str.replace(",", ".", regex=False)
-            )
+            convertido = parse_moeda(valor)
 
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+            if convertido is None:
+                st.error(f"Valor inválido para '{c}': {valor}")
+                return None
 
-    return df
+            valor = convertido
 
-# =========================
-# CONVERSÃO INPUT (BR)
-# =========================
-def converter_valor(valor):
-    try:
-        valor = str(valor).strip()
+        valores_convertidos.append(valor)
 
-        if "," in valor:
-            valor = valor.replace(".", "").replace(",", ".")
-
-        return float(valor)
-    except:
-        return 0.0
+    return valores_convertidos
 
 # =========================
-# CRUD
+# CRUD GENÉRICO
 # =========================
 def crud(arquivo, colunas, titulo, chave):
 
@@ -63,69 +77,55 @@ def crud(arquivo, colunas, titulo, chave):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
 
-    # 🔥 normaliza + remove trava de tipo
-    df = normalizar_tipos(df)
-    df = df.astype(object)
+    # garante tipo numérico
+    for col in df.columns:
+        if col.lower() in ["valor", "valor_hora", "vazao", "consumo"]:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
 
-    st.dataframe(df, use_container_width=True)
+    # exibição formatada
+    df_display = df.copy()
+    for col in df_display.columns:
+        if col.lower() in ["valor", "valor_hora", "consumo"]:
+            df_display[col] = df_display[col].apply(formatar_real)
+
+    st.dataframe(df_display, use_container_width=True)
 
     # =========================
     # EDITAR
     # =========================
     if not df.empty:
 
-        label = colunas[0]
-
-        opcoes = df[label].astype(str).tolist()
-
-        selecionado = st.selectbox(
-            "Selecionar para editar",
-            opcoes,
-            key=f"sel_{chave}"
-        )
-
-        idx = df[df[label].astype(str) == selecionado].index[0]
+        idx = st.selectbox("Selecionar para editar", df.index, key=f"sel_{chave}")
         linha = df.loc[idx]
 
         novos = []
 
         for c in colunas:
+
+            if c.lower() in ["valor", "valor_hora", "consumo"]:
+                valor_atual = formatar_real(linha[c])
+            else:
+                valor_atual = str(linha[c])
+
             novos.append(
-                st.text_input(
-                    c,
-                    value=str(linha[c]),
-                    key=f"{chave}_{c}_{idx}"
-                )
+                st.text_input(c, value=valor_atual, key=f"{chave}_{c}")
             )
 
         col1, col2 = st.columns(2)
 
         if col1.button("Salvar", key=f"save_{chave}"):
 
-            convertidos = []
+            novos_convertidos = converter_valores(colunas, novos)
+
+            if novos_convertidos is None:
+                return
 
             for i, c in enumerate(colunas):
-                v = novos[i]
-
-                if c.lower() in [
-                    "vazao",
-                    "consumo",
-                    "valor",
-                    "valor_hora",
-                    "solidos_insitu",
-                    "solidos_desaguado",
-                ]:
-                    v = converter_valor(v)
-
-                convertidos.append(v)
-
-            # 🔥 atualização segura
-            for i, c in enumerate(colunas):
-                df.at[idx, c] = convertidos[i]
+                df.at[idx, c] = novos_convertidos[i]
 
             salvar_github(df, arquivo, TOKEN, REPO)
 
-            st.success("Atualizado!")
+            st.success("Atualizado com sucesso!")
             st.rerun()
 
         if col2.button("Excluir", key=f"del_{chave}"):
@@ -143,36 +143,23 @@ def crud(arquivo, colunas, titulo, chave):
     # =========================
     st.write("Adicionar novo")
 
-    novos = []
+    valores = []
 
     for c in colunas:
-        novos.append(st.text_input(c, key=f"new_{chave}_{c}"))
+        valores.append(st.text_input(c, key=f"new_{chave}_{c}"))
 
     if st.button("Adicionar", key=f"add_{chave}"):
 
-        convertidos = []
+        valores_convertidos = converter_valores(colunas, valores)
 
-        for i, c in enumerate(colunas):
-            v = novos[i]
+        if valores_convertidos is None:
+            return
 
-            if c.lower() in [
-                "vazao",
-                "consumo",
-                "valor",
-                "valor_hora",
-                "solidos_insitu",
-                "solidos_desaguado",
-            ]:
-                v = converter_valor(v)
-
-            convertidos.append(v)
-
-        nova_linha = pd.DataFrame([convertidos], columns=colunas)
-        df = pd.concat([df, nova_linha], ignore_index=True)
+        df.loc[len(df)] = valores_convertidos
 
         salvar_github(df, arquivo, TOKEN, REPO)
 
-        st.success("Adicionado!")
+        st.success("Adicionado com sucesso!")
         st.rerun()
 
 # =========================
@@ -227,4 +214,3 @@ def render():
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
-        st.rerun()
