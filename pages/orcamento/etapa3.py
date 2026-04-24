@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
-from services.github import carregar_github
+from services.github import carregar_github, salvar_github
 
+# =========================
+# ARQUIVO
+# =========================
 ARQ_INSUMOS = "data/insumos.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
@@ -13,6 +16,63 @@ def etapa3():
     st.header("Custo do Barrilete")
 
     # =========================
+    # CARREGAR INSUMOS
+    # =========================
+    try:
+        df_insumos = carregar_github(ARQ_INSUMOS, TOKEN, REPO)
+    except:
+        df_insumos = pd.DataFrame(columns=["Insumo", "Preco_Unitario"])
+
+    if df_insumos.empty:
+        df_insumos = pd.DataFrame(columns=["Insumo", "Preco_Unitario"])
+
+    # garantir colunas
+    if "Preco_Unitario" not in df_insumos.columns:
+        df_insumos["Preco_Unitario"] = 0.0
+
+    # =========================
+    # CRUD INSUMOS (BASE)
+    # =========================
+    st.subheader("Cadastro de Insumos")
+
+    df_base = df_insumos.copy().fillna({
+        "Insumo": "",
+        "Preco_Unitario": 0.0
+    })
+
+    df_crud = st.data_editor(
+        df_base,
+        use_container_width=True,
+        num_rows="dynamic",
+        key="crud_insumos",
+        column_config={
+            "Insumo": st.column_config.TextColumn("Insumo"),
+            "Preco_Unitario": st.column_config.NumberColumn("Preço Unitário (R$)", min_value=0.0),
+        }
+    )
+
+    col1, col2 = st.columns(2)
+
+    if col1.button("💾 Salvar Insumos"):
+
+        df_salvar = df_crud.copy()
+
+        df_salvar = df_salvar[df_salvar["Insumo"] != ""]
+        df_salvar["Preco_Unitario"] = pd.to_numeric(
+            df_salvar["Preco_Unitario"], errors="coerce"
+        ).fillna(0)
+
+        salvar_github(df_salvar, ARQ_INSUMOS, TOKEN, REPO)
+
+        st.success("Insumos salvos com sucesso")
+        st.rerun()
+
+    if col2.button("🔄 Atualizar lista"):
+        st.rerun()
+
+    st.divider()
+
+    # =========================
     # VALIDAR EQUIPE
     # =========================
     custo_hora = st.session_state.orcamento.get("custo_hora_equipe")
@@ -22,31 +82,15 @@ def etapa3():
         return
 
     # =========================
-    # CARREGAR INSUMOS
+    # USO DOS INSUMOS
     # =========================
-    try:
-        df_insumos = carregar_github(ARQ_INSUMOS, TOKEN, REPO)
-    except:
-        df_insumos = pd.DataFrame(columns=["Insumo", "Preco_Unitario"])
+    st.subheader("Composição do Barrilete")
 
-    if df_insumos.empty:
-        st.warning("Base de insumos vazia")
-        return
-
-    # garantir colunas
-    if "Preco_Unitario" not in df_insumos.columns:
-        df_insumos["Preco_Unitario"] = 0.0
-
-    if "Qtd" not in df_insumos.columns:
-        df_insumos["Qtd"] = 0.0
-
-    # =========================
-    # SESSION STATE (ANTI-RESET)
-    # =========================
+    # session_state anti-reset
     if "insumos_editados" not in st.session_state:
-        st.session_state.insumos_editados = df_insumos.copy()
-
-    st.subheader("Insumos")
+        df_temp = df_insumos.copy()
+        df_temp["Qtd"] = 0.0
+        st.session_state.insumos_editados = df_temp
 
     df_editado = st.data_editor(
         st.session_state.insumos_editados,
@@ -60,7 +104,7 @@ def etapa3():
         }
     )
 
-    # salva edição (evita perder dados)
+    # salvar edição (anti reset)
     st.session_state.insumos_editados = df_editado
 
     # =========================
@@ -82,17 +126,18 @@ def etapa3():
     )
 
     # =========================
-    # CÁLCULO INSUMOS
+    # CÁLCULO
     # =========================
     df_calc = df_editado.copy()
+
+    df_calc["Qtd"] = pd.to_numeric(df_calc["Qtd"], errors="coerce").fillna(0)
+    df_calc["Preco_Unitario"] = pd.to_numeric(df_calc["Preco_Unitario"], errors="coerce").fillna(0)
 
     df_calc["Total"] = df_calc["Qtd"] * df_calc["Preco_Unitario"]
 
     total_insumos = df_calc["Total"].sum()
 
-    # =========================
-    # ADICIONA EQUIPE COMO ITEM
-    # =========================
+    # linha equipe
     df_equipe = pd.DataFrame([{
         "Insumo": "Equipe",
         "Qtd": horas_dia * dias,
@@ -102,7 +147,7 @@ def etapa3():
 
     df_final = pd.concat([df_calc, df_equipe], ignore_index=True)
 
-    # remove linhas zeradas
+    # remover linhas zeradas
     df_final = df_final[df_final["Total"] > 0]
 
     total_geral = total_insumos + custo_equipe_total
