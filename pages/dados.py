@@ -17,7 +17,12 @@ ARQ_SAL = "data/salarios.csv"
 # =========================
 def converter_valor_monetario(valor):
     try:
-        valor = str(valor).replace(".", "").replace(",", ".")
+        valor = str(valor).strip()
+
+        # remove milhar e ajusta decimal
+        if "," in valor:
+            valor = valor.replace(".", "").replace(",", ".")
+        
         return float(valor)
     except:
         return 0.0
@@ -56,12 +61,10 @@ def crud(arquivo, colunas, titulo, chave):
         novos = []
 
         for c in colunas:
-            valor_padrao = str(linha[c])
-
             novos.append(
                 st.text_input(
                     c,
-                    value=valor_padrao,
+                    value=str(linha[c]),
                     key=f"{chave}_{c}_{idx}"
                 )
             )
@@ -87,7 +90,10 @@ def crud(arquivo, colunas, titulo, chave):
 
                 novos_convertidos.append(v)
 
-            df.loc[idx] = novos_convertidos
+            # 🔥 ATUALIZAÇÃO SEGURA (SEM ERRO DE DTYPE)
+            for i, c in enumerate(colunas):
+                df.at[idx, c] = novos_convertidos[i]
+
             salvar_github(df, arquivo, TOKEN, REPO)
 
             st.success("Atualizado!")
@@ -132,7 +138,10 @@ def crud(arquivo, colunas, titulo, chave):
 
             valores_convertidos.append(v)
 
-        df.loc[len(df)] = valores_convertidos
+        # 🔥 ADIÇÃO SEGURA
+        nova_linha = pd.DataFrame([valores_convertidos], columns=colunas)
+        df = pd.concat([df, nova_linha], ignore_index=True)
+
         salvar_github(df, arquivo, TOKEN, REPO)
 
         st.success("Adicionado!")
