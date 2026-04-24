@@ -10,35 +10,17 @@ ARQ_MAT = "data/materiais.csv"
 ARQ_DESAG = "data/desaguamento.csv"
 ARQ_HOR = "data/horarios.csv"
 ARQ_DIAS = "data/dias.csv"
-ARQ_SAL = "data/salarios.csv"  # NOVO
+ARQ_SAL = "data/salarios.csv"
 
 # =========================
-# CONVERSÃO DE TIPOS
+# CONVERSÃO MONETÁRIA (BR)
 # =========================
-def converter_valores(colunas, valores):
-
-    valores_convertidos = []
-
-    for i, c in enumerate(colunas):
-        valor = valores[i]
-
-        # campos numéricos
-        if c.lower() in [
-            "vazao",
-            "consumo",
-            "valor",
-            "solidos_insitu",
-            "solidos_desaguado",
-            "valor_hora",   # IMPORTANTE
-        ]:
-            try:
-                valor = float(valor)
-            except:
-                valor = 0.0
-
-        valores_convertidos.append(valor)
-
-    return valores_convertidos
+def converter_valor_monetario(valor):
+    try:
+        valor = str(valor).replace(".", "").replace(",", ".")
+        return float(valor)
+    except:
+        return 0.0
 
 # =========================
 # CRUD GENÉRICO
@@ -59,20 +41,51 @@ def crud(arquivo, colunas, titulo, chave):
     # =========================
     if not df.empty:
 
-        idx = st.selectbox("Selecionar para editar", df.index, key=f"sel_{chave}")
+        label_col = colunas[0]
+
+        opcoes = df[label_col].astype(str).tolist()
+        selecionado = st.selectbox(
+            "Selecionar para editar",
+            opcoes,
+            key=f"sel_{chave}"
+        )
+
+        idx = df[df[label_col].astype(str) == selecionado].index[0]
         linha = df.loc[idx]
 
         novos = []
+
         for c in colunas:
+            valor_padrao = str(linha[c])
+
             novos.append(
-                st.text_input(c, value=str(linha[c]), key=f"{chave}_{c}")
+                st.text_input(
+                    c,
+                    value=valor_padrao,
+                    key=f"{chave}_{c}_{idx}"
+                )
             )
 
         col1, col2 = st.columns(2)
 
         if col1.button("Salvar", key=f"save_{chave}"):
 
-            novos_convertidos = converter_valores(colunas, novos)
+            novos_convertidos = []
+
+            for i, c in enumerate(colunas):
+                v = novos[i]
+
+                if c.lower() in [
+                    "vazao",
+                    "consumo",
+                    "valor",
+                    "solidos_insitu",
+                    "solidos_desaguado",
+                    "valor_hora",
+                ]:
+                    v = converter_valor_monetario(v)
+
+                novos_convertidos.append(v)
 
             df.loc[idx] = novos_convertidos
             salvar_github(df, arquivo, TOKEN, REPO)
@@ -96,12 +109,28 @@ def crud(arquivo, colunas, titulo, chave):
     st.write("Adicionar novo")
 
     valores = []
+
     for c in colunas:
         valores.append(st.text_input(c, key=f"new_{chave}_{c}"))
 
     if st.button("Adicionar", key=f"add_{chave}"):
 
-        valores_convertidos = converter_valores(colunas, valores)
+        valores_convertidos = []
+
+        for i, c in enumerate(colunas):
+            v = valores[i]
+
+            if c.lower() in [
+                "vazao",
+                "consumo",
+                "valor",
+                "solidos_insitu",
+                "solidos_desaguado",
+                "valor_hora",
+            ]:
+                v = converter_valor_monetario(v)
+
+            valores_convertidos.append(v)
 
         df.loc[len(df)] = valores_convertidos
         salvar_github(df, arquivo, TOKEN, REPO)
@@ -136,59 +165,28 @@ def render():
     if col3.button("Dias"):
         st.session_state.subdados = "dias"
 
-    # NOVO BOTÃO
     if col3.button("Salários"):
         st.session_state.subdados = "sal"
 
     st.divider()
 
     if st.session_state.subdados == "equip":
-        crud(
-            ARQ_EQUIP,
-            ["Equipamento", "Vazao", "Consumo", "Valor"],
-            "Equipamentos",
-            "equip"
-        )
+        crud(ARQ_EQUIP, ["Equipamento","Vazao","Consumo","Valor"], "Equipamentos", "equip")
 
     elif st.session_state.subdados == "mat":
-        crud(
-            ARQ_MAT,
-            ["Material", "Solidos_InSitu", "Solidos_Desaguado"],
-            "Materiais",
-            "mat"
-        )
+        crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "mat")
 
     elif st.session_state.subdados == "desag":
-        crud(
-            ARQ_DESAG,
-            ["Tipo"],
-            "Desaguamento",
-            "desag"
-        )
+        crud(ARQ_DESAG, ["Tipo"], "Desaguamento", "desag")
 
     elif st.session_state.subdados == "hor":
-        crud(
-            ARQ_HOR,
-            ["Inicio", "Fim"],
-            "Horários",
-            "hor"
-        )
+        crud(ARQ_HOR, ["Inicio","Fim"], "Horários", "hor")
 
     elif st.session_state.subdados == "dias":
-        crud(
-            ARQ_DIAS,
-            ["Descricao"],
-            "Dias",
-            "dias"
-        )
+        crud(ARQ_DIAS, ["Descricao"], "Dias", "dias")
 
     elif st.session_state.subdados == "sal":
-        crud(
-            ARQ_SAL,
-            ["Posicao", "Valor_Hora"],
-            "Salários",
-            "sal"
-        )
+        crud(ARQ_SAL, ["Posicao","Valor_Hora"], "Salários", "sal")
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
