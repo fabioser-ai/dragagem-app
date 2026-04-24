@@ -2,17 +2,11 @@ import streamlit as st
 import pandas as pd
 from services.github import carregar_github
 
-# =========================
-# ARQUIVO
-# =========================
 ARQ_SAL = "data/salarios.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
-# =========================
-# ETAPA 2
-# =========================
 def etapa2():
 
     st.header("Dimensionamento de Equipe")
@@ -30,7 +24,6 @@ def etapa2():
         st.warning("Base de salários vazia")
         return
 
-    # Garantir tipo numérico
     df_sal["Valor_Hora"] = pd.to_numeric(df_sal["Valor_Hora"], errors="coerce").fillna(0)
 
     # =========================
@@ -42,27 +35,23 @@ def etapa2():
     st.info(f"Fator aplicado: {fator_leis:.2f}")
 
     # =========================
-    # BASE DE TRABALHO
+    # BASE
     # =========================
     df = df_sal.copy()
 
-    # Se já existir estado salvo, reaproveita
     if "equipe" in st.session_state.orcamento:
         df_antigo = pd.DataFrame(st.session_state.orcamento["equipe"])
-
-        for i in range(len(df)):
-            if i < len(df_antigo):
-                df.loc[i, "Qtd"] = df_antigo.loc[i, "Qtd"]
-                df.loc[i, "Adicional 25%"] = df_antigo.loc[i, "Adicional 25%"]
+        for i in range(min(len(df), len(df_antigo))):
+            df.loc[i, "Qtd"] = df_antigo.loc[i, "Qtd"]
+            df.loc[i, "Adicional 25%"] = df_antigo.loc[i, "Adicional 25%"]
     else:
         df["Qtd"] = 0
         df["Adicional 25%"] = False
 
-    # Cálculos base
     df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
 
     # =========================
-    # TABELA EDITÁVEL
+    # INPUT
     # =========================
     st.subheader("Entrada de Dados")
 
@@ -70,6 +59,7 @@ def etapa2():
         df[["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis"]],
         use_container_width=True,
         num_rows="fixed",
+        hide_index=True,
         column_config={
             "Qtd": st.column_config.NumberColumn("Qtd", min_value=0, step=1),
             "Posicao": st.column_config.TextColumn("Posição", disabled=True),
@@ -81,7 +71,7 @@ def etapa2():
     )
 
     # =========================
-    # CÁLCULOS
+    # CÁLCULO
     # =========================
     df_calc = df_editado.copy()
 
@@ -89,13 +79,13 @@ def etapa2():
         lambda x: 1.25 if x else 1.0
     )
 
+    # VALORES UNITÁRIOS
     df_calc["Valor c/ 25%"] = df_calc["Valor c/ Leis"] * df_calc["Fator_Adicional"]
 
-    df_calc["Valor Final"] = df_calc["Valor c/ 25%"]
+    # TOTAL (único somatório)
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor c/ 25%"]
 
-    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
-
-    total_mensal = df_calc["Total"].sum()
+    total_hora = df_calc["Total"].sum()
 
     # =========================
     # ALERTA
@@ -117,21 +107,21 @@ def etapa2():
                 "Adicional 25%",
                 "Valor c/ Leis",
                 "Valor c/ 25%",
-                "Valor Final",
                 "Total",
             ]
         ],
-        use_container_width=True
+        use_container_width=True,
+        hide_index=True
     )
 
-    st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
+    st.success(f"Custo por hora da equipe: R$ {total_hora:,.2f}")
 
     # =========================
     # SALVAR
     # =========================
     st.session_state.orcamento.update({
         "equipe": df_calc.to_dict(orient="records"),
-        "custo_mensal_equipe": total_mensal,
+        "custo_hora_equipe": total_hora,
         "leis_sociais": leis
     })
 
