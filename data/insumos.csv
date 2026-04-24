@@ -1,14 +1,3 @@
-Item,Preco_Atual
-Tubo de ferro 6m 8 polegadas,1500
-Toco 0.50m,200
-Joelho 90 graus,300
-Tee 6x4 flangeado,400
-Ponteira flange escama 4,250
-Cap 6,180
-Valvula gaveta 4,600
-Valvula gaveta 3,500
-Mangueira conduto agua,90
-Abracadeiras,25
-Curva longa PVC 4,120
-Valvula esfera 2,150
-Bomba lameira,5000
+Item,Preco_Unitario,Data
+Tubo 8 polegadas,1500,2026-01-01
+Joelho 90 graus,300,2026-01-05
