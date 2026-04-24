@@ -266,37 +266,28 @@ def etapa2():
     # =========================
     total_mensal = 0
 
-    for i, row in df_sal.iterrows():
+for i, row in df_sal.iterrows():
 
-        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
+    col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
 
-        # QTD (input)
-        qtd = col1.number_input(
-            label="",
+    # Ajuste visual do input
+    with col1:
+        st.markdown("<div style='margin-top:10px'></div>", unsafe_allow_html=True)
+        qtd = st.number_input(
+            "",
             min_value=0,
             step=1,
             key=f"qtd_{i}"
         )
 
-        # ALINHAMENTO VISUAL
-        col2.markdown(
-            f"<div style='padding-top:8px'>{row['Posicao']}</div>",
-            unsafe_allow_html=True
-        )
+    # Texto normal (sem hack)
+    col2.write(row["Posicao"])
+    col3.write(f"{row['Valor_Hora']:.2f}")
 
-        col3.markdown(
-            f"<div style='padding-top:8px'>{row['Valor_Hora']:.2f}</div>",
-            unsafe_allow_html=True
-        )
+    salario = row["Valor_Hora"] * fator
+    col4.write(f"{salario:.2f}")
 
-        salario = row["Valor_Hora"] * fator
-
-        col4.markdown(
-            f"<div style='padding-top:8px'>{salario:.2f}</div>",
-            unsafe_allow_html=True
-        )
-
-        total_mensal += qtd * salario
+    total_mensal += qtd * salario
 
     st.divider()
 
