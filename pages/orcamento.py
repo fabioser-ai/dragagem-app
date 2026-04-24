@@ -267,14 +267,23 @@ def etapa2():
     df["Qtd"] = 0
     df["Adicional 25%"] = False
     df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
+    df["Valor c/ Adicional"] = df["Valor c/ Leis"]  # nova coluna
     df["Valor Final"] = df["Valor c/ Leis"]
 
     df = df[
-        ["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis", "Valor Final"]
+        [
+            "Qtd",
+            "Posicao",
+            "Valor_Hora",
+            "Adicional 25%",
+            "Valor c/ Leis",
+            "Valor c/ Adicional",
+            "Valor Final",
+        ]
     ]
 
     # =========================
-    # EDITOR (TABELA)
+    # EDITOR
     # =========================
     df_editado = st.data_editor(
         df,
@@ -286,6 +295,7 @@ def etapa2():
             "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
             "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
             "Valor c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
+            "Valor c/ Adicional": st.column_config.NumberColumn("C/ Adic. (R$)", disabled=True),
             "Valor Final": st.column_config.NumberColumn("Valor Final (R$)", disabled=True),
         }
     )
@@ -297,14 +307,18 @@ def etapa2():
         lambda x: 1.25 if x else 1.0
     )
 
-    df_editado["Valor Final"] = df_editado["Valor c/ Leis"] * df_editado["Fator_Adicional"]
+    # NOVA COLUNA (impacto isolado do adicional)
+    df_editado["Valor c/ Adicional"] = df_editado["Valor c/ Leis"] * df_editado["Fator_Adicional"]
+
+    # VALOR FINAL (mesmo valor — mas mantém estrutura futura)
+    df_editado["Valor Final"] = df_editado["Valor c/ Adicional"]
 
     df_editado["Total"] = df_editado["Qtd"] * df_editado["Valor Final"]
 
     total_mensal = df_editado["Total"].sum()
 
     # =========================
-    # ALERTA DE ADICIONAL
+    # ALERTA
     # =========================
     if df_editado["Adicional 25%"].any():
         st.warning("⚠️ Existem funcionários com adicional de 25% aplicado")
