@@ -10,6 +10,7 @@ ARQ_MAT = "data/materiais.csv"
 ARQ_DESAG = "data/desaguamento.csv"
 ARQ_HOR = "data/horarios.csv"
 ARQ_DIAS = "data/dias.csv"
+ARQ_SAL = "data/salarios.csv"  # NOVO
 
 # =========================
 # CONVERSÃO DE TIPOS
@@ -22,7 +23,14 @@ def converter_valores(colunas, valores):
         valor = valores[i]
 
         # campos numéricos
-        if c.lower() in ["vazao", "consumo", "valor", "solidos_insitu", "solidos_desaguado"]:
+        if c.lower() in [
+            "vazao",
+            "consumo",
+            "valor",
+            "solidos_insitu",
+            "solidos_desaguado",
+            "valor_hora",   # IMPORTANTE
+        ]:
             try:
                 valor = float(valor)
             except:
@@ -44,7 +52,7 @@ def crud(arquivo, colunas, titulo, chave):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
 
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
 
     # =========================
     # EDITAR
@@ -128,22 +136,60 @@ def render():
     if col3.button("Dias"):
         st.session_state.subdados = "dias"
 
+    # NOVO BOTÃO
+    if col3.button("Salários"):
+        st.session_state.subdados = "sal"
+
     st.divider()
 
     if st.session_state.subdados == "equip":
-        crud(ARQ_EQUIP, ["Equipamento","Vazao","Consumo","Valor"], "Equipamentos", "equip")
+        crud(
+            ARQ_EQUIP,
+            ["Equipamento", "Vazao", "Consumo", "Valor"],
+            "Equipamentos",
+            "equip"
+        )
 
     elif st.session_state.subdados == "mat":
-        crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "mat")
+        crud(
+            ARQ_MAT,
+            ["Material", "Solidos_InSitu", "Solidos_Desaguado"],
+            "Materiais",
+            "mat"
+        )
 
     elif st.session_state.subdados == "desag":
-        crud(ARQ_DESAG, ["Tipo"], "Desaguamento", "desag")
+        crud(
+            ARQ_DESAG,
+            ["Tipo"],
+            "Desaguamento",
+            "desag"
+        )
 
     elif st.session_state.subdados == "hor":
-        crud(ARQ_HOR, ["Inicio","Fim"], "Horários", "hor")
+        crud(
+            ARQ_HOR,
+            ["Inicio", "Fim"],
+            "Horários",
+            "hor"
+        )
 
     elif st.session_state.subdados == "dias":
-        crud(ARQ_DIAS, ["Descricao"], "Dias", "dias")
+        crud(
+            ARQ_DIAS,
+            ["Descricao"],
+            "Dias",
+            "dias"
+        )
+
+    elif st.session_state.subdados == "sal":
+        crud(
+            ARQ_SAL,
+            ["Posicao", "Valor_Hora"],
+            "Salários",
+            "sal"
+        )
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
+        st.rerun()
