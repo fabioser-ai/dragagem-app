@@ -260,31 +260,20 @@ def etapa2():
     st.info(f"Fator leis sociais aplicado: {fator_leis:.2f}")
 
     # =========================
-    # BASE DA TABELA
+    # TABELA DE ENTRADA
     # =========================
     df = df_sal.copy()
 
     df["Qtd"] = 0
     df["Adicional 25%"] = False
     df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
-    df["Valor c/ Adicional"] = df["Valor c/ Leis"]  # nova coluna
-    df["Valor Final"] = df["Valor c/ Leis"]
 
     df = df[
-        [
-            "Qtd",
-            "Posicao",
-            "Valor_Hora",
-            "Adicional 25%",
-            "Valor c/ Leis",
-            "Valor c/ Adicional",
-            "Valor Final",
-        ]
+        ["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis"]
     ]
 
-    # =========================
-    # EDITOR
-    # =========================
+    st.subheader("Entrada de Dados")
+
     df_editado = st.data_editor(
         df,
         use_container_width=True,
@@ -295,36 +284,53 @@ def etapa2():
             "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
             "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
             "Valor c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
-            "Valor c/ Adicional": st.column_config.NumberColumn("C/ Adic. (R$)", disabled=True),
-            "Valor Final": st.column_config.NumberColumn("Valor Final (R$)", disabled=True),
         }
     )
 
     # =========================
-    # CÁLCULOS
+    # CÁLCULO
     # =========================
-    df_editado["Fator_Adicional"] = df_editado["Adicional 25%"].apply(
+    df_calc = df_editado.copy()
+
+    df_calc["Fator_Adicional"] = df_calc["Adicional 25%"].apply(
         lambda x: 1.25 if x else 1.0
     )
 
-    # NOVA COLUNA (impacto isolado do adicional)
-    df_editado["Valor c/ Adicional"] = df_editado["Valor c/ Leis"] * df_editado["Fator_Adicional"]
+    df_calc["Valor c/ Adicional"] = df_calc["Valor c/ Leis"] * df_calc["Fator_Adicional"]
+    df_calc["Valor Final"] = df_calc["Valor c/ Adicional"]
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
 
-    # VALOR FINAL (mesmo valor — mas mantém estrutura futura)
-    df_editado["Valor Final"] = df_editado["Valor c/ Adicional"]
-
-    df_editado["Total"] = df_editado["Qtd"] * df_editado["Valor Final"]
-
-    total_mensal = df_editado["Total"].sum()
+    total_mensal = df_calc["Total"].sum()
 
     # =========================
     # ALERTA
     # =========================
-    if df_editado["Adicional 25%"].any():
+    if df_calc["Adicional 25%"].any():
         st.warning("⚠️ Existem funcionários com adicional de 25% aplicado")
 
     # =========================
-    # RESULTADO
+    # TABELA FINAL (RESULTADO)
+    # =========================
+    st.subheader("Resultado Calculado")
+
+    st.dataframe(
+        df_calc[
+            [
+                "Qtd",
+                "Posicao",
+                "Valor_Hora",
+                "Adicional 25%",
+                "Valor c/ Leis",
+                "Valor c/ Adicional",
+                "Valor Final",
+                "Total",
+            ]
+        ],
+        use_container_width=True
+    )
+
+    # =========================
+    # RESULTADO FINAL
     # =========================
     st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
 
@@ -332,7 +338,7 @@ def etapa2():
     # SALVAR
     # =========================
     st.session_state.orcamento.update({
-        "equipe": df_editado.to_dict(orient="records"),
+        "equipe": df_calc.to_dict(orient="records"),
         "custo_mensal_equipe": total_mensal,
         "leis_sociais": leis
     })
