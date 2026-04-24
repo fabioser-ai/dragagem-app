@@ -3,6 +3,12 @@ import streamlit as st
 # Módulos principais
 from pages import menu, dados, ferias
 
+# Módulo orçamento (novo - modular)
+from pages.orcamento.etapa0 import etapa0
+from pages.orcamento.etapa1 import etapa1
+from pages.orcamento.etapa2 import etapa2
+from pages.orcamento.etapa3 import etapa3
+
 # =========================
 # CONFIGURAÇÃO
 # =========================
@@ -15,7 +21,7 @@ if "tela" not in st.session_state:
     st.session_state.tela = "menu"
 
 # =========================
-# ROTEADOR PRINCIPAL
+# ROTEADOR
 # =========================
 if st.session_state.tela == "menu":
     menu.render()
@@ -57,39 +63,16 @@ elif st.session_state.tela == "obras":
         st.rerun()
 
 # =========================
-# ORÇAMENTO (NOVO MODELO MODULAR)
+# ORÇAMENTO (MODULAR)
 # =========================
-elif st.session_state.tela in ["orcamento", "orcamento1", "orcamento2", "orcamento3"]:
+elif st.session_state.tela == "orcamento":
+    etapa0()
 
-    try:
-        # NOVO MODELO (modular)
-        from pages.orcamento import etapa0, etapa1, etapa2, etapa3
+elif st.session_state.tela == "orcamento1":
+    etapa1()
 
-        if st.session_state.tela == "orcamento":
-            etapa0()
+elif st.session_state.tela == "orcamento2":
+    etapa2()
 
-        elif st.session_state.tela == "orcamento1":
-            etapa1()
-
-        elif st.session_state.tela == "orcamento2":
-            etapa2()
-
-        elif st.session_state.tela == "orcamento3":
-            etapa3()
-
-    except Exception as e:
-        # FALLBACK PARA MODELO ANTIGO (segurança total)
-        from pages import orcamento
-
-        st.warning("⚠️ Usando versão antiga do orçamento (fallback automático)")
-
-        if st.session_state.tela == "orcamento":
-            orcamento.etapa0()
-
-        elif st.session_state.tela == "orcamento1":
-            orcamento.etapa1()
-
-        elif st.session_state.tela == "orcamento2":
-            orcamento.etapa2()
-
-        st.error(f"Erro na versão nova: {e}")
+elif st.session_state.tela == "orcamento3":
+    etapa3()
