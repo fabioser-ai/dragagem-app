@@ -86,16 +86,10 @@ def etapa2():
     # =========================
     df_calc = df_editado.copy()
 
-    # ENCARGOS (SEPARADO)
     df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
-
-    # BASE + ENCARGOS
     df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
-
-    # VALOR DO 25% (SEPARADO)
     df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
 
-    # VALOR FINAL
     df_calc["Valor Final"] = df_calc.apply(
         lambda row: row["Base + Encargos"] + row["Valor 25%"]
         if row["Adicional 25%"]
@@ -103,7 +97,6 @@ def etapa2():
         axis=1
     )
 
-    # TOTAL
     df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
 
     total_hora = df_calc["Total"].sum()
@@ -119,7 +112,7 @@ def etapa2():
     # =========================
     df_display = df_calc.copy()
 
-    for col in ["Valor_Hora", "Encargos", "Valor 25%", "Valor Final", "Total"]:
+    for col in ["Valor_Hora", "Encargos", "Valor 25%", "Total"]:
         df_display[col] = df_display[col].apply(formatar_real)
 
     # =========================
@@ -135,7 +128,6 @@ def etapa2():
                 "Valor_Hora",
                 "Encargos",
                 "Valor 25%",
-                "Valor Final",
                 "Total",
             ]
         ],
