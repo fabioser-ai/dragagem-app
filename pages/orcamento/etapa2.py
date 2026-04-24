@@ -42,7 +42,7 @@ def etapa2():
     st.info(f"Encargos aplicados: {leis:.1f}%")
 
     # =========================
-    # CONTROLE DE ESTADO
+    # SESSION STATE BASE
     # =========================
     if "df_equipe" not in st.session_state:
         df_inicial = df_sal.copy()
@@ -50,44 +50,39 @@ def etapa2():
         df_inicial["Adicional 25%"] = False
         st.session_state.df_equipe = df_inicial
 
-    if "calcular_equipe" not in st.session_state:
-        st.session_state.calcular_equipe = False
-
     # =========================
-    # INPUT (SEM CÁLCULO)
+    # FORM (ANTI-RERUN)
     # =========================
     st.subheader("Entrada de Dados")
 
-    df_editado = st.data_editor(
-        st.session_state.df_equipe,
-        use_container_width=True,
-        hide_index=True,
-        num_rows="fixed",
-        key="editor_equipe",
-        column_config={
-            "Qtd": st.column_config.NumberColumn("Qtd", min_value=0, step=1),
-            "Posicao": st.column_config.TextColumn("Posição", disabled=True),
-            "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
-            "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
-        }
-    )
+    with st.form("form_equipe"):
 
-    # salva sempre (evita perda)
-    st.session_state.df_equipe = df_editado.copy()
+        df_editado = st.data_editor(
+            st.session_state.df_equipe,
+            use_container_width=True,
+            hide_index=True,
+            num_rows="fixed",
+            column_config={
+                "Qtd": st.column_config.NumberColumn("Qtd", min_value=0, step=1),
+                "Posicao": st.column_config.TextColumn("Posição", disabled=True),
+                "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
+                "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
+            }
+        )
 
-    # =========================
-    # BOTÃO DE CÁLCULO
-    # =========================
-    if st.button("Calcular custos"):
-        st.session_state.calcular_equipe = True
+        calcular = st.form_submit_button("Calcular custos")
 
     # =========================
-    # CÁLCULO (SÓ APÓS CLIQUE)
+    # SALVAR APÓS SUBMIT
     # =========================
-    if st.session_state.calcular_equipe:
+    if calcular:
+        st.session_state.df_equipe = df_editado.copy()
 
-        df_calc = st.session_state.df_equipe.copy()
+        df_calc = df_editado.copy()
 
+        # =========================
+        # CÁLCULOS
+        # =========================
         df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
         df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
         df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
@@ -103,7 +98,9 @@ def etapa2():
 
         total_hora = df_calc["Total"].sum()
 
-        # alerta
+        # =========================
+        # ALERTA
+        # =========================
         if df_calc["Adicional 25%"].any():
             st.warning("⚠️ Adicional de 25% aplicado")
 
@@ -135,7 +132,7 @@ def etapa2():
         st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
 
         # =========================
-        # SALVAR
+        # SALVAR NO ORÇAMENTO
         # =========================
         st.session_state.orcamento.update({
             "equipe": df_calc.to_dict(orient="records"),
