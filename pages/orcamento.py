@@ -266,24 +266,30 @@ def etapa2():
     # =========================
     total_mensal = 0
 
-    for i, row in df_sal.iterrows():
+        for i, row in df_sal.iterrows():
 
-        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
+            col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
 
-        qtd = col1.number_input(
-            "",
-            min_value=0,
-            step=1,
-            key=f"qtd_{i}"
+                with col1:
+                    qtd = st.number_input(
+                    " ",
+                    min_value=0,
+                    step=1,
+                    key=f"qtd_{i}"
         )
 
-        col2.write(row["Posicao"])
-        col3.write(f"{row['Valor_Hora']:.2f}")
+                with col2:
+                    st.markdown(f"<div style='padding-top:8px'>{row['Posicao']}</div>", unsafe_allow_html=True)
 
-        salario = row["Valor_Hora"] * fator
-        col4.write(f"{salario:.2f}")
+                with col3:
+                    st.markdown(f"<div style='padding-top:8px'>{row['Valor_Hora']:.2f}</div>", unsafe_allow_html=True)
 
-        total_mensal += qtd * salario
+                salario = row["Valor_Hora"] * fator
+
+                with col4:
+                    st.markdown(f"<div style='padding-top:8px'>{salario:.2f}</div>", unsafe_allow_html=True)
+
+            total_mensal += qtd * salario
 
     st.divider()
 
