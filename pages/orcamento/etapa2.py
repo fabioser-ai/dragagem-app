@@ -42,19 +42,19 @@ def etapa2():
     st.info(f"Encargos aplicados: {leis:.1f}%")
 
     # =========================
-    # SESSION STATE (ANTI-RESET)
+    # CONTROLE DE ESTADO
     # =========================
     if "df_equipe" not in st.session_state:
-
         df_inicial = df_sal.copy()
-
         df_inicial["Qtd"] = 0
         df_inicial["Adicional 25%"] = False
-
         st.session_state.df_equipe = df_inicial
 
+    if "calcular_equipe" not in st.session_state:
+        st.session_state.calcular_equipe = False
+
     # =========================
-    # INPUT
+    # INPUT (SEM CÁLCULO)
     # =========================
     st.subheader("Entrada de Dados")
 
@@ -72,73 +72,76 @@ def etapa2():
         }
     )
 
-    # 🔴 SALVA ESTADO (ESSENCIAL)
+    # salva sempre (evita perda)
     st.session_state.df_equipe = df_editado.copy()
 
     # =========================
-    # CÁLCULOS
+    # BOTÃO DE CÁLCULO
     # =========================
-    df_calc = df_editado.copy()
-
-    df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
-    df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
-    df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
-
-    df_calc["Valor Final"] = df_calc.apply(
-        lambda row: row["Base + Encargos"] + row["Valor 25%"]
-        if row["Adicional 25%"]
-        else row["Base + Encargos"],
-        axis=1
-    )
-
-    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
-
-    total_hora = df_calc["Total"].sum()
+    if st.button("Calcular custos"):
+        st.session_state.calcular_equipe = True
 
     # =========================
-    # ALERTA
+    # CÁLCULO (SÓ APÓS CLIQUE)
     # =========================
-    if df_calc["Adicional 25%"].any():
-        st.warning("⚠️ Adicional de 25% aplicado")
+    if st.session_state.calcular_equipe:
 
-    # =========================
-    # VISUAL (SEM COLUNAS REDUNDANTES)
-    # =========================
-    df_display = df_calc.copy()
+        df_calc = st.session_state.df_equipe.copy()
 
-    for col in ["Valor_Hora", "Encargos", "Valor 25%", "Total"]:
-        df_display[col] = df_display[col].apply(formatar_real)
+        df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
+        df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
+        df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
 
-    st.subheader("Resultado Calculado")
+        df_calc["Valor Final"] = df_calc.apply(
+            lambda row: row["Base + Encargos"] + row["Valor 25%"]
+            if row["Adicional 25%"]
+            else row["Base + Encargos"],
+            axis=1
+        )
 
-    st.dataframe(
-        df_display[
-            [
-                "Qtd",
-                "Posicao",
-                "Valor_Hora",
-                "Encargos",
-                "Valor 25%",
-                "Total",
-            ]
-        ],
-        use_container_width=True,
-        hide_index=True
-    )
+        df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
 
-    # =========================
-    # RESULTADO FINAL
-    # =========================
-    st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
+        total_hora = df_calc["Total"].sum()
 
-    # =========================
-    # SALVAR NO ORÇAMENTO
-    # =========================
-    st.session_state.orcamento.update({
-        "equipe": df_calc.to_dict(orient="records"),
-        "custo_hora_equipe": total_hora,
-        "leis_sociais": leis
-    })
+        # alerta
+        if df_calc["Adicional 25%"].any():
+            st.warning("⚠️ Adicional de 25% aplicado")
+
+        # =========================
+        # VISUAL LIMPO
+        # =========================
+        df_display = df_calc.copy()
+
+        for col in ["Valor_Hora", "Encargos", "Valor 25%", "Total"]:
+            df_display[col] = df_display[col].apply(formatar_real)
+
+        st.subheader("Resultado Calculado")
+
+        st.dataframe(
+            df_display[
+                [
+                    "Qtd",
+                    "Posicao",
+                    "Valor_Hora",
+                    "Encargos",
+                    "Valor 25%",
+                    "Total",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
+
+        # =========================
+        # SALVAR
+        # =========================
+        st.session_state.orcamento.update({
+            "equipe": df_calc.to_dict(orient="records"),
+            "custo_hora_equipe": total_hora,
+            "leis_sociais": leis
+        })
 
     # =========================
     # NAVEGAÇÃO
