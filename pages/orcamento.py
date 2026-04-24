@@ -1,175 +1,258 @@
 import streamlit as st
 import pandas as pd
-from services.github import carregar_github
+from datetime import datetime
+from services.github import carregar_github, salvar_github
 
+# =========================
+# ARQUIVOS
+# =========================
 ARQ_EQUIP = "data/equipamentos.csv"
 ARQ_MAT = "data/materiais.csv"
 ARQ_DESAG = "data/desaguamento.csv"
+ARQ_CLIENTES = "data/clientes.csv"
+ARQ_OBRAS = "data/orcamentos.csv"
 ARQ_SAL = "data/salarios.csv"
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 # =========================
-# ETAPA 0 - OBRA
+# GERAR CÓDIGO
+# =========================
+def gerar_codigo():
+    try:
+        df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
+    except:
+        df = pd.DataFrame()
+
+    ano = datetime.now().year
+
+    if df.empty or "Codigo" not in df.columns:
+        seq = 1
+    else:
+        df_ano = df[df["Codigo"].str.contains(str(ano), na=False)]
+        if df_ano.empty:
+            seq = 1
+        else:
+            ult = df_ano["Codigo"].iloc[-1]
+            seq = int(ult.split("_")[1]) + 1
+
+    return f"D_{seq:03d}_{ano}"
+
+
+# =========================
+# ETAPA 0
 # =========================
 def etapa0():
 
     st.header("Informações da Obra")
 
-    obra = st.text_input("Nome da Obra")
-    cliente = st.text_input("Cliente")
-    volume = st.number_input("Volume (m³)")
-    horas_dia = st.number_input("Horas por dia", value=8)
-    dias_mes = st.number_input("Dias por mês", value=26)
+    codigo = gerar_codigo()
 
-    if st.button("Continuar"):
+    df_clientes = carregar_github(ARQ_CLIENTES, TOKEN, REPO)
+    if df_clientes.empty:
+        df_clientes = pd.DataFrame(columns=["Cliente"])
+
+    cliente = st.selectbox("Cliente", df_clientes["Cliente"])
+    novo_cliente = st.text_input("Ou adicionar novo cliente")
+
+    nome_obra = st.text_input("Nome da obra")
+    local = st.text_input("Local de execução")
+    data = st.date_input("Data", value=datetime.now())
+
+    st.write(f"Data selecionada: {data.strftime('%d/%m/%Y')}")
+    st.info(f"Código: {codigo}")
+
+    df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
+    df_desag = carregar_github(ARQ_DESAG, TOKEN, REPO)
+    df_med = carregar_github("data/medicao.csv", TOKEN, REPO)
+    df_hor = carregar_github("data/horarios.csv", TOKEN, REPO)
+    df_dias = carregar_github("data/dias.csv", TOKEN, REPO)
+
+    volume = st.number_input("Volume a ser dragado")
+
+    material = st.selectbox("Tipo de material", df_mat["Material"])
+    desag = st.selectbox("Tipo de desaguamento", df_desag["Tipo"])
+
+    col1, col2 = st.columns(2)
+    flutuante = col1.number_input("Linha flutuante (m)")
+    terrestre = col2.number_input("Linha terrestre (m)")
+
+    sistema_med = st.selectbox("Sistema de medição", df_med["Sistema"])
+
+    horario = st.selectbox(
+        "Horário de trabalho",
+        df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1)
+    )
+
+    dias = st.selectbox("Dias de trabalho", df_dias["Descricao"])
+
+    if st.button("Continuar", key="cont_etapa0"):
+
+        if novo_cliente:
+            cliente_final = novo_cliente
+            df_clientes.loc[len(df_clientes)] = [novo_cliente]
+            salvar_github(df_clientes, ARQ_CLIENTES, TOKEN, REPO)
+        else:
+            cliente_final = cliente
+
         st.session_state.orcamento = {
-            "obra": obra,
-            "cliente": cliente,
+            "codigo": codigo,
+            "nome_obra": nome_obra,
+            "cliente": cliente_final,
+            "data": data.strftime("%d/%m/%Y"),
+            "local": local,
             "volume": volume,
-            "horas_dia": horas_dia,
-            "dias_mes": dias_mes
+            "material": material,
+            "desag": desag,
+            "flutuante": flutuante,
+            "terrestre": terrestre,
+            "medicao": sistema_med,
+            "horario": horario,
+            "dias": dias
         }
-        st.session_state.tela = "orcamento"
+
+        st.session_state.tela = "orcamento1"
         st.rerun()
 
+
 # =========================
-# ETAPA 1 - PRODUÇÃO
+# ETAPA 1
 # =========================
 def etapa1():
 
-    st.header("Produção da Draga")
+    st.header("Cálculo de Produção da Draga")
 
     dados = st.session_state.orcamento
 
     df_equip = carregar_github(ARQ_EQUIP, TOKEN, REPO)
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
 
-    draga = st.selectbox("Draga", df_equip["Equipamento"])
-    mat = st.selectbox("Material", df_mat["Material"])
+    draga = st.selectbox("Selecionar draga", df_equip["Equipamento"])
+    linha_equip = df_equip[df_equip["Equipamento"] == draga].iloc[0]
 
-    vazao = st.number_input("Vazão", value=100.0)
-    eficiencia = st.number_input("Eficiência", value=0.85)
-    concentracao = st.number_input("Concentração", value=0.20)
+    vazao = st.number_input("Vazão (m³/h)", value=float(linha_equip["Vazao"]))
 
-    prod_h = vazao * eficiencia * concentracao
+    linha_mat = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
+    concentracao = st.number_input("Concentração", value=float(linha_mat["Solidos_InSitu"]) / 100)
 
-    horas_mes = dados["dias_mes"] * max(dados["horas_dia"] - 1, 0)
-    prod_mes = prod_h * horas_mes
+    eficiencia_map = {
+        "Geobag": 0.85,
+        "Centrífuga": 0.90,
+        "Bombeamento direto": 0.95,
+        "Bacia ecológica": 0.80
+    }
 
-    prazo = dados["volume"] / prod_mes if prod_mes > 0 else 0
+    eficiencia = st.number_input("Eficiência", value=eficiencia_map.get(dados["desag"], 0.85))
 
-    st.success(f"Produção por hora: {prod_h:.2f}")
-    st.success(f"Produção mensal: {prod_mes:.2f}")
-    st.success(f"Prazo (meses): {prazo:.2f}")
+    producao_hora = vazao * eficiencia * concentracao
 
-    st.session_state.orcamento["producao_mes"] = prod_mes
+    st.success(f"Produção por hora: {producao_hora:.2f} m³/h")
 
-    col1, col2 = st.columns(2)
+    inicio, fim = dados["horario"].split(" - ")
+    h1 = int(inicio.split(":")[0])
+    h2 = int(fim.split(":")[0])
 
-    if col1.button("⬅ Voltar"):
-        st.session_state.tela = "orcamento0"
-        st.rerun()
+    horas_dia = max((h2 - h1) - 1, 0)
 
-    if col2.button("Continuar"):
-        st.session_state.tela = "orcamento2"
-        st.rerun()
+    mapa_dias = {
+        "Segunda a Sexta": 22,
+        "Segunda a Sábado": 26,
+        "Segunda a Domingo": 30
+    }
 
-# =========================
-# ETAPA 2 - EQUIPE
-# =========================
-def etapa2():
+    dias_mes = mapa_dias.get(dados["dias"], 22)
 
-    st.header("Equipe")
+    horas_mes = horas_dia * dias_mes
+    producao_mensal = producao_hora * horas_mes
 
-    df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
+    meses = dados["volume"] / producao_mensal if producao_mensal > 0 else 0
 
-    leis = st.number_input("Leis sociais (%)", value=110.0)
+    st.success(f"Produção mensal: {producao_mensal:.2f}")
+    st.success(f"Prazo: {meses:.2f} meses")
 
-    equipe = []
-
-    for i, row in df_sal.iterrows():
-
-        col1, col2, col3 = st.columns([1,3,2])
-
-        qtd = col1.number_input("", min_value=0, step=1, key=f"qtd_{i}")
-        col2.write(row["Posicao"])
-        col3.write(f"R$ {row['Valor_Hora']:.2f}")
-
-        if qtd > 0:
-            valor = row["Valor_Hora"] * (1 + leis/100)
-
-            equipe.append({
-                "posicao": row["Posicao"],
-                "valor_hora": valor,
-                "quantidade": qtd
-            })
-
-    st.session_state.equipe = equipe
+    st.session_state.orcamento.update({
+        "draga": draga,
+        "vazao": vazao,
+        "eficiencia": eficiencia,
+        "concentracao": concentracao,
+        "producao_hora": producao_hora,
+        "horas_mes": horas_mes,
+        "producao_mensal": producao_mensal,
+        "prazo_meses": meses
+    })
 
     col1, col2 = st.columns(2)
 
     if col1.button("⬅ Voltar"):
         st.session_state.tela = "orcamento"
-        st.rerun()
 
     if col2.button("Continuar"):
-        st.session_state.tela = "orcamento3"
-        st.rerun()
+        st.session_state.tela = "orcamento2"
+
 
 # =========================
-# ETAPA 3 - BARRILETE
+# ETAPA 2 (CORRIGIDA E ESTÁVEL)
 # =========================
-def etapa3():
+def etapa2():
 
-    st.header("Custo do Barrilete")
+    st.header("Dimensionamento de Equipe")
 
-    dados = st.session_state.orcamento
+    df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
 
-    dias = st.number_input("Dias", value=5)
-    horas = dias * max(dados["horas_dia"] - 1, 0)
+    if df_sal.empty:
+        st.warning("Base de salários vazia")
+        return
 
-    st.info(f"Horas totais: {horas}")
+    # garantir tipos corretos (evita erro Pandas)
+    df_sal["Valor_Hora"] = pd.to_numeric(df_sal["Valor_Hora"], errors="coerce").fillna(0)
 
-    # MÃO DE OBRA
-    custo_mo = 0
+    leis = st.number_input("Leis Sociais (%)", value=110.0)
+    fator_leis = 1 + leis / 100
 
-    for func in st.session_state.get("equipe", []):
-        custo = func["valor_hora"] * horas * func["quantidade"]
-        custo_mo += custo
+    df = df_sal.copy()
+    df["Qtd"] = 0
+    df["Adicional 25%"] = False
+    df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
 
-    st.success(f"Mão de obra: R$ {custo_mo:.2f}")
+    df_editado = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="fixed",
+        column_config={
+            "Qtd": st.column_config.NumberColumn("Qtd", step=1),
+            "Posicao": st.column_config.TextColumn("Posição", disabled=True),
+            "Valor_Hora": st.column_config.NumberColumn("Valor Hora", disabled=True),
+            "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
+            "Valor c/ Leis": st.column_config.NumberColumn("C/ Leis", disabled=True),
+        }
+    )
 
-    # MATERIAIS
-    materiais = [
-        "Tubo 8\"", "Toco 0,5m", "Joelho 90°", "Tee",
-        "Ponteira", "Cap", "Válvula 4\"", "Válvula 3\"",
-        "Mangueira", "Abraçadeiras", "Curva PVC",
-        "Válvula esfera", "Bomba lameira"
-    ]
+    df_calc = df_editado.copy()
 
-    custo_mat = 0
+    df_calc["Valor c/ Adicional"] = df_calc.apply(
+        lambda x: x["Valor c/ Leis"] * 1.25 if x["Adicional 25%"] else x["Valor c/ Leis"],
+        axis=1
+    )
 
-    for mat in materiais:
-        qtd = st.number_input(f"{mat} qtd", key=f"q_{mat}")
-        val = st.number_input(f"{mat} valor", key=f"v_{mat}")
-        custo_mat += qtd * val
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor c/ Adicional"]
 
-    st.success(f"Materiais: R$ {custo_mat:.2f}")
+    total = df_calc["Total"].sum()
 
-    total = custo_mo + custo_mat
+    st.dataframe(df_calc, use_container_width=True)
 
-    st.header(f"Total Barrilete: R$ {total:.2f}")
+    st.success(f"Custo mensal equipe: R$ {total:,.2f}")
 
-    st.session_state.orcamento["barrilete"] = total
+    st.session_state.orcamento.update({
+        "equipe": df_calc.to_dict("records"),
+        "custo_mensal_equipe": total,
+        "leis_sociais": leis
+    })
 
     col1, col2 = st.columns(2)
 
     if col1.button("⬅ Voltar"):
-        st.session_state.tela = "orcamento2"
-        st.rerun()
+        st.session_state.tela = "orcamento1"
 
     if col2.button("Continuar"):
-        st.session_state.tela = "menu"
-        st.rerun()
+        st.success("Próxima etapa")
