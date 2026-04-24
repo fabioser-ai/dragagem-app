@@ -25,7 +25,7 @@ def etapa2():
         return
 
     # =========================
-    # CARREGAR BASE
+    # CARREGAR SALÁRIOS
     # =========================
     df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
 
@@ -42,18 +42,16 @@ def etapa2():
     st.info(f"Encargos aplicados: {leis:.1f}%")
 
     # =========================
-    # BASE
+    # SESSION STATE (ANTI-RESET)
     # =========================
-    df = df_sal.copy()
+    if "df_equipe" not in st.session_state:
 
-    if "equipe" in st.session_state.orcamento:
-        df_antigo = pd.DataFrame(st.session_state.orcamento["equipe"])
-        for i in range(min(len(df), len(df_antigo))):
-            df.loc[i, "Qtd"] = df_antigo.loc[i, "Qtd"]
-            df.loc[i, "Adicional 25%"] = df_antigo.loc[i, "Adicional 25%"]
-    else:
-        df["Qtd"] = 0
-        df["Adicional 25%"] = False
+        df_inicial = df_sal.copy()
+
+        df_inicial["Qtd"] = 0
+        df_inicial["Adicional 25%"] = False
+
+        st.session_state.df_equipe = df_inicial
 
     # =========================
     # INPUT
@@ -61,25 +59,21 @@ def etapa2():
     st.subheader("Entrada de Dados")
 
     df_editado = st.data_editor(
-        df[
-            [
-                "Qtd",
-                "Posicao",
-                "Valor_Hora",
-                "Adicional 25%"
-            ]
-        ],
+        st.session_state.df_equipe,
         use_container_width=True,
         hide_index=True,
         num_rows="fixed",
+        key="editor_equipe",
         column_config={
             "Qtd": st.column_config.NumberColumn("Qtd", min_value=0, step=1),
             "Posicao": st.column_config.TextColumn("Posição", disabled=True),
             "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
             "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
-        },
-        key="editor_equipe"
+        }
     )
+
+    # 🔴 SALVA ESTADO (ESSENCIAL)
+    st.session_state.df_equipe = df_editado.copy()
 
     # =========================
     # CÁLCULOS
@@ -108,16 +102,13 @@ def etapa2():
         st.warning("⚠️ Adicional de 25% aplicado")
 
     # =========================
-    # FORMATAR VISUAL
+    # VISUAL (SEM COLUNAS REDUNDANTES)
     # =========================
     df_display = df_calc.copy()
 
     for col in ["Valor_Hora", "Encargos", "Valor 25%", "Total"]:
         df_display[col] = df_display[col].apply(formatar_real)
 
-    # =========================
-    # RESULTADO FINAL
-    # =========================
     st.subheader("Resultado Calculado")
 
     st.dataframe(
@@ -135,10 +126,13 @@ def etapa2():
         hide_index=True
     )
 
+    # =========================
+    # RESULTADO FINAL
+    # =========================
     st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
 
     # =========================
-    # SALVAR
+    # SALVAR NO ORÇAMENTO
     # =========================
     st.session_state.orcamento.update({
         "equipe": df_calc.to_dict(orient="records"),
