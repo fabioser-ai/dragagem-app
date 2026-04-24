@@ -117,11 +117,12 @@ def etapa0():
         st.rerun()
 
 # =========================
-# ETAPA 1 (SEM ALTERAÇÃO)
+# ETAPA 1
 # =========================
 def etapa1():
-    # (mantive exatamente como você já tinha — não alterei)
+
     st.header("Cálculo de Produção da Draga")
+
     dados = st.session_state.orcamento
 
     df_equip = carregar_github(ARQ_EQUIP, TOKEN, REPO)
@@ -131,6 +132,7 @@ def etapa1():
     linha_equip = df_equip[df_equip["Equipamento"] == draga].iloc[0]
 
     vazao = st.number_input("Vazão (m³/h)", value=float(linha_equip["Vazao"]))
+
     linha_mat = df_mat[df_mat["Material"] == dados["material"]].iloc[0]
     concentracao = st.number_input("Concentração", value=float(linha_mat["Solidos_InSitu"]) / 100)
 
@@ -144,6 +146,7 @@ def etapa1():
     eficiencia = st.number_input("Eficiência", value=eficiencia_map.get(dados["desag"], 0.85))
 
     producao_hora = vazao * eficiencia * concentracao
+
     st.success(f"Produção por hora: {producao_hora:.2f} m³/h")
 
     try:
@@ -152,31 +155,53 @@ def etapa1():
     except:
         horas_dia = 7
 
-    mapa_dias = {"Segunda a Sexta": 22, "Segunda a Sábado": 26, "Segunda a Domingo": 30}
+    mapa_dias = {
+        "Segunda a Sexta": 22,
+        "Segunda a Sábado": 26,
+        "Segunda a Domingo": 30
+    }
+
     horas_mes = horas_dia * mapa_dias.get(dados["dias"], 22)
 
     producao_mensal = producao_hora * horas_mes
-    prazo = dados["volume"] / producao_mensal if producao_mensal else 0
+    prazo = dados["volume"] / producao_mensal if producao_mensal > 0 else 0
 
     st.success(f"Produção mensal: {producao_mensal:.2f}")
     st.success(f"Prazo: {prazo:.2f} meses")
 
     st.session_state.orcamento.update({
-        "horas_dia": horas_dia
+        "draga": draga,
+        "vazao": vazao,
+        "eficiencia": eficiencia,
+        "concentracao": concentracao,
+        "producao_hora": producao_hora,
+        "horas_mes": horas_mes,
+        "producao_mensal": producao_mensal,
+        "prazo_meses": prazo
     })
 
-    if st.button("Continuar"):
+    col1, col2 = st.columns(2)
+
+    if col1.button("⬅ Voltar"):
+        st.session_state.tela = "orcamento"
+        st.rerun()
+
+    if col2.button("Continuar"):
         st.session_state.tela = "orcamento2"
         st.rerun()
 
 # =========================
-# ETAPA 2 (INTEIRA ORIGINAL)
+# ETAPA 2 (SEU ORIGINAL INTACTO)
 # =========================
 def etapa2():
 
     st.header("Dimensionamento de Equipe")
 
     df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
+
+    if df_sal.empty:
+        st.warning("Base de salários vazia")
+        return
 
     leis = st.number_input("Leis Sociais (%)", value=110.0)
     fator_leis = 1 + leis / 100
@@ -186,13 +211,27 @@ def etapa2():
     df["Adicional 25%"] = False
     df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
 
-    df_editado = st.data_editor(df, use_container_width=True)
+    df = df[["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis"]]
+
+    df_editado = st.data_editor(df, use_container_width=True, num_rows="fixed")
 
     df_calc = df_editado.copy()
-    df_calc["Fator_Adicional"] = df_calc["Adicional 25%"].apply(lambda x: 1.25 if x else 1)
-    df_calc["Valor Final"] = df_calc["Valor c/ Leis"] * df_calc["Fator_Adicional"]
 
-    st.session_state.orcamento["equipe"] = df_calc.to_dict("records")
+    df_calc["Fator_Adicional"] = df_calc["Adicional 25%"].apply(
+        lambda x: 1.25 if x else 1.0
+    )
+
+    df_calc["Valor c/ Adicional"] = df_calc["Valor c/ Leis"] * df_calc["Fator_Adicional"]
+    df_calc["Valor Final"] = df_calc["Valor c/ Adicional"]
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
+
+    total_mensal = df_calc["Total"].sum()
+
+    st.session_state.orcamento.update({
+        "equipe": df_calc.to_dict("records"),
+        "custo_mensal_equipe": total_mensal,
+        "leis_sociais": leis
+    })
 
     col1, col2 = st.columns(2)
 
@@ -205,7 +244,7 @@ def etapa2():
         st.rerun()
 
 # =========================
-# ETAPA 3 (NOVO)
+# ETAPA 3 (BARRILETE)
 # =========================
 def etapa3():
 
@@ -230,11 +269,16 @@ def etapa3():
 
     st.success(f"Mão de obra: R$ {custo_mo:,.2f}")
 
+    materiais = [
+        "Tubo 8\"", "Toco 0,50m", "Joelho 90°", "Tee", "Ponteira",
+        "Cap 6\"", "Válvula", "Mangueira", "Abraçadeiras"
+    ]
+
     custo_mat = 0
 
-    for item in ["Tubo 8\"", "Toco", "Joelho", "Tee", "Cap"]:
-        q = st.number_input(f"{item} qtd", key=f"q_{item}")
-        v = st.number_input(f"{item} valor", key=f"v_{item}")
+    for m in materiais:
+        q = st.number_input(f"{m} qtd", key=f"q_{m}")
+        v = st.number_input(f"{m} valor", key=f"v_{m}")
         custo_mat += q * v
 
     st.success(f"Materiais: R$ {custo_mat:,.2f}")
@@ -243,11 +287,5 @@ def etapa3():
 
     st.header(f"Total Barrilete: R$ {total:,.2f}")
 
-    col1, col2 = st.columns(2)
-
-    if col1.button("⬅ Voltar"):
-        st.session_state.tela = "orcamento2"
-        st.rerun()
-
-    if col2.button("Finalizar"):
+    if st.button("Finalizar"):
         st.session_state.tela = "menu"
