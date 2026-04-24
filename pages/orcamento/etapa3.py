@@ -7,151 +7,126 @@ ARQ_INSUMOS = "data/insumos.csv"
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
+
 def etapa3():
 
-    st.header("Custo do Barrilete")
+    st.header("Custos do Barrilete")
 
     # =========================
-    # CARREGAR BASE
+    # CARREGAR INSUMOS
     # =========================
     try:
         df_insumos = carregar_github(ARQ_INSUMOS, TOKEN, REPO)
     except:
-        df_insumos = pd.DataFrame()
+        st.error("Erro ao carregar insumos.csv")
+        return
 
     if df_insumos.empty:
         st.warning("Base de insumos vazia")
         return
 
     # =========================
-    # NORMALIZAR COLUNAS
+    # GARANTIR COLUNAS
     # =========================
-    df_insumos.columns = df_insumos.columns.str.strip()
-
-mapa_colunas = {
-    "preco_unitario": "Preco_Unitario",
-    "preco": "Preco_Unitario",
-    "valor": "Preco_Unitario",
-    "preço": "Preco_Unitario",
-    "preço_unitario": "Preco_Unitario"
-}
-
-novas_colunas = {}
-
-for col in df_insumos.columns:
-    chave = col.lower().replace(" ", "_")
-    if chave in mapa_colunas:
-        novas_colunas[col] = mapa_colunas[chave]
-
-df_insumos = df_insumos.rename(columns=novas_colunas)
-
-# validação final
-if "Preco_Unitario" not in df_insumos.columns:
-    st.error("Coluna de preço não encontrada.")
-    st.write("Colunas atuais:", list(df_insumos.columns))
-    return
-
-    # possíveis nomes de preço
-    col_preco = None
-    for c in df_insumos.columns:
-        if c.lower() in ["preco_unitario", "preco", "valor", "preço", "preço_unitario"]:
-            col_preco = c
-            break
-
-    if not col_preco:
-        st.error("Coluna de preço não encontrada no CSV")
-        st.write("Colunas encontradas:", list(df_insumos.columns))
+    if "Insumo" not in df_insumos.columns:
+        st.error("Coluna 'Insumo' não encontrada")
         return
 
-    # padroniza nome
-    df_insumos = df_insumos.rename(columns={col_preco: "Preco_Unitario"})
-
-    if "Item" not in df_insumos.columns:
-        st.error("Coluna 'Item' não encontrada no CSV")
-        return
+    if "Preco_Unitario" not in df_insumos.columns:
+        df_insumos["Preco_Unitario"] = 0.0
 
     # =========================
-    # SESSION STATE
+    # SESSION STATE (ANTI RESET)
     # =========================
-    if "insumos_edit" not in st.session_state:
+    if "etapa3_df" not in st.session_state:
         df = df_insumos.copy()
         df["Qtd"] = 0
-        st.session_state.insumos_edit = df
-
-    if "resultado_etapa3" not in st.session_state:
-        st.session_state.resultado_etapa3 = None
+        st.session_state.etapa3_df = df
 
     # =========================
-    # INPUT
+    # TABELA EDITÁVEL
     # =========================
     st.subheader("Entrada de Insumos")
 
     df_editado = st.data_editor(
-        st.session_state.insumos_edit,
+        st.session_state.etapa3_df,
         use_container_width=True,
-        key="editor_insumos",
+        num_rows="fixed",
+        key="editor_etapa3",
         column_config={
-            "Qtd": st.column_config.NumberColumn("Qtd", step=1, min_value=0),
-            "Preco_Unitario": st.column_config.NumberColumn("Preço Unitário (R$)")
+            "Insumo": st.column_config.TextColumn("Insumo", disabled=True),
+            "Preco_Unitario": st.column_config.NumberColumn("Preço Unitário (R$)", format="%.2f"),
+            "Qtd": st.column_config.NumberColumn("Quantidade", step=1, min_value=0),
         }
     )
 
-    st.session_state.insumos_edit = df_editado
+    # salva estado SEM recalcular
+    st.session_state.etapa3_df = df_editado.copy()
 
     # =========================
-    # CALCULAR
+    # CUSTO DE EQUIPE
+    # =========================
+    st.divider()
+    st.subheader("Custo de Equipe")
+
+    custo_hora = st.session_state.orcamento.get("custo_mensal_equipe", 0)
+
+    dias = st.number_input("Número de dias", value=1, min_value=0)
+
+    custo_equipe_total = custo_hora * dias
+
+    st.info(f"Custo equipe: R$ {custo_hora:,.2f} x {dias} dias = R$ {custo_equipe_total:,.2f}")
+
+    # =========================
+    # BOTÃO DE CÁLCULO
     # =========================
     if st.button("Calcular Custos"):
 
-        df_calc = df_editado.copy()
+        df_calc = st.session_state.etapa3_df.copy()
 
-        # segurança extra
-        df_calc["Preco_Unitario"] = pd.to_numeric(
-            df_calc["Preco_Unitario"], errors="coerce"
-        ).fillna(0)
-
-        df_calc["Qtd"] = pd.to_numeric(
-            df_calc["Qtd"], errors="coerce"
-        ).fillna(0)
-
+        # cálculo seguro
         df_calc["Total"] = df_calc["Qtd"] * df_calc["Preco_Unitario"]
 
+        # remover zeros
         df_calc = df_calc[df_calc["Qtd"] > 0]
 
-        total_geral = df_calc["Total"].sum()
+        total_materiais = df_calc["Total"].sum()
+        total_geral = total_materiais + custo_equipe_total
 
+        # salva resultado (evita duplicação)
         st.session_state.resultado_etapa3 = {
             "df": df_calc,
+            "materiais": total_materiais,
+            "equipe": custo_equipe_total,
             "total": total_geral
         }
 
     # =========================
-    # RESULTADO
+    # EXIBIR RESULTADO
     # =========================
-    if st.session_state.resultado_etapa3:
+    if "resultado_etapa3" in st.session_state:
+
+        res = st.session_state.resultado_etapa3
 
         st.subheader("Resultado Calculado")
 
         st.dataframe(
-            st.session_state.resultado_etapa3["df"],
+            res["df"][["Insumo", "Qtd", "Preco_Unitario", "Total"]],
             use_container_width=True
         )
 
-        st.success(
-            f"Custo total do barrilete: R$ {st.session_state.resultado_etapa3['total']:,.2f}"
-        )
+        st.success(f"Materiais: R$ {res['materiais']:,.2f}")
+        st.success(f"Equipe: R$ {res['equipe']:,.2f}")
+        st.success(f"TOTAL GERAL: R$ {res['total']:,.2f}")
 
     # =========================
-    # EQUIPE
+    # NAVEGAÇÃO
     # =========================
-    if "custo_hora_equipe" in st.session_state.orcamento:
+    col1, col2 = st.columns(2)
 
-        st.subheader("Custo da Equipe")
+    if col1.button("⬅ Voltar"):
+        st.session_state.tela = "orcamento2"
+        st.rerun()
 
-        dias = st.number_input("Número de dias", min_value=0)
-
-        custo_dia = st.session_state.orcamento["custo_hora_equipe"] * 8
-        custo_total = custo_dia * dias
-
-        st.write(f"Custo por dia: R$ {custo_dia:,.2f}")
-        st.success(f"Custo total equipe: R$ {custo_total:,.2f}")
+    if col2.button("Finalizar"):
+        st.success("Orçamento finalizado (próximo passo: salvar)")
