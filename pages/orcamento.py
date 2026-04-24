@@ -252,11 +252,11 @@ def etapa2():
     # =========================
     # CABEÇALHO
     # =========================
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
 
-    col1.markdown("**Posição**")
-    col2.markdown("**Valor Hora (R$)**")
-    col3.markdown("**Qtd**")
+    col1.markdown("**Qtd**")
+    col2.markdown("**Posição**")
+    col3.markdown("**Valor Hora (R$)**")
     col4.markdown("**C/ Leis (R$)**")
 
     st.divider()
@@ -268,12 +268,17 @@ def etapa2():
 
     for i, row in df_sal.iterrows():
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
 
-        col1.write(row["Posicao"])
-        col2.write(f"{row['Valor_Hora']:.2f}")
+        qtd = col1.number_input(
+            "",
+            min_value=0,
+            step=1,
+            key=f"qtd_{i}"
+        )
 
-        qtd = col3.number_input(" ", key=f"qtd_{i}", min_value=0, step=1)
+        col2.write(row["Posicao"])
+        col3.write(f"{row['Valor_Hora']:.2f}")
 
         salario = row["Valor_Hora"] * fator
         col4.write(f"{salario:.2f}")
