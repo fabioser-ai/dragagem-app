@@ -13,14 +13,12 @@ ARQ_DIAS = "data/dias.csv"
 ARQ_SAL = "data/salarios.csv"
 
 # =========================
-# NORMALIZAÇÃO DE TIPOS (🔥 resolve dtype bug)
+# NORMALIZAÇÃO (resolve dtype bug)
 # =========================
 def normalizar_tipos(df):
 
     for col in df.columns:
-        col_lower = col.lower()
-
-        if col_lower in [
+        if col.lower() in [
             "vazao",
             "consumo",
             "valor",
@@ -40,9 +38,9 @@ def normalizar_tipos(df):
     return df
 
 # =========================
-# CONVERSÃO MONETÁRIA (INPUT)
+# CONVERSÃO INPUT (BR)
 # =========================
-def converter_valor_monetario(valor):
+def converter_valor(valor):
     try:
         valor = str(valor).strip()
 
@@ -54,7 +52,7 @@ def converter_valor_monetario(valor):
         return 0.0
 
 # =========================
-# CRUD GENÉRICO
+# CRUD
 # =========================
 def crud(arquivo, colunas, titulo, chave):
 
@@ -65,8 +63,9 @@ def crud(arquivo, colunas, titulo, chave):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
 
-    # 🔥 CORREÇÃO PRINCIPAL
+    # 🔥 normaliza + remove trava de tipo
     df = normalizar_tipos(df)
+    df = df.astype(object)
 
     st.dataframe(df, use_container_width=True)
 
@@ -75,16 +74,17 @@ def crud(arquivo, colunas, titulo, chave):
     # =========================
     if not df.empty:
 
-        label_col = colunas[0]
+        label = colunas[0]
 
-        opcoes = df[label_col].astype(str).tolist()
+        opcoes = df[label].astype(str).tolist()
+
         selecionado = st.selectbox(
             "Selecionar para editar",
             opcoes,
             key=f"sel_{chave}"
         )
 
-        idx = df[df[label_col].astype(str) == selecionado].index[0]
+        idx = df[df[label].astype(str) == selecionado].index[0]
         linha = df.loc[idx]
 
         novos = []
@@ -102,7 +102,7 @@ def crud(arquivo, colunas, titulo, chave):
 
         if col1.button("Salvar", key=f"save_{chave}"):
 
-            novos_convertidos = []
+            convertidos = []
 
             for i, c in enumerate(colunas):
                 v = novos[i]
@@ -115,13 +115,13 @@ def crud(arquivo, colunas, titulo, chave):
                     "solidos_insitu",
                     "solidos_desaguado",
                 ]:
-                    v = converter_valor_monetario(v)
+                    v = converter_valor(v)
 
-                novos_convertidos.append(v)
+                convertidos.append(v)
 
             # 🔥 atualização segura
             for i, c in enumerate(colunas):
-                df.at[idx, c] = novos_convertidos[i]
+                df.at[idx, c] = convertidos[i]
 
             salvar_github(df, arquivo, TOKEN, REPO)
 
@@ -143,17 +143,17 @@ def crud(arquivo, colunas, titulo, chave):
     # =========================
     st.write("Adicionar novo")
 
-    valores = []
+    novos = []
 
     for c in colunas:
-        valores.append(st.text_input(c, key=f"new_{chave}_{c}"))
+        novos.append(st.text_input(c, key=f"new_{chave}_{c}"))
 
     if st.button("Adicionar", key=f"add_{chave}"):
 
-        valores_convertidos = []
+        convertidos = []
 
         for i, c in enumerate(colunas):
-            v = valores[i]
+            v = novos[i]
 
             if c.lower() in [
                 "vazao",
@@ -163,12 +163,11 @@ def crud(arquivo, colunas, titulo, chave):
                 "solidos_insitu",
                 "solidos_desaguado",
             ]:
-                v = converter_valor_monetario(v)
+                v = converter_valor(v)
 
-            valores_convertidos.append(v)
+            convertidos.append(v)
 
-        # 🔥 adição segura
-        nova_linha = pd.DataFrame([valores_convertidos], columns=colunas)
+        nova_linha = pd.DataFrame([convertidos], columns=colunas)
         df = pd.concat([df, nova_linha], ignore_index=True)
 
         salvar_github(df, arquivo, TOKEN, REPO)
