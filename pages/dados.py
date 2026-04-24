@@ -13,16 +13,42 @@ ARQ_DIAS = "data/dias.csv"
 ARQ_SAL = "data/salarios.csv"
 
 # =========================
-# CONVERSÃO MONETÁRIA (BR)
+# NORMALIZAÇÃO DE TIPOS (🔥 resolve dtype bug)
+# =========================
+def normalizar_tipos(df):
+
+    for col in df.columns:
+        col_lower = col.lower()
+
+        if col_lower in [
+            "vazao",
+            "consumo",
+            "valor",
+            "valor_hora",
+            "solidos_insitu",
+            "solidos_desaguado",
+        ]:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(".", "", regex=False)
+                .str.replace(",", ".", regex=False)
+            )
+
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    return df
+
+# =========================
+# CONVERSÃO MONETÁRIA (INPUT)
 # =========================
 def converter_valor_monetario(valor):
     try:
         valor = str(valor).strip()
 
-        # remove milhar e ajusta decimal
         if "," in valor:
             valor = valor.replace(".", "").replace(",", ".")
-        
+
         return float(valor)
     except:
         return 0.0
@@ -38,6 +64,9 @@ def crud(arquivo, colunas, titulo, chave):
 
     if df.empty:
         df = pd.DataFrame(columns=colunas)
+
+    # 🔥 CORREÇÃO PRINCIPAL
+    df = normalizar_tipos(df)
 
     st.dataframe(df, use_container_width=True)
 
@@ -82,15 +111,15 @@ def crud(arquivo, colunas, titulo, chave):
                     "vazao",
                     "consumo",
                     "valor",
+                    "valor_hora",
                     "solidos_insitu",
                     "solidos_desaguado",
-                    "valor_hora",
                 ]:
                     v = converter_valor_monetario(v)
 
                 novos_convertidos.append(v)
 
-            # 🔥 ATUALIZAÇÃO SEGURA (SEM ERRO DE DTYPE)
+            # 🔥 atualização segura
             for i, c in enumerate(colunas):
                 df.at[idx, c] = novos_convertidos[i]
 
@@ -130,15 +159,15 @@ def crud(arquivo, colunas, titulo, chave):
                 "vazao",
                 "consumo",
                 "valor",
+                "valor_hora",
                 "solidos_insitu",
                 "solidos_desaguado",
-                "valor_hora",
             ]:
                 v = converter_valor_monetario(v)
 
             valores_convertidos.append(v)
 
-        # 🔥 ADIÇÃO SEGURA
+        # 🔥 adição segura
         nova_linha = pd.DataFrame([valores_convertidos], columns=colunas)
         df = pd.concat([df, nova_linha], ignore_index=True)
 
