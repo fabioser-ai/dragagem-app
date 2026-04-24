@@ -257,21 +257,24 @@ def etapa2():
     leis = st.number_input("Leis Sociais (%)", value=110.0)
     fator_leis = 1 + leis / 100
 
-    st.info(f"Fator leis sociais: {fator_leis:.2f}")
+    st.info(f"Fator leis sociais aplicado: {fator_leis:.2f}")
 
     # =========================
-    # MONTA TABELA BASE
+    # BASE DA TABELA
     # =========================
     df = df_sal.copy()
 
     df["Qtd"] = 0
     df["Adicional 25%"] = False
     df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
+    df["Valor Final"] = df["Valor c/ Leis"]
 
-    df = df[["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis"]]
+    df = df[
+        ["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis", "Valor Final"]
+    ]
 
     # =========================
-    # EDITOR
+    # EDITOR (TABELA)
     # =========================
     df_editado = st.data_editor(
         df,
@@ -283,13 +286,16 @@ def etapa2():
             "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
             "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
             "Valor c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
+            "Valor Final": st.column_config.NumberColumn("Valor Final (R$)", disabled=True),
         }
     )
 
     # =========================
-    # CÁLCULO FINAL
+    # CÁLCULOS
     # =========================
-    df_editado["Fator_Adicional"] = df_editado["Adicional 25%"].apply(lambda x: 1.25 if x else 1.0)
+    df_editado["Fator_Adicional"] = df_editado["Adicional 25%"].apply(
+        lambda x: 1.25 if x else 1.0
+    )
 
     df_editado["Valor Final"] = df_editado["Valor c/ Leis"] * df_editado["Fator_Adicional"]
 
@@ -298,7 +304,13 @@ def etapa2():
     total_mensal = df_editado["Total"].sum()
 
     # =========================
-    # EXIBIÇÃO
+    # ALERTA DE ADICIONAL
+    # =========================
+    if df_editado["Adicional 25%"].any():
+        st.warning("⚠️ Existem funcionários com adicional de 25% aplicado")
+
+    # =========================
+    # RESULTADO
     # =========================
     st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
 
