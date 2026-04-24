@@ -13,32 +13,21 @@ def etapa3():
     st.header("Custo do Barrilete")
 
     # =========================
-    # CARREGAR INSUMOS
+    # INSUMOS
     # =========================
     try:
         df_insumos = carregar_github(ARQ_INSUMOS, TOKEN, REPO)
     except:
         df_insumos = pd.DataFrame(columns=["Insumo", "Preco_Unitario"])
 
-    if df_insumos.empty:
-        st.warning("Base de insumos vazia")
-        return
-
-    # Garante estrutura correta
     if "Preco_Unitario" not in df_insumos.columns:
         df_insumos["Preco_Unitario"] = 0.0
 
-    # =========================
-    # INICIALIZA SESSION STATE
-    # =========================
     if "insumos_editados" not in st.session_state:
         df_insumos["Qtd"] = 0.0
         st.session_state.insumos_editados = df_insumos.copy()
 
-    # =========================
-    # TABELA EDITÁVEL
-    # =========================
-    st.subheader("Entrada de Insumos")
+    st.subheader("Insumos")
 
     df_editado = st.data_editor(
         st.session_state.insumos_editados,
@@ -47,75 +36,80 @@ def etapa3():
         key="editor_insumos",
         column_config={
             "Insumo": st.column_config.TextColumn("Insumo", disabled=True),
-            "Qtd": st.column_config.NumberColumn("Quantidade", min_value=0.0, step=1.0),
+            "Qtd": st.column_config.NumberColumn("Quantidade", min_value=0.0),
             "Preco_Unitario": st.column_config.NumberColumn("Preço Unitário (R$)", min_value=0.0),
         }
     )
 
-    # Atualiza session sem perder dados
     st.session_state.insumos_editados = df_editado
 
     # =========================
-    # BOTÃO DE CÁLCULO
+    # EQUIPE (AGORA FIXA)
     # =========================
-    if st.button("Calcular custos"):
+    st.subheader("Equipe")
 
-        df_calc = df_editado.copy()
+    custo_hora = st.session_state.orcamento.get("custo_mensal_equipe", 0)
 
-        # =========================
-        # CÁLCULO INSUMOS
-        # =========================
-        df_calc["Total"] = df_calc["Qtd"] * df_calc["Preco_Unitario"]
+    col1, col2 = st.columns(2)
+    horas_dia = col1.number_input("Horas por dia", value=8.0)
+    dias = col2.number_input("Número de dias", value=1)
 
-        total_insumos = df_calc["Total"].sum()
+    custo_equipe_total = custo_hora * horas_dia * dias
 
-        # =========================
-        # CUSTO EQUIPE
-        # =========================
-        st.subheader("Custo da Equipe")
+    st.info(
+        f"Custo equipe: R$ {custo_hora:,.2f}/h × "
+        f"{horas_dia}h × {dias} dias = "
+        f"R$ {custo_equipe_total:,.2f}"
+    )
 
-        custo_hora = st.session_state.orcamento.get("custo_mensal_equipe", 0)
+    # =========================
+    # CÁLCULO GERAL
+    # =========================
+    df_calc = df_editado.copy()
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Preco_Unitario"]
 
-        horas_dia = st.number_input("Horas por dia", value=8.0)
-        dias = st.number_input("Número de dias", value=1)
+    total_insumos = df_calc["Total"].sum()
 
-        custo_equipe_total = custo_hora * horas_dia * dias
+    # adiciona equipe como linha
+    df_equipe = pd.DataFrame([{
+        "Insumo": "Equipe",
+        "Qtd": horas_dia * dias,
+        "Preco_Unitario": custo_hora,
+        "Total": custo_equipe_total
+    }])
 
-        st.info(
-            f"Custo equipe: R$ {custo_hora:,.2f}/h × "
-            f"{horas_dia}h × {dias} dias = "
-            f"R$ {custo_equipe_total:,.2f}"
-        )
+    df_final = pd.concat([df_calc, df_equipe], ignore_index=True)
 
-        # =========================
-        # RESULTADO FINAL
-        # =========================
-        st.subheader("Resultado")
+    # só mostra itens usados
+    df_final = df_final[df_final["Total"] > 0]
 
-        df_resultado = df_calc[df_calc["Qtd"] > 0]
+    total_geral = total_insumos + custo_equipe_total
 
-        st.dataframe(
-            df_resultado[["Insumo", "Qtd", "Preco_Unitario", "Total"]],
-            use_container_width=True
-        )
+    # =========================
+    # RESULTADO
+    # =========================
+    st.subheader("Resultado Final")
 
-        total_geral = total_insumos + custo_equipe_total
+    st.dataframe(
+        df_final[["Insumo", "Qtd", "Preco_Unitario", "Total"]],
+        use_container_width=True
+    )
 
-        st.success(f"Custo total insumos: R$ {total_insumos:,.2f}")
-        st.success(f"Custo equipe: R$ {custo_equipe_total:,.2f}")
-        st.success(f"CUSTO TOTAL: R$ {total_geral:,.2f}")
+    st.success(f"Insumos: R$ {total_insumos:,.2f}")
+    st.success(f"Equipe: R$ {custo_equipe_total:,.2f}")
+    st.success(f"TOTAL: R$ {total_geral:,.2f}")
 
-        # =========================
-        # SALVAR
-        # =========================
-        st.session_state.orcamento.update({
-            "insumos": df_resultado.to_dict(orient="records"),
-            "custo_insumos": total_insumos,
-            "custo_equipe_total": custo_equipe_total,
-            "custo_total_barrilete": total_geral,
-            "dias_barrilete": dias,
-            "horas_dia_barrilete": horas_dia
-        })
+    # =========================
+    # SALVAR
+    # =========================
+    st.session_state.orcamento.update({
+        "insumos": df_calc.to_dict(orient="records"),
+        "custo_insumos": total_insumos,
+        "custo_equipe_total": custo_equipe_total,
+        "custo_total_barrilete": total_geral,
+        "dias_barrilete": dias,
+        "horas_dia_barrilete": horas_dia
+    })
 
     # =========================
     # NAVEGAÇÃO
@@ -127,4 +121,4 @@ def etapa3():
         st.rerun()
 
     if col2.button("Finalizar"):
-        st.success("Orçamento pronto (próxima etapa futura)")
+        st.success("Orçamento finalizado")
