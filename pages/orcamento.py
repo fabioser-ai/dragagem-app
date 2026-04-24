@@ -259,72 +259,45 @@ def etapa2():
 
     st.info(f"Fator aplicado: {fator:.2f}")
 
-    st.divider()
+    # =========================
+    # MONTA TABELA BASE
+    # =========================
+    df = df_sal.copy()
+
+    df["Qtd"] = 0
+    df["Salario c/ Leis"] = df["Valor_Hora"] * fator
+
+    df = df[["Qtd", "Posicao", "Valor_Hora", "Salario c/ Leis"]]
 
     # =========================
-    # CABEÇALHO
+    # EDITOR
     # =========================
-    col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
-
-    col1.markdown("**Qtd**")
-    col2.markdown("**Posição**")
-    col3.markdown("**Valor Hora (R$)**")
-    col4.markdown("**C/ Leis (R$)**")
-
-    st.divider()
-
-    # =========================
-    # TABELA
-    # =========================
-    total_mensal = 0
-    equipe = []
-
-    for i, row in df_sal.iterrows():
-
-        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
-
-        # QTD (com leve ajuste visual)
-        with col1:
-            st.markdown("<div style='margin-top:6px'></div>", unsafe_allow_html=True)
-            qtd = st.number_input(
-                "",
-                min_value=0,
-                step=1,
-                key=f"qtd_{i}"
-            )
-
-        # DADOS
-        col2.write(row["Posicao"])
-        col3.write(f"{row['Valor_Hora']:.2f}")
-
-        salario_com_leis = row["Valor_Hora"] * fator
-        col4.write(f"{salario_com_leis:.2f}")
-
-        # TOTAL
-        total_funcao = qtd * salario_com_leis
-        total_mensal += total_funcao
-
-        # SALVAR DETALHE
-        equipe.append({
-            "posicao": row["Posicao"],
-            "qtd": qtd,
-            "valor_hora": row["Valor_Hora"],
-            "valor_com_leis": salario_com_leis,
-            "total": total_funcao
-        })
-
-    st.divider()
+    df_editado = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="fixed",
+        column_config={
+            "Qtd": st.column_config.NumberColumn("Qtd", step=1, min_value=0),
+            "Posicao": st.column_config.TextColumn("Posição", disabled=True),
+            "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
+            "Salario c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
+        }
+    )
 
     # =========================
-    # RESULTADO FINAL
+    # CÁLCULO
     # =========================
+    df_editado["Total"] = df_editado["Qtd"] * df_editado["Salario c/ Leis"]
+
+    total_mensal = df_editado["Total"].sum()
+
     st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
 
     # =========================
-    # SALVAR NO ORÇAMENTO
+    # SALVAR
     # =========================
     st.session_state.orcamento.update({
-        "equipe": equipe,
+        "equipe": df_editado.to_dict(orient="records"),
         "custo_mensal_equipe": total_mensal,
         "leis_sociais": leis
     })
