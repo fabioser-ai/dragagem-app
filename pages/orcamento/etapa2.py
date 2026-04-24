@@ -7,6 +7,9 @@ ARQ_SAL = "data/salarios.csv"
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
+def formatar_real(valor):
+    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 def etapa2():
 
     st.header("Dimensionamento de Equipe")
@@ -15,9 +18,6 @@ def etapa2():
         st.warning("Volte para a etapa anterior.")
         return
 
-    # =========================
-    # CARREGAR BASE
-    # =========================
     df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
 
     if df_sal.empty:
@@ -48,6 +48,7 @@ def etapa2():
         df["Qtd"] = 0
         df["Adicional 25%"] = False
 
+    # ✔ CORREÇÃO PRINCIPAL AQUI
     df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
 
     # =========================
@@ -79,10 +80,8 @@ def etapa2():
         lambda x: 1.25 if x else 1.0
     )
 
-    # VALORES UNITÁRIOS
     df_calc["Valor c/ 25%"] = df_calc["Valor c/ Leis"] * df_calc["Fator_Adicional"]
 
-    # TOTAL (único somatório)
     df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor c/ 25%"]
 
     total_hora = df_calc["Total"].sum()
@@ -94,12 +93,20 @@ def etapa2():
         st.warning("⚠️ Adicional de 25% aplicado em parte da equipe")
 
     # =========================
+    # FORMATAÇÃO BR
+    # =========================
+    df_display = df_calc.copy()
+
+    for col in ["Valor_Hora", "Valor c/ Leis", "Valor c/ 25%", "Total"]:
+        df_display[col] = df_display[col].apply(formatar_real)
+
+    # =========================
     # RESULTADO
     # =========================
     st.subheader("Resultado Calculado")
 
     st.dataframe(
-        df_calc[
+        df_display[
             [
                 "Qtd",
                 "Posicao",
@@ -114,7 +121,7 @@ def etapa2():
         hide_index=True
     )
 
-    st.success(f"Custo por hora da equipe: R$ {total_hora:,.2f}")
+    st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
 
     # =========================
     # SALVAR
