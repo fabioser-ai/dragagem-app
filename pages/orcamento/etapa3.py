@@ -17,14 +17,38 @@ def etapa3():
     try:
         df_insumos = carregar_github(ARQ_INSUMOS, TOKEN, REPO)
     except:
-        df_insumos = pd.DataFrame(columns=["Item", "Preco_Unitario"])
+        df_insumos = pd.DataFrame()
 
     if df_insumos.empty:
         st.warning("Base de insumos vazia")
         return
 
     # =========================
-    # SESSION STATE (CRÍTICO)
+    # NORMALIZAR COLUNAS
+    # =========================
+    df_insumos.columns = df_insumos.columns.str.strip()
+
+    # possíveis nomes de preço
+    col_preco = None
+    for c in df_insumos.columns:
+        if c.lower() in ["preco_unitario", "preco", "valor", "preço", "preço_unitario"]:
+            col_preco = c
+            break
+
+    if not col_preco:
+        st.error("Coluna de preço não encontrada no CSV")
+        st.write("Colunas encontradas:", list(df_insumos.columns))
+        return
+
+    # padroniza nome
+    df_insumos = df_insumos.rename(columns={col_preco: "Preco_Unitario"})
+
+    if "Item" not in df_insumos.columns:
+        st.error("Coluna 'Item' não encontrada no CSV")
+        return
+
+    # =========================
+    # SESSION STATE
     # =========================
     if "insumos_edit" not in st.session_state:
         df = df_insumos.copy()
@@ -49,31 +73,37 @@ def etapa3():
         }
     )
 
-    # Atualiza estado SEM recalcular
     st.session_state.insumos_edit = df_editado
 
     # =========================
-    # BOTÃO CALCULAR
+    # CALCULAR
     # =========================
     if st.button("Calcular Custos"):
 
         df_calc = df_editado.copy()
 
+        # segurança extra
+        df_calc["Preco_Unitario"] = pd.to_numeric(
+            df_calc["Preco_Unitario"], errors="coerce"
+        ).fillna(0)
+
+        df_calc["Qtd"] = pd.to_numeric(
+            df_calc["Qtd"], errors="coerce"
+        ).fillna(0)
+
         df_calc["Total"] = df_calc["Qtd"] * df_calc["Preco_Unitario"]
+
+        df_calc = df_calc[df_calc["Qtd"] > 0]
 
         total_geral = df_calc["Total"].sum()
 
-        # FILTRAR SOMENTE QTD > 0
-        df_calc = df_calc[df_calc["Qtd"] > 0]
-
-        # SALVAR RESULTADO (ESSENCIAL)
         st.session_state.resultado_etapa3 = {
             "df": df_calc,
             "total": total_geral
         }
 
     # =========================
-    # RESULTADO (PERSISTENTE)
+    # RESULTADO
     # =========================
     if st.session_state.resultado_etapa3:
 
@@ -89,7 +119,7 @@ def etapa3():
         )
 
     # =========================
-    # CUSTO DA EQUIPE (INTEGRAÇÃO ETAPA 2)
+    # EQUIPE
     # =========================
     if "custo_hora_equipe" in st.session_state.orcamento:
 
