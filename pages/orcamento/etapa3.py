@@ -13,18 +13,37 @@ def etapa3():
     st.header("Custo do Barrilete")
 
     # =========================
-    # INSUMOS
+    # VALIDAR EQUIPE
+    # =========================
+    custo_hora = st.session_state.orcamento.get("custo_hora_equipe")
+
+    if not custo_hora:
+        st.error("Custo da equipe não definido. Volte na Etapa 2.")
+        return
+
+    # =========================
+    # CARREGAR INSUMOS
     # =========================
     try:
         df_insumos = carregar_github(ARQ_INSUMOS, TOKEN, REPO)
     except:
         df_insumos = pd.DataFrame(columns=["Insumo", "Preco_Unitario"])
 
+    if df_insumos.empty:
+        st.warning("Base de insumos vazia")
+        return
+
+    # garantir colunas
     if "Preco_Unitario" not in df_insumos.columns:
         df_insumos["Preco_Unitario"] = 0.0
 
-    if "insumos_editados" not in st.session_state:
+    if "Qtd" not in df_insumos.columns:
         df_insumos["Qtd"] = 0.0
+
+    # =========================
+    # SESSION STATE (ANTI-RESET)
+    # =========================
+    if "insumos_editados" not in st.session_state:
         st.session_state.insumos_editados = df_insumos.copy()
 
     st.subheader("Insumos")
@@ -41,16 +60,16 @@ def etapa3():
         }
     )
 
+    # salva edição (evita perder dados)
     st.session_state.insumos_editados = df_editado
 
     # =========================
-    # EQUIPE (AGORA FIXA)
+    # EQUIPE
     # =========================
     st.subheader("Equipe")
 
-    custo_hora = st.session_state.orcamento.get("custo_mensal_equipe", 0)
-
     col1, col2 = st.columns(2)
+
     horas_dia = col1.number_input("Horas por dia", value=8.0)
     dias = col2.number_input("Número de dias", value=1)
 
@@ -63,14 +82,17 @@ def etapa3():
     )
 
     # =========================
-    # CÁLCULO GERAL
+    # CÁLCULO INSUMOS
     # =========================
     df_calc = df_editado.copy()
+
     df_calc["Total"] = df_calc["Qtd"] * df_calc["Preco_Unitario"]
 
     total_insumos = df_calc["Total"].sum()
 
-    # adiciona equipe como linha
+    # =========================
+    # ADICIONA EQUIPE COMO ITEM
+    # =========================
     df_equipe = pd.DataFrame([{
         "Insumo": "Equipe",
         "Qtd": horas_dia * dias,
@@ -80,7 +102,7 @@ def etapa3():
 
     df_final = pd.concat([df_calc, df_equipe], ignore_index=True)
 
-    # só mostra itens usados
+    # remove linhas zeradas
     df_final = df_final[df_final["Total"] > 0]
 
     total_geral = total_insumos + custo_equipe_total
