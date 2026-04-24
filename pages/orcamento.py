@@ -255,9 +255,9 @@ def etapa2():
     # LEIS SOCIAIS
     # =========================
     leis = st.number_input("Leis Sociais (%)", value=110.0)
-    fator = 1 + leis / 100
+    fator_leis = 1 + leis / 100
 
-    st.info(f"Fator aplicado: {fator:.2f}")
+    st.info(f"Fator leis sociais: {fator_leis:.2f}")
 
     # =========================
     # MONTA TABELA BASE
@@ -265,9 +265,10 @@ def etapa2():
     df = df_sal.copy()
 
     df["Qtd"] = 0
-    df["Salario c/ Leis"] = df["Valor_Hora"] * fator
+    df["Adicional 25%"] = False
+    df["Valor c/ Leis"] = df["Valor_Hora"] * fator_leis
 
-    df = df[["Qtd", "Posicao", "Valor_Hora", "Salario c/ Leis"]]
+    df = df[["Qtd", "Posicao", "Valor_Hora", "Adicional 25%", "Valor c/ Leis"]]
 
     # =========================
     # EDITOR
@@ -280,17 +281,25 @@ def etapa2():
             "Qtd": st.column_config.NumberColumn("Qtd", step=1, min_value=0),
             "Posicao": st.column_config.TextColumn("Posição", disabled=True),
             "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
-            "Salario c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
+            "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
+            "Valor c/ Leis": st.column_config.NumberColumn("C/ Leis (R$)", disabled=True),
         }
     )
 
     # =========================
-    # CÁLCULO
+    # CÁLCULO FINAL
     # =========================
-    df_editado["Total"] = df_editado["Qtd"] * df_editado["Salario c/ Leis"]
+    df_editado["Fator_Adicional"] = df_editado["Adicional 25%"].apply(lambda x: 1.25 if x else 1.0)
+
+    df_editado["Valor Final"] = df_editado["Valor c/ Leis"] * df_editado["Fator_Adicional"]
+
+    df_editado["Total"] = df_editado["Qtd"] * df_editado["Valor Final"]
 
     total_mensal = df_editado["Total"].sum()
 
+    # =========================
+    # EXIBIÇÃO
+    # =========================
     st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
 
     # =========================
