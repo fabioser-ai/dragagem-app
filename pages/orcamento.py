@@ -266,30 +266,37 @@ def etapa2():
     # =========================
     total_mensal = 0
 
-        for i, row in df_sal.iterrows():
+    for i, row in df_sal.iterrows():
 
-            col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
+        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
 
-                with col1:
-                    qtd = st.number_input(
-                    " ",
-                    min_value=0,
-                    step=1,
-                    key=f"qtd_{i}"
+        # QTD (input)
+        qtd = col1.number_input(
+            label="",
+            min_value=0,
+            step=1,
+            key=f"qtd_{i}"
         )
 
-                with col2:
-                    st.markdown(f"<div style='padding-top:8px'>{row['Posicao']}</div>", unsafe_allow_html=True)
+        # ALINHAMENTO VISUAL
+        col2.markdown(
+            f"<div style='padding-top:8px'>{row['Posicao']}</div>",
+            unsafe_allow_html=True
+        )
 
-                with col3:
-                    st.markdown(f"<div style='padding-top:8px'>{row['Valor_Hora']:.2f}</div>", unsafe_allow_html=True)
+        col3.markdown(
+            f"<div style='padding-top:8px'>{row['Valor_Hora']:.2f}</div>",
+            unsafe_allow_html=True
+        )
 
-                salario = row["Valor_Hora"] * fator
+        salario = row["Valor_Hora"] * fator
 
-                with col4:
-                    st.markdown(f"<div style='padding-top:8px'>{salario:.2f}</div>", unsafe_allow_html=True)
+        col4.markdown(
+            f"<div style='padding-top:8px'>{salario:.2f}</div>",
+            unsafe_allow_html=True
+        )
 
-            total_mensal += qtd * salario
+        total_mensal += qtd * salario
 
     st.divider()
 
@@ -310,5 +317,5 @@ def etapa2():
         st.session_state.tela = "orcamento1"
         st.rerun()
 
-    if col2.button("Finalizar", key="finalizar"):
+    if col2.button("Finalizar", key="finalizar2"):
         st.success("Fluxo concluído")
