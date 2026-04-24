@@ -242,10 +242,22 @@ def etapa2():
 
     st.header("Dimensionamento de Equipe")
 
+    # =========================
+    # CARREGAR DADOS
+    # =========================
     df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
 
+    if df_sal.empty:
+        st.warning("Base de salários vazia")
+        return
+
+    # =========================
+    # LEIS SOCIAIS
+    # =========================
     leis = st.number_input("Leis Sociais (%)", value=110.0)
     fator = 1 + leis / 100
+
+    st.info(f"Fator aplicado: {fator:.2f}")
 
     st.divider()
 
@@ -265,48 +277,66 @@ def etapa2():
     # TABELA
     # =========================
     total_mensal = 0
+    equipe = []
 
-for i, row in df_sal.iterrows():
+    for i, row in df_sal.iterrows():
 
-    col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
+        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
 
-    # Ajuste visual do input
-    with col1:
-        st.markdown("<div style='margin-top:10px'></div>", unsafe_allow_html=True)
-        qtd = st.number_input(
-            "",
-            min_value=0,
-            step=1,
-            key=f"qtd_{i}"
-        )
+        # QTD (com leve ajuste visual)
+        with col1:
+            st.markdown("<div style='margin-top:6px'></div>", unsafe_allow_html=True)
+            qtd = st.number_input(
+                "",
+                min_value=0,
+                step=1,
+                key=f"qtd_{i}"
+            )
 
-    # Texto normal (sem hack)
-    col2.write(row["Posicao"])
-    col3.write(f"{row['Valor_Hora']:.2f}")
+        # DADOS
+        col2.write(row["Posicao"])
+        col3.write(f"{row['Valor_Hora']:.2f}")
 
-    salario = row["Valor_Hora"] * fator
-    col4.write(f"{salario:.2f}")
+        salario_com_leis = row["Valor_Hora"] * fator
+        col4.write(f"{salario_com_leis:.2f}")
 
-    total_mensal += qtd * salario
+        # TOTAL
+        total_funcao = qtd * salario_com_leis
+        total_mensal += total_funcao
+
+        # SALVAR DETALHE
+        equipe.append({
+            "posicao": row["Posicao"],
+            "qtd": qtd,
+            "valor_hora": row["Valor_Hora"],
+            "valor_com_leis": salario_com_leis,
+            "total": total_funcao
+        })
 
     st.divider()
 
+    # =========================
+    # RESULTADO FINAL
+    # =========================
     st.success(f"Custo mensal da equipe: R$ {total_mensal:,.2f}")
 
     # =========================
-    # SALVAR
+    # SALVAR NO ORÇAMENTO
     # =========================
-    st.session_state.orcamento["custo_mensal_equipe"] = total_mensal
-    st.session_state.orcamento["leis_sociais"] = leis
+    st.session_state.orcamento.update({
+        "equipe": equipe,
+        "custo_mensal_equipe": total_mensal,
+        "leis_sociais": leis
+    })
 
     # =========================
     # NAVEGAÇÃO
     # =========================
     col1, col2 = st.columns(2)
 
-    if col1.button("⬅ Voltar", key="voltar2"):
+    if col1.button("⬅ Voltar", key="voltar_etapa2"):
         st.session_state.tela = "orcamento1"
         st.rerun()
 
-    if col2.button("Finalizar", key="finalizar2"):
-        st.success("Fluxo concluído")
+    if col2.button("Continuar", key="continuar_etapa2"):
+        st.success("Próxima etapa: custos operacionais")
