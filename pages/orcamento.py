@@ -100,7 +100,7 @@ def etapa0():
             "codigo": codigo,
             "nome_obra": nome_obra,
             "cliente": cliente_final,
-            "data": str(data),
+            "data": data.strftime("%d/%m/%Y"),
             "local": local,
             "volume": volume,
             "material": material,
