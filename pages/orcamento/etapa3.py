@@ -28,6 +28,29 @@ def etapa3():
     # =========================
     df_insumos.columns = df_insumos.columns.str.strip()
 
+mapa_colunas = {
+    "preco_unitario": "Preco_Unitario",
+    "preco": "Preco_Unitario",
+    "valor": "Preco_Unitario",
+    "preço": "Preco_Unitario",
+    "preço_unitario": "Preco_Unitario"
+}
+
+novas_colunas = {}
+
+for col in df_insumos.columns:
+    chave = col.lower().replace(" ", "_")
+    if chave in mapa_colunas:
+        novas_colunas[col] = mapa_colunas[chave]
+
+df_insumos = df_insumos.rename(columns=novas_colunas)
+
+# validação final
+if "Preco_Unitario" not in df_insumos.columns:
+    st.error("Coluna de preço não encontrada.")
+    st.write("Colunas atuais:", list(df_insumos.columns))
+    return
+
     # possíveis nomes de preço
     col_preco = None
     for c in df_insumos.columns:
