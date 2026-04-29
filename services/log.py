@@ -10,7 +10,7 @@ def registrar_log(usuario, perfil, acao):
         "data_hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "usuario": usuario,
         "perfil": perfil,
-        "acao": acao
+        "acao": acao,
     }
 
     df_novo = pd.DataFrame([registro])
