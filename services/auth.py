@@ -17,10 +17,13 @@ def carregar_usuarios():
 def inicializar_auth():
     if "autenticado" not in st.session_state:
         st.session_state.autenticado = False
+
     if "usuario" not in st.session_state:
         st.session_state.usuario = None
+
     if "perfil" not in st.session_state:
         st.session_state.perfil = None
+
     if "ultimo_acesso" not in st.session_state:
         st.session_state.ultimo_acesso = time.time()
 
@@ -30,12 +33,17 @@ def logout():
     perfil = st.session_state.get("perfil")
 
     if usuario and perfil:
-        registrar_log(usuario, perfil, "logout")
+        try:
+            registrar_log(usuario, perfil, "logout")
+        except Exception:
+            pass
 
     st.session_state.autenticado = False
     st.session_state.usuario = None
     st.session_state.perfil = None
     st.session_state.tela = "menu"
+    st.session_state.ultimo_acesso = time.time()
+
     st.rerun()
 
 
@@ -59,10 +67,20 @@ def verificar_login():
             perfil = st.session_state.get("perfil")
 
             if usuario and perfil:
-                registrar_log(usuario, perfil, "sessao_expirada")
+                try:
+                    registrar_log(usuario, perfil, "sessao_expirada")
+                except Exception:
+                    pass
 
             st.warning("Sessão expirada. Faça login novamente.")
-            logout()
+
+            st.session_state.autenticado = False
+            st.session_state.usuario = None
+            st.session_state.perfil = None
+            st.session_state.tela = "menu"
+            st.session_state.ultimo_acesso = time.time()
+
+            st.rerun()
 
         return True
 
@@ -83,7 +101,10 @@ def verificar_login():
             st.session_state.perfil = perfil
             st.session_state.ultimo_acesso = time.time()
 
-            registrar_log(usuario, perfil, "login")
+            try:
+                registrar_log(usuario, perfil, "login")
+            except Exception:
+                pass
 
             st.rerun()
         else:
