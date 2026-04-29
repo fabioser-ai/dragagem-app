@@ -26,16 +26,17 @@ def render():
                 text-align: center;
                 color: #f8fafc;
                 margin: 0;
-                font-size: 2.1rem;
-                letter-spacing: 0.03em;
+                font-size: 3rem;  /* 🔥 AUMENTADO */
+                font-weight: 700;
+                letter-spacing: 0.04em;
             }
 
             .menu-hero p {
                 text-align: center;
                 color: #cbd5e1;
-                margin-top: 0.5rem;
+                margin-top: 0.6rem;
                 margin-bottom: 0;
-                font-size: 1rem;
+                font-size: 1.05rem;
             }
 
             .menu-subtitle {
@@ -72,7 +73,7 @@ def render():
     st.markdown(
         """
         <div class="menu-hero">
-            <h1>FOS ENGENHARIA - FABIO</h1>
+            <h1>FOS ENGENHARIA LTDA</h1>  <!-- 🔥 ALTERADO -->
             <p>Painel central para orçamento, obras, férias e base de dados</p>
         </div>
         <div class="menu-subtitle">Selecione um módulo para continuar</div>
@@ -80,7 +81,7 @@ def render():
         unsafe_allow_html=True,
     )
 
-    st.info("✅ BUILD MENU: 2026-04-28 / commit afbedad")
+    st.info("✅ BUILD MENU: 2026-04-29 / commit update visual")
 
     col1, col2 = st.columns(2, gap="large")
 
