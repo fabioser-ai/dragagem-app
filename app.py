@@ -3,6 +3,10 @@ import streamlit as st
 # Módulos principais
 from pages import menu, dados, ferias
 
+# Serviços
+from services.auth import verificar_login
+from services.ui import aplicar_estilo_global
+
 # Módulo orçamento (novo - modular)
 from pages.orcamento.etapa0 import etapa0
 from pages.orcamento.etapa1 import etapa1
@@ -13,10 +17,18 @@ from pages.orcamento.etapa3 import etapa3
 # CONFIGURAÇÃO
 # =========================
 st.set_page_config(layout="wide")
-from services.auth import verificar_login
 
+# =========================
+# AUTENTICAÇÃO
+# =========================
 if not verificar_login():
     st.stop()
+
+# =========================
+# ESTILO GLOBAL
+# =========================
+aplicar_estilo_global()
+
 # =========================
 # ESTADO INICIAL
 # =========================
@@ -33,7 +45,6 @@ elif st.session_state.tela == "dados":
     from services.auth import exigir_admin
     exigir_admin()
     dados.render()
-
 
 elif st.session_state.tela == "ferias":
     ferias.render()
