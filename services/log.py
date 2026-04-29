@@ -1,6 +1,8 @@
 import pandas as pd
+import streamlit as st
 from datetime import datetime
-import os
+from services.github import carregar_github, salvar_github
+
 
 ARQUIVO_LOG = "data/log_acessos.csv"
 
@@ -13,12 +15,22 @@ def registrar_log(usuario, perfil, acao):
         "acao": acao,
     }
 
+    try:
+        df = carregar_github(
+            ARQUIVO_LOG,
+            st.secrets["GITHUB_TOKEN"],
+            st.secrets["REPO"],
+        )
+    except Exception:
+        df = pd.DataFrame(columns=["data_hora", "usuario", "perfil", "acao"])
+
     df_novo = pd.DataFrame([registro])
+    df = pd.concat([df, df_novo], ignore_index=True)
 
-    if os.path.exists(ARQUIVO_LOG):
-        df = pd.read_csv(ARQUIVO_LOG)
-        df = pd.concat([df, df_novo], ignore_index=True)
-    else:
-        df = df_novo
-
-    df.to_csv(ARQUIVO_LOG, index=False)
+    salvar_github(
+        df,
+        ARQUIVO_LOG,
+        st.secrets["GITHUB_TOKEN"],
+        st.secrets["REPO"],
+        mensagem_commit="log: atualização automática de acessos",
+    )
