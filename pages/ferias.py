@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import date, timedelta
 from services.github import carregar_github, salvar_github
 
+
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
@@ -98,54 +99,77 @@ def render():
     with aba1:
         st.subheader("Novo registro")
 
-        matricula = st.text_input("Matrícula")
-        funcionario = st.text_input("Funcionário")
-        unidade = st.text_input("Unidade / Local", placeholder="Ex: OFICINA - CUBATÃO/SP")
-        departamento = st.text_input("Departamento", value="Operacional")
+        matricula_novo = st.text_input("Matrícula", key="novo_matricula")
+        funcionario_novo = st.text_input("Funcionário", key="novo_funcionario")
+        unidade_novo = st.text_input(
+            "Unidade / Local",
+            placeholder="Ex: OFICINA - CUBATÃO/SP",
+            key="novo_unidade",
+        )
+        departamento_novo = st.text_input(
+            "Departamento",
+            value="Operacional",
+            key="novo_departamento",
+        )
 
         col_aq1, col_aq2 = st.columns(2)
+
         with col_aq1:
-            periodo_inicio = st.date_input("Início do período aquisitivo", value=date.today())
-        with col_aq2:
-            periodo_fim = st.date_input(
-                "Fim do período aquisitivo",
-                value=date.today() + timedelta(days=365),
+            periodo_inicio_novo = st.date_input(
+                "Início do período aquisitivo",
+                value=date.today(),
+                key="novo_periodo_inicio",
             )
 
-        limite_gozo = st.date_input(
+        with col_aq2:
+            periodo_fim_novo = st.date_input(
+                "Fim do período aquisitivo",
+                value=date.today() + timedelta(days=365),
+                key="novo_periodo_fim",
+            )
+
+        limite_gozo_novo = st.date_input(
             "Limite de gozo",
-            value=periodo_fim + timedelta(days=335),
+            value=periodo_fim_novo + timedelta(days=335),
+            key="novo_limite_gozo",
         )
 
-        periodo_gozo = st.text_input(
+        periodo_gozo_novo = st.text_input(
             "Período de gozo de férias",
             placeholder="Ex: 18/05 a 16/06/2026 ou Previsão 13/07 a 11/08",
+            key="novo_periodo_gozo",
         )
 
-        observacoes = st.text_area("Observações")
+        observacoes_novo = st.text_area("Observações", key="novo_observacoes")
 
-        if st.button("Adicionar registro", use_container_width=True):
-            situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
+        if st.button("Adicionar registro", use_container_width=True, key="btn_adicionar_ferias"):
+            if not funcionario_novo.strip():
+                st.error("Informe o nome do funcionário.")
+            else:
+                situacao_ferias, situacao_prazo = calcular_status(
+                    periodo_fim_novo,
+                    limite_gozo_novo,
+                )
 
-            novo = {
-                "Matricula": matricula,
-                "Funcionario": funcionario,
-                "Unidade": unidade,
-                "Departamento": departamento,
-                "Periodo_Aquisitivo_Inicio": periodo_inicio,
-                "Periodo_Aquisitivo_Fim": periodo_fim,
-                "Situacao_Ferias": situacao_ferias,
-                "Limite_Gozo": limite_gozo,
-                "Periodo_Gozo": periodo_gozo,
-                "Situacao_Prazo": situacao_prazo,
-                "Observacoes": observacoes,
-            }
+                novo = {
+                    "Matricula": matricula_novo,
+                    "Funcionario": funcionario_novo,
+                    "Unidade": unidade_novo,
+                    "Departamento": departamento_novo,
+                    "Periodo_Aquisitivo_Inicio": periodo_inicio_novo,
+                    "Periodo_Aquisitivo_Fim": periodo_fim_novo,
+                    "Situacao_Ferias": situacao_ferias,
+                    "Limite_Gozo": limite_gozo_novo,
+                    "Periodo_Gozo": periodo_gozo_novo,
+                    "Situacao_Prazo": situacao_prazo,
+                    "Observacoes": observacoes_novo,
+                }
 
-            df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
-            salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+                df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
+                salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
 
-            st.success("Registro adicionado com sucesso!")
-            st.rerun()
+                st.success("Registro adicionado com sucesso!")
+                st.rerun()
 
     with aba2:
         st.subheader("Editar registro existente")
@@ -154,15 +178,38 @@ def render():
             st.info("Nenhum registro disponível para edição.")
         else:
             opcoes = df.index.astype(str) + " - " + df["Funcionario"].astype(str)
-            escolha = st.selectbox("Selecionar funcionário", opcoes)
+            escolha = st.selectbox(
+                "Selecionar funcionário",
+                opcoes,
+                key="edit_selecionar_funcionario",
+            )
 
             idx = int(escolha.split(" - ")[0])
             linha = df.loc[idx]
 
-            matricula = st.text_input("Matrícula", value=str(linha["Matricula"]))
-            funcionario = st.text_input("Funcionário", value=str(linha["Funcionario"]))
-            unidade = st.text_input("Unidade / Local", value=str(linha["Unidade"]))
-            departamento = st.text_input("Departamento", value=str(linha["Departamento"]))
+            matricula_edit = st.text_input(
+                "Matrícula",
+                value=str(linha["Matricula"]),
+                key=f"edit_matricula_{idx}",
+            )
+
+            funcionario_edit = st.text_input(
+                "Funcionário",
+                value=str(linha["Funcionario"]),
+                key=f"edit_funcionario_{idx}",
+            )
+
+            unidade_edit = st.text_input(
+                "Unidade / Local",
+                value=str(linha["Unidade"]),
+                key=f"edit_unidade_{idx}",
+            )
+
+            departamento_edit = st.text_input(
+                "Departamento",
+                value=str(linha["Departamento"]),
+                key=f"edit_departamento_{idx}",
+            )
 
             data_inicio = pd.to_datetime(
                 linha["Periodo_Aquisitivo_Inicio"],
@@ -187,58 +234,76 @@ def render():
                 data_limite = data_fim + pd.Timedelta(days=335)
 
             col_ed1, col_ed2 = st.columns(2)
+
             with col_ed1:
-                periodo_inicio = st.date_input(
+                periodo_inicio_edit = st.date_input(
                     "Início do período aquisitivo",
                     value=data_inicio.date(),
-                    key="edit_inicio",
+                    key=f"edit_inicio_{idx}",
                 )
+
             with col_ed2:
-                periodo_fim = st.date_input(
+                periodo_fim_edit = st.date_input(
                     "Fim do período aquisitivo",
                     value=data_fim.date(),
-                    key="edit_fim",
+                    key=f"edit_fim_{idx}",
                 )
 
-            limite_gozo = st.date_input(
+            limite_gozo_edit = st.date_input(
                 "Limite de gozo",
                 value=data_limite.date(),
-                key="edit_limite",
+                key=f"edit_limite_{idx}",
             )
 
-            periodo_gozo = st.text_input(
+            periodo_gozo_edit = st.text_input(
                 "Período de gozo de férias",
                 value=str(linha["Periodo_Gozo"]),
+                key=f"edit_periodo_gozo_{idx}",
             )
 
-            observacoes = st.text_area(
+            observacoes_edit = st.text_area(
                 "Observações",
                 value=str(linha["Observacoes"]),
+                key=f"edit_observacoes_{idx}",
             )
 
             col_salvar, col_excluir = st.columns(2)
 
-            if col_salvar.button("Salvar alterações", use_container_width=True):
-                situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
+            if col_salvar.button(
+                "Salvar alterações",
+                use_container_width=True,
+                key=f"btn_salvar_ferias_{idx}",
+            ):
+                if not funcionario_edit.strip():
+                    st.error("Informe o nome do funcionário.")
+                else:
+                    situacao_ferias, situacao_prazo = calcular_status(
+                        periodo_fim_edit,
+                        limite_gozo_edit,
+                    )
 
-                df.loc[idx, "Matricula"] = matricula
-                df.loc[idx, "Funcionario"] = funcionario
-                df.loc[idx, "Unidade"] = unidade
-                df.loc[idx, "Departamento"] = departamento
-                df.loc[idx, "Periodo_Aquisitivo_Inicio"] = periodo_inicio
-                df.loc[idx, "Periodo_Aquisitivo_Fim"] = periodo_fim
-                df.loc[idx, "Situacao_Ferias"] = situacao_ferias
-                df.loc[idx, "Limite_Gozo"] = limite_gozo
-                df.loc[idx, "Periodo_Gozo"] = periodo_gozo
-                df.loc[idx, "Situacao_Prazo"] = situacao_prazo
-                df.loc[idx, "Observacoes"] = observacoes
+                    df.loc[idx, "Matricula"] = matricula_edit
+                    df.loc[idx, "Funcionario"] = funcionario_edit
+                    df.loc[idx, "Unidade"] = unidade_edit
+                    df.loc[idx, "Departamento"] = departamento_edit
+                    df.loc[idx, "Periodo_Aquisitivo_Inicio"] = periodo_inicio_edit
+                    df.loc[idx, "Periodo_Aquisitivo_Fim"] = periodo_fim_edit
+                    df.loc[idx, "Situacao_Ferias"] = situacao_ferias
+                    df.loc[idx, "Limite_Gozo"] = limite_gozo_edit
+                    df.loc[idx, "Periodo_Gozo"] = periodo_gozo_edit
+                    df.loc[idx, "Situacao_Prazo"] = situacao_prazo
+                    df.loc[idx, "Observacoes"] = observacoes_edit
 
-                salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
+                    salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
 
-                st.success("Registro atualizado com sucesso!")
-                st.rerun()
+                    st.success("Registro atualizado com sucesso!")
+                    st.rerun()
 
-            if col_excluir.button("Excluir registro", use_container_width=True):
+            if col_excluir.button(
+                "Excluir registro",
+                use_container_width=True,
+                key=f"btn_excluir_ferias_{idx}",
+            ):
                 df = df.drop(idx).reset_index(drop=True)
                 salvar_github(df, ARQ_FERIAS, TOKEN, REPO)
 
@@ -247,6 +312,6 @@ def render():
 
     st.divider()
 
-    if st.button("⬅ Voltar", use_container_width=True):
+    if st.button("⬅ Voltar", use_container_width=True, key="btn_voltar_ferias"):
         st.session_state.tela = "menu"
         st.rerun()
