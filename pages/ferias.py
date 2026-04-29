@@ -10,6 +10,8 @@ REPO = st.secrets["REPO"]
 ARQ_FERIAS = "data/ferias.csv"
 ARQ_FOLGAS = "data/folgas.csv"
 
+DIAS_INTERVALO_FOLGA = 60
+
 COLUNAS_FERIAS = [
     "Matricula",
     "Funcionario",
@@ -51,17 +53,37 @@ def normalizar_dataframe(df, colunas):
     return df[colunas]
 
 
+def para_data(valor):
+    data = pd.to_datetime(valor, errors="coerce")
+    if pd.isna(data):
+        return None
+    return data.date()
+
+
+def formatar_data_br(valor):
+    data = para_data(valor)
+    if data is None:
+        return ""
+    return data.strftime("%d/%m/%Y")
+
+
+def formatar_datetime_br(valor):
+    data = pd.to_datetime(valor, errors="coerce")
+    if pd.isna(data):
+        return ""
+    return data.strftime("%d/%m/%Y %H:%M:%S")
+
+
 def calcular_status(periodo_fim, limite_gozo):
     hoje = date.today()
 
-    try:
-        periodo_fim = pd.to_datetime(periodo_fim).date()
-    except Exception:
+    periodo_fim = para_data(periodo_fim)
+    limite_gozo = para_data(limite_gozo)
+
+    if periodo_fim is None:
         return "Indefinido", "Indefinido"
 
-    try:
-        limite_gozo = pd.to_datetime(limite_gozo).date()
-    except Exception:
+    if limite_gozo is None:
         limite_gozo = periodo_fim + timedelta(days=335)
 
     situacao_ferias = "Férias Vencidas" if hoje >= periodo_fim else "Férias Não Vencidas"
@@ -77,7 +99,7 @@ def calcular_status(periodo_fim, limite_gozo):
 
 
 def calcular_dias(data_inicio, data_fim):
-    if pd.isna(data_inicio) or pd.isna(data_fim):
+    if data_inicio is None or data_fim is None:
         return ""
 
     try:
@@ -86,8 +108,105 @@ def calcular_dias(data_inicio, data_fim):
         return ""
 
 
+def preparar_exibicao_ferias(df):
+    df_exibir = df.copy()
+
+    for col in [
+        "Periodo_Aquisitivo_Inicio",
+        "Periodo_Aquisitivo_Fim",
+        "Data_Inicio_Gozo",
+        "Data_Fim_Gozo",
+        "Limite_Gozo",
+    ]:
+        if col in df_exibir.columns:
+            df_exibir[col] = df_exibir[col].apply(formatar_data_br)
+
+    return df_exibir
+
+
+def preparar_exibicao_folgas(df):
+    df_exibir = df.copy()
+
+    for col in ["Data_Saida", "Data_Retorno"]:
+        if col in df_exibir.columns:
+            df_exibir[col] = df_exibir[col].apply(formatar_data_br)
+
+    if "Data_Registro" in df_exibir.columns:
+        df_exibir["Data_Registro"] = df_exibir["Data_Registro"].apply(formatar_datetime_br)
+
+    return df_exibir
+
+
+def cor_linha_ferias(row):
+    if row.get("Situacao_Prazo") == "Férias em Dobro":
+        return ["background-color: #fee2e2"] * len(row)
+
+    if row.get("Situacao_Prazo") == "Atenção":
+        return ["background-color: #fef3c7"] * len(row)
+
+    if row.get("Situacao_Ferias") == "Férias Vencidas":
+        return ["background-color: #fff7ed"] * len(row)
+
+    return ["background-color: #ecfdf5"] * len(row)
+
+
+def cor_linha_folgas(row):
+    retorno = para_data(row.get("Data_Retorno"))
+
+    if retorno and retorno >= date.today():
+        return ["background-color: #dbeafe"] * len(row)
+
+    return [""] * len(row)
+
+
+def mostrar_alertas_ferias(df):
+    if df.empty:
+        return
+
+    df_alerta = df.copy()
+    df_alerta["Limite_Gozo_Data"] = df_alerta["Limite_Gozo"].apply(para_data)
+
+    ferias_dobro = df_alerta[df_alerta["Situacao_Prazo"] == "Férias em Dobro"]
+    ferias_atencao = df_alerta[df_alerta["Situacao_Prazo"] == "Atenção"]
+
+    hoje = date.today()
+    proximos_60 = df_alerta[
+        df_alerta["Limite_Gozo_Data"].apply(
+            lambda x: x is not None and 0 <= (x - hoje).days <= 60
+        )
+    ]
+
+    if not ferias_dobro.empty:
+        st.error(f"🚨 {len(ferias_dobro)} funcionário(s) com férias em dobro.")
+
+    if not ferias_atencao.empty or not proximos_60.empty:
+        st.warning("⚠️ Existem férias próximas do limite de gozo. Revisar programação.")
+
+    if ferias_dobro.empty and ferias_atencao.empty and proximos_60.empty:
+        st.success("✅ Nenhum alerta crítico de férias no momento.")
+
+
+def mostrar_alertas_folgas(df_folgas):
+    if df_folgas.empty:
+        st.info("Nenhuma folga registrada ainda.")
+        return
+
+    hoje = date.today()
+    df_tmp = df_folgas.copy()
+    df_tmp["Data_Retorno_Data"] = df_tmp["Data_Retorno"].apply(para_data)
+
+    folgas_ativas = df_tmp[
+        df_tmp["Data_Retorno_Data"].apply(lambda x: x is not None and x >= hoje)
+    ]
+
+    if not folgas_ativas.empty:
+        st.info(f"ℹ️ {len(folgas_ativas)} funcionário(s) com folga ativa ou retorno futuro.")
+
+
 def render_ferias(df_ferias):
     st.subheader("Resumo de Férias")
+
+    mostrar_alertas_ferias(df_ferias)
 
     total = len(df_ferias)
     vencidas = len(df_ferias[df_ferias["Situacao_Ferias"] == "Férias Vencidas"])
@@ -103,7 +222,15 @@ def render_ferias(df_ferias):
     st.divider()
 
     st.subheader("Lista de Controle de Férias")
-    st.dataframe(df_ferias, use_container_width=True)
+
+    if df_ferias.empty:
+        st.warning("Nenhum registro de férias cadastrado.")
+    else:
+        df_exibir = preparar_exibicao_ferias(df_ferias)
+        st.dataframe(
+            df_exibir.style.apply(cor_linha_ferias, axis=1),
+            use_container_width=True,
+        )
 
     st.divider()
 
@@ -119,19 +246,45 @@ def render_ferias(df_ferias):
 
         col1, col2 = st.columns(2)
         with col1:
-            periodo_inicio = st.date_input("Início do período aquisitivo", value=date.today(), key="ferias_novo_inicio")
+            periodo_inicio = st.date_input(
+                "Início do período aquisitivo",
+                value=date.today(),
+                format="DD/MM/YYYY",
+                key="ferias_novo_inicio",
+            )
         with col2:
-            periodo_fim = st.date_input("Fim do período aquisitivo", value=date.today() + timedelta(days=365), key="ferias_novo_fim")
+            periodo_fim = st.date_input(
+                "Fim do período aquisitivo",
+                value=date.today() + timedelta(days=365),
+                format="DD/MM/YYYY",
+                key="ferias_novo_fim",
+            )
 
         col3, col4 = st.columns(2)
         with col3:
-            data_inicio_gozo = st.date_input("Início do gozo", value=None, key="ferias_novo_inicio_gozo")
+            data_inicio_gozo = st.date_input(
+                "Início do gozo",
+                value=None,
+                format="DD/MM/YYYY",
+                key="ferias_novo_inicio_gozo",
+            )
         with col4:
-            data_fim_gozo = st.date_input("Fim do gozo", value=None, key="ferias_novo_fim_gozo")
+            data_fim_gozo = st.date_input(
+                "Fim do gozo",
+                value=None,
+                format="DD/MM/YYYY",
+                key="ferias_novo_fim_gozo",
+            )
 
         dias_gozo = calcular_dias(data_inicio_gozo, data_fim_gozo)
 
-        limite_gozo = st.date_input("Limite de gozo", value=periodo_fim + timedelta(days=335), key="ferias_novo_limite")
+        limite_gozo = st.date_input(
+            "Limite de gozo",
+            value=periodo_fim + timedelta(days=335),
+            format="DD/MM/YYYY",
+            key="ferias_novo_limite",
+        )
+
         periodo_gozo = st.text_input("Período de gozo", key="ferias_novo_periodo_gozo")
 
         if st.button("Adicionar férias", use_container_width=True, key="btn_add_ferias"):
@@ -177,34 +330,58 @@ def render_ferias(df_ferias):
             unidade = st.text_input("Unidade / Local", value=str(linha["Unidade"]), key=f"ferias_edit_unidade_{idx}")
             departamento = st.text_input("Departamento", value=str(linha["Departamento"]), key=f"ferias_edit_departamento_{idx}")
 
-            periodo_inicio_val = pd.to_datetime(linha["Periodo_Aquisitivo_Inicio"], errors="coerce")
-            periodo_fim_val = pd.to_datetime(linha["Periodo_Aquisitivo_Fim"], errors="coerce")
-            inicio_gozo_val = pd.to_datetime(linha["Data_Inicio_Gozo"], errors="coerce")
-            fim_gozo_val = pd.to_datetime(linha["Data_Fim_Gozo"], errors="coerce")
-            limite_val = pd.to_datetime(linha["Limite_Gozo"], errors="coerce")
-
-            periodo_inicio_val = periodo_inicio_val.date() if not pd.isna(periodo_inicio_val) else date.today()
-            periodo_fim_val = periodo_fim_val.date() if not pd.isna(periodo_fim_val) else date.today() + timedelta(days=365)
-            inicio_gozo_val = inicio_gozo_val.date() if not pd.isna(inicio_gozo_val) else None
-            fim_gozo_val = fim_gozo_val.date() if not pd.isna(fim_gozo_val) else None
-            limite_val = limite_val.date() if not pd.isna(limite_val) else periodo_fim_val + timedelta(days=335)
+            periodo_inicio_val = para_data(linha["Periodo_Aquisitivo_Inicio"]) or date.today()
+            periodo_fim_val = para_data(linha["Periodo_Aquisitivo_Fim"]) or date.today() + timedelta(days=365)
+            inicio_gozo_val = para_data(linha["Data_Inicio_Gozo"])
+            fim_gozo_val = para_data(linha["Data_Fim_Gozo"])
+            limite_val = para_data(linha["Limite_Gozo"]) or periodo_fim_val + timedelta(days=335)
 
             col1, col2 = st.columns(2)
             with col1:
-                periodo_inicio = st.date_input("Início do período aquisitivo", value=periodo_inicio_val, key=f"ferias_edit_inicio_{idx}")
+                periodo_inicio = st.date_input(
+                    "Início do período aquisitivo",
+                    value=periodo_inicio_val,
+                    format="DD/MM/YYYY",
+                    key=f"ferias_edit_inicio_{idx}",
+                )
             with col2:
-                periodo_fim = st.date_input("Fim do período aquisitivo", value=periodo_fim_val, key=f"ferias_edit_fim_{idx}")
+                periodo_fim = st.date_input(
+                    "Fim do período aquisitivo",
+                    value=periodo_fim_val,
+                    format="DD/MM/YYYY",
+                    key=f"ferias_edit_fim_{idx}",
+                )
 
             col3, col4 = st.columns(2)
             with col3:
-                data_inicio_gozo = st.date_input("Início do gozo", value=inicio_gozo_val, key=f"ferias_edit_inicio_gozo_{idx}")
+                data_inicio_gozo = st.date_input(
+                    "Início do gozo",
+                    value=inicio_gozo_val,
+                    format="DD/MM/YYYY",
+                    key=f"ferias_edit_inicio_gozo_{idx}",
+                )
             with col4:
-                data_fim_gozo = st.date_input("Fim do gozo", value=fim_gozo_val, key=f"ferias_edit_fim_gozo_{idx}")
+                data_fim_gozo = st.date_input(
+                    "Fim do gozo",
+                    value=fim_gozo_val,
+                    format="DD/MM/YYYY",
+                    key=f"ferias_edit_fim_gozo_{idx}",
+                )
 
             dias_gozo = calcular_dias(data_inicio_gozo, data_fim_gozo)
 
-            limite_gozo = st.date_input("Limite de gozo", value=limite_val, key=f"ferias_edit_limite_{idx}")
-            periodo_gozo = st.text_input("Período de gozo", value=str(linha["Periodo_Gozo"]), key=f"ferias_edit_periodo_gozo_{idx}")
+            limite_gozo = st.date_input(
+                "Limite de gozo",
+                value=limite_val,
+                format="DD/MM/YYYY",
+                key=f"ferias_edit_limite_{idx}",
+            )
+
+            periodo_gozo = st.text_input(
+                "Período de gozo",
+                value=str(linha["Periodo_Gozo"]),
+                key=f"ferias_edit_periodo_gozo_{idx}",
+            )
 
             col_salvar, col_excluir = st.columns(2)
 
@@ -242,6 +419,8 @@ def render_folgas(df_ferias):
     df_folgas = carregar_github(ARQ_FOLGAS, TOKEN, REPO)
     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
 
+    mostrar_alertas_folgas(df_folgas)
+
     if df_ferias.empty:
         st.warning("Cadastre funcionários em férias primeiro para usar o controle de folgas.")
         return
@@ -253,23 +432,65 @@ def render_folgas(df_ferias):
 
     idx = int(escolha.split(" - ")[0])
     funcionario_base = df_ferias.loc[idx]
+    funcionario_nome = str(funcionario_base["Funcionario"])
+
+    df_func = df_folgas[df_folgas["Funcionario"].astype(str) == funcionario_nome].copy()
+    ultima_saida = None
+
+    if not df_func.empty:
+        df_func["Data_Saida_Data"] = df_func["Data_Saida"].apply(para_data)
+        df_func = df_func.dropna(subset=["Data_Saida_Data"])
+        if not df_func.empty:
+            ultima_saida = df_func["Data_Saida_Data"].max()
+            dias_desde = (date.today() - ultima_saida).days
+
+            if dias_desde < DIAS_INTERVALO_FOLGA:
+                st.warning(
+                    f"⚠️ Última folga de {funcionario_nome}: {ultima_saida.strftime('%d/%m/%Y')} "
+                    f"({dias_desde} dias atrás). Regra sugerida: intervalo mínimo de 60 dias."
+                )
+            else:
+                st.success(
+                    f"✅ Última folga de {funcionario_nome}: {ultima_saida.strftime('%d/%m/%Y')} "
+                    f"({dias_desde} dias atrás)."
+                )
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.text_input("Matrícula", value=str(funcionario_base["Matricula"]), disabled=True, key="folga_matricula_view")
-
     with col2:
         st.text_input("Unidade", value=str(funcionario_base["Unidade"]), disabled=True, key="folga_unidade_view")
-
     with col3:
         st.text_input("Departamento", value=str(funcionario_base["Departamento"]), disabled=True, key="folga_departamento_view")
 
-    data_saida = st.date_input("Data de saída para folga", value=date.today(), key="folga_data_saida")
-    dias_folga = st.number_input("Dias de folga", min_value=1, max_value=30, value=7, step=1, key="folga_dias")
+    data_saida = st.date_input(
+        "Data de saída para folga",
+        value=date.today(),
+        format="DD/MM/YYYY",
+        key="folga_data_saida",
+    )
+
+    dias_folga = st.number_input(
+        "Dias de folga",
+        min_value=1,
+        max_value=30,
+        value=7,
+        step=1,
+        key="folga_dias",
+    )
+
     data_retorno = data_saida + timedelta(days=int(dias_folga))
 
     st.info(f"Data de retorno calculada: **{data_retorno.strftime('%d/%m/%Y')}**")
+
+    if ultima_saida:
+        intervalo = (data_saida - ultima_saida).days
+        if intervalo < DIAS_INTERVALO_FOLGA:
+            st.error(
+                f"🚨 Atenção: esta nova folga está apenas {intervalo} dias após a última. "
+                f"O recomendado é no mínimo 60 dias."
+            )
 
     observacoes = st.text_area("Observações", key="folga_observacoes")
 
@@ -312,7 +533,12 @@ def render_folgas(df_ferias):
         st.info("Nenhuma folga registrada ainda.")
     else:
         df_exibir = df_exibir.sort_values(by="Data_Saida", ascending=False)
-        st.dataframe(df_exibir, use_container_width=True)
+        df_exibir_br = preparar_exibicao_folgas(df_exibir)
+
+        st.dataframe(
+            df_exibir_br.style.apply(cor_linha_folgas, axis=1),
+            use_container_width=True,
+        )
 
 
 def render():
