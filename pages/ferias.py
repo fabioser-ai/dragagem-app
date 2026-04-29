@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from services.github import carregar_github, salvar_github
 
 
@@ -8,8 +8,9 @@ TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 ARQ_FERIAS = "data/ferias.csv"
+ARQ_FOLGAS = "data/folgas.csv"
 
-COLUNAS = [
+COLUNAS_FERIAS = [
     "Matricula",
     "Funcionario",
     "Unidade",
@@ -23,57 +24,47 @@ COLUNAS = [
     "Periodo_Gozo",
     "Situacao_Ferias",
     "Situacao_Prazo",
+]
+
+COLUNAS_FOLGAS = [
+    "Matricula",
+    "Funcionario",
+    "Unidade",
+    "Departamento",
+    "Data_Saida",
+    "Data_Retorno",
+    "Dias_Folga",
     "Observacoes",
+    "Criado_Por",
+    "Data_Registro",
 ]
 
 
-def data_valida(valor, padrao=None):
-    try:
-        data = pd.to_datetime(valor, errors="coerce")
-        if pd.isna(data):
-            return padrao
-        return data.date()
-    except Exception:
-        return padrao
+def normalizar_dataframe(df, colunas):
+    if df.empty:
+        return pd.DataFrame(columns=colunas)
 
+    for col in colunas:
+        if col not in df.columns:
+            df[col] = ""
 
-def calcular_dias_gozo(data_inicio, data_fim):
-    if not data_inicio or not data_fim:
-        return ""
-
-    try:
-        dias = (data_fim - data_inicio).days + 1
-        return dias if dias > 0 else ""
-    except Exception:
-        return ""
-
-
-def montar_periodo_gozo(data_inicio, data_fim, texto_manual=""):
-    if texto_manual and str(texto_manual).strip():
-        return str(texto_manual).strip()
-
-    if data_inicio and data_fim:
-        return f"{data_inicio.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}"
-
-    return ""
+    return df[colunas]
 
 
 def calcular_status(periodo_fim, limite_gozo):
     hoje = date.today()
 
-    periodo_fim = data_valida(periodo_fim)
-    limite_gozo = data_valida(limite_gozo)
-
-    if not periodo_fim:
+    try:
+        periodo_fim = pd.to_datetime(periodo_fim).date()
+    except Exception:
         return "Indefinido", "Indefinido"
 
-    if not limite_gozo:
+    try:
+        limite_gozo = pd.to_datetime(limite_gozo).date()
+    except Exception:
         limite_gozo = periodo_fim + timedelta(days=335)
 
-    if hoje >= periodo_fim:
-        situacao_ferias = "Férias Vencidas"
-    else:
-        situacao_ferias = "Férias Não Vencidas"
+    situacao_ferias = "Férias Vencidas" if hoje >= periodo_fim else "Férias Não Vencidas"
 
     if hoje > limite_gozo:
         situacao_prazo = "Férias em Dobro"
@@ -85,62 +76,23 @@ def calcular_status(periodo_fim, limite_gozo):
     return situacao_ferias, situacao_prazo
 
 
-def normalizar_dataframe(df):
-    if df.empty:
-        return pd.DataFrame(columns=COLUNAS)
+def calcular_dias(data_inicio, data_fim):
+    if pd.isna(data_inicio) or pd.isna(data_fim):
+        return ""
 
-    for col in COLUNAS:
-        if col not in df.columns:
-            df[col] = ""
-
-    df = df[COLUNAS].copy()
-
-    for col in [
-        "Periodo_Aquisitivo_Inicio",
-        "Periodo_Aquisitivo_Fim",
-        "Data_Inicio_Gozo",
-        "Data_Fim_Gozo",
-        "Limite_Gozo",
-    ]:
-        df[col] = pd.to_datetime(df[col], errors="coerce").dt.date.astype("string").fillna("")
-
-    df["Dias_Gozo"] = pd.to_numeric(df["Dias_Gozo"], errors="coerce").fillna("").astype(str)
-    df["Dias_Gozo"] = df["Dias_Gozo"].str.replace(".0", "", regex=False)
-
-    return df
+    try:
+        return (pd.to_datetime(data_fim).date() - pd.to_datetime(data_inicio).date()).days + 1
+    except Exception:
+        return ""
 
 
-def aplicar_estilo_status(row):
-    prazo = row.get("Situacao_Prazo", "")
-    ferias = row.get("Situacao_Ferias", "")
+def render_ferias(df_ferias):
+    st.subheader("Resumo de Férias")
 
-    if prazo == "Férias em Dobro":
-        return ["background-color: #fee2e2; color: #991b1b; font-weight: 600"] * len(row)
-
-    if prazo == "Atenção":
-        return ["background-color: #fef3c7; color: #92400e; font-weight: 600"] * len(row)
-
-    if ferias == "Férias Vencidas":
-        return ["background-color: #fff7ed; color: #9a3412"] * len(row)
-
-    return [""] * len(row)
-
-
-def salvar_df(df):
-    df_salvar = df.copy()
-    salvar_github(df_salvar, ARQ_FERIAS, TOKEN, REPO)
-
-
-def render():
-    st.title("Controle de Férias")
-
-    df = carregar_github(ARQ_FERIAS, TOKEN, REPO)
-    df = normalizar_dataframe(df)
-
-    total = len(df)
-    vencidas = len(df[df["Situacao_Ferias"] == "Férias Vencidas"])
-    dobro = len(df[df["Situacao_Prazo"] == "Férias em Dobro"])
-    atencao = len(df[df["Situacao_Prazo"] == "Atenção"])
+    total = len(df_ferias)
+    vencidas = len(df_ferias[df_ferias["Situacao_Ferias"] == "Férias Vencidas"])
+    dobro = len(df_ferias[df_ferias["Situacao_Prazo"] == "Férias em Dobro"])
+    atencao = len(df_ferias[df_ferias["Situacao_Prazo"] == "Atenção"])
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Funcionários", total)
@@ -150,333 +102,232 @@ def render():
 
     st.divider()
 
-    st.subheader("Lista de Controle")
-
-    if df.empty:
-        st.warning("Nenhum registro de férias cadastrado ainda.")
-    else:
-        col_filtro1, col_filtro2, col_filtro3 = st.columns(3)
-
-        with col_filtro1:
-            filtro_unidade = st.selectbox(
-                "Filtrar unidade",
-                ["Todas"] + sorted(df["Unidade"].dropna().astype(str).unique().tolist()),
-                key="ferias_filtro_unidade",
-            )
-
-        with col_filtro2:
-            filtro_prazo = st.selectbox(
-                "Filtrar prazo",
-                ["Todos"] + sorted(df["Situacao_Prazo"].dropna().astype(str).unique().tolist()),
-                key="ferias_filtro_prazo",
-            )
-
-        with col_filtro3:
-            busca = st.text_input("Buscar funcionário", key="ferias_busca")
-
-        df_visual = df.copy()
-
-        if filtro_unidade != "Todas":
-            df_visual = df_visual[df_visual["Unidade"] == filtro_unidade]
-
-        if filtro_prazo != "Todos":
-            df_visual = df_visual[df_visual["Situacao_Prazo"] == filtro_prazo]
-
-        if busca.strip():
-            df_visual = df_visual[
-                df_visual["Funcionario"].astype(str).str.contains(busca.strip(), case=False, na=False)
-            ]
-
-        st.dataframe(
-            df_visual.style.apply(aplicar_estilo_status, axis=1),
-            use_container_width=True,
-            hide_index=True,
-        )
+    st.subheader("Lista de Controle de Férias")
+    st.dataframe(df_ferias, use_container_width=True)
 
     st.divider()
 
-    aba1, aba2 = st.tabs(["Adicionar novo registro", "Editar / Excluir"])
+    aba_add, aba_edit = st.tabs(["Adicionar novo registro", "Editar / Excluir"])
 
-    with aba1:
+    with aba_add:
         st.subheader("Novo registro")
 
-        matricula_novo = st.text_input("Matrícula", key="novo_matricula")
-        funcionario_novo = st.text_input("Funcionário", key="novo_funcionario")
-        unidade_novo = st.text_input(
-            "Unidade / Local",
-            placeholder="Ex: OFICINA - CUBATÃO/SP",
-            key="novo_unidade",
-        )
-        departamento_novo = st.text_input(
-            "Departamento",
-            value="Operacional",
-            key="novo_departamento",
-        )
+        matricula = st.text_input("Matrícula", key="ferias_novo_matricula")
+        funcionario = st.text_input("Funcionário", key="ferias_novo_funcionario")
+        unidade = st.text_input("Unidade / Local", key="ferias_novo_unidade")
+        departamento = st.text_input("Departamento", value="Operacional", key="ferias_novo_departamento")
 
-        col_aq1, col_aq2 = st.columns(2)
+        col1, col2 = st.columns(2)
+        with col1:
+            periodo_inicio = st.date_input("Início do período aquisitivo", value=date.today(), key="ferias_novo_inicio")
+        with col2:
+            periodo_fim = st.date_input("Fim do período aquisitivo", value=date.today() + timedelta(days=365), key="ferias_novo_fim")
 
-        with col_aq1:
-            periodo_inicio_novo = st.date_input(
-                "Início do período aquisitivo",
-                value=date.today(),
-                key="novo_periodo_inicio",
-            )
+        col3, col4 = st.columns(2)
+        with col3:
+            data_inicio_gozo = st.date_input("Início do gozo", value=None, key="ferias_novo_inicio_gozo")
+        with col4:
+            data_fim_gozo = st.date_input("Fim do gozo", value=None, key="ferias_novo_fim_gozo")
 
-        with col_aq2:
-            periodo_fim_novo = st.date_input(
-                "Fim do período aquisitivo",
-                value=date.today() + timedelta(days=365),
-                key="novo_periodo_fim",
-            )
+        dias_gozo = calcular_dias(data_inicio_gozo, data_fim_gozo)
 
-        limite_gozo_novo = st.date_input(
-            "Limite de gozo",
-            value=periodo_fim_novo + timedelta(days=335),
-            key="novo_limite_gozo",
-        )
+        limite_gozo = st.date_input("Limite de gozo", value=periodo_fim + timedelta(days=335), key="ferias_novo_limite")
+        periodo_gozo = st.text_input("Período de gozo", key="ferias_novo_periodo_gozo")
 
-        informar_gozo_novo = st.checkbox(
-            "Informar período de gozo agora",
-            value=False,
-            key="novo_informar_gozo",
-        )
-
-        data_inicio_gozo_novo = ""
-        data_fim_gozo_novo = ""
-        dias_gozo_novo = ""
-
-        if informar_gozo_novo:
-            col_gozo1, col_gozo2, col_gozo3 = st.columns(3)
-
-            with col_gozo1:
-                data_inicio_gozo_novo = st.date_input(
-                    "Início do gozo",
-                    value=date.today(),
-                    key="novo_data_inicio_gozo",
-                )
-
-            with col_gozo2:
-                data_fim_gozo_novo = st.date_input(
-                    "Fim do gozo",
-                    value=date.today() + timedelta(days=29),
-                    key="novo_data_fim_gozo",
-                )
-
-            dias_gozo_novo = calcular_dias_gozo(data_inicio_gozo_novo, data_fim_gozo_novo)
-
-            with col_gozo3:
-                st.metric("Dias de gozo", dias_gozo_novo if dias_gozo_novo else "-")
-
-        periodo_gozo_manual_novo = st.text_input(
-            "Descrição do período de gozo",
-            placeholder="Ex: Previsão 13/07 a 11/08",
-            key="novo_periodo_gozo",
-        )
-
-        observacoes_novo = st.text_area("Observações", key="novo_observacoes")
-
-        if st.button("Adicionar registro", use_container_width=True, key="btn_adicionar_ferias"):
-            if not funcionario_novo.strip():
+        if st.button("Adicionar férias", use_container_width=True, key="btn_add_ferias"):
+            if not funcionario.strip():
                 st.error("Informe o nome do funcionário.")
             else:
-                situacao_ferias, situacao_prazo = calcular_status(
-                    periodo_fim_novo,
-                    limite_gozo_novo,
-                )
-
-                periodo_gozo_novo = montar_periodo_gozo(
-                    data_inicio_gozo_novo,
-                    data_fim_gozo_novo,
-                    periodo_gozo_manual_novo,
-                )
+                situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
                 novo = {
-                    "Matricula": matricula_novo,
-                    "Funcionario": funcionario_novo,
-                    "Unidade": unidade_novo,
-                    "Departamento": departamento_novo,
-                    "Periodo_Aquisitivo_Inicio": periodo_inicio_novo,
-                    "Periodo_Aquisitivo_Fim": periodo_fim_novo,
-                    "Data_Inicio_Gozo": data_inicio_gozo_novo,
-                    "Data_Fim_Gozo": data_fim_gozo_novo,
-                    "Dias_Gozo": dias_gozo_novo,
-                    "Limite_Gozo": limite_gozo_novo,
-                    "Periodo_Gozo": periodo_gozo_novo,
+                    "Matricula": matricula,
+                    "Funcionario": funcionario,
+                    "Unidade": unidade,
+                    "Departamento": departamento,
+                    "Periodo_Aquisitivo_Inicio": periodo_inicio,
+                    "Periodo_Aquisitivo_Fim": periodo_fim,
+                    "Data_Inicio_Gozo": data_inicio_gozo or "",
+                    "Data_Fim_Gozo": data_fim_gozo or "",
+                    "Dias_Gozo": dias_gozo,
+                    "Limite_Gozo": limite_gozo,
+                    "Periodo_Gozo": periodo_gozo,
                     "Situacao_Ferias": situacao_ferias,
                     "Situacao_Prazo": situacao_prazo,
-                    "Observacoes": observacoes_novo,
                 }
 
-                df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
-                salvar_df(df)
-
-                st.success("Registro adicionado com sucesso!")
+                df_ferias = pd.concat([df_ferias, pd.DataFrame([novo])], ignore_index=True)
+                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                st.success("Registro de férias adicionado.")
                 st.rerun()
 
-    with aba2:
+    with aba_edit:
         st.subheader("Editar registro existente")
 
-        if df.empty:
-            st.info("Nenhum registro disponível para edição.")
+        if df_ferias.empty:
+            st.info("Nenhum registro disponível.")
         else:
-            opcoes = df.index.astype(str) + " - " + df["Funcionario"].astype(str)
-            escolha = st.selectbox(
-                "Selecionar funcionário",
-                opcoes,
-                key="edit_selecionar_funcionario",
-            )
-
+            opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
+            escolha = st.selectbox("Selecionar funcionário", opcoes, key="ferias_edit_select")
             idx = int(escolha.split(" - ")[0])
-            linha = df.loc[idx]
+            linha = df_ferias.loc[idx]
 
-            matricula_edit = st.text_input(
-                "Matrícula",
-                value=str(linha["Matricula"]),
-                key=f"edit_matricula_{idx}",
-            )
+            matricula = st.text_input("Matrícula", value=str(linha["Matricula"]), key=f"ferias_edit_matricula_{idx}")
+            funcionario = st.text_input("Funcionário", value=str(linha["Funcionario"]), key=f"ferias_edit_funcionario_{idx}")
+            unidade = st.text_input("Unidade / Local", value=str(linha["Unidade"]), key=f"ferias_edit_unidade_{idx}")
+            departamento = st.text_input("Departamento", value=str(linha["Departamento"]), key=f"ferias_edit_departamento_{idx}")
 
-            funcionario_edit = st.text_input(
-                "Funcionário",
-                value=str(linha["Funcionario"]),
-                key=f"edit_funcionario_{idx}",
-            )
+            periodo_inicio_val = pd.to_datetime(linha["Periodo_Aquisitivo_Inicio"], errors="coerce")
+            periodo_fim_val = pd.to_datetime(linha["Periodo_Aquisitivo_Fim"], errors="coerce")
+            inicio_gozo_val = pd.to_datetime(linha["Data_Inicio_Gozo"], errors="coerce")
+            fim_gozo_val = pd.to_datetime(linha["Data_Fim_Gozo"], errors="coerce")
+            limite_val = pd.to_datetime(linha["Limite_Gozo"], errors="coerce")
 
-            unidade_edit = st.text_input(
-                "Unidade / Local",
-                value=str(linha["Unidade"]),
-                key=f"edit_unidade_{idx}",
-            )
+            periodo_inicio_val = periodo_inicio_val.date() if not pd.isna(periodo_inicio_val) else date.today()
+            periodo_fim_val = periodo_fim_val.date() if not pd.isna(periodo_fim_val) else date.today() + timedelta(days=365)
+            inicio_gozo_val = inicio_gozo_val.date() if not pd.isna(inicio_gozo_val) else None
+            fim_gozo_val = fim_gozo_val.date() if not pd.isna(fim_gozo_val) else None
+            limite_val = limite_val.date() if not pd.isna(limite_val) else periodo_fim_val + timedelta(days=335)
 
-            departamento_edit = st.text_input(
-                "Departamento",
-                value=str(linha["Departamento"]),
-                key=f"edit_departamento_{idx}",
-            )
+            col1, col2 = st.columns(2)
+            with col1:
+                periodo_inicio = st.date_input("Início do período aquisitivo", value=periodo_inicio_val, key=f"ferias_edit_inicio_{idx}")
+            with col2:
+                periodo_fim = st.date_input("Fim do período aquisitivo", value=periodo_fim_val, key=f"ferias_edit_fim_{idx}")
 
-            data_inicio = data_valida(linha["Periodo_Aquisitivo_Inicio"], date.today())
-            data_fim = data_valida(linha["Periodo_Aquisitivo_Fim"], date.today() + timedelta(days=365))
-            data_limite = data_valida(linha["Limite_Gozo"], data_fim + timedelta(days=335))
+            col3, col4 = st.columns(2)
+            with col3:
+                data_inicio_gozo = st.date_input("Início do gozo", value=inicio_gozo_val, key=f"ferias_edit_inicio_gozo_{idx}")
+            with col4:
+                data_fim_gozo = st.date_input("Fim do gozo", value=fim_gozo_val, key=f"ferias_edit_fim_gozo_{idx}")
 
-            col_ed1, col_ed2 = st.columns(2)
+            dias_gozo = calcular_dias(data_inicio_gozo, data_fim_gozo)
 
-            with col_ed1:
-                periodo_inicio_edit = st.date_input(
-                    "Início do período aquisitivo",
-                    value=data_inicio,
-                    key=f"edit_inicio_{idx}",
-                )
-
-            with col_ed2:
-                periodo_fim_edit = st.date_input(
-                    "Fim do período aquisitivo",
-                    value=data_fim,
-                    key=f"edit_fim_{idx}",
-                )
-
-            limite_gozo_edit = st.date_input(
-                "Limite de gozo",
-                value=data_limite,
-                key=f"edit_limite_{idx}",
-            )
-
-            data_inicio_gozo_atual = data_valida(linha["Data_Inicio_Gozo"])
-            data_fim_gozo_atual = data_valida(linha["Data_Fim_Gozo"])
-
-            informar_gozo_edit = st.checkbox(
-                "Informar período de gozo",
-                value=bool(data_inicio_gozo_atual and data_fim_gozo_atual),
-                key=f"edit_informar_gozo_{idx}",
-            )
-
-            data_inicio_gozo_edit = ""
-            data_fim_gozo_edit = ""
-            dias_gozo_edit = ""
-
-            if informar_gozo_edit:
-                col_gozo_ed1, col_gozo_ed2, col_gozo_ed3 = st.columns(3)
-
-                with col_gozo_ed1:
-                    data_inicio_gozo_edit = st.date_input(
-                        "Início do gozo",
-                        value=data_inicio_gozo_atual or date.today(),
-                        key=f"edit_data_inicio_gozo_{idx}",
-                    )
-
-                with col_gozo_ed2:
-                    data_fim_gozo_edit = st.date_input(
-                        "Fim do gozo",
-                        value=data_fim_gozo_atual or date.today() + timedelta(days=29),
-                        key=f"edit_data_fim_gozo_{idx}",
-                    )
-
-                dias_gozo_edit = calcular_dias_gozo(data_inicio_gozo_edit, data_fim_gozo_edit)
-
-                with col_gozo_ed3:
-                    st.metric("Dias de gozo", dias_gozo_edit if dias_gozo_edit else "-")
-
-            periodo_gozo_edit = st.text_input(
-                "Descrição do período de gozo",
-                value=str(linha["Periodo_Gozo"]) if str(linha["Periodo_Gozo"]) != "nan" else "",
-                key=f"edit_periodo_gozo_{idx}",
-            )
-
-            observacoes_edit = st.text_area(
-                "Observações",
-                value=str(linha["Observacoes"]) if str(linha["Observacoes"]) != "nan" else "",
-                key=f"edit_observacoes_{idx}",
-            )
+            limite_gozo = st.date_input("Limite de gozo", value=limite_val, key=f"ferias_edit_limite_{idx}")
+            periodo_gozo = st.text_input("Período de gozo", value=str(linha["Periodo_Gozo"]), key=f"ferias_edit_periodo_gozo_{idx}")
 
             col_salvar, col_excluir = st.columns(2)
 
-            if col_salvar.button(
-                "Salvar alterações",
-                use_container_width=True,
-                key=f"btn_salvar_ferias_{idx}",
-            ):
-                if not funcionario_edit.strip():
-                    st.error("Informe o nome do funcionário.")
-                else:
-                    situacao_ferias, situacao_prazo = calcular_status(
-                        periodo_fim_edit,
-                        limite_gozo_edit,
-                    )
+            if col_salvar.button("Salvar alterações", use_container_width=True, key=f"btn_salvar_ferias_{idx}"):
+                situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
-                    periodo_gozo_final = montar_periodo_gozo(
-                        data_inicio_gozo_edit,
-                        data_fim_gozo_edit,
-                        periodo_gozo_edit,
-                    )
+                df_ferias.loc[idx, "Matricula"] = matricula
+                df_ferias.loc[idx, "Funcionario"] = funcionario
+                df_ferias.loc[idx, "Unidade"] = unidade
+                df_ferias.loc[idx, "Departamento"] = departamento
+                df_ferias.loc[idx, "Periodo_Aquisitivo_Inicio"] = periodo_inicio
+                df_ferias.loc[idx, "Periodo_Aquisitivo_Fim"] = periodo_fim
+                df_ferias.loc[idx, "Data_Inicio_Gozo"] = data_inicio_gozo or ""
+                df_ferias.loc[idx, "Data_Fim_Gozo"] = data_fim_gozo or ""
+                df_ferias.loc[idx, "Dias_Gozo"] = dias_gozo
+                df_ferias.loc[idx, "Limite_Gozo"] = limite_gozo
+                df_ferias.loc[idx, "Periodo_Gozo"] = periodo_gozo
+                df_ferias.loc[idx, "Situacao_Ferias"] = situacao_ferias
+                df_ferias.loc[idx, "Situacao_Prazo"] = situacao_prazo
 
-                    df.loc[idx, "Matricula"] = matricula_edit
-                    df.loc[idx, "Funcionario"] = funcionario_edit
-                    df.loc[idx, "Unidade"] = unidade_edit
-                    df.loc[idx, "Departamento"] = departamento_edit
-                    df.loc[idx, "Periodo_Aquisitivo_Inicio"] = periodo_inicio_edit
-                    df.loc[idx, "Periodo_Aquisitivo_Fim"] = periodo_fim_edit
-                    df.loc[idx, "Data_Inicio_Gozo"] = data_inicio_gozo_edit
-                    df.loc[idx, "Data_Fim_Gozo"] = data_fim_gozo_edit
-                    df.loc[idx, "Dias_Gozo"] = dias_gozo_edit
-                    df.loc[idx, "Limite_Gozo"] = limite_gozo_edit
-                    df.loc[idx, "Periodo_Gozo"] = periodo_gozo_final
-                    df.loc[idx, "Situacao_Ferias"] = situacao_ferias
-                    df.loc[idx, "Situacao_Prazo"] = situacao_prazo
-                    df.loc[idx, "Observacoes"] = observacoes_edit
+                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                st.success("Registro atualizado.")
+                st.rerun()
 
-                    salvar_df(df)
-
-                    st.success("Registro atualizado com sucesso!")
-                    st.rerun()
-
-            if col_excluir.button(
-                "Excluir registro",
-                use_container_width=True,
-                key=f"btn_excluir_ferias_{idx}",
-            ):
-                df = df.drop(idx).reset_index(drop=True)
-                salvar_df(df)
-
+            if col_excluir.button("Excluir registro", use_container_width=True, key=f"btn_excluir_ferias_{idx}"):
+                df_ferias = df_ferias.drop(idx).reset_index(drop=True)
+                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
                 st.warning("Registro excluído.")
                 st.rerun()
+
+
+def render_folgas(df_ferias):
+    st.subheader("Controle de Folgas")
+
+    df_folgas = carregar_github(ARQ_FOLGAS, TOKEN, REPO)
+    df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
+
+    if df_ferias.empty:
+        st.warning("Cadastre funcionários em férias primeiro para usar o controle de folgas.")
+        return
+
+    st.markdown("### Nova folga")
+
+    opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
+    escolha = st.selectbox("Selecionar funcionário", opcoes, key="folga_funcionario_select")
+
+    idx = int(escolha.split(" - ")[0])
+    funcionario_base = df_ferias.loc[idx]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.text_input("Matrícula", value=str(funcionario_base["Matricula"]), disabled=True, key="folga_matricula_view")
+
+    with col2:
+        st.text_input("Unidade", value=str(funcionario_base["Unidade"]), disabled=True, key="folga_unidade_view")
+
+    with col3:
+        st.text_input("Departamento", value=str(funcionario_base["Departamento"]), disabled=True, key="folga_departamento_view")
+
+    data_saida = st.date_input("Data de saída para folga", value=date.today(), key="folga_data_saida")
+    dias_folga = st.number_input("Dias de folga", min_value=1, max_value=30, value=7, step=1, key="folga_dias")
+    data_retorno = data_saida + timedelta(days=int(dias_folga))
+
+    st.info(f"Data de retorno calculada: **{data_retorno.strftime('%d/%m/%Y')}**")
+
+    observacoes = st.text_area("Observações", key="folga_observacoes")
+
+    if st.button("Registrar folga", use_container_width=True, key="btn_registrar_folga"):
+        novo = {
+            "Matricula": funcionario_base["Matricula"],
+            "Funcionario": funcionario_base["Funcionario"],
+            "Unidade": funcionario_base["Unidade"],
+            "Departamento": funcionario_base["Departamento"],
+            "Data_Saida": data_saida,
+            "Data_Retorno": data_retorno,
+            "Dias_Folga": int(dias_folga),
+            "Observacoes": observacoes,
+            "Criado_Por": st.session_state.get("usuario", ""),
+            "Data_Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+        df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
+        salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+
+        st.success("Folga registrada com sucesso.")
+        st.rerun()
+
+    st.divider()
+
+    st.markdown("### Histórico de folgas")
+
+    filtro = st.selectbox(
+        "Filtrar histórico",
+        ["Todos"] + sorted(df_folgas["Funcionario"].dropna().astype(str).unique().tolist()),
+        key="folga_filtro_historico",
+    )
+
+    df_exibir = df_folgas.copy()
+
+    if filtro != "Todos":
+        df_exibir = df_exibir[df_exibir["Funcionario"] == filtro]
+
+    if df_exibir.empty:
+        st.info("Nenhuma folga registrada ainda.")
+    else:
+        df_exibir = df_exibir.sort_values(by="Data_Saida", ascending=False)
+        st.dataframe(df_exibir, use_container_width=True)
+
+
+def render():
+    st.title("Férias e Folgas")
+
+    df_ferias = carregar_github(ARQ_FERIAS, TOKEN, REPO)
+    df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
+
+    aba_ferias, aba_folgas = st.tabs(["Controle de Férias", "Controle de Folgas"])
+
+    with aba_ferias:
+        render_ferias(df_ferias)
+
+    with aba_folgas:
+        render_folgas(df_ferias)
 
     st.divider()
 
