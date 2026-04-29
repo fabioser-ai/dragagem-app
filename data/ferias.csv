@@ -1,2 +1,11 @@
-Funcionario,Data_Inicio,Data_Fim,Tipo
-Fabio Serafini,2026-04-20,2026-04-21,Folga
+Matricula,Funcionario,Unidade,Departamento,Periodo_Aquisitivo_Inicio,Periodo_Aquisitivo_Fim,Data_Inicio_Gozo,Data_Fim_Gozo,Dias_Gozo,Limite_Gozo,Situacao_Ferias,Situacao_Prazo,Observacoes
+001,Fabio,Oficina Cubatão,Operacional,2024-01-01,2024-12-31,2025-01-15,2025-02-14,30,2025-12-01,Férias Não Vencidas,Dentro do Prazo,
+002,Karina,Administrativo,Financeiro,2023-06-01,2024-05-31,2024-07-01,2024-07-20,20,2025-05-01,Férias Vencidas,Atenção,
+003,João,Oficina Cubatão,Operacional,2023-03-01,2024-02-28,2024-04-10,2024-05-09,30,2025-02-01,Férias Vencidas,Dentro do Prazo,
+004,Carlos,Oficina Cubatão,Operacional,2022-11-01,2023-10-31,2024-01-10,2024-02-08,30,2024-10-01,Férias Vencidas,Férias em Dobro,
+005,Marcos,Administrativo,Compras,2024-02-01,2025-01-31,,,0,2025-12-01,Férias Não Vencidas,Dentro do Prazo,
+006,Paulo,Oficina Cubatão,Operacional,2023-08-01,2024-07-31,2024-09-01,2024-09-20,20,2025-07-01,Férias Não Vencidas,Dentro do Prazo,
+007,Rafael,Oficina Cubatão,Operacional,2022-05-01,2023-04-30,2023-06-01,2023-06-30,30,2024-04-01,Férias Vencidas,Férias em Dobro,
+008,Bruno,Administrativo,TI,2024-01-01,2024-12-31,,,0,2025-12-01,Férias Não Vencidas,Dentro do Prazo,
+009,Lucas,Oficina Cubatão,Operacional,2023-10-01,2024-09-30,2024-11-01,2024-11-20,20,2025-09-01,Férias Não Vencidas,Dentro do Prazo,
+010,Pedro,Oficina Cubatão,Operacional,2022-07-01,2023-06-30,2023-08-01,2023-08-30,30,2024-06-01,Férias Vencidas,Férias em Dobro,
