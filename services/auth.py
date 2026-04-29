@@ -28,22 +28,31 @@ def inicializar_auth():
         st.session_state.ultimo_acesso = time.time()
 
 
+def limpar_sessao():
+    chaves_para_limpar = [
+        "autenticado",
+        "usuario",
+        "perfil",
+        "tela",
+        "ultimo_acesso",
+    ]
+
+    for chave in chaves_para_limpar:
+        if chave in st.session_state:
+            del st.session_state[chave]
+
+
 def logout():
     usuario = st.session_state.get("usuario")
     perfil = st.session_state.get("perfil")
 
-    if usuario and perfil:
-        try:
+    try:
+        if usuario and perfil:
             registrar_log(usuario, perfil, "logout")
-        except Exception:
-            pass
+    except Exception:
+        pass
 
-    st.session_state.autenticado = False
-    st.session_state.usuario = None
-    st.session_state.perfil = None
-    st.session_state.tela = "menu"
-    st.session_state.ultimo_acesso = time.time()
-
+    limpar_sessao()
     st.rerun()
 
 
@@ -66,20 +75,14 @@ def verificar_login():
             usuario = st.session_state.get("usuario")
             perfil = st.session_state.get("perfil")
 
-            if usuario and perfil:
-                try:
+            try:
+                if usuario and perfil:
                     registrar_log(usuario, perfil, "sessao_expirada")
-                except Exception:
-                    pass
+            except Exception:
+                pass
 
             st.warning("Sessão expirada. Faça login novamente.")
-
-            st.session_state.autenticado = False
-            st.session_state.usuario = None
-            st.session_state.perfil = None
-            st.session_state.tela = "menu"
-            st.session_state.ultimo_acesso = time.time()
-
+            limpar_sessao()
             st.rerun()
 
         return True
