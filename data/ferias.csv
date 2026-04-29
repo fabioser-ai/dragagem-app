@@ -1,30 +1,29 @@
-Matricula,Funcionario,Unidade,Departamento,Periodo_Aquisitivo_Inicio,Periodo_Aquisitivo_Fim,Data_Inicio_Gozo,Data_Fim_Gozo,Dias_Gozo,Limite_Gozo,Periodo_Gozo,Situacao_Ferias,Situacao_Prazo
-2348,Jairo Dantas dos Santos,OFICINA - CUBATÃO/SP,Operacional,2024-08-06,2025-08-05,,,,2026-07-07,,Férias Vencidas,Dentro do Prazo
-2182,Junival Silva Santos,OFICINA - CUBATÃO/SP,Operacional,2025-03-29,2026-03-28,,,,2027-02-27,,Férias Vencidas,Dentro do Prazo
-2338,Leonardo da Silva Freitas,OFICINA - CUBATÃO/SP,Operacional,2025-02-27,2026-02-26,,,,2027-01-28,,Férias Vencidas,Dentro do Prazo
-1209,Oseias Piovanelli de Souza,OFICINA - CUBATÃO/SP,Operacional,2024-11-11,2025-11-10,,,,2026-10-12,,Férias Vencidas,Dentro do Prazo
-2373,Alfred Manuel,PMC - CURITIBA/PR,Operacional,2025-11-19,2026-11-18,,,,,,Férias Não Vencidas,Dentro do Prazo
-2381,Antonio Luiz Soares,PMC - CURITIBA/PR,Operacional,2025-04-01,2026-03-31,2026-05-18,2026-06-16,30,,18/05 A 16/06/26,Férias Vencidas,Dentro do Prazo
-2228,Cicero Sousa de Santana,PMC - CURITIBA/PR,Operacional,2025-03-19,2026-03-18,2026-07-13,2026-08-11,30,,Previsão 13/07 a 11/08,Férias Vencidas,Férias em Dobro
-2231,Danilo Pablo,PMC - CURITIBA/PR,Operacional,2025-03-21,2026-03-20,,,,2027-02-19,,Férias Vencidas,Dentro do Prazo
-2388,Enmanuel de Jesus,PMC - CURITIBA/PR,Operacional,2025-05-26,2026-05-25,,,,,,Férias Não Vencidas,Dentro do Prazo
-2382,José Francisco de Santana,PMC - CURITIBA/PR,Operacional,2025-04-08,2026-04-07,,,,2027-03-09,,Férias Vencidas,Dentro do Prazo
-2357,Marcos S. Costa,PMC - CURITIBA/PR,Operacional,2025-08-12,2026-08-11,,,,,,Férias Não Vencidas,Dentro do Prazo
-2293,Paulo Araujo Marins,PMC - CURITIBA/PR,Operacional,2025-02-15,2026-02-14,,,,2027-01-16,,Férias Vencidas,Dentro do Prazo
-2341,Pedro Elias dos Santos,PMC - CURITIBA/PR,Operacional,2026-03-04,2027-03-03,,,,,,Férias Não Vencidas,Dentro do Prazo
-2332,Sebastião Machado,PMC - CURITIBA/PR,Operacional,2024-10-16,2025-10-15,2026-08-17,2026-09-15,30,2026-09-16,Previsão 17/08 a 15/09,Férias Vencidas,Dentro do Prazo
-2358,Uildes Marcelino dos Santos,PMC - CURITIBA/PR,Operacional,2025-08-08,2026-08-07,,,,,,Férias Não Vencidas,Dentro do Prazo
-1678,Uilson Francisco,PMC - CURITIBA/PR,Operacional,2024-10-24,2025-10-23,,,,2026-09-24,,Férias Vencidas,Dentro do Prazo
-2340,Valter Vidal,PMC - CURITIBA/PR,Operacional,2026-03-04,2027-03-03,,,,,,Férias Vencidas,Dentro do Prazo
-2339,Yan Rodolfo,PMC - CURITIBA/PR,Operacional,2025-03-04,2026-03-03,,,,,,Férias Vencidas,Dentro do Prazo
-2067,Aguinaldo da Silva Monteiro,ADMINISTRATIVO - SANTOS/SP,Técnico,2025-01-15,2026-01-14,,,,2026-12-16,,Férias Vencidas,Dentro do Prazo
-2175,Fabio Pereira Serafini,ADMINISTRATIVO - SANTOS/SP,Técnico,2024-10-07,2025-10-06,,,,2026-09-07,,Férias Vencidas,Dentro do Prazo
-1997,Karina Alves dos Santos,ADMINISTRATIVO - SANTOS/SP,Administrativo,2025-01-02,2026-01-01,,,,2026-12-03,,Férias Vencidas,Dentro do Prazo
-2090,Thalita O. de Almeida,ADMINISTRATIVO - SANTOS/SP,Administrativo,2025-06-05,2026-06-04,,,,2027-05-06,,Férias Não Vencidas,Dentro do Prazo
-2317,Gildasio Neres Nacimento,CASAN - CHAPECÓ/SC,Operacional,2025-06-01,2026-05-31,,,,,,Férias Não Vencidas,Dentro do Prazo
-2366,Jerenmid Martinez,CASAN - CHAPECÓ/SC,Operacional,2025-08-22,2026-08-21,,,,,,Férias Não Vencidas,Dentro do Prazo
-2346,Micheli Galetti,CASAN - CHAPECÓ/SC,Operacional,2025-08-05,2026-08-04,,,,,,Férias Não Vencidas,Dentro do Prazo
-2395,Rogerio da Silva Machado,CASAN - CHAPECÓ/SC,Operacional,2026-04-07,2027-04-06,,,,,,Férias Não Vencidas,
-2329,Rudinei Brunetto,CASAN - CHAPECÓ/SC,Operacional,2024-08-16,2025-08-15,,,,2026-07-17,,Férias Vencidas,Dentro do Prazo
-2393,Gedeon Kleison Isidoro,MUNICÍPIO CURITIBA,Operacional,2026-03-05,2027-03-04,,,,,,Férias Não Vencidas,Dentro do Prazo
-2394,Vadir Ramalho Siqueira,MUNICÍPIO CURITIBA,Operacional,2026-03-05,2027-03-04,,,,,,Férias Não Vencidas,Dentro do Prazo
+Matricula,Funcionario,Unidade,Departamento,Periodo_Aquisitivo_Inicio,Periodo_Aquisitivo_Fim,Data_Inicio_Gozo,Data_Fim_Gozo,Dias_Gozo,Limite_Gozo,Periodo_Gozo,Situacao_Ferias,Situacao_Prazo,Observacoes
+2348,Jairo Dantas dos Santos,OFICINA - CUBATÃO/SP,Operacional,2024-08-06,2025-08-05,,,,2026-07-07,,Férias Vencidas,Dentro do Prazo,
+2182,Junival Silva Santos,OFICINA - CUBATÃO/SP,Operacional,2025-03-29,2026-03-28,,,,2027-02-27,,Férias Vencidas,Dentro do Prazo,
+2338,Leonardo da Silva Freitas,OFICINA - CUBATÃO/SP,Operacional,2025-02-27,2026-02-26,,,,2027-01-28,,Férias Vencidas,Dentro do Prazo,
+1209,Oseias Piovanelli de Souza,OFICINA - CUBATÃO/SP,Operacional,2024-11-11,2025-11-10,,,,2026-10-12,,Férias Vencidas,Dentro do Prazo,
+2373,Alfred Manuel,PMC - CURITIBA/PR,Operacional,2025-11-19,2026-11-18,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2381,Antonio Luiz Soares,PMC - CURITIBA/PR,Operacional,2025-04-01,2026-03-31,2026-05-18,2026-06-16,30,,18/05 A 16/06/26,Férias Vencidas,Dentro do Prazo,
+2231,Danilo Pablo,PMC - CURITIBA/PR,Operacional,2025-03-21,2026-03-20,,,,2027-02-19,,Férias Vencidas,Dentro do Prazo,
+2388,Enmanuel de Jesus,PMC - CURITIBA/PR,Operacional,2025-05-26,2026-05-25,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2382,José Francisco de Santana,PMC - CURITIBA/PR,Operacional,2025-04-08,2026-04-07,,,,2027-03-09,,Férias Vencidas,Dentro do Prazo,
+2357,Marcos S. Costa,PMC - CURITIBA/PR,Operacional,2025-08-12,2026-08-11,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2293,Paulo Araujo Marins,PMC - CURITIBA/PR,Operacional,2025-02-15,2026-02-14,,,,2027-01-16,,Férias Vencidas,Dentro do Prazo,
+2341,Pedro Elias dos Santos,PMC - CURITIBA/PR,Operacional,2026-03-04,2027-03-03,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2332,Sebastião Machado,PMC - CURITIBA/PR,Operacional,2024-10-16,2025-10-15,2026-08-17,2026-09-15,30,2026-09-16,Previsão 17/08 a 15/09,Férias Vencidas,Dentro do Prazo,
+2358,Uildes Marcelino dos Santos,PMC - CURITIBA/PR,Operacional,2025-08-08,2026-08-07,,,,,,Férias Não Vencidas,Dentro do Prazo,
+1678,Uilson Francisco,PMC - CURITIBA/PR,Operacional,2024-10-24,2025-10-23,,,,2026-09-24,,Férias Vencidas,Dentro do Prazo,
+2340,Valter Vidal,PMC - CURITIBA/PR,Operacional,2026-03-04,2027-03-03,,,,,,Férias Vencidas,Dentro do Prazo,
+2339,Yan Rodolfo,PMC - CURITIBA/PR,Operacional,2025-03-04,2026-03-03,,,,,,Férias Vencidas,Dentro do Prazo,
+2067,Aguinaldo da Silva Monteiro,ADMINISTRATIVO - SANTOS/SP,Técnico,2025-01-15,2026-01-14,,,,2026-12-16,,Férias Vencidas,Dentro do Prazo,
+2175,Fabio Pereira Serafini,ADMINISTRATIVO - SANTOS/SP,Técnico,2024-10-07,2025-10-06,,,,2026-09-07,,Férias Vencidas,Dentro do Prazo,
+1997,Karina Alves dos Santos,ADMINISTRATIVO - SANTOS/SP,Administrativo,2025-01-02,2026-01-01,,,,2026-12-03,,Férias Vencidas,Dentro do Prazo,
+2090,Thalita O. de Almeida,ADMINISTRATIVO - SANTOS/SP,Administrativo,2025-06-05,2026-06-04,,,,2027-05-06,,Férias Não Vencidas,Dentro do Prazo,
+2317,Gildasio Neres Nacimento,CASAN - CHAPECÓ/SC,Operacional,2025-06-01,2026-05-31,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2366,Jerenmid Martinez,CASAN - CHAPECÓ/SC,Operacional,2025-08-22,2026-08-21,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2346,Micheli Galetti,CASAN - CHAPECÓ/SC,Operacional,2025-08-05,2026-08-04,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2395,Rogerio da Silva Machado,CASAN - CHAPECÓ/SC,Operacional,2026-04-07,2027-04-06,,,,,,Férias Não Vencidas,,
+2329,Rudinei Brunetto,CASAN - CHAPECÓ/SC,Operacional,2024-08-16,2025-08-15,,,,2026-07-17,,Férias Vencidas,Dentro do Prazo,
+2393,Gedeon Kleison Isidoro,MUNICÍPIO CURITIBA,Operacional,2026-03-05,2027-03-04,,,,,,Férias Não Vencidas,Dentro do Prazo,
+2394,Vadir Ramalho Siqueira,MUNICÍPIO CURITIBA,Operacional,2026-03-05,2027-03-04,,,,,,Férias Não Vencidas,Dentro do Prazo,
