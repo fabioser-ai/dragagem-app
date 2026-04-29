@@ -24,6 +24,9 @@ def registrar_log(usuario, perfil, acao):
     except Exception:
         df = pd.DataFrame(columns=["data_hora", "usuario", "perfil", "acao"])
 
+    if df.empty:
+        df = pd.DataFrame(columns=["data_hora", "usuario", "perfil", "acao"])
+
     df_novo = pd.DataFrame([registro])
     df = pd.concat([df, df_novo], ignore_index=True)
 
@@ -32,5 +35,4 @@ def registrar_log(usuario, perfil, acao):
         ARQUIVO_LOG,
         st.secrets["GITHUB_TOKEN"],
         st.secrets["REPO"],
-        mensagem_commit="log: atualização automática de acessos",
     )
