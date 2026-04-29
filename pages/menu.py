@@ -1,4 +1,5 @@
 import streamlit as st
+from services.auth import logout
 
 
 def render():
@@ -18,7 +19,7 @@ def render():
                 border: 1px solid rgba(148, 163, 184, 0.35);
                 border-radius: 24px;
                 padding: 2.4rem 2rem;
-                margin: 0.6rem 0 1.8rem 0;
+                margin: 0.6rem 0 1.2rem 0;
                 box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
                 text-align: center;
             }
@@ -37,6 +38,17 @@ def render():
                 margin-bottom: 0;
                 font-size: 1.15rem;
                 font-weight: 500;
+            }
+
+            .user-bar {
+                background: rgba(255, 255, 255, 0.75);
+                border: 1px solid rgba(148, 163, 184, 0.30);
+                border-radius: 16px;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1.4rem;
+                color: #334155;
+                font-size: 0.95rem;
+                font-weight: 600;
             }
 
             .section-title {
@@ -108,6 +120,23 @@ def render():
         unsafe_allow_html=True,
     )
 
+    col_user, col_logout = st.columns([4, 1])
+
+    with col_user:
+        st.markdown(
+            f"""
+            <div class="user-bar">
+                Usuário: {st.session_state.get("usuario", "-")} |
+                Perfil: {st.session_state.get("perfil", "-")}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with col_logout:
+        if st.button("SAIR", use_container_width=True):
+            logout()
+
     st.markdown('<div class="section-title">Módulos principais</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2, gap="large")
@@ -159,8 +188,12 @@ def render():
             """,
             unsafe_allow_html=True,
         )
-        if st.button("ABRIR DADOS", use_container_width=True):
-            st.session_state.tela = "dados"
+
+        if st.session_state.get("perfil") == "admin":
+            if st.button("ABRIR DADOS", use_container_width=True):
+                st.session_state.tela = "dados"
+        else:
+            st.button("DADOS BLOQUEADO", use_container_width=True, disabled=True)
 
     st.markdown(
         """
