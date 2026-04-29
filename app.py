@@ -13,7 +13,10 @@ from pages.orcamento.etapa3 import etapa3
 # CONFIGURAÇÃO
 # =========================
 st.set_page_config(layout="wide")
+from services.auth import verificar_login
 
+if not verificar_login():
+    st.stop()
 # =========================
 # ESTADO INICIAL
 # =========================
