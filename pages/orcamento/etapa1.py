@@ -131,12 +131,19 @@ def etapa1():
 
     # Vazão
     vazao_base = float(linha_equip["Vazao"])
-    vazao_valor = float(obter(dados, "Vazao", vazao_base) or vazao_base)
 
-    vazao = st.number_input(
-        "Vazão (m³/h)",
-        value=vazao_valor,
-    )
+draga_salva = obter(dados, "Draga", "")
+
+if str(draga_salva) == str(draga):
+    vazao_valor = float(obter(dados, "Vazao", vazao_base) or vazao_base)
+else:
+    vazao_valor = vazao_base
+
+vazao = st.number_input(
+    "Vazão (m³/h)",
+    value=vazao_valor,
+    key=f"vazao_{draga}",
+)
 
     if vazao != vazao_base:
         st.warning("Vazão alterada manualmente.")
