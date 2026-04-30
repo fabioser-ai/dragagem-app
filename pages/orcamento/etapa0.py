@@ -72,53 +72,14 @@ def etapa0():
         st.rerun()
 
     # =========================
-    # CARREGAR ORÇAMENTOS
+    # DEFINE ORÇAMENTO
     # =========================
-    try:
-        df_orc = carregar_github(ARQ_OBRAS, TOKEN, REPO)
-    except:
-        df_orc = pd.DataFrame()
-
-    # =========================
-    # ESCOLHA INICIAL
-    # =========================
-    opcao = st.radio(
-        "Escolha uma opção:",
-        ["Novo orçamento", "Continuar orçamento existente"]
-    )
-
-    # =========================
-    # NOVO
-    # =========================
-    if opcao == "Novo orçamento":
-
+    if "orcamento" in st.session_state:
+        dados_existentes = st.session_state.orcamento
+        codigo = dados_existentes.get("Codigo") or dados_existentes.get("codigo")
+    else:
         codigo = gerar_codigo()
         dados_existentes = {}
-
-    # =========================
-    # CONTINUAR
-    # =========================
-    else:
-
-        if df_orc.empty:
-            st.warning("Nenhum orçamento disponível.")
-            return
-
-        df_rascunho = df_orc[df_orc["Status"] != "Finalizado"]
-
-        if df_rascunho.empty:
-            st.warning("Nenhum orçamento em andamento.")
-            return
-
-        escolha = st.selectbox(
-            "Selecione o orçamento",
-            df_rascunho["Codigo"]
-        )
-
-        linha = df_rascunho[df_rascunho["Codigo"] == escolha].iloc[0]
-
-        codigo = linha["Codigo"]
-        dados_existentes = linha.to_dict()
 
     st.info(f"Código: {codigo}")
 
@@ -267,6 +228,5 @@ def etapa0():
         salvar_rascunho(dados)
 
         st.session_state.orcamento = dados
-
         st.session_state.tela = "orcamento1"
         st.rerun()
