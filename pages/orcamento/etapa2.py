@@ -40,7 +40,13 @@ def salvar_rascunho_orcamento(dados):
         idx = df[df["Codigo"].astype(str) == str(codigo)].index[0]
 
         for k, v in dados.items():
-            df.loc[idx, k] = v
+
+    # 🔥 correção crítica
+    if isinstance(v, (list, dict)):
+        v = json.dumps(v, ensure_ascii=False)
+
+    df.loc[idx, k] = v
+    
     else:
         df = pd.concat([df, pd.DataFrame([dados])], ignore_index=True)
 
