@@ -7,7 +7,8 @@ from pages import menu, dados, ferias
 from services.auth import verificar_login
 from services.ui import aplicar_estilo_global
 
-# Módulo orçamento (novo - modular)
+# Módulo orçamento
+from pages.orcamento.dashboard import dashboard_orcamento
 from pages.orcamento.etapa0 import etapa0
 from pages.orcamento.etapa1 import etapa1
 from pages.orcamento.etapa2 import etapa2
@@ -66,7 +67,7 @@ elif st.session_state.tela == "obras":
             st.secrets["GITHUB_TOKEN"],
             st.secrets["REPO"]
         )
-    except:
+    except Exception:
         df = pd.DataFrame()
 
     if df.empty:
@@ -75,14 +76,23 @@ elif st.session_state.tela == "obras":
         st.subheader("Lista de Obras")
         st.dataframe(df, use_container_width=True)
 
-    if st.button("⬅ Voltar"):
+    if st.button("⬅ Voltar", key="voltar_obras"):
         st.session_state.tela = "menu"
         st.rerun()
 
 # =========================
-# ORÇAMENTO (MODULAR)
+# ORÇAMENTO - DASHBOARD
 # =========================
 elif st.session_state.tela == "orcamento":
+    dashboard_orcamento()
+
+elif st.session_state.tela == "orcamento_lista":
+    dashboard_orcamento()
+
+# =========================
+# ORÇAMENTO - ETAPAS
+# =========================
+elif st.session_state.tela == "orcamento_etapa0":
     etapa0()
 
 elif st.session_state.tela == "orcamento1":
@@ -93,3 +103,10 @@ elif st.session_state.tela == "orcamento2":
 
 elif st.session_state.tela == "orcamento3":
     etapa3()
+
+# =========================
+# FALLBACK
+# =========================
+else:
+    st.session_state.tela = "menu"
+    st.rerun()
