@@ -51,10 +51,8 @@ def salvar_rascunho(dados):
 
     codigo = dados["Codigo"]
 
-    # Atualizar ou criar
     if "Codigo" in df.columns and codigo in df["Codigo"].values:
         idx = df[df["Codigo"] == codigo].index[0]
-
         for k, v in dados.items():
             df.loc[idx, k] = v
     else:
@@ -73,12 +71,56 @@ def etapa0():
         st.session_state.tela = "menu"
         st.rerun()
 
-    # Se já existe orçamento em andamento, reutiliza
-    if "orcamento" not in st.session_state:
+    # =========================
+    # CARREGAR ORÇAMENTOS
+    # =========================
+    try:
+        df_orc = carregar_github(ARQ_OBRAS, TOKEN, REPO)
+    except:
+        df_orc = pd.DataFrame()
+
+    # =========================
+    # ESCOLHA INICIAL
+    # =========================
+    opcao = st.radio(
+        "Escolha uma opção:",
+        ["Novo orçamento", "Continuar orçamento existente"]
+    )
+
+    # =========================
+    # NOVO
+    # =========================
+    if opcao == "Novo orçamento":
+
         codigo = gerar_codigo()
-        st.session_state.orcamento = {"codigo": codigo}
+        dados_existentes = {}
+
+    # =========================
+    # CONTINUAR
+    # =========================
     else:
-        codigo = st.session_state.orcamento["codigo"]
+
+        if df_orc.empty:
+            st.warning("Nenhum orçamento disponível.")
+            return
+
+        df_rascunho = df_orc[df_orc["Status"] != "Finalizado"]
+
+        if df_rascunho.empty:
+            st.warning("Nenhum orçamento em andamento.")
+            return
+
+        escolha = st.selectbox(
+            "Selecione o orçamento",
+            df_rascunho["Codigo"]
+        )
+
+        linha = df_rascunho[df_rascunho["Codigo"] == escolha].iloc[0]
+
+        codigo = linha["Codigo"]
+        dados_existentes = linha.to_dict()
+
+    st.info(f"Código: {codigo}")
 
     # =========================
     # CLIENTES
@@ -87,50 +129,110 @@ def etapa0():
     if df_clientes.empty:
         df_clientes = pd.DataFrame(columns=["Cliente"])
 
-    cliente = st.selectbox("Cliente", df_clientes["Cliente"])
+    cliente_default = dados_existentes.get("Cliente", "")
+
+    cliente = st.selectbox(
+        "Cliente",
+        df_clientes["Cliente"],
+        index=df_clientes["Cliente"].tolist().index(cliente_default)
+        if cliente_default in df_clientes["Cliente"].tolist()
+        else 0
+    )
+
     novo_cliente = st.text_input("Ou adicionar novo cliente")
 
     # =========================
-    # DADOS
+    # CAMPOS
     # =========================
-    nome_obra = st.text_input("Nome da obra")
-    local = st.text_input("Local de execução")
+    nome_obra = st.text_input(
+        "Nome da obra",
+        value=dados_existentes.get("Nome_Obra", "")
+    )
+
+    local = st.text_input(
+        "Local de execução",
+        value=dados_existentes.get("Local", "")
+    )
+
+    data_val = dados_existentes.get("Data", datetime.now().strftime("%d/%m/%Y"))
 
     data = st.date_input(
         "Data",
-        value=datetime.now(),
+        value=datetime.strptime(data_val, "%d/%m/%Y"),
         format="DD/MM/YYYY"
     )
 
-    st.info(f"Código: {codigo}")
-
+    # =========================
+    # BASES
+    # =========================
     df_mat = carregar_github(ARQ_MAT, TOKEN, REPO)
     df_desag = carregar_github(ARQ_DESAG, TOKEN, REPO)
     df_med = carregar_github("data/medicao.csv", TOKEN, REPO)
     df_hor = carregar_github("data/horarios.csv", TOKEN, REPO)
     df_dias = carregar_github("data/dias.csv", TOKEN, REPO)
 
-    volume = st.number_input("Volume a ser dragado (m³)")
-    material = st.selectbox("Tipo de material", df_mat["Material"])
-    desag = st.selectbox("Tipo de desaguamento", df_desag["Tipo"])
+    volume = st.number_input(
+        "Volume a ser dragado (m³)",
+        value=float(dados_existentes.get("Volume", 0))
+    )
+
+    material = st.selectbox(
+        "Tipo de material",
+        df_mat["Material"],
+        index=df_mat["Material"].tolist().index(dados_existentes.get("Material"))
+        if dados_existentes.get("Material") in df_mat["Material"].tolist()
+        else 0
+    )
+
+    desag = st.selectbox(
+        "Tipo de desaguamento",
+        df_desag["Tipo"],
+        index=df_desag["Tipo"].tolist().index(dados_existentes.get("Desag"))
+        if dados_existentes.get("Desag") in df_desag["Tipo"].tolist()
+        else 0
+    )
 
     col1, col2 = st.columns(2)
-    flutuante = col1.number_input("Distância de recalque - Flutuante (m)")
-    terrestre = col2.number_input("Distância de recalque - Terrestre (m)")
 
-    desnivel = st.number_input("Desnível de Bombeamento (m)")
+    flutuante = col1.number_input(
+        "Distância de recalque - Flutuante (m)",
+        value=float(dados_existentes.get("Flutuante", 0))
+    )
 
-    sistema_med = st.selectbox("Sistema de medição", df_med["Sistema"])
+    terrestre = col2.number_input(
+        "Distância de recalque - Terrestre (m)",
+        value=float(dados_existentes.get("Terrestre", 0))
+    )
+
+    desnivel = st.number_input(
+        "Desnível de Bombeamento (m)",
+        value=float(dados_existentes.get("Desnivel_Bombeamento", 0))
+    )
+
+    sistema_med = st.selectbox(
+        "Sistema de medição",
+        df_med["Sistema"],
+        index=df_med["Sistema"].tolist().index(dados_existentes.get("Medicao"))
+        if dados_existentes.get("Medicao") in df_med["Sistema"].tolist()
+        else 0
+    )
 
     horario = st.selectbox(
         "Horário de trabalho",
-        df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1)
+        df_hor.apply(lambda x: f"{x['Inicio']} - {x['Fim']}", axis=1),
+        index=0
     )
 
-    dias = st.selectbox("Dias de trabalho", df_dias["Descricao"])
+    dias = st.selectbox(
+        "Dias de trabalho",
+        df_dias["Descricao"],
+        index=df_dias["Descricao"].tolist().index(dados_existentes.get("Dias"))
+        if dados_existentes.get("Dias") in df_dias["Descricao"].tolist()
+        else 0
+    )
 
     # =========================
-    # CONTINUAR
+    # SALVAR
     # =========================
     if st.button("Continuar"):
 
@@ -164,7 +266,7 @@ def etapa0():
 
         salvar_rascunho(dados)
 
-        st.session_state.orcamento.update(dados)
+        st.session_state.orcamento = dados
 
         st.session_state.tela = "orcamento1"
         st.rerun()
