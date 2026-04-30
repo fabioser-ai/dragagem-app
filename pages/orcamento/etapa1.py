@@ -129,15 +129,16 @@ def etapa1():
 
     linha_equip = linha_equip_df.iloc[0]
 
-    # Vazão
+    # =========================
+    # VAZÃO
+    # =========================
     vazao_base = float(linha_equip["Vazao"])
+    draga_salva = obter(dados, "Draga", "")
 
-draga_salva = obter(dados, "Draga", "")
-
-if str(draga_salva) == str(draga):
-    vazao_valor = float(obter(dados, "Vazao", vazao_base) or vazao_base)
-else:
-    vazao_valor = vazao_base
+    if str(draga_salva) == str(draga):
+        vazao_valor = float(obter(dados, "Vazao", vazao_base) or vazao_base)
+    else:
+        vazao_valor = vazao_base
 
     vazao = st.number_input(
         "Vazão (m³/h)",
@@ -148,7 +149,9 @@ else:
     if vazao != vazao_base:
         st.warning("Vazão alterada manualmente.")
 
-    # Concentração
+    # =========================
+    # CONCENTRAÇÃO
+    # =========================
     linha_mat_df = df_mat[df_mat["Material"].astype(str) == str(material_orcamento)]
 
     if linha_mat_df.empty:
@@ -162,12 +165,15 @@ else:
     concentracao = st.number_input(
         "Concentração",
         value=concentracao_valor,
+        key="concentracao_etapa1",
     )
 
     if concentracao != conc_base:
         st.warning("Concentração alterada manualmente.")
 
-    # Eficiência
+    # =========================
+    # EFICIÊNCIA
+    # =========================
     eficiencia_map = {
         "Geobag": 0.85,
         "Centrífuga": 0.90,
@@ -181,6 +187,7 @@ else:
     eficiencia = st.number_input(
         "Eficiência",
         value=eficiencia_valor,
+        key="eficiencia_etapa1",
     )
 
     if eficiencia != ef_base:
