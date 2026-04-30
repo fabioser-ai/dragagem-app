@@ -167,23 +167,44 @@ def mostrar_alertas_ferias(df):
     df_alerta["Limite_Gozo_Data"] = df_alerta["Limite_Gozo"].apply(para_data)
 
     ferias_dobro = df_alerta[df_alerta["Situacao_Prazo"] == "Férias em Dobro"]
-    ferias_atencao = df_alerta[df_alerta["Situacao_Prazo"] == "Atenção"]
 
     hoje = date.today()
+
     proximos_60 = df_alerta[
         df_alerta["Limite_Gozo_Data"].apply(
             lambda x: x is not None and 0 <= (x - hoje).days <= 60
         )
-    ]
+    ].copy()
 
     if not ferias_dobro.empty:
-        st.error(f"🚨 {len(ferias_dobro)} funcionário(s) com férias em dobro.")
+        st.error(f"🚨 {len(ferias_dobro)} funcionário(s) com férias em dobro:")
 
-    if not ferias_atencao.empty or not proximos_60.empty:
-        st.warning("⚠️ Existem férias próximas do limite de gozo. Revisar programação.")
+        for nome in ferias_dobro["Funcionario"].dropna().astype(str):
+            st.markdown(f"- 🔴 **{nome}**")
 
-    if ferias_dobro.empty and ferias_atencao.empty and proximos_60.empty:
-        st.success("✅ Nenhum alerta crítico de férias no momento.")
+    if not proximos_60.empty:
+        proximos_60["Dias_Para_Limite"] = proximos_60["Limite_Gozo_Data"].apply(
+            lambda x: (x - hoje).days if x else None
+        )
+
+        proximos_60 = proximos_60.sort_values(by="Dias_Para_Limite")
+
+        st.warning("⚠️ Funcionários próximos do limite de férias:")
+
+        for _, linha in proximos_60.iterrows():
+            nome = linha.get("Funcionario", "")
+            limite = linha.get("Limite_Gozo_Data")
+            dias = linha.get("Dias_Para_Limite")
+
+            if limite:
+                st.markdown(
+                    f"- 🟡 **{nome}** → precisa sair de férias até "
+                    f"**{limite.strftime('%d/%m/%Y')}** "
+                    f"(**{dias} dias restantes**)"
+                )
+
+    if ferias_dobro.empty and proximos_60.empty:
+        st.success("✅ Nenhum funcionário em situação crítica de férias no momento.")
 
 
 def mostrar_alertas_folgas(df_folgas):
@@ -214,10 +235,30 @@ def render_ferias(df_ferias):
     atencao = len(df_ferias[df_ferias["Situacao_Prazo"] == "Atenção"])
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Funcionários", total)
-    col2.metric("Férias vencidas", vencidas)
-    col3.metric("Atenção", atencao)
-    col4.metric("Férias em dobro", dobro)
+
+    col1.metric(
+        "Funcionários",
+        total,
+        help="Total de funcionários cadastrados no controle de férias.",
+    )
+
+    col2.metric(
+        "Férias vencidas",
+        vencidas,
+        help="Funcionários que já possuem direito a férias porque o período aquisitivo foi concluído.",
+    )
+
+    col3.metric(
+        "Atenção",
+        atencao,
+        help="Funcionários próximos do limite legal de gozo das férias. Hoje o sistema considera Atenção quando faltam 60 dias ou menos para o limite.",
+    )
+
+    col4.metric(
+        "Férias em dobro",
+        dobro,
+        help="Funcionários que ultrapassaram o prazo legal de gozo. Essa situação pode gerar pagamento em dobro das férias.",
+    )
 
     st.divider()
 
