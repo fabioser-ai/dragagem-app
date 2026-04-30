@@ -11,75 +11,66 @@ TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
 
 
-# =========================
-# FORMATADOR BR
-# =========================
 def formatar_real(valor):
     return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-# =========================
-# SALVAR RASCUNHO (CORRIGIDO)
-# =========================
 def salvar_rascunho_orcamento(dados):
-
     try:
         df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
-    except:
+    except Exception:
         df = pd.DataFrame()
 
     if df.empty:
         df = pd.DataFrame()
 
-    # 🔥 CORREÇÃO CRÍTICA (resolve pyarrow bug)
     df = df.astype("object")
 
     codigo = dados.get("Codigo")
 
     if not codigo:
-        st.error("Código não encontrado.")
+        st.error("Código do orçamento não encontrado. Volte para a Etapa 0.")
         st.stop()
 
     dados_limpos = {}
 
     for k, v in dados.items():
-
         if isinstance(v, (list, dict)):
             v = json.dumps(v, ensure_ascii=False, default=str)
-
         elif isinstance(v, (pd.Timestamp, datetime)):
             v = v.strftime("%Y-%m-%d %H:%M:%S")
-
-        elif pd.isna(v):
-            v = ""
+        else:
+            try:
+                if pd.isna(v):
+                    v = ""
+            except Exception:
+                pass
 
         dados_limpos[k] = v
 
     if "Codigo" in df.columns and str(codigo) in df["Codigo"].astype(str).values:
-
         idx = df[df["Codigo"].astype(str) == str(codigo)].index[0]
 
         for k, v in dados_limpos.items():
-
             if k not in df.columns:
                 df[k] = ""
 
             df[k] = df[k].astype("object")
-
             df.at[idx, k] = v
-
     else:
         df = pd.concat([df, pd.DataFrame([dados_limpos])], ignore_index=True)
 
     salvar_github(df, ARQ_OBRAS, TOKEN, REPO)
 
 
-# =========================
-# PREPARAR DF
-# =========================
-def preparar_df(df):
-
+def preparar_df_equipe(df):
     df = df.copy()
+
+    if "Posicao" not in df.columns:
+        df["Posicao"] = ""
+
+    if "Valor_Hora" not in df.columns:
+        df["Valor_Hora"] = 0
 
     if "Qtd" not in df.columns:
         df["Qtd"] = 0
@@ -89,62 +80,87 @@ def preparar_df(df):
 
     df["Qtd"] = pd.to_numeric(df["Qtd"], errors="coerce").fillna(0).astype(int)
     df["Valor_Hora"] = pd.to_numeric(df["Valor_Hora"], errors="coerce").fillna(0)
-    df["Adicional 25%"] = df["Adicional 25%"].fillna(False)
+    df["Adicional 25%"] = df["Adicional 25%"].fillna(False).astype(bool)
 
     return df
 
 
-# =========================
-# RECONSTRUIR EQUIPE
-# =========================
-def carregar_equipe(dados, df_sal):
+def carregar_equipe_salva(dados, df_sal):
+    equipe_json = dados.get("Equipe_JSON", "")
 
-    if dados.get("Equipe_JSON"):
-
+    if equipe_json:
         try:
-            df = pd.DataFrame(json.loads(dados["Equipe_JSON"]))
+            equipe = json.loads(equipe_json)
+            df = pd.DataFrame(equipe)
 
             if not df.empty:
-                return preparar_df(df)
-
-        except:
+                return preparar_df_equipe(df)
+        except Exception:
             pass
 
-    df = df_sal.copy()
-    df["Qtd"] = 0
-    df["Adicional 25%"] = False
+    df_inicial = df_sal.copy()
+    df_inicial["Qtd"] = 0
+    df_inicial["Adicional 25%"] = False
 
-    return preparar_df(df)
+    return preparar_df_equipe(df_inicial)
 
 
-# =========================
-# CALCULAR
-# =========================
-def calcular(df, leis):
+def calcular_equipe(df_editado, leis):
+    df_calc = preparar_df_equipe(df_editado)
 
-    df = preparar_df(df)
+    df_calc["Encargos"] = df_calc["Valor_Hora"] * (leis / 100)
+    df_calc["Base + Encargos"] = df_calc["Valor_Hora"] + df_calc["Encargos"]
+    df_calc["Valor 25%"] = df_calc["Base + Encargos"] * 0.25
 
-    df["Encargos"] = df["Valor_Hora"] * (leis / 100)
-    df["Base + Encargos"] = df["Valor_Hora"] + df["Encargos"]
-    df["Valor 25%"] = df["Base + Encargos"] * 0.25
-
-    df["Valor Final"] = df.apply(
-        lambda r: r["Base + Encargos"] + r["Valor 25%"]
-        if r["Adicional 25%"]
-        else r["Base + Encargos"],
+    df_calc["Valor Final"] = df_calc.apply(
+        lambda row: row["Base + Encargos"] + row["Valor 25%"]
+        if row["Adicional 25%"]
+        else row["Base + Encargos"],
         axis=1,
     )
 
-    df["Total"] = df["Qtd"] * df["Valor Final"]
+    df_calc["Total"] = df_calc["Qtd"] * df_calc["Valor Final"]
 
-    return df, df["Total"].sum()
+    total_hora = df_calc["Total"].sum()
+
+    return df_calc, total_hora
 
 
-# =========================
-# ETAPA 2
-# =========================
+def exibir_resultado_equipe(df_calc, total_hora):
+    df_display = df_calc[df_calc["Qtd"] > 0].copy()
+
+    if df_display.empty:
+        st.info("Nenhum funcionário selecionado.")
+        return
+
+    if df_display["Adicional 25%"].any():
+        st.warning("⚠️ Adicional de 25% aplicado.")
+
+    for col in ["Valor_Hora", "Encargos", "Valor 25%", "Valor Final", "Total"]:
+        df_display[col] = df_display[col].apply(formatar_real)
+
+    st.subheader("Resultado Calculado")
+
+    st.dataframe(
+        df_display[
+            [
+                "Qtd",
+                "Posicao",
+                "Valor_Hora",
+                "Encargos",
+                "Valor 25%",
+                "Valor Final",
+                "Total",
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    st.success(f"Custo por hora da equipe: R$ {formatar_real(total_hora)}")
+
+
 def etapa2():
-
     st.header("Dimensionamento de Equipe")
 
     if "orcamento" not in st.session_state:
@@ -153,97 +169,115 @@ def etapa2():
 
     dados = st.session_state.orcamento
 
-    # =========================
-    # BASE
-    # =========================
     df_sal = carregar_github(ARQ_SAL, TOKEN, REPO)
 
     if df_sal.empty:
         st.warning("Base de salários vazia.")
         return
 
-    df_sal = preparar_df(df_sal)
+    df_sal = preparar_df_equipe(df_sal)
 
-    # =========================
-    # LEIS
-    # =========================
+    leis_salvas = float(dados.get("Leis_Sociais", dados.get("leis_sociais", 110.0)) or 110.0)
+
     leis = st.number_input(
         "Leis Sociais (%)",
-        value=float(dados.get("Leis_Sociais", 110)),
-        key="leis_etapa2"
+        value=leis_salvas,
+        key="leis_sociais_etapa2",
     )
 
-    st.info(f"Encargos: {leis:.1f}%")
+    st.info(f"Encargos aplicados: {leis:.1f}%")
 
-    # =========================
-    # SESSION STATE
-    # =========================
-    codigo = dados.get("Codigo")
-    chave = f"equipe_{codigo}"
+    codigo = dados.get("Codigo", "sem_codigo")
+    chave_equipe = f"df_equipe_{codigo}"
 
-    if chave not in st.session_state:
-        st.session_state[chave] = carregar_equipe(dados, df_sal)
+    if chave_equipe not in st.session_state:
+        st.session_state[chave_equipe] = carregar_equipe_salva(dados, df_sal)
 
-    # =========================
-    # EDITOR
-    # =========================
-    with st.form("form"):
+    st.subheader("Entrada de Dados")
 
+    with st.form("form_equipe"):
         df_editado = st.data_editor(
-            st.session_state[chave],
-            key=f"editor_{codigo}",
+            st.session_state[chave_equipe],
+            key=f"editor_equipe_{codigo}",
             use_container_width=True,
             hide_index=True,
+            num_rows="fixed",
+            column_config={
+                "Qtd": st.column_config.NumberColumn("Qtd", min_value=0, step=1),
+                "Posicao": st.column_config.TextColumn("Posição", disabled=True),
+                "Valor_Hora": st.column_config.NumberColumn("Valor Hora (R$)", disabled=True),
+                "Adicional 25%": st.column_config.CheckboxColumn("Adic. 25%"),
+            },
         )
 
-        calcular_btn = st.form_submit_button("Calcular")
+        calcular = st.form_submit_button("Calcular e salvar equipe")
 
-    # =========================
-    # CÁLCULO
-    # =========================
-    if calcular_btn:
+    if calcular:
+        st.session_state[chave_equipe] = preparar_df_equipe(df_editado)
 
-        st.session_state[chave] = preparar_df(df_editado)
+        df_calc, total_hora = calcular_equipe(st.session_state[chave_equipe], leis)
 
-        df_calc, total = calcular(st.session_state[chave], leis)
+        exibir_resultado_equipe(df_calc, total_hora)
 
-        df_vis = df_calc[df_calc["Qtd"] > 0]
+        equipe_json = json.dumps(
+            df_calc.to_dict(orient="records"),
+            ensure_ascii=False,
+            default=str,
+        )
 
-        if not df_vis.empty:
-
-            st.subheader("Resultado")
-
-            for col in ["Valor_Hora", "Encargos", "Valor 25%", "Valor Final", "Total"]:
-                df_vis[col] = df_vis[col].apply(formatar_real)
-
-            st.dataframe(df_vis, use_container_width=True)
-
-            st.success(f"Custo/hora: R$ {formatar_real(total)}")
-
-        # =========================
-        # SALVAR
-        # =========================
-        st.session_state.orcamento.update({
-            "Equipe_JSON": json.dumps(df_calc.to_dict("records"), ensure_ascii=False),
-            "Custo_Hora_Equipe": total,
+        dados_atualizados = {
+            "Equipe_JSON": equipe_json,
+            "Custo_Hora_Equipe": total_hora,
             "Leis_Sociais": leis,
+            "Status": "Rascunho",
             "Etapa_Atual": "Etapa 2",
             "Ultima_Atualizacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        })
+
+            # Compatibilidade
+            "custo_hora_equipe": total_hora,
+            "custo_mensal_equipe": total_hora,
+            "leis_sociais": leis,
+        }
+
+        st.session_state.orcamento.update(dados_atualizados)
 
         salvar_rascunho_orcamento(st.session_state.orcamento)
 
-        st.success("Salvo com sucesso.")
+        st.success("Equipe salva no orçamento.")
 
-    # =========================
-    # NAVEGAÇÃO
-    # =========================
+    elif dados.get("Equipe_JSON"):
+        try:
+            df_calc_salvo = pd.DataFrame(json.loads(dados["Equipe_JSON"]))
+            df_calc_salvo = preparar_df_equipe(df_calc_salvo)
+
+            if "Total" in df_calc_salvo.columns:
+                total_salvo = float(dados.get("Custo_Hora_Equipe", dados.get("custo_hora_equipe", 0)) or 0)
+                exibir_resultado_equipe(df_calc_salvo, total_salvo)
+        except Exception:
+            pass
+
+    custo_salvo = dados.get("Custo_Hora_Equipe", dados.get("custo_hora_equipe", None))
+
+    if custo_salvo is not None:
+        try:
+            st.info(f"Custo por hora salvo: R$ {formatar_real(float(custo_salvo))}")
+        except Exception:
+            pass
+
     col1, col2 = st.columns(2)
 
-    if col1.button("⬅ Voltar"):
+    if col1.button("⬅ Voltar", key="voltar_etapa2"):
         st.session_state.tela = "orcamento1"
         st.rerun()
 
-    if col2.button("Continuar"):
-        st.session_state.tela = "orcamento3"
-        st.rerun()
+    if col2.button("Salvar e continuar", key="continuar_etapa2"):
+        if "Custo_Hora_Equipe" not in st.session_state.orcamento and "custo_hora_equipe" not in st.session_state.orcamento:
+            st.warning("Calcule e salve a equipe antes de continuar.")
+        else:
+            st.session_state.orcamento["Etapa_Atual"] = "Etapa 2"
+            st.session_state.orcamento["Ultima_Atualizacao"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            salvar_rascunho_orcamento(st.session_state.orcamento)
+
+            st.session_state.tela = "orcamento3"
+            st.rerun()
