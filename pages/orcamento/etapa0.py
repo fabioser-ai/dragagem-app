@@ -21,7 +21,7 @@ def gerar_codigo():
 
     try:
         df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
-    except:
+    except Exception:
         df = pd.DataFrame()
 
     ano = datetime.now().year
@@ -29,13 +29,13 @@ def gerar_codigo():
     if df.empty or "Codigo" not in df.columns:
         seq = 1
     else:
-        df_ano = df[df["Codigo"].str.contains(str(ano), na=False)]
+        df_ano = df[df["Codigo"].astype(str).str.contains(str(ano), na=False)]
 
         if df_ano.empty:
             seq = 1
         else:
             ult = df_ano["Codigo"].iloc[-1]
-            seq = int(ult.split("_")[1]) + 1
+            seq = int(str(ult).split("_")[1]) + 1
 
     return f"D_{seq:03d}_{ano}"
 
@@ -45,6 +45,10 @@ def gerar_codigo():
 def etapa0():
 
     st.header("Informações da Obra")
+
+    if st.button("⬅ Voltar ao início", key="voltar_inicio_etapa0"):
+        st.session_state.tela = "menu"
+        st.rerun()
 
     codigo = gerar_codigo()
 
@@ -64,7 +68,12 @@ def etapa0():
     nome_obra = st.text_input("Nome da obra")
     local = st.text_input("Local de execução")
 
-    data = st.date_input("Data", value=datetime.now())
+    data = st.date_input(
+        "Data",
+        value=datetime.now(),
+        format="DD/MM/YYYY",
+    )
+
     st.write(f"Data selecionada: {data.strftime('%d/%m/%Y')}")
 
     st.info(f"Código: {codigo}")
@@ -79,7 +88,7 @@ def etapa0():
     df_dias = carregar_github("data/dias.csv", TOKEN, REPO)
 
     # =========================
-    # NOVOS CAMPOS (IMPORTANTE)
+    # CAMPOS DA OBRA
     # =========================
     volume = st.number_input("Volume a ser dragado (m³)")
 
@@ -88,8 +97,11 @@ def etapa0():
     desag = st.selectbox("Tipo de desaguamento", df_desag["Tipo"])
 
     col1, col2 = st.columns(2)
-    flutuante = col1.number_input("Distância flutuante (m)")
-    terrestre = col2.number_input("Distância terrestre (m)")
+
+    flutuante = col1.number_input("Distância de recalque - Flutuante (m)")
+    terrestre = col2.number_input("Distância de recalque - Terrestre (m)")
+
+    desnivel_bombeamento = st.number_input("Desnível de Bombeamento (m)")
 
     sistema_med = st.selectbox("Sistema de medição", df_med["Sistema"])
 
@@ -124,9 +136,10 @@ def etapa0():
             "desag": desag,
             "flutuante": flutuante,
             "terrestre": terrestre,
+            "desnivel_bombeamento": desnivel_bombeamento,
             "medicao": sistema_med,
             "horario": horario,
-            "dias": dias
+            "dias": dias,
         }
 
         st.session_state.tela = "orcamento1"
