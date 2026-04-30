@@ -44,13 +44,18 @@ COLUNAS_FOLGAS = [
 
 def normalizar_dataframe(df, colunas):
     if df.empty:
-        return pd.DataFrame(columns=colunas)
+        df = pd.DataFrame(columns=colunas)
 
     for col in colunas:
         if col not in df.columns:
             df[col] = ""
 
-    return df[colunas]
+    df = df[colunas].copy()
+
+    for col in df.columns:
+        df[col] = df[col].astype("object")
+
+    return df
 
 
 def para_data(valor):
@@ -286,6 +291,7 @@ def render_ferias(df_ferias):
         departamento = st.text_input("Departamento", value="Operacional", key="ferias_novo_departamento")
 
         col1, col2 = st.columns(2)
+
         with col1:
             periodo_inicio = st.date_input(
                 "Início do período aquisitivo",
@@ -293,6 +299,7 @@ def render_ferias(df_ferias):
                 format="DD/MM/YYYY",
                 key="ferias_novo_inicio",
             )
+
         with col2:
             periodo_fim = st.date_input(
                 "Fim do período aquisitivo",
@@ -302,6 +309,7 @@ def render_ferias(df_ferias):
             )
 
         col3, col4 = st.columns(2)
+
         with col3:
             data_inicio_gozo = st.date_input(
                 "Início do gozo",
@@ -309,6 +317,7 @@ def render_ferias(df_ferias):
                 format="DD/MM/YYYY",
                 key="ferias_novo_inicio_gozo",
             )
+
         with col4:
             data_fim_gozo = st.date_input(
                 "Fim do gozo",
@@ -335,23 +344,25 @@ def render_ferias(df_ferias):
                 situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
                 novo = {
-                    "Matricula": matricula,
-                    "Funcionario": funcionario,
-                    "Unidade": unidade,
-                    "Departamento": departamento,
+                    "Matricula": str(matricula),
+                    "Funcionario": str(funcionario),
+                    "Unidade": str(unidade),
+                    "Departamento": str(departamento),
                     "Periodo_Aquisitivo_Inicio": periodo_inicio,
                     "Periodo_Aquisitivo_Fim": periodo_fim,
                     "Data_Inicio_Gozo": data_inicio_gozo or "",
                     "Data_Fim_Gozo": data_fim_gozo or "",
                     "Dias_Gozo": dias_gozo,
                     "Limite_Gozo": limite_gozo,
-                    "Periodo_Gozo": periodo_gozo,
+                    "Periodo_Gozo": str(periodo_gozo),
                     "Situacao_Ferias": situacao_ferias,
                     "Situacao_Prazo": situacao_prazo,
                 }
 
                 df_ferias = pd.concat([df_ferias, pd.DataFrame([novo])], ignore_index=True)
+                df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
                 salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+
                 st.success("Registro de férias adicionado.")
                 st.rerun()
 
@@ -362,14 +373,39 @@ def render_ferias(df_ferias):
             st.info("Nenhum registro disponível.")
         else:
             opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
-            escolha = st.selectbox("Selecionar funcionário", opcoes, key="ferias_edit_select")
+
+            escolha = st.selectbox(
+                "Selecionar funcionário",
+                opcoes,
+                key="ferias_edit_select",
+            )
+
             idx = int(escolha.split(" - ")[0])
             linha = df_ferias.loc[idx]
 
-            matricula = st.text_input("Matrícula", value=str(linha["Matricula"]), key=f"ferias_edit_matricula_{idx}")
-            funcionario = st.text_input("Funcionário", value=str(linha["Funcionario"]), key=f"ferias_edit_funcionario_{idx}")
-            unidade = st.text_input("Unidade / Local", value=str(linha["Unidade"]), key=f"ferias_edit_unidade_{idx}")
-            departamento = st.text_input("Departamento", value=str(linha["Departamento"]), key=f"ferias_edit_departamento_{idx}")
+            matricula = st.text_input(
+                "Matrícula",
+                value=str(linha["Matricula"]),
+                key=f"ferias_edit_matricula_{idx}",
+            )
+
+            funcionario = st.text_input(
+                "Funcionário",
+                value=str(linha["Funcionario"]),
+                key=f"ferias_edit_funcionario_{idx}",
+            )
+
+            unidade = st.text_input(
+                "Unidade / Local",
+                value=str(linha["Unidade"]),
+                key=f"ferias_edit_unidade_{idx}",
+            )
+
+            departamento = st.text_input(
+                "Departamento",
+                value=str(linha["Departamento"]),
+                key=f"ferias_edit_departamento_{idx}",
+            )
 
             periodo_inicio_val = para_data(linha["Periodo_Aquisitivo_Inicio"]) or date.today()
             periodo_fim_val = para_data(linha["Periodo_Aquisitivo_Fim"]) or date.today() + timedelta(days=365)
@@ -378,6 +414,7 @@ def render_ferias(df_ferias):
             limite_val = para_data(linha["Limite_Gozo"]) or periodo_fim_val + timedelta(days=335)
 
             col1, col2 = st.columns(2)
+
             with col1:
                 periodo_inicio = st.date_input(
                     "Início do período aquisitivo",
@@ -385,6 +422,7 @@ def render_ferias(df_ferias):
                     format="DD/MM/YYYY",
                     key=f"ferias_edit_inicio_{idx}",
                 )
+
             with col2:
                 periodo_fim = st.date_input(
                     "Fim do período aquisitivo",
@@ -394,6 +432,7 @@ def render_ferias(df_ferias):
                 )
 
             col3, col4 = st.columns(2)
+
             with col3:
                 data_inicio_gozo = st.date_input(
                     "Início do gozo",
@@ -401,6 +440,7 @@ def render_ferias(df_ferias):
                     format="DD/MM/YYYY",
                     key=f"ferias_edit_inicio_gozo_{idx}",
                 )
+
             with col4:
                 data_fim_gozo = st.date_input(
                     "Fim do gozo",
@@ -426,30 +466,45 @@ def render_ferias(df_ferias):
 
             col_salvar, col_excluir = st.columns(2)
 
-            if col_salvar.button("Salvar alterações", use_container_width=True, key=f"btn_salvar_ferias_{idx}"):
-                situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
+            if col_salvar.button(
+                "Salvar alterações",
+                use_container_width=True,
+                key=f"btn_salvar_ferias_{idx}",
+            ):
+                if not funcionario.strip():
+                    st.error("Informe o nome do funcionário.")
+                else:
+                    situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
-                df_ferias.loc[idx, "Matricula"] = matricula
-                df_ferias.loc[idx, "Funcionario"] = funcionario
-                df_ferias.loc[idx, "Unidade"] = unidade
-                df_ferias.loc[idx, "Departamento"] = departamento
-                df_ferias.loc[idx, "Periodo_Aquisitivo_Inicio"] = periodo_inicio
-                df_ferias.loc[idx, "Periodo_Aquisitivo_Fim"] = periodo_fim
-                df_ferias.loc[idx, "Data_Inicio_Gozo"] = data_inicio_gozo or ""
-                df_ferias.loc[idx, "Data_Fim_Gozo"] = data_fim_gozo or ""
-                df_ferias.loc[idx, "Dias_Gozo"] = dias_gozo
-                df_ferias.loc[idx, "Limite_Gozo"] = limite_gozo
-                df_ferias.loc[idx, "Periodo_Gozo"] = periodo_gozo
-                df_ferias.loc[idx, "Situacao_Ferias"] = situacao_ferias
-                df_ferias.loc[idx, "Situacao_Prazo"] = situacao_prazo
+                    df_ferias.loc[idx, "Matricula"] = str(matricula)
+                    df_ferias.loc[idx, "Funcionario"] = str(funcionario)
+                    df_ferias.loc[idx, "Unidade"] = str(unidade)
+                    df_ferias.loc[idx, "Departamento"] = str(departamento)
+                    df_ferias.loc[idx, "Periodo_Aquisitivo_Inicio"] = periodo_inicio
+                    df_ferias.loc[idx, "Periodo_Aquisitivo_Fim"] = periodo_fim
+                    df_ferias.loc[idx, "Data_Inicio_Gozo"] = data_inicio_gozo or ""
+                    df_ferias.loc[idx, "Data_Fim_Gozo"] = data_fim_gozo or ""
+                    df_ferias.loc[idx, "Dias_Gozo"] = dias_gozo
+                    df_ferias.loc[idx, "Limite_Gozo"] = limite_gozo
+                    df_ferias.loc[idx, "Periodo_Gozo"] = str(periodo_gozo)
+                    df_ferias.loc[idx, "Situacao_Ferias"] = situacao_ferias
+                    df_ferias.loc[idx, "Situacao_Prazo"] = situacao_prazo
 
-                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
-                st.success("Registro atualizado.")
-                st.rerun()
+                    df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
+                    salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
 
-            if col_excluir.button("Excluir registro", use_container_width=True, key=f"btn_excluir_ferias_{idx}"):
+                    st.success("Registro atualizado.")
+                    st.rerun()
+
+            if col_excluir.button(
+                "Excluir registro",
+                use_container_width=True,
+                key=f"btn_excluir_ferias_{idx}",
+            ):
                 df_ferias = df_ferias.drop(idx).reset_index(drop=True)
+                df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
                 salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+
                 st.warning("Registro excluído.")
                 st.rerun()
 
@@ -469,7 +524,12 @@ def render_folgas(df_ferias):
     st.markdown("### Nova folga")
 
     opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
-    escolha = st.selectbox("Selecionar funcionário", opcoes, key="folga_funcionario_select")
+
+    escolha = st.selectbox(
+        "Selecionar funcionário",
+        opcoes,
+        key="folga_funcionario_select",
+    )
 
     idx = int(escolha.split(" - ")[0])
     funcionario_base = df_ferias.loc[idx]
@@ -481,6 +541,7 @@ def render_folgas(df_ferias):
     if not df_func.empty:
         df_func["Data_Saida_Data"] = df_func["Data_Saida"].apply(para_data)
         df_func = df_func.dropna(subset=["Data_Saida_Data"])
+
         if not df_func.empty:
             ultima_saida = df_func["Data_Saida_Data"].max()
             dias_desde = (date.today() - ultima_saida).days
@@ -499,11 +560,28 @@ def render_folgas(df_ferias):
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.text_input("Matrícula", value=str(funcionario_base["Matricula"]), disabled=True, key="folga_matricula_view")
+        st.text_input(
+            "Matrícula",
+            value=str(funcionario_base["Matricula"]),
+            disabled=True,
+            key="folga_matricula_view",
+        )
+
     with col2:
-        st.text_input("Unidade", value=str(funcionario_base["Unidade"]), disabled=True, key="folga_unidade_view")
+        st.text_input(
+            "Unidade",
+            value=str(funcionario_base["Unidade"]),
+            disabled=True,
+            key="folga_unidade_view",
+        )
+
     with col3:
-        st.text_input("Departamento", value=str(funcionario_base["Departamento"]), disabled=True, key="folga_departamento_view")
+        st.text_input(
+            "Departamento",
+            value=str(funcionario_base["Departamento"]),
+            disabled=True,
+            key="folga_departamento_view",
+        )
 
     data_saida = st.date_input(
         "Data de saída para folga",
@@ -527,6 +605,7 @@ def render_folgas(df_ferias):
 
     if ultima_saida:
         intervalo = (data_saida - ultima_saida).days
+
         if intervalo < DIAS_INTERVALO_FOLGA:
             st.error(
                 f"🚨 Atenção: esta nova folga está apenas {intervalo} dias após a última. "
@@ -537,19 +616,20 @@ def render_folgas(df_ferias):
 
     if st.button("Registrar folga", use_container_width=True, key="btn_registrar_folga"):
         novo = {
-            "Matricula": funcionario_base["Matricula"],
-            "Funcionario": funcionario_base["Funcionario"],
-            "Unidade": funcionario_base["Unidade"],
-            "Departamento": funcionario_base["Departamento"],
+            "Matricula": str(funcionario_base["Matricula"]),
+            "Funcionario": str(funcionario_base["Funcionario"]),
+            "Unidade": str(funcionario_base["Unidade"]),
+            "Departamento": str(funcionario_base["Departamento"]),
             "Data_Saida": data_saida,
             "Data_Retorno": data_retorno,
             "Dias_Folga": int(dias_folga),
-            "Observacoes": observacoes,
-            "Criado_Por": st.session_state.get("usuario", ""),
+            "Observacoes": str(observacoes),
+            "Criado_Por": str(st.session_state.get("usuario", "")),
             "Data_Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
         df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
+        df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
         salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
 
         st.success("Folga registrada com sucesso.")
