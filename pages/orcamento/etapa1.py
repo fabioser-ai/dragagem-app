@@ -139,11 +139,11 @@ if str(draga_salva) == str(draga):
 else:
     vazao_valor = vazao_base
 
-vazao = st.number_input(
-    "Vazão (m³/h)",
-    value=vazao_valor,
-    key=f"vazao_{draga}",
-)
+    vazao = st.number_input(
+        "Vazão (m³/h)",
+        value=vazao_valor,
+        key=f"vazao_{draga}",
+    )
 
     if vazao != vazao_base:
         st.warning("Vazão alterada manualmente.")
