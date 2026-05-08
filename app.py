@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Módulos principais
-from pages import menu, dados, ferias
+from pages import menu, dados, ferias, prestacao_contas
 
 # Serviços
 from services.auth import verificar_login
@@ -34,7 +34,22 @@ aplicar_estilo_global()
 # ESTADO INICIAL
 # =========================
 if "tela" not in st.session_state:
-    st.session_state.tela = "menu"
+    if st.session_state.get("perfil") == "funcionario":
+        st.session_state.tela = "prestacao_contas"
+    else:
+        st.session_state.tela = "menu"
+
+# =========================
+# BLOQUEIO DE ACESSO PARA FUNCIONÁRIO
+# =========================
+if st.session_state.get("perfil") == "funcionario":
+    telas_permitidas_funcionario = [
+        "prestacao_contas",
+    ]
+
+    if st.session_state.tela not in telas_permitidas_funcionario:
+        st.session_state.tela = "prestacao_contas"
+        st.rerun()
 
 # =========================
 # ROTEADOR
@@ -49,6 +64,9 @@ elif st.session_state.tela == "dados":
 
 elif st.session_state.tela == "ferias":
     ferias.render()
+
+elif st.session_state.tela == "prestacao_contas":
+    prestacao_contas.render()
 
 # =========================
 # MÓDULO OBRAS
@@ -108,5 +126,8 @@ elif st.session_state.tela == "orcamento3":
 # FALLBACK
 # =========================
 else:
-    st.session_state.tela = "menu"
+    if st.session_state.get("perfil") == "funcionario":
+        st.session_state.tela = "prestacao_contas"
+    else:
+        st.session_state.tela = "menu"
     st.rerun()
