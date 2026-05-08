@@ -114,7 +114,7 @@ def render():
         """
         <div class="main-header">
             <h1>FOS ENGENHARIA LTDA</h1>
-            <p>Sistema interno de gestão para orçamento, obras, férias e base de dados</p>
+            <p>Sistema interno de gestão para orçamento, obras, férias, prestação de contas e base de dados</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -165,6 +165,18 @@ def render():
         )
         if st.button("ABRIR FÉRIAS", use_container_width=True):
             st.session_state.tela = "ferias"
+
+        st.markdown(
+            """
+            <div class="module-card">
+                <h3>Prestação de Contas</h3>
+                <p>Lançamento de despesas, comprovantes e acompanhamento de reembolsos.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        if st.button("ABRIR PRESTAÇÃO DE CONTAS", use_container_width=True):
+            st.session_state.tela = "prestacao_contas"
 
     with col2:
         st.markdown(
