@@ -1,3 +1,5 @@
+from io import BytesIO
+
 import uuid
 from datetime import date, datetime
 
@@ -203,25 +205,40 @@ def render_comprovante(caminho):
             return
 
         extensao = str(caminho).split(".")[-1].lower()
+        nome_arquivo = str(caminho).split("/")[-1]
+
+        st.caption(f"Arquivo: {nome_arquivo}")
 
         if extensao in ["png", "jpg", "jpeg"]:
-            st.image(arquivo_bytes, caption=caminho, use_container_width=True)
+            st.image(
+                BytesIO(arquivo_bytes),
+                caption=nome_arquivo,
+                use_container_width=True,
+            )
+
+            st.download_button(
+                "Baixar comprovante",
+                data=arquivo_bytes,
+                file_name=nome_arquivo,
+                mime=f"image/{'jpeg' if extensao in ['jpg', 'jpeg'] else 'png'}",
+                use_container_width=True,
+            )
 
         elif extensao == "pdf":
             st.download_button(
                 "Baixar comprovante PDF",
                 data=arquivo_bytes,
-                file_name=str(caminho).split("/")[-1],
+                file_name=nome_arquivo,
                 mime="application/pdf",
                 use_container_width=True,
             )
-            st.info("PDF disponível para download.")
 
         else:
             st.download_button(
                 "Baixar comprovante",
                 data=arquivo_bytes,
-                file_name=str(caminho).split("/")[-1],
+                file_name=nome_arquivo,
+                mime="application/octet-stream",
                 use_container_width=True,
             )
 
