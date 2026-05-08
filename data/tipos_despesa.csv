@@ -1,0 +1,11 @@
+Tipo_Despesa,Descricao,Ativo,Criado_Por,Data_Registro
+Hospedagem,"Hotel, pousada ou diária de alojamento",Sim,sistema,2026-05-08 00:00:00
+Refeição,"Almoço, jantar, lanche ou alimentação em viagem",Sim,sistema,2026-05-08 00:00:00
+Abastecimento,"Combustível de veículo ou equipamento",Sim,sistema,2026-05-08 00:00:00
+Pedágio,"Pedágio em deslocamentos operacionais",Sim,sistema,2026-05-08 00:00:00
+Estacionamento,"Estacionamento em serviço externo",Sim,sistema,2026-05-08 00:00:00
+Transporte,"Aplicativo, táxi, ônibus, balsa ou deslocamento operacional",Sim,sistema,2026-05-08 00:00:00
+Material de Campo,"Compra emergencial de materiais para obra ou campo",Sim,sistema,2026-05-08 00:00:00
+Ferramentas,"Compra emergencial de ferramentas pequenas",Sim,sistema,2026-05-08 00:00:00
+Manutenção Emergencial,"Serviço ou peça emergencial para veículo, equipamento ou apoio operacional",Sim,sistema,2026-05-08 00:00:00
+Outros,"Despesa não classificada nas categorias anteriores",Sim,sistema,2026-05-08 00:00:00
