@@ -25,7 +25,10 @@ def salvar_github(df, arquivo, token, repo):
     if sha:
         data["sha"] = sha
 
-    requests.put(url, headers=headers, json=data)
+    put_response = requests.put(url, headers=headers, json=data)
+
+    if put_response.status_code not in [200, 201]:
+        raise Exception(f"Erro ao salvar CSV no GitHub: {put_response.text}")
 
 
 # =========================
@@ -40,7 +43,11 @@ def carregar_github(arquivo, token, repo):
     if response.status_code != 200:
         return pd.DataFrame()
 
-    content = response.json()["content"]
+    content = response.json().get("content")
+
+    if not content:
+        return pd.DataFrame()
+
     decoded = base64.b64decode(content).decode()
 
     return pd.read_csv(StringIO(decoded))
@@ -88,5 +95,22 @@ def carregar_arquivo_github(arquivo, token, repo):
     if response.status_code != 200:
         return None
 
-    content = response.json()["content"]
-    return base64.b64decode(content)
+    dados = response.json()
+
+    # Caminho mais confiável para imagem/PDF:
+    # baixa o arquivo bruto pelo download_url.
+    download_url = dados.get("download_url")
+
+    if download_url:
+        raw_response = requests.get(download_url, headers=headers)
+
+        if raw_response.status_code == 200:
+            return raw_response.content
+
+    # Fallback: usa o conteúdo base64 retornado pela API.
+    content = dados.get("content")
+
+    if content:
+        return base64.b64decode(content)
+
+    return None
