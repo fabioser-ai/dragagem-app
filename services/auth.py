@@ -24,6 +24,12 @@ def inicializar_auth():
     if "perfil" not in st.session_state:
         st.session_state.perfil = None
 
+    if "matricula" not in st.session_state:
+        st.session_state.matricula = None
+
+    if "nome" not in st.session_state:
+        st.session_state.nome = None
+
     if "ultimo_acesso" not in st.session_state:
         st.session_state.ultimo_acesso = time.time()
 
@@ -33,6 +39,8 @@ def limpar_sessao():
         "autenticado",
         "usuario",
         "perfil",
+        "matricula",
+        "nome",
         "tela",
         "ultimo_acesso",
     ]
@@ -98,10 +106,14 @@ def verificar_login():
 
         if usuario in usuarios and senha == usuarios[usuario]["password"]:
             perfil = usuarios[usuario].get("role", "user")
+            matricula = usuarios[usuario].get("matricula", "")
+            nome = usuarios[usuario].get("nome", usuario)
 
             st.session_state.autenticado = True
             st.session_state.usuario = usuario
             st.session_state.perfil = perfil
+            st.session_state.matricula = matricula
+            st.session_state.nome = nome
             st.session_state.ultimo_acesso = time.time()
 
             try:
