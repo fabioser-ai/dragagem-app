@@ -164,6 +164,46 @@ def cor_linha_folgas(row):
     return [""] * len(row)
 
 
+def existe_sobreposicao_folga(df_folgas, matricula, data_saida, data_retorno, ignorar_idx=None):
+    if df_folgas.empty:
+        return False, None
+
+    df_tmp = df_folgas.copy()
+    df_tmp["Data_Saida_Data"] = df_tmp["Data_Saida"].apply(para_data)
+    df_tmp["Data_Retorno_Data"] = df_tmp["Data_Retorno"].apply(para_data)
+
+    df_tmp = df_tmp[df_tmp["Matricula"].astype(str) == str(matricula)]
+
+    if ignorar_idx is not None and ignorar_idx in df_tmp.index:
+        df_tmp = df_tmp.drop(index=ignorar_idx)
+
+    for idx, linha in df_tmp.iterrows():
+        saida_existente = linha.get("Data_Saida_Data")
+        retorno_existente = linha.get("Data_Retorno_Data")
+
+        if saida_existente is None or retorno_existente is None:
+            continue
+
+        sobrepoe = data_saida <= retorno_existente and data_retorno >= saida_existente
+
+        if sobrepoe:
+            return True, linha
+
+    return False, None
+
+
+def ordenar_folgas_por_data(df):
+    if df.empty:
+        return df
+
+    df_tmp = df.copy()
+    df_tmp["_Data_Saida_Ordenacao"] = df_tmp["Data_Saida"].apply(para_data)
+    df_tmp = df_tmp.sort_values(by="_Data_Saida_Ordenacao", ascending=False)
+    df_tmp = df_tmp.drop(columns=["_Data_Saida_Ordenacao"])
+
+    return df_tmp
+
+
 def mostrar_alertas_ferias(df):
     if df.empty:
         return
@@ -521,145 +561,318 @@ def render_folgas(df_ferias):
         st.warning("Cadastre funcionários em férias primeiro para usar o controle de folgas.")
         return
 
-    st.markdown("### Nova folga")
-
-    opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
-
-    escolha = st.selectbox(
-        "Selecionar funcionário",
-        opcoes,
-        key="folga_funcionario_select",
+    aba_nova, aba_edit, aba_hist = st.tabs(
+        ["Nova folga", "Editar / Excluir", "Histórico de folgas"]
     )
 
-    idx = int(escolha.split(" - ")[0])
-    funcionario_base = df_ferias.loc[idx]
-    funcionario_nome = str(funcionario_base["Funcionario"])
+    with aba_nova:
+        st.markdown("### Nova folga")
 
-    df_func = df_folgas[df_folgas["Funcionario"].astype(str) == funcionario_nome].copy()
-    ultima_saida = None
+        opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
 
-    if not df_func.empty:
-        df_func["Data_Saida_Data"] = df_func["Data_Saida"].apply(para_data)
-        df_func = df_func.dropna(subset=["Data_Saida_Data"])
+        escolha = st.selectbox(
+            "Selecionar funcionário",
+            opcoes,
+            key="folga_funcionario_select",
+        )
+
+        idx = int(escolha.split(" - ")[0])
+        funcionario_base = df_ferias.loc[idx]
+        funcionario_nome = str(funcionario_base["Funcionario"])
+        matricula_base = str(funcionario_base["Matricula"])
+
+        df_func = df_folgas[df_folgas["Matricula"].astype(str) == matricula_base].copy()
+        ultima_saida = None
 
         if not df_func.empty:
-            ultima_saida = df_func["Data_Saida_Data"].max()
-            dias_desde = (date.today() - ultima_saida).days
+            df_func["Data_Saida_Data"] = df_func["Data_Saida"].apply(para_data)
+            df_func = df_func.dropna(subset=["Data_Saida_Data"])
 
-            if dias_desde < DIAS_INTERVALO_FOLGA:
-                st.warning(
-                    f"⚠️ Última folga de {funcionario_nome}: {ultima_saida.strftime('%d/%m/%Y')} "
-                    f"({dias_desde} dias atrás). Regra sugerida: intervalo mínimo de 60 dias."
-                )
-            else:
-                st.success(
-                    f"✅ Última folga de {funcionario_nome}: {ultima_saida.strftime('%d/%m/%Y')} "
-                    f"({dias_desde} dias atrás)."
-                )
+            if not df_func.empty:
+                ultima_saida = df_func["Data_Saida_Data"].max()
+                dias_desde = (date.today() - ultima_saida).days
 
-    col1, col2, col3 = st.columns(3)
+                if dias_desde < DIAS_INTERVALO_FOLGA:
+                    st.warning(
+                        f"⚠️ Última folga de {funcionario_nome}: {ultima_saida.strftime('%d/%m/%Y')} "
+                        f"({dias_desde} dias atrás). Regra sugerida: intervalo mínimo de 60 dias."
+                    )
+                else:
+                    st.success(
+                        f"✅ Última folga de {funcionario_nome}: {ultima_saida.strftime('%d/%m/%Y')} "
+                        f"({dias_desde} dias atrás)."
+                    )
 
-    with col1:
-        st.text_input(
-            "Matrícula",
-            value=str(funcionario_base["Matricula"]),
-            disabled=True,
-            key="folga_matricula_view",
-        )
+        col1, col2, col3 = st.columns(3)
 
-    with col2:
-        st.text_input(
-            "Unidade",
-            value=str(funcionario_base["Unidade"]),
-            disabled=True,
-            key="folga_unidade_view",
-        )
-
-    with col3:
-        st.text_input(
-            "Departamento",
-            value=str(funcionario_base["Departamento"]),
-            disabled=True,
-            key="folga_departamento_view",
-        )
-
-    data_saida = st.date_input(
-        "Data de saída para folga",
-        value=date.today(),
-        format="DD/MM/YYYY",
-        key="folga_data_saida",
-    )
-
-    dias_folga = st.number_input(
-        "Dias de folga",
-        min_value=1,
-        max_value=30,
-        value=7,
-        step=1,
-        key="folga_dias",
-    )
-
-    data_retorno = data_saida + timedelta(days=int(dias_folga))
-
-    st.info(f"Data de retorno calculada: **{data_retorno.strftime('%d/%m/%Y')}**")
-
-    if ultima_saida:
-        intervalo = (data_saida - ultima_saida).days
-
-        if intervalo < DIAS_INTERVALO_FOLGA:
-            st.error(
-                f"🚨 Atenção: esta nova folga está apenas {intervalo} dias após a última. "
-                f"O recomendado é no mínimo 60 dias."
+        with col1:
+            st.text_input(
+                "Matrícula",
+                value=str(funcionario_base["Matricula"]),
+                disabled=True,
+                key="folga_matricula_view",
             )
 
-    observacoes = st.text_area("Observações", key="folga_observacoes")
+        with col2:
+            st.text_input(
+                "Unidade",
+                value=str(funcionario_base["Unidade"]),
+                disabled=True,
+                key="folga_unidade_view",
+            )
 
-    if st.button("Registrar folga", use_container_width=True, key="btn_registrar_folga"):
-        novo = {
-            "Matricula": str(funcionario_base["Matricula"]),
-            "Funcionario": str(funcionario_base["Funcionario"]),
-            "Unidade": str(funcionario_base["Unidade"]),
-            "Departamento": str(funcionario_base["Departamento"]),
-            "Data_Saida": data_saida,
-            "Data_Retorno": data_retorno,
-            "Dias_Folga": int(dias_folga),
-            "Observacoes": str(observacoes),
-            "Criado_Por": str(st.session_state.get("usuario", "")),
-            "Data_Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
+        with col3:
+            st.text_input(
+                "Departamento",
+                value=str(funcionario_base["Departamento"]),
+                disabled=True,
+                key="folga_departamento_view",
+            )
 
-        df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
-        df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-        salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
-
-        st.success("Folga registrada com sucesso.")
-        st.rerun()
-
-    st.divider()
-
-    st.markdown("### Histórico de folgas")
-
-    filtro = st.selectbox(
-        "Filtrar histórico",
-        ["Todos"] + sorted(df_folgas["Funcionario"].dropna().astype(str).unique().tolist()),
-        key="folga_filtro_historico",
-    )
-
-    df_exibir = df_folgas.copy()
-
-    if filtro != "Todos":
-        df_exibir = df_exibir[df_exibir["Funcionario"] == filtro]
-
-    if df_exibir.empty:
-        st.info("Nenhuma folga registrada ainda.")
-    else:
-        df_exibir = df_exibir.sort_values(by="Data_Saida", ascending=False)
-        df_exibir_br = preparar_exibicao_folgas(df_exibir)
-
-        st.dataframe(
-            df_exibir_br.style.apply(cor_linha_folgas, axis=1),
-            use_container_width=True,
+        data_saida = st.date_input(
+            "Data de saída para folga",
+            value=date.today(),
+            format="DD/MM/YYYY",
+            key="folga_data_saida",
         )
+
+        dias_folga = st.number_input(
+            "Dias de folga",
+            min_value=1,
+            max_value=30,
+            value=7,
+            step=1,
+            key="folga_dias",
+        )
+
+        data_retorno = data_saida + timedelta(days=int(dias_folga))
+
+        st.info(f"Data de retorno calculada: **{data_retorno.strftime('%d/%m/%Y')}**")
+
+        if ultima_saida:
+            intervalo = (data_saida - ultima_saida).days
+
+            if intervalo < DIAS_INTERVALO_FOLGA:
+                st.error(
+                    f"🚨 Atenção: esta nova folga está apenas {intervalo} dias após a última. "
+                    f"O recomendado é no mínimo 60 dias."
+                )
+
+        sobrepoe, linha_conflito = existe_sobreposicao_folga(
+            df_folgas,
+            matricula_base,
+            data_saida,
+            data_retorno,
+        )
+
+        if sobrepoe:
+            st.error(
+                "🚨 Já existe uma folga cadastrada para este funcionário dentro desse período: "
+                f"{formatar_data_br(linha_conflito.get('Data_Saida'))} até "
+                f"{formatar_data_br(linha_conflito.get('Data_Retorno'))}."
+            )
+
+        observacoes = st.text_area("Observações", key="folga_observacoes")
+
+        if st.button("Registrar folga", use_container_width=True, key="btn_registrar_folga"):
+            if sobrepoe:
+                st.error("Não foi possível registrar. Existe sobreposição com outra folga.")
+            else:
+                novo = {
+                    "Matricula": str(funcionario_base["Matricula"]),
+                    "Funcionario": str(funcionario_base["Funcionario"]),
+                    "Unidade": str(funcionario_base["Unidade"]),
+                    "Departamento": str(funcionario_base["Departamento"]),
+                    "Data_Saida": data_saida,
+                    "Data_Retorno": data_retorno,
+                    "Dias_Folga": int(dias_folga),
+                    "Observacoes": str(observacoes),
+                    "Criado_Por": str(st.session_state.get("usuario", "")),
+                    "Data_Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+
+                df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
+                df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
+                salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+
+                st.success("Folga registrada com sucesso.")
+                st.rerun()
+
+    with aba_edit:
+        st.markdown("### Editar / Excluir folga")
+
+        if df_folgas.empty:
+            st.info("Nenhuma folga registrada para editar.")
+        else:
+            df_opcoes = df_folgas.copy()
+            df_opcoes["Data_Saida_Formatada"] = df_opcoes["Data_Saida"].apply(formatar_data_br)
+            df_opcoes["Data_Retorno_Formatada"] = df_opcoes["Data_Retorno"].apply(formatar_data_br)
+
+            opcoes_edit = []
+
+            for idx_linha, linha in df_opcoes.iterrows():
+                texto = (
+                    f"{idx_linha} - {linha.get('Funcionario', '')} | "
+                    f"{linha.get('Data_Saida_Formatada', '')} até "
+                    f"{linha.get('Data_Retorno_Formatada', '')}"
+                )
+                opcoes_edit.append(texto)
+
+            escolha_edit = st.selectbox(
+                "Selecionar folga",
+                opcoes_edit,
+                key="folga_edit_select",
+            )
+
+            idx_edit = int(escolha_edit.split(" - ")[0])
+            linha = df_folgas.loc[idx_edit]
+
+            matricula_edit = str(linha.get("Matricula", ""))
+            funcionario_edit = str(linha.get("Funcionario", ""))
+            unidade_edit = str(linha.get("Unidade", ""))
+            departamento_edit = str(linha.get("Departamento", ""))
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.text_input(
+                    "Matrícula",
+                    value=matricula_edit,
+                    disabled=True,
+                    key=f"folga_edit_matricula_{idx_edit}",
+                )
+
+            with col2:
+                st.text_input(
+                    "Unidade",
+                    value=unidade_edit,
+                    disabled=True,
+                    key=f"folga_edit_unidade_{idx_edit}",
+                )
+
+            with col3:
+                st.text_input(
+                    "Departamento",
+                    value=departamento_edit,
+                    disabled=True,
+                    key=f"folga_edit_departamento_{idx_edit}",
+                )
+
+            st.text_input(
+                "Funcionário",
+                value=funcionario_edit,
+                disabled=True,
+                key=f"folga_edit_funcionario_{idx_edit}",
+            )
+
+            data_saida_atual = para_data(linha.get("Data_Saida")) or date.today()
+            dias_atual = linha.get("Dias_Folga", 1)
+
+            try:
+                dias_atual = int(dias_atual)
+            except Exception:
+                dias_atual = 1
+
+            data_saida_edit = st.date_input(
+                "Data de saída para folga",
+                value=data_saida_atual,
+                format="DD/MM/YYYY",
+                key=f"folga_edit_data_saida_{idx_edit}",
+            )
+
+            dias_folga_edit = st.number_input(
+                "Dias de folga",
+                min_value=1,
+                max_value=30,
+                value=max(1, dias_atual),
+                step=1,
+                key=f"folga_edit_dias_{idx_edit}",
+            )
+
+            data_retorno_edit = data_saida_edit + timedelta(days=int(dias_folga_edit))
+
+            st.info(
+                f"Data de retorno recalculada: **{data_retorno_edit.strftime('%d/%m/%Y')}**"
+            )
+
+            sobrepoe_edit, linha_conflito_edit = existe_sobreposicao_folga(
+                df_folgas,
+                matricula_edit,
+                data_saida_edit,
+                data_retorno_edit,
+                ignorar_idx=idx_edit,
+            )
+
+            if sobrepoe_edit:
+                st.error(
+                    "🚨 Esta alteração gera sobreposição com outra folga: "
+                    f"{formatar_data_br(linha_conflito_edit.get('Data_Saida'))} até "
+                    f"{formatar_data_br(linha_conflito_edit.get('Data_Retorno'))}."
+                )
+
+            observacoes_edit = st.text_area(
+                "Observações",
+                value=str(linha.get("Observacoes", "")),
+                key=f"folga_edit_observacoes_{idx_edit}",
+            )
+
+            col_salvar, col_excluir = st.columns(2)
+
+            if col_salvar.button(
+                "Salvar alterações",
+                use_container_width=True,
+                key=f"btn_salvar_folga_{idx_edit}",
+            ):
+                if sobrepoe_edit:
+                    st.error("Não foi possível salvar. Existe sobreposição com outra folga.")
+                else:
+                    df_folgas.loc[idx_edit, "Data_Saida"] = data_saida_edit
+                    df_folgas.loc[idx_edit, "Data_Retorno"] = data_retorno_edit
+                    df_folgas.loc[idx_edit, "Dias_Folga"] = int(dias_folga_edit)
+                    df_folgas.loc[idx_edit, "Observacoes"] = str(observacoes_edit)
+
+                    df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
+                    salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+
+                    st.success("Folga atualizada com sucesso.")
+                    st.rerun()
+
+            if col_excluir.button(
+                "Excluir folga",
+                use_container_width=True,
+                key=f"btn_excluir_folga_{idx_edit}",
+            ):
+                df_folgas = df_folgas.drop(idx_edit).reset_index(drop=True)
+                df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
+                salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+
+                st.warning("Folga excluída.")
+                st.rerun()
+
+    with aba_hist:
+        st.markdown("### Histórico de folgas")
+
+        filtro = st.selectbox(
+            "Filtrar histórico",
+            ["Todos"] + sorted(df_folgas["Funcionario"].dropna().astype(str).unique().tolist()),
+            key="folga_filtro_historico",
+        )
+
+        df_exibir = df_folgas.copy()
+
+        if filtro != "Todos":
+            df_exibir = df_exibir[df_exibir["Funcionario"] == filtro]
+
+        if df_exibir.empty:
+            st.info("Nenhuma folga registrada ainda.")
+        else:
+            df_exibir = ordenar_folgas_por_data(df_exibir)
+            df_exibir_br = preparar_exibicao_folgas(df_exibir)
+
+            st.dataframe(
+                df_exibir_br.style.apply(cor_linha_folgas, axis=1),
+                use_container_width=True,
+            )
 
 
 def render():
