@@ -373,10 +373,29 @@ def render_ferias(df_ferias):
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Funcionários", total)
-    col2.metric("Férias vencidas", vencidas)
-    col3.metric("Atenção", atencao)
-    col4.metric("Férias em dobro", dobro)
+    col1.metric(
+        "Funcionários",
+        total,
+        help="Total de funcionários cadastrados no controle de férias.",
+    )
+
+    col2.metric(
+        "Férias vencidas",
+        vencidas,
+        help="Funcionários que já possuem direito a férias porque o período aquisitivo foi concluído.",
+    )
+
+    col3.metric(
+        "Atenção",
+        atencao,
+        help="Funcionários próximos do limite legal de gozo das férias. Hoje o sistema considera Atenção quando faltam 60 dias ou menos para o limite.",
+    )
+
+    col4.metric(
+        "Férias em dobro",
+        dobro,
+        help="Funcionários que ultrapassaram o prazo legal de gozo. Essa situação pode gerar pagamento em dobro das férias.",
+    )
 
     st.divider()
 
@@ -386,7 +405,10 @@ def render_ferias(df_ferias):
         st.warning("Nenhum registro de férias cadastrado.")
     else:
         df_exibir = preparar_exibicao_ferias(df_ferias)
-        st.dataframe(df_exibir.style.apply(cor_linha_ferias, axis=1), use_container_width=True)
+        st.dataframe(
+            df_exibir.style.apply(cor_linha_ferias, axis=1),
+            use_container_width=True,
+        )
 
     st.divider()
 
@@ -484,15 +506,38 @@ def render_ferias(df_ferias):
         else:
             opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
 
-            escolha = st.selectbox("Selecionar funcionário", opcoes, key="ferias_edit_select")
+            escolha = st.selectbox(
+                "Selecionar funcionário",
+                opcoes,
+                key="ferias_edit_select",
+            )
 
             idx = int(escolha.split(" - ")[0])
             linha = df_ferias.loc[idx]
 
-            matricula = st.text_input("Matrícula", value=str(linha["Matricula"]), key=f"ferias_edit_matricula_{idx}")
-            funcionario = st.text_input("Funcionário", value=str(linha["Funcionario"]), key=f"ferias_edit_funcionario_{idx}")
-            unidade = st.text_input("Unidade / Local", value=str(linha["Unidade"]), key=f"ferias_edit_unidade_{idx}")
-            departamento = st.text_input("Departamento", value=str(linha["Departamento"]), key=f"ferias_edit_departamento_{idx}")
+            matricula = st.text_input(
+                "Matrícula",
+                value=str(linha["Matricula"]),
+                key=f"ferias_edit_matricula_{idx}",
+            )
+
+            funcionario = st.text_input(
+                "Funcionário",
+                value=str(linha["Funcionario"]),
+                key=f"ferias_edit_funcionario_{idx}",
+            )
+
+            unidade = st.text_input(
+                "Unidade / Local",
+                value=str(linha["Unidade"]),
+                key=f"ferias_edit_unidade_{idx}",
+            )
+
+            departamento = st.text_input(
+                "Departamento",
+                value=str(linha["Departamento"]),
+                key=f"ferias_edit_departamento_{idx}",
+            )
 
             periodo_inicio_val = para_data(linha["Periodo_Aquisitivo_Inicio"]) or date.today()
             periodo_fim_val = para_data(linha["Periodo_Aquisitivo_Fim"]) or date.today() + timedelta(days=365)
@@ -553,7 +598,11 @@ def render_ferias(df_ferias):
 
             col_salvar, col_excluir = st.columns(2)
 
-            if col_salvar.button("Salvar alterações", use_container_width=True, key=f"btn_salvar_ferias_{idx}"):
+            if col_salvar.button(
+                "Salvar alterações",
+                use_container_width=True,
+                key=f"btn_salvar_ferias_{idx}",
+            ):
                 if not funcionario.strip():
                     st.error("Informe o nome do funcionário.")
                 else:
@@ -579,7 +628,11 @@ def render_ferias(df_ferias):
                     st.success("Registro atualizado.")
                     st.rerun()
 
-            if col_excluir.button("Excluir registro", use_container_width=True, key=f"btn_excluir_ferias_{idx}"):
+            if col_excluir.button(
+                "Excluir registro",
+                use_container_width=True,
+                key=f"btn_excluir_ferias_{idx}",
+            ):
                 df_ferias = df_ferias.drop(idx).reset_index(drop=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
                 salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
@@ -601,14 +654,45 @@ def render_folgas(df_ferias):
         st.warning("Cadastre funcionários em férias primeiro para usar o controle de folgas.")
         return
 
-    aba_nova, aba_edit, aba_hist = st.tabs(["Nova folga", "Editar / Excluir", "Histórico de folgas"])
+    aba_hist, aba_nova, aba_edit = st.tabs(
+        ["Histórico de folgas", "Nova folga", "Editar / Excluir"]
+    )
+
+    with aba_hist:
+        st.markdown("### Histórico de folgas")
+
+        filtro = st.selectbox(
+            "Filtrar histórico",
+            ["Todos"] + sorted(df_folgas["Funcionario"].dropna().astype(str).unique().tolist()),
+            key="folga_filtro_historico",
+        )
+
+        df_exibir = df_folgas.copy()
+
+        if filtro != "Todos":
+            df_exibir = df_exibir[df_exibir["Funcionario"] == filtro]
+
+        if df_exibir.empty:
+            st.info("Nenhuma folga registrada ainda.")
+        else:
+            df_exibir = ordenar_folgas_por_data(df_exibir)
+            df_exibir_br = preparar_exibicao_folgas(df_exibir)
+
+            st.dataframe(
+                df_exibir_br.style.apply(cor_linha_folgas, axis=1),
+                use_container_width=True,
+            )
 
     with aba_nova:
         st.markdown("### Nova folga")
 
         opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
 
-        escolha = st.selectbox("Selecionar funcionário", opcoes, key="folga_funcionario_select")
+        escolha = st.selectbox(
+            "Selecionar funcionário",
+            opcoes,
+            key="folga_funcionario_select",
+        )
 
         idx = int(escolha.split(" - ")[0])
         funcionario_base = df_ferias.loc[idx]
@@ -640,13 +724,28 @@ def render_folgas(df_ferias):
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.text_input("Matrícula", value=str(funcionario_base["Matricula"]), disabled=True, key="folga_matricula_view")
+            st.text_input(
+                "Matrícula",
+                value=str(funcionario_base["Matricula"]),
+                disabled=True,
+                key="folga_matricula_view",
+            )
 
         with col2:
-            st.text_input("Unidade", value=str(funcionario_base["Unidade"]), disabled=True, key="folga_unidade_view")
+            st.text_input(
+                "Unidade",
+                value=str(funcionario_base["Unidade"]),
+                disabled=True,
+                key="folga_unidade_view",
+            )
 
         with col3:
-            st.text_input("Departamento", value=str(funcionario_base["Departamento"]), disabled=True, key="folga_departamento_view")
+            st.text_input(
+                "Departamento",
+                value=str(funcionario_base["Departamento"]),
+                disabled=True,
+                key="folga_departamento_view",
+            )
 
         data_saida = st.date_input(
             "Data de saída para folga",
@@ -737,7 +836,11 @@ def render_folgas(df_ferias):
                 )
                 opcoes_edit.append(texto)
 
-            escolha_edit = st.selectbox("Selecionar folga", opcoes_edit, key="folga_edit_select")
+            escolha_edit = st.selectbox(
+                "Selecionar folga",
+                opcoes_edit,
+                key="folga_edit_select",
+            )
 
             idx_edit = int(escolha_edit.split(" - ")[0])
             linha = df_folgas.loc[idx_edit]
@@ -750,15 +853,35 @@ def render_folgas(df_ferias):
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                st.text_input("Matrícula", value=matricula_edit, disabled=True, key=f"folga_edit_matricula_{idx_edit}")
+                st.text_input(
+                    "Matrícula",
+                    value=matricula_edit,
+                    disabled=True,
+                    key=f"folga_edit_matricula_{idx_edit}",
+                )
 
             with col2:
-                st.text_input("Unidade", value=unidade_edit, disabled=True, key=f"folga_edit_unidade_{idx_edit}")
+                st.text_input(
+                    "Unidade",
+                    value=unidade_edit,
+                    disabled=True,
+                    key=f"folga_edit_unidade_{idx_edit}",
+                )
 
             with col3:
-                st.text_input("Departamento", value=departamento_edit, disabled=True, key=f"folga_edit_departamento_{idx_edit}")
+                st.text_input(
+                    "Departamento",
+                    value=departamento_edit,
+                    disabled=True,
+                    key=f"folga_edit_departamento_{idx_edit}",
+                )
 
-            st.text_input("Funcionário", value=funcionario_edit, disabled=True, key=f"folga_edit_funcionario_{idx_edit}")
+            st.text_input(
+                "Funcionário",
+                value=funcionario_edit,
+                disabled=True,
+                key=f"folga_edit_funcionario_{idx_edit}",
+            )
 
             data_saida_atual = para_data(linha.get("Data_Saida")) or date.today()
             dias_atual = linha.get("Dias_Folga", 1)
@@ -786,7 +909,9 @@ def render_folgas(df_ferias):
 
             data_retorno_edit = data_saida_edit + timedelta(days=int(dias_folga_edit))
 
-            st.info(f"Data de retorno recalculada: **{data_retorno_edit.strftime('%d/%m/%Y')}**")
+            st.info(
+                f"Data de retorno recalculada: **{data_retorno_edit.strftime('%d/%m/%Y')}**"
+            )
 
             sobrepoe_edit, linha_conflito_edit = existe_sobreposicao_folga(
                 df_folgas,
@@ -811,7 +936,11 @@ def render_folgas(df_ferias):
 
             col_salvar, col_excluir = st.columns(2)
 
-            if col_salvar.button("Salvar alterações", use_container_width=True, key=f"btn_salvar_folga_{idx_edit}"):
+            if col_salvar.button(
+                "Salvar alterações",
+                use_container_width=True,
+                key=f"btn_salvar_folga_{idx_edit}",
+            ):
                 if sobrepoe_edit:
                     st.error("Não foi possível salvar. Existe sobreposição com outra folga.")
                 else:
@@ -826,38 +955,17 @@ def render_folgas(df_ferias):
                     st.success("Folga atualizada com sucesso.")
                     st.rerun()
 
-            if col_excluir.button("Excluir folga", use_container_width=True, key=f"btn_excluir_folga_{idx_edit}"):
+            if col_excluir.button(
+                "Excluir folga",
+                use_container_width=True,
+                key=f"btn_excluir_folga_{idx_edit}",
+            ):
                 df_folgas = df_folgas.drop(idx_edit).reset_index(drop=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
                 salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
 
                 st.warning("Folga excluída.")
                 st.rerun()
-
-    with aba_hist:
-        st.markdown("### Histórico de folgas")
-
-        filtro = st.selectbox(
-            "Filtrar histórico",
-            ["Todos"] + sorted(df_folgas["Funcionario"].dropna().astype(str).unique().tolist()),
-            key="folga_filtro_historico",
-        )
-
-        df_exibir = df_folgas.copy()
-
-        if filtro != "Todos":
-            df_exibir = df_exibir[df_exibir["Funcionario"] == filtro]
-
-        if df_exibir.empty:
-            st.info("Nenhuma folga registrada ainda.")
-        else:
-            df_exibir = ordenar_folgas_por_data(df_exibir)
-            df_exibir_br = preparar_exibicao_folgas(df_exibir)
-
-            st.dataframe(
-                df_exibir_br.style.apply(cor_linha_folgas, axis=1),
-                use_container_width=True,
-            )
 
 
 def render():
