@@ -1,3 +1,3 @@
 ID,Matricula,Funcionario,Unidade,Departamento,Data_Despesa,Tipo_Despesa,Descricao,Valor,Arquivo_Comprovante,Status,Criado_Por,Data_Registro,Aprovado_Por,Data_Aprovacao,Observacoes_Aprovacao
 d27d0413-de20-48d9-8a08-d1acb4000b68,,Peba,,,2026-05-08,Ferramentas,Locaminas,120.0,data/comprovantes/20260508_195059_d27d0413-de20-48d9-8a08-d1acb4000b68_image.jpg,Pendente,Peba,2026-05-08 19:51:01,,,
-c0c0f70a-2314-4616-adde-8903ff32f1a9,,Peba,,,2026-05-08,Hospedagem,Hotel em Abu dabi,1000000.0,data/comprovantes/20260508_200926_c0c0f70a-2314-4616-adde-8903ff32f1a9_17782709453413204586365055509433.jpg,Pendente,Peba,2026-05-08 20:09:28,,,
+c0c0f70a-2314-4616-adde-8903ff32f1a9,,Peba,,,2026-05-08,Hospedagem,Hotel em Abu dabi,1000000.0,data/comprovantes/20260508_200926_c0c0f70a-2314-4616-adde-8903ff32f1a9_17782709453413204586365055509433.jpg,Reprovado,Peba,2026-05-08 20:09:28,Fabio,2026-05-08 20:11:25,Nao vou aprovar
