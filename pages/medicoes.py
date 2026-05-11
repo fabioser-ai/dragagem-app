@@ -14,6 +14,7 @@ from services.github import carregar_github, salvar_github
 ARQ_OBRAS = "data/obras.csv"
 ARQ_MEDICOES = "data/medicoes.csv"
 ARQ_FRENTES = "data/medicoes_frentes.csv"
+ARQ_MC = "data/medicoes_mc.csv"
 ARQ_ITENS = "data/medicoes_itens.csv"
 ARQ_SERVICOS = "data/medicoes_servicos.csv"
 
@@ -61,6 +62,17 @@ COL_FRENTES = [
     "atualizado_em",
 ]
 
+COL_MC = [
+    "mc_id",
+    "medicao_id",
+    "frente_id",
+    "tipo",
+    "descricao",
+    "comprimento",
+    "ast",
+    "resultado",
+]
+
 COL_ITENS = [
     "item_id",
     "medicao_id",
@@ -68,6 +80,7 @@ COL_ITENS = [
     "codigo",
     "descricao",
     "unidade",
+    "origem_mc",
     "quantidade",
     "valor_unitario",
     "total",
@@ -81,7 +94,7 @@ COL_SERVICOS = [
 
 
 # ============================================================
-# FUNÇÕES AUXILIARES
+# AUXILIARES
 # ============================================================
 
 def agora():
@@ -93,6 +106,7 @@ def novo_id(prefixo):
 
 
 def moeda(valor):
+
     try:
         valor = float(valor)
     except:
@@ -157,7 +171,7 @@ def salvar_csv(caminho, df):
 
 
 # ============================================================
-# CARREGAMENTO
+# BASES
 # ============================================================
 
 def carregar_bases():
@@ -177,6 +191,11 @@ def carregar_bases():
         COL_FRENTES,
     )
 
+    mc = carregar_csv(
+        ARQ_MC,
+        COL_MC,
+    )
+
     itens = carregar_csv(
         ARQ_ITENS,
         COL_ITENS,
@@ -191,6 +210,7 @@ def carregar_bases():
         obras,
         medicoes,
         frentes,
+        mc,
         itens,
         servicos,
     )
@@ -238,25 +258,23 @@ def tela_obras(obras):
         with st.form("nova_obra"):
 
             nome = st.text_input(
-                "Nome da obra",
-                value="Contrato 26.171 - Curitiba"
+                "Nome da obra"
             )
 
             contratante = st.text_input(
-                "Contratante",
-                value="Prefeitura Municipal de Curitiba"
+                "Contratante"
             )
 
             contrato = st.text_input(
-                "Contrato",
-                value="26.171 - Aditivo 01"
+                "Contrato"
             )
 
-            objeto = st.text_area("Objeto")
+            objeto = st.text_area(
+                "Objeto"
+            )
 
             cidade = st.text_input(
-                "Cidade",
-                value="Curitiba/PR"
+                "Cidade"
             )
 
             status = st.selectbox(
@@ -268,9 +286,13 @@ def tela_obras(obras):
                 ]
             )
 
-            observacoes = st.text_area("Observações")
+            observacoes = st.text_area(
+                "Observações"
+            )
 
-            ok = st.form_submit_button("Salvar obra")
+            ok = st.form_submit_button(
+                "Salvar obra"
+            )
 
         if ok:
 
@@ -305,22 +327,6 @@ def tela_obras(obras):
             st.success("Obra cadastrada.")
 
             st.rerun()
-
-    if not obras.empty:
-
-        st.dataframe(
-            obras[
-                [
-                    "nome_obra",
-                    "contratante",
-                    "contrato",
-                    "cidade",
-                    "status",
-                ]
-            ],
-            use_container_width=True,
-            hide_index=True,
-        )
 
 
 # ============================================================
@@ -361,39 +367,28 @@ def tela_bm(obras, medicoes):
 
         with st.form("novo_bm"):
 
-            c1, c2, c3 = st.columns(3)
+            numero_bm = st.text_input(
+                "Número BM"
+            )
 
-            with c1:
+            periodo_inicio = st.date_input(
+                "Período início",
+                value=date.today()
+            )
 
-                numero_bm = st.text_input(
-                    "Número BM",
-                    value="04"
-                )
-
-            with c2:
-
-                periodo_inicio = st.date_input(
-                    "Período início",
-                    value=date(2025, 11, 22)
-                )
-
-            with c3:
-
-                periodo_fim = st.date_input(
-                    "Período fim",
-                    value=date(2025, 12, 21)
-                )
+            periodo_fim = st.date_input(
+                "Período fim",
+                value=date.today()
+            )
 
             dias_uteis = st.number_input(
                 "Dias úteis",
-                min_value=1,
                 value=20,
             )
 
             apost = st.number_input(
                 "Apostilamento (%)",
                 value=5.53,
-                step=0.01,
             )
 
             status = st.selectbox(
@@ -405,9 +400,13 @@ def tela_bm(obras, medicoes):
                 ]
             )
 
-            observacoes = st.text_area("Observações")
+            observacoes = st.text_area(
+                "Observações"
+            )
 
-            ok = st.form_submit_button("Salvar BM")
+            ok = st.form_submit_button(
+                "Salvar BM"
+            )
 
         if ok:
 
@@ -445,21 +444,6 @@ def tela_bm(obras, medicoes):
             st.success("BM cadastrado.")
 
             st.rerun()
-
-    if not df_obra.empty:
-
-        st.dataframe(
-            df_obra[
-                [
-                    "numero_bm",
-                    "periodo_inicio",
-                    "periodo_fim",
-                    "status",
-                ]
-            ],
-            use_container_width=True,
-            hide_index=True,
-        )
 
 
 # ============================================================
@@ -501,8 +485,7 @@ def tela_frentes(frentes):
         with st.form("nova_frente"):
 
             nome = st.text_input(
-                "Nome da frente",
-                value="PARQUE BARIGUI"
+                "Nome da frente"
             )
 
             dias = st.number_input(
@@ -510,9 +493,13 @@ def tela_frentes(frentes):
                 value=19.0,
             )
 
-            observacoes = st.text_area("Observações")
+            observacoes = st.text_area(
+                "Observações"
+            )
 
-            ok = st.form_submit_button("Salvar frente")
+            ok = st.form_submit_button(
+                "Salvar frente"
+            )
 
         if ok:
 
@@ -545,32 +532,17 @@ def tela_frentes(frentes):
 
             st.rerun()
 
-    if not df.empty:
-
-        st.dataframe(
-            df[
-                [
-                    "nome_frente",
-                    "dias_trabalhados",
-                    "observacoes",
-                ]
-            ],
-            use_container_width=True,
-            hide_index=True,
-        )
-
 
 # ============================================================
-# MEDIÇÃO VISUAL
+# MEMÓRIA DE CÁLCULO
 # ============================================================
 
-def tela_medicao_visual(
+def tela_mc(
     frentes,
-    itens,
-    servicos,
+    mc,
 ):
 
-    st.subheader("4. Medição")
+    st.subheader("4. Memória de Cálculo")
 
     frente_id = st.session_state.get("frente_id")
 
@@ -588,20 +560,166 @@ def tela_medicao_visual(
     if not frente_nome.empty:
 
         st.info(
-            f"Frente selecionada: {frente_nome.iloc[0]}"
+            f"MC - {frente_nome.iloc[0]}"
         )
 
-    # =====================================================
-    # EXISTENTES
-    # =====================================================
+    df_mc = mc[
+        mc["frente_id"].astype(str) == str(frente_id)
+    ].copy()
+
+    if df_mc.empty:
+
+        df_mc = pd.DataFrame(
+            [
+                {
+                    "mc_id": novo_id("mc"),
+                    "medicao_id": st.session_state.get("medicao_id"),
+                    "frente_id": frente_id,
+                    "tipo": "Bag AST",
+                    "descricao": "Bag 01",
+                    "comprimento": 0.0,
+                    "ast": 0.0,
+                    "resultado": 0.0,
+                }
+            ]
+        )
+
+    for col in [
+        "comprimento",
+        "ast",
+        "resultado",
+    ]:
+
+        df_mc[col] = pd.to_numeric(
+            df_mc[col],
+            errors="coerce",
+        ).fillna(0.0)
+
+    df_editado = st.data_editor(
+
+        df_mc,
+
+        use_container_width=True,
+
+        num_rows="dynamic",
+
+        hide_index=True,
+
+        key=f"mc_{frente_id}",
+
+        column_config={
+
+            "mc_id": None,
+            "medicao_id": None,
+            "frente_id": None,
+
+            "tipo": st.column_config.TextColumn(
+                "Tipo"
+            ),
+
+            "descricao": st.column_config.TextColumn(
+                "Descrição"
+            ),
+
+            "comprimento": st.column_config.NumberColumn(
+                "Comprimento",
+                format="%.2f",
+            ),
+
+            "ast": st.column_config.NumberColumn(
+                "AST",
+                format="%.2f",
+            ),
+
+            "resultado": st.column_config.NumberColumn(
+                "Resultado",
+                format="%.2f",
+                disabled=True,
+            ),
+        }
+    )
+
+    df_editado["resultado"] = (
+        df_editado["comprimento"]
+        * df_editado["ast"]
+    )
+
+    total_mc = df_editado["resultado"].sum()
+
+    st.metric(
+        "Resultado total MC",
+        f"{total_mc:,.2f}"
+    )
+
+    if st.button(
+        "Salvar memória de cálculo",
+        use_container_width=True,
+    ):
+
+        mc = mc[
+            mc["frente_id"].astype(str) != str(frente_id)
+        ]
+
+        mc = pd.concat(
+            [
+                mc,
+                df_editado[COL_MC]
+            ],
+            ignore_index=True,
+        )
+
+        salvar_csv(
+            ARQ_MC,
+            mc,
+        )
+
+        st.success("MC salva com sucesso.")
+
+        st.rerun()
+
+
+# ============================================================
+# MEDIÇÃO FINANCEIRA
+# ============================================================
+
+def tela_medicao(
+    frentes,
+    mc,
+    itens,
+    servicos,
+):
+
+    st.subheader("5. Medição Financeira")
+
+    frente_id = st.session_state.get("frente_id")
+
+    if not frente_id:
+
+        st.warning("Selecione uma frente.")
+
+        return
+
+    df_mc = mc[
+        mc["frente_id"].astype(str) == str(frente_id)
+    ].copy()
+
+    if df_mc.empty:
+
+        st.info(
+            "Cadastre primeiro a memória de cálculo."
+        )
+
+        return
+
+    quantidade_total = (
+        df_mc["resultado"]
+        .astype(float)
+        .sum()
+    )
 
     df_existente = itens[
         itens["frente_id"].astype(str) == str(frente_id)
     ].copy()
-
-    # =====================================================
-    # PRIMEIRA CRIAÇÃO
-    # =====================================================
 
     if df_existente.empty:
 
@@ -616,17 +734,17 @@ def tela_medicao_visual(
 
         df_editor["frente_id"] = frente_id
 
-        df_editor["quantidade"] = 0.0
+        df_editor["origem_mc"] = "MC"
+
+        df_editor["quantidade"] = quantidade_total
+
         df_editor["valor_unitario"] = 0.0
+
         df_editor["total"] = 0.0
 
     else:
 
         df_editor = df_existente.copy()
-
-    # =====================================================
-    # GARANTIR TIPOS
-    # =====================================================
 
     for col in [
         "quantidade",
@@ -639,29 +757,9 @@ def tela_medicao_visual(
             errors="coerce",
         ).fillna(0.0)
 
-    # =====================================================
-    # VIEW
-    # =====================================================
-
-    df_view = df_editor[
-        [
-            "item_id",
-            "medicao_id",
-            "frente_id",
-            "codigo",
-            "descricao",
-            "unidade",
-            "quantidade",
-            "valor_unitario",
-            "total",
-        ]
-    ].copy()
-
-    st.markdown("### Planilha de Medição")
-
     df_editado = st.data_editor(
 
-        df_view,
+        df_editor,
 
         use_container_width=True,
 
@@ -669,7 +767,7 @@ def tela_medicao_visual(
 
         hide_index=True,
 
-        key=f"editor_{frente_id}",
+        key=f"medicao_{frente_id}",
 
         column_config={
 
@@ -678,31 +776,29 @@ def tela_medicao_visual(
             "frente_id": None,
 
             "codigo": st.column_config.TextColumn(
-                "Código",
-                width="small",
+                "Código"
             ),
 
             "descricao": st.column_config.TextColumn(
-                "Serviço",
-                width="large",
+                "Serviço"
             ),
 
             "unidade": st.column_config.TextColumn(
-                "Un",
-                width="small",
+                "Un"
+            ),
+
+            "origem_mc": st.column_config.TextColumn(
+                "Origem"
             ),
 
             "quantidade": st.column_config.NumberColumn(
                 "Quantidade",
-                min_value=0.0,
-                step=0.01,
                 format="%.2f",
+                disabled=True,
             ),
 
             "valor_unitario": st.column_config.NumberColumn(
                 "V.Unit",
-                min_value=0.0,
-                step=0.01,
                 format="%.2f",
             ),
 
@@ -713,20 +809,6 @@ def tela_medicao_visual(
             ),
         }
     )
-
-    # =====================================================
-    # RECÁLCULO
-    # =====================================================
-
-    df_editado["quantidade"] = pd.to_numeric(
-        df_editado["quantidade"],
-        errors="coerce",
-    ).fillna(0.0)
-
-    df_editado["valor_unitario"] = pd.to_numeric(
-        df_editado["valor_unitario"],
-        errors="coerce",
-    ).fillna(0.0)
 
     df_editado["total"] = (
         df_editado["quantidade"]
@@ -740,12 +822,8 @@ def tela_medicao_visual(
         moeda(total_frente)
     )
 
-    # =====================================================
-    # SALVAR
-    # =====================================================
-
     if st.button(
-        "Salvar medição",
+        "Salvar medição financeira",
         use_container_width=True,
     ):
 
@@ -766,7 +844,7 @@ def tela_medicao_visual(
             itens,
         )
 
-        st.success("Medição salva com sucesso.")
+        st.success("Medição salva.")
 
         st.rerun()
 
@@ -781,7 +859,7 @@ def tela_resumo(
     medicoes,
 ):
 
-    st.subheader("5. Resumo Financeiro")
+    st.subheader("6. Resumo Financeiro")
 
     medicao_id = st.session_state.get("medicao_id")
 
@@ -839,8 +917,6 @@ def tela_resumo(
         moeda
     )
 
-    st.markdown("### Totais por frente")
-
     st.dataframe(
         resumo[
             [
@@ -885,6 +961,7 @@ def navegacao():
         "obra",
         "bm",
         "frentes",
+        "mc",
         "medicao",
         "resumo",
     ]
@@ -893,8 +970,9 @@ def navegacao():
         "obra": "1. Obra",
         "bm": "2. BM",
         "frentes": "3. Frentes",
-        "medicao": "4. Medição",
-        "resumo": "5. Resumo",
+        "mc": "4. MC",
+        "medicao": "5. Medição",
+        "resumo": "6. Resumo",
     }
 
     cols = st.columns(len(ordem))
@@ -921,41 +999,6 @@ def navegacao():
 
     st.divider()
 
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-
-        if etapa != "obra":
-
-            idx = ordem.index(etapa)
-
-            if st.button(
-                "← Voltar",
-                use_container_width=True,
-            ):
-                ir_para(ordem[idx - 1])
-
-    with c2:
-
-        if st.button(
-            "⬅ Menu",
-            use_container_width=True,
-        ):
-            st.session_state.tela = "menu"
-            st.rerun()
-
-    with c3:
-
-        if etapa != "resumo":
-
-            idx = ordem.index(etapa)
-
-            if st.button(
-                "Próximo →",
-                use_container_width=True,
-            ):
-                ir_para(ordem[idx + 1])
-
 
 # ============================================================
 # PRINCIPAL
@@ -966,7 +1009,7 @@ def medicoes():
     st.title("Medições")
 
     st.caption(
-        "Controle de boletins de medição e memória operacional."
+        "Controle técnico e financeiro de medições."
     )
 
     if "etapa_medicoes" not in st.session_state:
@@ -977,6 +1020,7 @@ def medicoes():
         obras,
         medicoes_df,
         frentes,
+        mc,
         itens,
         servicos,
     ) = carregar_bases()
@@ -1000,10 +1044,18 @@ def medicoes():
 
         tela_frentes(frentes)
 
+    elif etapa == "mc":
+
+        tela_mc(
+            frentes,
+            mc,
+        )
+
     elif etapa == "medicao":
 
-        tela_medicao_visual(
+        tela_medicao(
             frentes,
+            mc,
             itens,
             servicos,
         )
