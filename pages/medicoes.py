@@ -130,11 +130,6 @@ def moeda(v):
 
 
 def normalizar_colunas(df, tipo):
-    """
-    Aceita tanto os nomes novos quanto alguns nomes usados nos CSVs iniciais.
-    Isso evita quebrar caso os CSVs já tenham sido criados com cabeçalhos antigos.
-    """
-
     if df is None or not isinstance(df, pd.DataFrame):
         return df
 
@@ -148,13 +143,10 @@ def normalizar_colunas(df, tipo):
             "id_obra": "obra_id",
             "bm": "numero_bm",
             "data_emissao": "data_bm",
-            "valor_total": "observacoes",
         },
         "frentes": {
             "id_frente": "frente_id",
             "id_medicao": "medicao_id",
-            "local": "observacoes",
-            "total_frente": "observacoes",
         },
         "itens": {
             "id_item": "item_id",
@@ -170,6 +162,7 @@ def normalizar_colunas(df, tipo):
     }
 
     mapa = mapas.get(tipo, {})
+
     for antiga, nova in mapa.items():
         if antiga in df.columns and nova not in df.columns:
             df[nova] = df[antiga]
@@ -193,6 +186,7 @@ def carregar_csv(caminho, colunas, tipo):
     if isinstance(df, str):
         try:
             from io import StringIO
+
             df = pd.read_csv(StringIO(df))
         except Exception:
             df = _df_vazio(colunas)
@@ -212,8 +206,8 @@ def carregar_csv(caminho, colunas, tipo):
 def salvar_csv(caminho, df):
     try:
         salvar_github(
-            caminho,
             df,
+            caminho,
             st.secrets["GITHUB_TOKEN"],
             st.secrets["REPO"],
         )
@@ -987,7 +981,3 @@ def render():
 
 if __name__ == "__main__":
     medicoes()
-# Permite usar tanto via app.py como page direta do Streamlit
-if __name__ == "__main__":
-    medicoes()
-
