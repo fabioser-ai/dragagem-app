@@ -22,11 +22,14 @@ ARQ_ATESTADOS_SERVICOS = "data/atestados_servicos.csv"
 # FORMATAR MOEDA BR
 # =========================
 def formatar_real(valor):
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    try:
+        return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except:
+        return "R$ 0,00"
 
 
 # =========================
-# PARSE MOEDA (BR → FLOAT)
+# PARSE MOEDA BR -> FLOAT
 # =========================
 def parse_moeda(valor):
 
@@ -91,13 +94,20 @@ def crud(arquivo, colunas, titulo, chave):
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
 
     df_display = df.copy()
+
     for col in df_display.columns:
         if col.lower() in ["valor", "valor_hora", "consumo"]:
             df_display[col] = df_display[col].apply(formatar_real)
 
-    st.dataframe(df_display, use_container_width=True)
+    st.dataframe(df_display, use_container_width=True, hide_index=True)
 
+    # =========================
+    # EDITAR
+    # =========================
     if not df.empty:
+
+        st.divider()
+        st.write("Editar registro")
 
         idx = st.selectbox("Selecionar para editar", df.index, key=f"sel_{chave}")
         linha = df.loc[idx]
@@ -117,7 +127,7 @@ def crud(arquivo, colunas, titulo, chave):
 
         col1, col2 = st.columns(2)
 
-        if col1.button("Salvar", key=f"save_{chave}"):
+        if col1.button("Salvar", key=f"save_{chave}", use_container_width=True):
 
             novos_convertidos = converter_valores(colunas, novos)
 
@@ -132,7 +142,7 @@ def crud(arquivo, colunas, titulo, chave):
             st.success("Atualizado com sucesso!")
             st.rerun()
 
-        if col2.button("Excluir", key=f"del_{chave}"):
+        if col2.button("Excluir", key=f"del_{chave}", use_container_width=True):
 
             df = df.drop(idx).reset_index(drop=True)
             salvar_github(df, arquivo, TOKEN, REPO)
@@ -142,6 +152,9 @@ def crud(arquivo, colunas, titulo, chave):
 
     st.divider()
 
+    # =========================
+    # NOVO
+    # =========================
     st.write("Adicionar novo")
 
     valores = []
@@ -149,7 +162,7 @@ def crud(arquivo, colunas, titulo, chave):
     for c in colunas:
         valores.append(st.text_input(c, key=f"new_{chave}_{c}"))
 
-    if st.button("Adicionar", key=f"add_{chave}"):
+    if st.button("Adicionar", key=f"add_{chave}", use_container_width=True):
 
         valores_convertidos = converter_valores(colunas, valores)
 
@@ -165,7 +178,7 @@ def crud(arquivo, colunas, titulo, chave):
 
 
 # =========================
-# ATESTADOS
+# ATESTADOS - ESTRUTURA
 # =========================
 def garantir_estrutura_atestados():
 
@@ -196,11 +209,9 @@ def garantir_estrutura_atestados():
 
     if df_atestados.empty:
         df_atestados = pd.DataFrame(columns=col_atestados)
-        salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
 
     if df_servicos.empty:
         df_servicos = pd.DataFrame(columns=col_servicos)
-        salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
 
     for col in col_atestados:
         if col not in df_atestados.columns:
@@ -216,6 +227,9 @@ def garantir_estrutura_atestados():
     return df_atestados, df_servicos
 
 
+# =========================
+# ATESTADOS
+# =========================
 def render_atestados():
 
     st.subheader("Atestados")
@@ -229,7 +243,7 @@ def render_atestados():
     ])
 
     # =========================
-    # LISTAR ATESTADOS
+    # LISTAR
     # =========================
     with aba1:
 
@@ -255,7 +269,6 @@ def render_atestados():
             )
 
             st.divider()
-
             st.write("Detalhes do atestado")
 
             opcoes = {
@@ -286,7 +299,6 @@ def render_atestados():
             st.write("**Observações:**", atestado["observacoes"])
 
             st.divider()
-
             st.write("Serviços vinculados")
 
             servicos = df_servicos[df_servicos["id_atestado"] == id_atestado]
@@ -305,11 +317,12 @@ def render_atestados():
             col_editar, col_excluir = st.columns(2)
 
             with col_editar:
-                if st.button("Editar este atestado", key="btn_editar_atestado"):
+                if st.button("Editar este atestado", key="btn_editar_atestado", use_container_width=True):
                     st.session_state.atestado_em_edicao = id_atestado
 
             with col_excluir:
-                if st.button("Excluir este atestado", key="btn_excluir_atestado"):
+                if st.button("Excluir este atestado", key="btn_excluir_atestado", use_container_width=True):
+
                     df_atestados = df_atestados[
                         df_atestados["id_atestado"] != id_atestado
                     ].reset_index(drop=True)
@@ -370,7 +383,7 @@ def render_atestados():
                             st.rerun()
 
     # =========================
-    # NOVO ATESTADO
+    # NOVO
     # =========================
     with aba2:
 
@@ -420,7 +433,7 @@ def render_atestados():
                 st.rerun()
 
     # =========================
-    # SERVIÇOS VINCULADOS
+    # SERVIÇOS
     # =========================
     with aba3:
 
@@ -503,7 +516,7 @@ def render_atestados():
                     key="sel_excluir_servico_atestado"
                 )
 
-                if st.button("Excluir serviço selecionado", key="btn_excluir_servico_atestado"):
+                if st.button("Excluir serviço selecionado", key="btn_excluir_servico_atestado", use_container_width=True):
 
                     id_servico = servicos_atestado.loc[idx_servico, "id_servico"]
 
@@ -525,30 +538,30 @@ def render():
     st.title("Dados")
 
     if "subdados" not in st.session_state:
-        st.session_state.subdados = None
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    if col1.button("Equipamentos"):
         st.session_state.subdados = "equip"
 
-    if col1.button("Materiais"):
-        st.session_state.subdados = "mat"
+    st.markdown("### Selecione uma base de dados")
 
-    if col2.button("Desaguamento"):
-        st.session_state.subdados = "desag"
+    opcoes = {
+        "Equipamentos": "equip",
+        "Materiais": "mat",
+        "Desaguamento": "desag",
+        "Horários": "hor",
+        "Dias": "dias",
+        "Salários": "sal",
+        "Atestados": "atestados"
+    }
 
-    if col2.button("Horários"):
-        st.session_state.subdados = "hor"
+    escolha = st.radio(
+        "Menu de Dados",
+        list(opcoes.keys()),
+        index=list(opcoes.values()).index(st.session_state.subdados)
+        if st.session_state.subdados in opcoes.values()
+        else 0,
+        label_visibility="collapsed"
+    )
 
-    if col3.button("Dias"):
-        st.session_state.subdados = "dias"
-
-    if col3.button("Salários"):
-        st.session_state.subdados = "sal"
-
-    if col4.button("Atestados"):
-        st.session_state.subdados = "atestados"
+    st.session_state.subdados = opcoes[escolha]
 
     st.divider()
 
@@ -573,5 +586,8 @@ def render():
     elif st.session_state.subdados == "atestados":
         render_atestados()
 
-    if st.button("⬅ Voltar"):
+    st.divider()
+
+    if st.button("⬅ Voltar", use_container_width=True):
         st.session_state.tela = "menu"
+        st.rerun()
