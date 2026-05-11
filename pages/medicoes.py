@@ -107,7 +107,9 @@ def moeda(valor):
 
 
 def carregar_csv(caminho, colunas):
+
     try:
+
         df = carregar_github(
             caminho,
             st.secrets["GITHUB_TOKEN"],
@@ -115,7 +117,9 @@ def carregar_csv(caminho, colunas):
         )
 
         if isinstance(df, str):
+
             from io import StringIO
+
             df = pd.read_csv(StringIO(df))
 
         if df is None:
@@ -125,6 +129,7 @@ def carregar_csv(caminho, colunas):
         df = pd.DataFrame(columns=colunas)
 
     for c in colunas:
+
         if c not in df.columns:
             df[c] = None
 
@@ -132,17 +137,22 @@ def carregar_csv(caminho, colunas):
 
 
 def salvar_csv(caminho, df):
+
     try:
+
         salvar_github(
             df,
             caminho,
             st.secrets["GITHUB_TOKEN"],
             st.secrets["REPO"],
         )
+
         return True
 
     except Exception as e:
+
         st.error(f"Erro ao salvar {caminho}: {e}")
+
         return False
 
 
@@ -152,17 +162,38 @@ def salvar_csv(caminho, df):
 
 def carregar_bases():
 
-    obras = carregar_csv(ARQ_OBRAS, COL_OBRAS)
+    obras = carregar_csv(
+        ARQ_OBRAS,
+        COL_OBRAS,
+    )
 
-    medicoes = carregar_csv(ARQ_MEDICOES, COL_MEDICOES)
+    medicoes = carregar_csv(
+        ARQ_MEDICOES,
+        COL_MEDICOES,
+    )
 
-    frentes = carregar_csv(ARQ_FRENTES, COL_FRENTES)
+    frentes = carregar_csv(
+        ARQ_FRENTES,
+        COL_FRENTES,
+    )
 
-    itens = carregar_csv(ARQ_ITENS, COL_ITENS)
+    itens = carregar_csv(
+        ARQ_ITENS,
+        COL_ITENS,
+    )
 
-    servicos = carregar_csv(ARQ_SERVICOS, COL_SERVICOS)
+    servicos = carregar_csv(
+        ARQ_SERVICOS,
+        COL_SERVICOS,
+    )
 
-    return obras, medicoes, frentes, itens, servicos
+    return (
+        obras,
+        medicoes,
+        frentes,
+        itens,
+        servicos,
+    )
 
 
 # ============================================================
@@ -170,7 +201,9 @@ def carregar_bases():
 # ============================================================
 
 def ir_para(etapa):
+
     st.session_state.etapa_medicoes = etapa
+
     st.rerun()
 
 
@@ -182,7 +215,9 @@ def tela_obras(obras):
 
     st.subheader("1. Obra")
 
-    obras_validas = obras.dropna(subset=["obra_id"])
+    obras_validas = obras.dropna(
+        subset=["obra_id"]
+    )
 
     if not obras_validas.empty:
 
@@ -226,7 +261,11 @@ def tela_obras(obras):
 
             status = st.selectbox(
                 "Status",
-                ["Ativa", "Concluída", "Suspensa"]
+                [
+                    "Ativa",
+                    "Concluída",
+                    "Suspensa",
+                ]
             )
 
             observacoes = st.text_area("Observações")
@@ -249,11 +288,17 @@ def tela_obras(obras):
             }
 
             obras = pd.concat(
-                [obras, pd.DataFrame([nova])],
+                [
+                    obras,
+                    pd.DataFrame([nova])
+                ],
                 ignore_index=True,
             )
 
-            salvar_csv(ARQ_OBRAS, obras)
+            salvar_csv(
+                ARQ_OBRAS,
+                obras,
+            )
 
             st.session_state.obra_id = nova["obra_id"]
 
@@ -289,7 +334,9 @@ def tela_bm(obras, medicoes):
     obra_id = st.session_state.get("obra_id")
 
     if not obra_id:
+
         st.warning("Selecione uma obra.")
+
         return
 
     df_obra = medicoes[
@@ -317,15 +364,21 @@ def tela_bm(obras, medicoes):
             c1, c2, c3 = st.columns(3)
 
             with c1:
-                numero_bm = st.text_input("Número BM", value="04")
+
+                numero_bm = st.text_input(
+                    "Número BM",
+                    value="04"
+                )
 
             with c2:
+
                 periodo_inicio = st.date_input(
                     "Período início",
                     value=date(2025, 11, 22)
                 )
 
             with c3:
+
                 periodo_fim = st.date_input(
                     "Período fim",
                     value=date(2025, 12, 21)
@@ -345,7 +398,11 @@ def tela_bm(obras, medicoes):
 
             status = st.selectbox(
                 "Status",
-                ["Rascunho", "Fechado", "Enviado"]
+                [
+                    "Rascunho",
+                    "Fechado",
+                    "Enviado",
+                ]
             )
 
             observacoes = st.text_area("Observações")
@@ -371,11 +428,17 @@ def tela_bm(obras, medicoes):
             }
 
             medicoes = pd.concat(
-                [medicoes, pd.DataFrame([nova])],
+                [
+                    medicoes,
+                    pd.DataFrame([nova])
+                ],
                 ignore_index=True,
             )
 
-            salvar_csv(ARQ_MEDICOES, medicoes)
+            salvar_csv(
+                ARQ_MEDICOES,
+                medicoes,
+            )
 
             st.session_state.medicao_id = nova["medicao_id"]
 
@@ -410,7 +473,9 @@ def tela_frentes(frentes):
     medicao_id = st.session_state.get("medicao_id")
 
     if not medicao_id:
+
         st.warning("Selecione um BM.")
+
         return
 
     df = frentes[
@@ -462,11 +527,17 @@ def tela_frentes(frentes):
             }
 
             frentes = pd.concat(
-                [frentes, pd.DataFrame([nova])],
+                [
+                    frentes,
+                    pd.DataFrame([nova])
+                ],
                 ignore_index=True,
             )
 
-            salvar_csv(ARQ_FRENTES, frentes)
+            salvar_csv(
+                ARQ_FRENTES,
+                frentes,
+            )
 
             st.session_state.frente_id = nova["frente_id"]
 
@@ -493,14 +564,20 @@ def tela_frentes(frentes):
 # MEDIÇÃO VISUAL
 # ============================================================
 
-def tela_medicao_visual(frentes, itens, servicos):
+def tela_medicao_visual(
+    frentes,
+    itens,
+    servicos,
+):
 
     st.subheader("4. Medição")
 
     frente_id = st.session_state.get("frente_id")
 
     if not frente_id:
+
         st.warning("Selecione uma frente.")
+
         return
 
     frente_nome = frentes.loc[
@@ -509,11 +586,22 @@ def tela_medicao_visual(frentes, itens, servicos):
     ]
 
     if not frente_nome.empty:
-        st.info(f"Frente selecionada: {frente_nome.iloc[0]}")
+
+        st.info(
+            f"Frente selecionada: {frente_nome.iloc[0]}"
+        )
+
+    # =====================================================
+    # EXISTENTES
+    # =====================================================
 
     df_existente = itens[
         itens["frente_id"].astype(str) == str(frente_id)
     ].copy()
+
+    # =====================================================
+    # PRIMEIRA CRIAÇÃO
+    # =====================================================
 
     if df_existente.empty:
 
@@ -525,6 +613,7 @@ def tela_medicao_visual(frentes, itens, servicos):
         ]
 
         df_editor["medicao_id"] = st.session_state.get("medicao_id")
+
         df_editor["frente_id"] = frente_id
 
         df_editor["quantidade"] = 0.0
@@ -535,37 +624,85 @@ def tela_medicao_visual(frentes, itens, servicos):
 
         df_editor = df_existente.copy()
 
+    # =====================================================
+    # GARANTIR TIPOS
+    # =====================================================
+
+    for col in [
+        "quantidade",
+        "valor_unitario",
+        "total",
+    ]:
+
+        df_editor[col] = pd.to_numeric(
+            df_editor[col],
+            errors="coerce",
+        ).fillna(0.0)
+
+    # =====================================================
+    # VIEW
+    # =====================================================
+
+    df_view = df_editor[
+        [
+            "item_id",
+            "medicao_id",
+            "frente_id",
+            "codigo",
+            "descricao",
+            "unidade",
+            "quantidade",
+            "valor_unitario",
+            "total",
+        ]
+    ].copy()
+
     st.markdown("### Planilha de Medição")
 
     df_editado = st.data_editor(
-        df_editor,
+
+        df_view,
+
         use_container_width=True,
+
         num_rows="dynamic",
+
         hide_index=True,
+
+        key=f"editor_{frente_id}",
+
         column_config={
+
             "item_id": None,
             "medicao_id": None,
             "frente_id": None,
 
             "codigo": st.column_config.TextColumn(
-                "Código"
+                "Código",
+                width="small",
             ),
 
             "descricao": st.column_config.TextColumn(
-                "Serviço"
+                "Serviço",
+                width="large",
             ),
 
             "unidade": st.column_config.TextColumn(
-                "Un"
+                "Un",
+                width="small",
             ),
 
             "quantidade": st.column_config.NumberColumn(
                 "Quantidade",
+                min_value=0.0,
+                step=0.01,
                 format="%.2f",
             ),
 
             "valor_unitario": st.column_config.NumberColumn(
                 "V.Unit",
+                min_value=0.0,
+                step=0.01,
                 format="%.2f",
             ),
 
@@ -577,15 +714,19 @@ def tela_medicao_visual(frentes, itens, servicos):
         }
     )
 
+    # =====================================================
+    # RECÁLCULO
+    # =====================================================
+
     df_editado["quantidade"] = pd.to_numeric(
         df_editado["quantidade"],
         errors="coerce",
-    ).fillna(0)
+    ).fillna(0.0)
 
     df_editado["valor_unitario"] = pd.to_numeric(
         df_editado["valor_unitario"],
         errors="coerce",
-    ).fillna(0)
+    ).fillna(0.0)
 
     df_editado["total"] = (
         df_editado["quantidade"]
@@ -599,6 +740,10 @@ def tela_medicao_visual(frentes, itens, servicos):
         moeda(total_frente)
     )
 
+    # =====================================================
+    # SALVAR
+    # =====================================================
+
     if st.button(
         "Salvar medição",
         use_container_width=True,
@@ -609,13 +754,19 @@ def tela_medicao_visual(frentes, itens, servicos):
         ]
 
         itens = pd.concat(
-            [itens, df_editado[COL_ITENS]],
+            [
+                itens,
+                df_editado[COL_ITENS]
+            ],
             ignore_index=True,
         )
 
-        salvar_csv(ARQ_ITENS, itens)
+        salvar_csv(
+            ARQ_ITENS,
+            itens,
+        )
 
-        st.success("Medição salva.")
+        st.success("Medição salva com sucesso.")
 
         st.rerun()
 
@@ -624,14 +775,20 @@ def tela_medicao_visual(frentes, itens, servicos):
 # RESUMO
 # ============================================================
 
-def tela_resumo(frentes, itens, medicoes):
+def tela_resumo(
+    frentes,
+    itens,
+    medicoes,
+):
 
     st.subheader("5. Resumo Financeiro")
 
     medicao_id = st.session_state.get("medicao_id")
 
     if not medicao_id:
+
         st.warning("Selecione um BM.")
+
         return
 
     itens_bm = itens[
@@ -639,7 +796,9 @@ def tela_resumo(frentes, itens, medicoes):
     ].copy()
 
     if itens_bm.empty:
+
         st.info("Nenhum item medido.")
+
         return
 
     mapa_frentes = {
@@ -667,6 +826,7 @@ def tela_resumo(frentes, itens, medicoes):
     apost = 0
 
     if not med_row.empty:
+
         apost = float(
             med_row.iloc[0]["apostilamento_percentual"]
         )
@@ -675,7 +835,9 @@ def tela_resumo(frentes, itens, medicoes):
 
     total_final = subtotal + valor_apost
 
-    resumo["valor"] = resumo["total"].apply(moeda)
+    resumo["valor"] = resumo["total"].apply(
+        moeda
+    )
 
     st.markdown("### Totais por frente")
 
@@ -808,24 +970,38 @@ def medicoes():
     )
 
     if "etapa_medicoes" not in st.session_state:
+
         st.session_state.etapa_medicoes = "obra"
 
-    obras, medicoes_df, frentes, itens, servicos = carregar_bases()
+    (
+        obras,
+        medicoes_df,
+        frentes,
+        itens,
+        servicos,
+    ) = carregar_bases()
 
     navegacao()
 
     etapa = st.session_state.etapa_medicoes
 
     if etapa == "obra":
+
         tela_obras(obras)
 
     elif etapa == "bm":
-        tela_bm(obras, medicoes_df)
+
+        tela_bm(
+            obras,
+            medicoes_df,
+        )
 
     elif etapa == "frentes":
+
         tela_frentes(frentes)
 
     elif etapa == "medicao":
+
         tela_medicao_visual(
             frentes,
             itens,
@@ -833,6 +1009,7 @@ def medicoes():
         )
 
     elif etapa == "resumo":
+
         tela_resumo(
             frentes,
             itens,
@@ -841,8 +1018,10 @@ def medicoes():
 
 
 def render():
+
     medicoes()
 
 
 if __name__ == "__main__":
+
     medicoes()
