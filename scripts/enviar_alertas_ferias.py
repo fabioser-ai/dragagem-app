@@ -28,7 +28,34 @@ COLUNAS_HISTORICO = [
 
 
 def para_data(valor):
-    data = pd.to_datetime(valor, errors="coerce", dayfirst=True)
+    """
+    Converte datas aceitando:
+    - 2026-07-10
+    - 10/07/2026
+    - 10-07-2026
+    """
+
+    if pd.isna(valor):
+        return None
+
+    texto = str(valor).strip()
+
+    if texto.lower() in ["", "nan", "none", "nat"]:
+        return None
+
+    formatos = [
+        "%Y-%m-%d",
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+    ]
+
+    for formato in formatos:
+        try:
+            return datetime.strptime(texto, formato).date()
+        except ValueError:
+            pass
+
+    data = pd.to_datetime(texto, errors="coerce")
 
     if pd.isna(data):
         return None
@@ -73,13 +100,8 @@ def ferias_ja_marcadas(linha):
 
 def definir_marco_alerta(dias_restantes):
     """
-    Envia alerta somente nos marcos exatos:
+    Envia somente em marcos exatos:
     60, 50, 40, 30, 20, 10 e 0 dias.
-
-    Exemplo:
-    - 60 dias: envia
-    - 57 dias: não envia
-    - 50 dias: envia
     """
 
     if dias_restantes in MARCOS_ALERTA:
@@ -167,6 +189,7 @@ def main():
 
     df_ferias = carregar_github(ARQ_FERIAS, token, repo)
     df_historico = carregar_github(ARQ_HISTORICO, token, repo)
+
     df_historico = normalizar_historico(df_historico)
 
     if df_ferias is None or df_ferias.empty:
@@ -180,7 +203,9 @@ def main():
     alertas_para_enviar = []
     novos_historicos = []
 
-    ids_ja_enviados = set(df_historico["ID_Alerta"].astype(str).tolist())
+    ids_ja_enviados = set(
+        df_historico["ID_Alerta"].astype(str).tolist()
+    )
 
     for idx, linha in df_ferias.iterrows():
         matricula = str(linha.get("Matricula", "")).strip()
@@ -224,7 +249,7 @@ def main():
         )
 
         if id_alerta in ids_ja_enviados:
-            print(f" - Ignorado: alerta já enviado anteriormente. ID: {id_alerta}")
+            print(f" - Ignorado: alerta já enviado anteriormente.")
             continue
 
         alerta = {
@@ -267,7 +292,8 @@ def main():
     corpo = montar_corpo_email(alertas_para_enviar)
 
     print("--------------------------------------------------")
-    print("Corpo do e-mail:")
+    print("CORPO DO E-MAIL")
+    print("--------------------------------------------------")
     print(corpo)
     print("--------------------------------------------------")
 
@@ -287,13 +313,24 @@ def main():
     print("E-mail enviado com sucesso.")
 
     df_novos = pd.DataFrame(novos_historicos)
-    df_historico = pd.concat([df_historico, df_novos], ignore_index=True)
+
+    df_historico = pd.concat(
+        [df_historico, df_novos],
+        ignore_index=True
+    )
+
     df_historico = normalizar_historico(df_historico)
 
-    salvar_github(df_historico, ARQ_HISTORICO, token, repo)
+    salvar_github(
+        df_historico,
+        ARQ_HISTORICO,
+        token,
+        repo
+    )
 
-    print("Histórico de alertas atualizado com sucesso.")
-    print(f"{len(alertas_para_enviar)} alerta(s) enviado(s) com sucesso.")
+    print("Histórico atualizado com sucesso.")
+    print(f"{len(alertas_para_enviar)} alerta(s) enviado(s).")
+
     print("==================================================")
     print("ROTINA FINALIZADA")
     print("==================================================")
