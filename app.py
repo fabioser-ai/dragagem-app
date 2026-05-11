@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Módulos principais
-from pages import menu, dados, ferias, prestacao_contas
+from pages import menu, dados, ferias, prestacao_contas, medicoes
 
 # Serviços
 from services.auth import verificar_login
@@ -67,6 +67,9 @@ elif st.session_state.tela == "ferias":
 
 elif st.session_state.tela == "prestacao_contas":
     prestacao_contas.render()
+
+elif st.session_state.tela == "medicoes":
+    medicoes.render()
 
 # =========================
 # MÓDULO OBRAS
