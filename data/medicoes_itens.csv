@@ -1,1 +1,1 @@
-item_id,medicao_id,frente_id,codigo,descricao,unidade,quantidade,valor_unitario,total
+item_id,medicao_id,frente_id,codigo,descricao,unidade,origem_mc,quantidade,valor_unitario,total
