@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import uuid
+from datetime import date
 from services.github import carregar_github, salvar_github
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
@@ -12,11 +14,16 @@ ARQ_HOR = "data/horarios.csv"
 ARQ_DIAS = "data/dias.csv"
 ARQ_SAL = "data/salarios.csv"
 
+ARQ_ATESTADOS = "data/atestados.csv"
+ARQ_ATESTADOS_SERVICOS = "data/atestados_servicos.csv"
+
+
 # =========================
 # FORMATAR MOEDA BR
 # =========================
 def formatar_real(valor):
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 
 # =========================
 # PARSE MOEDA (BR → FLOAT)
@@ -34,6 +41,7 @@ def parse_moeda(valor):
         return float(valor)
     except:
         return None
+
 
 # =========================
 # CONVERSÃO COM VALIDAÇÃO
@@ -65,6 +73,7 @@ def converter_valores(colunas, valores):
 
     return valores_convertidos
 
+
 # =========================
 # CRUD GENÉRICO
 # =========================
@@ -77,12 +86,10 @@ def crud(arquivo, colunas, titulo, chave):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
 
-    # garante tipo numérico
     for col in df.columns:
         if col.lower() in ["valor", "valor_hora", "vazao", "consumo"]:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
 
-    # exibição formatada
     df_display = df.copy()
     for col in df_display.columns:
         if col.lower() in ["valor", "valor_hora", "consumo"]:
@@ -90,9 +97,6 @@ def crud(arquivo, colunas, titulo, chave):
 
     st.dataframe(df_display, use_container_width=True)
 
-    # =========================
-    # EDITAR
-    # =========================
     if not df.empty:
 
         idx = st.selectbox("Selecionar para editar", df.index, key=f"sel_{chave}")
@@ -138,9 +142,6 @@ def crud(arquivo, colunas, titulo, chave):
 
     st.divider()
 
-    # =========================
-    # NOVO
-    # =========================
     st.write("Adicionar novo")
 
     valores = []
@@ -162,6 +163,360 @@ def crud(arquivo, colunas, titulo, chave):
         st.success("Adicionado com sucesso!")
         st.rerun()
 
+
+# =========================
+# ATESTADOS
+# =========================
+def garantir_estrutura_atestados():
+
+    col_atestados = [
+        "id_atestado",
+        "cliente",
+        "contrato",
+        "obra",
+        "local",
+        "ano",
+        "data_inicio",
+        "data_fim",
+        "descricao",
+        "observacoes"
+    ]
+
+    col_servicos = [
+        "id_servico",
+        "id_atestado",
+        "servico",
+        "unidade",
+        "quantidade",
+        "observacoes"
+    ]
+
+    df_atestados = carregar_github(ARQ_ATESTADOS, TOKEN, REPO)
+    df_servicos = carregar_github(ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+
+    if df_atestados.empty:
+        df_atestados = pd.DataFrame(columns=col_atestados)
+        salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
+
+    if df_servicos.empty:
+        df_servicos = pd.DataFrame(columns=col_servicos)
+        salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+
+    for col in col_atestados:
+        if col not in df_atestados.columns:
+            df_atestados[col] = ""
+
+    for col in col_servicos:
+        if col not in df_servicos.columns:
+            df_servicos[col] = ""
+
+    df_atestados = df_atestados[col_atestados].fillna("")
+    df_servicos = df_servicos[col_servicos].fillna("")
+
+    return df_atestados, df_servicos
+
+
+def render_atestados():
+
+    st.subheader("Atestados")
+
+    df_atestados, df_servicos = garantir_estrutura_atestados()
+
+    aba1, aba2, aba3 = st.tabs([
+        "Listar Atestados",
+        "Novo Atestado",
+        "Serviços Vinculados"
+    ])
+
+    # =========================
+    # LISTAR ATESTADOS
+    # =========================
+    with aba1:
+
+        st.write("Atestados cadastrados")
+
+        if df_atestados.empty:
+            st.info("Nenhum atestado cadastrado.")
+        else:
+            colunas_exibir = [
+                "cliente",
+                "contrato",
+                "obra",
+                "local",
+                "ano",
+                "data_inicio",
+                "data_fim"
+            ]
+
+            st.dataframe(
+                df_atestados[colunas_exibir],
+                use_container_width=True,
+                hide_index=True
+            )
+
+            st.divider()
+
+            st.write("Detalhes do atestado")
+
+            opcoes = {
+                f"{row['cliente']} | {row['obra']} | {row['contrato']}": row["id_atestado"]
+                for _, row in df_atestados.iterrows()
+            }
+
+            escolha = st.selectbox(
+                "Selecionar atestado",
+                list(opcoes.keys()),
+                key="sel_visualizar_atestado"
+            )
+
+            id_atestado = opcoes[escolha]
+
+            atestado = df_atestados[
+                df_atestados["id_atestado"] == id_atestado
+            ].iloc[0]
+
+            st.write("**Cliente:**", atestado["cliente"])
+            st.write("**Contrato:**", atestado["contrato"])
+            st.write("**Obra:**", atestado["obra"])
+            st.write("**Local:**", atestado["local"])
+            st.write("**Ano:**", atestado["ano"])
+            st.write("**Data início:**", atestado["data_inicio"])
+            st.write("**Data fim:**", atestado["data_fim"])
+            st.write("**Descrição:**", atestado["descricao"])
+            st.write("**Observações:**", atestado["observacoes"])
+
+            st.divider()
+
+            st.write("Serviços vinculados")
+
+            servicos = df_servicos[df_servicos["id_atestado"] == id_atestado]
+
+            if servicos.empty:
+                st.info("Nenhum serviço vinculado a este atestado.")
+            else:
+                st.dataframe(
+                    servicos[["servico", "unidade", "quantidade", "observacoes"]],
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            st.divider()
+
+            col_editar, col_excluir = st.columns(2)
+
+            with col_editar:
+                if st.button("Editar este atestado", key="btn_editar_atestado"):
+                    st.session_state.atestado_em_edicao = id_atestado
+
+            with col_excluir:
+                if st.button("Excluir este atestado", key="btn_excluir_atestado"):
+                    df_atestados = df_atestados[
+                        df_atestados["id_atestado"] != id_atestado
+                    ].reset_index(drop=True)
+
+                    df_servicos = df_servicos[
+                        df_servicos["id_atestado"] != id_atestado
+                    ].reset_index(drop=True)
+
+                    salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
+                    salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+
+                    st.warning("Atestado e serviços vinculados foram excluídos.")
+                    st.rerun()
+
+            if "atestado_em_edicao" in st.session_state:
+                id_edicao = st.session_state.atestado_em_edicao
+
+                if id_edicao == id_atestado:
+                    st.divider()
+                    st.write("Editar atestado")
+
+                    idx = df_atestados[
+                        df_atestados["id_atestado"] == id_edicao
+                    ].index[0]
+
+                    linha = df_atestados.loc[idx]
+
+                    with st.form("form_editar_atestado"):
+
+                        cliente = st.text_input("Cliente", value=linha["cliente"])
+                        contrato = st.text_input("Contrato", value=linha["contrato"])
+                        obra = st.text_input("Obra", value=linha["obra"])
+                        local = st.text_input("Local", value=linha["local"])
+                        ano = st.text_input("Ano", value=linha["ano"])
+                        data_inicio = st.text_input("Data início", value=linha["data_inicio"])
+                        data_fim = st.text_input("Data fim", value=linha["data_fim"])
+                        descricao = st.text_area("Descrição", value=linha["descricao"])
+                        observacoes = st.text_area("Observações", value=linha["observacoes"])
+
+                        salvar_edicao = st.form_submit_button("Salvar alterações")
+
+                        if salvar_edicao:
+                            df_atestados.at[idx, "cliente"] = cliente
+                            df_atestados.at[idx, "contrato"] = contrato
+                            df_atestados.at[idx, "obra"] = obra
+                            df_atestados.at[idx, "local"] = local
+                            df_atestados.at[idx, "ano"] = ano
+                            df_atestados.at[idx, "data_inicio"] = data_inicio
+                            df_atestados.at[idx, "data_fim"] = data_fim
+                            df_atestados.at[idx, "descricao"] = descricao
+                            df_atestados.at[idx, "observacoes"] = observacoes
+
+                            salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
+
+                            del st.session_state.atestado_em_edicao
+
+                            st.success("Atestado atualizado com sucesso!")
+                            st.rerun()
+
+    # =========================
+    # NOVO ATESTADO
+    # =========================
+    with aba2:
+
+        st.write("Cadastrar novo atestado")
+
+        with st.form("form_novo_atestado"):
+
+            cliente = st.text_input("Cliente")
+            contrato = st.text_input("Contrato")
+            obra = st.text_input("Obra")
+            local = st.text_input("Local")
+            ano = st.text_input("Ano", value=str(date.today().year))
+            data_inicio = st.date_input("Data início", value=date.today())
+            data_fim = st.date_input("Data fim", value=date.today())
+            descricao = st.text_area("Descrição")
+            observacoes = st.text_area("Observações")
+
+            salvar = st.form_submit_button("Salvar atestado")
+
+            if salvar:
+
+                if not cliente or not obra:
+                    st.error("Cliente e obra são campos obrigatórios.")
+                    return
+
+                novo = {
+                    "id_atestado": str(uuid.uuid4()),
+                    "cliente": cliente,
+                    "contrato": contrato,
+                    "obra": obra,
+                    "local": local,
+                    "ano": ano,
+                    "data_inicio": str(data_inicio),
+                    "data_fim": str(data_fim),
+                    "descricao": descricao,
+                    "observacoes": observacoes
+                }
+
+                df_atestados = pd.concat(
+                    [df_atestados, pd.DataFrame([novo])],
+                    ignore_index=True
+                )
+
+                salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
+
+                st.success("Atestado cadastrado com sucesso!")
+                st.rerun()
+
+    # =========================
+    # SERVIÇOS VINCULADOS
+    # =========================
+    with aba3:
+
+        st.write("Adicionar serviços vinculados")
+
+        if df_atestados.empty:
+            st.info("Cadastre primeiro um atestado.")
+        else:
+            opcoes = {
+                f"{row['cliente']} | {row['obra']} | {row['contrato']}": row["id_atestado"]
+                for _, row in df_atestados.iterrows()
+            }
+
+            escolha = st.selectbox(
+                "Selecionar atestado",
+                list(opcoes.keys()),
+                key="sel_atestado_servico"
+            )
+
+            id_atestado = opcoes[escolha]
+
+            st.divider()
+
+            with st.form("form_novo_servico_atestado"):
+
+                servico = st.text_input("Serviço")
+                unidade = st.text_input("Unidade", placeholder="m³, m², m, un, mês...")
+                quantidade = st.number_input("Quantidade", min_value=0.0, step=0.01)
+                observacoes = st.text_area("Observações")
+
+                salvar_servico = st.form_submit_button("Adicionar serviço")
+
+                if salvar_servico:
+
+                    if not servico:
+                        st.error("Informe o serviço.")
+                        return
+
+                    novo_servico = {
+                        "id_servico": str(uuid.uuid4()),
+                        "id_atestado": id_atestado,
+                        "servico": servico,
+                        "unidade": unidade,
+                        "quantidade": quantidade,
+                        "observacoes": observacoes
+                    }
+
+                    df_servicos = pd.concat(
+                        [df_servicos, pd.DataFrame([novo_servico])],
+                        ignore_index=True
+                    )
+
+                    salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+
+                    st.success("Serviço vinculado com sucesso!")
+                    st.rerun()
+
+            st.divider()
+
+            st.write("Serviços já vinculados")
+
+            servicos_atestado = df_servicos[
+                df_servicos["id_atestado"] == id_atestado
+            ].reset_index(drop=True)
+
+            if servicos_atestado.empty:
+                st.info("Nenhum serviço vinculado a este atestado.")
+            else:
+                st.dataframe(
+                    servicos_atestado[["servico", "unidade", "quantidade", "observacoes"]],
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+                st.divider()
+
+                idx_servico = st.selectbox(
+                    "Selecionar serviço para excluir",
+                    servicos_atestado.index,
+                    key="sel_excluir_servico_atestado"
+                )
+
+                if st.button("Excluir serviço selecionado", key="btn_excluir_servico_atestado"):
+
+                    id_servico = servicos_atestado.loc[idx_servico, "id_servico"]
+
+                    df_servicos = df_servicos[
+                        df_servicos["id_servico"] != id_servico
+                    ].reset_index(drop=True)
+
+                    salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+
+                    st.warning("Serviço excluído.")
+                    st.rerun()
+
+
 # =========================
 # TELA PRINCIPAL
 # =========================
@@ -172,7 +527,7 @@ def render():
     if "subdados" not in st.session_state:
         st.session_state.subdados = None
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     if col1.button("Equipamentos"):
         st.session_state.subdados = "equip"
@@ -192,25 +547,31 @@ def render():
     if col3.button("Salários"):
         st.session_state.subdados = "sal"
 
+    if col4.button("Atestados"):
+        st.session_state.subdados = "atestados"
+
     st.divider()
 
     if st.session_state.subdados == "equip":
-        crud(ARQ_EQUIP, ["Equipamento","Vazao","Consumo","Valor"], "Equipamentos", "equip")
+        crud(ARQ_EQUIP, ["Equipamento", "Vazao", "Consumo", "Valor"], "Equipamentos", "equip")
 
     elif st.session_state.subdados == "mat":
-        crud(ARQ_MAT, ["Material","Solidos_InSitu","Solidos_Desaguado"], "Materiais", "mat")
+        crud(ARQ_MAT, ["Material", "Solidos_InSitu", "Solidos_Desaguado"], "Materiais", "mat")
 
     elif st.session_state.subdados == "desag":
         crud(ARQ_DESAG, ["Tipo"], "Desaguamento", "desag")
 
     elif st.session_state.subdados == "hor":
-        crud(ARQ_HOR, ["Inicio","Fim"], "Horários", "hor")
+        crud(ARQ_HOR, ["Inicio", "Fim"], "Horários", "hor")
 
     elif st.session_state.subdados == "dias":
         crud(ARQ_DIAS, ["Descricao"], "Dias", "dias")
 
     elif st.session_state.subdados == "sal":
-        crud(ARQ_SAL, ["Posicao","Valor_Hora"], "Salários", "sal")
+        crud(ARQ_SAL, ["Posicao", "Valor_Hora"], "Salários", "sal")
+
+    elif st.session_state.subdados == "atestados":
+        render_atestados()
 
     if st.button("⬅ Voltar"):
         st.session_state.tela = "menu"
