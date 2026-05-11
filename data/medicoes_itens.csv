@@ -1,6 +1,1 @@
-item_id,medicao_id,frente_id,codigo,descricao,unidade,valor_unitario,tipo_calculo,quantidade_manual,comprimento_total,dias_uteis_mes,dias_trabalhados,horas_dia,volume_desaguado,st_des,st_br,volume_anterior,custo_nf,bdi_percentual,reajuste_percentual,parametros_json,quantidade_calculada,quantidade_medida,valor_total,observacoes,criado_em,atualizado_em
-1,,1,1.01,Equipe Operacional,VB,15000.0,,,0.0,,30.0,8.0,0.0,0.0,0.0,,,0.15,,,0.0,0.0,0.0,,,
-2,,1,1.02,Dragagem,m3,45.0,,,0.0,,20.0,8.0,500.0,5.0,10.0,,,0.15,,,0.0,0.0,0.0,,,
-3,,2,1.03,Bag,m3,30.0,,,120.0,,15.0,8.0,0.0,0.0,0.0,,,0.15,,,0.0,0.0,0.0,,,
-item_86b04a71c0,1.0,1,DR-31,Locação e Montagem de Tubulação de Recalque,m,20.0,manual,1000.0,0.0,20.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,1000.0,1000.0,20000.0,,2026-05-11 17:48:34,2026-05-11 17:48:34
-item_db6d61ce3f,bm_a3c6be960b,frente_7057e6a3c6,DR-31,Locação e Montagem de Tubulação de Recalque,m,10.0,manual,10000.0,0.0,20.0,19.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,10000.0,10000.0,100000.0,,2026-05-11 18:04:48,2026-05-11 18:04:48
+item_id,medicao_id,frente_id,codigo,descricao,unidade,quantidade,valor_unitario,total
