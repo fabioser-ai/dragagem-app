@@ -69,7 +69,7 @@ elif st.session_state.tela == "prestacao_contas":
     prestacao_contas.render()
 
 elif st.session_state.tela == "medicoes":
-    medicoes.render()
+    medicoes.medicoes()
 
 # =========================
 # MÓDULO OBRAS
