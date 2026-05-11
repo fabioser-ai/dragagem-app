@@ -18,9 +18,6 @@ ARQ_ATESTADOS = "data/atestados.csv"
 ARQ_ATESTADOS_SERVICOS = "data/atestados_servicos.csv"
 
 
-# =========================
-# FORMATAR MOEDA BR
-# =========================
 def formatar_real(valor):
     try:
         return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -28,11 +25,7 @@ def formatar_real(valor):
         return "R$ 0,00"
 
 
-# =========================
-# PARSE MOEDA BR -> FLOAT
-# =========================
 def parse_moeda(valor):
-
     if pd.isna(valor) or valor == "":
         return None
 
@@ -46,11 +39,7 @@ def parse_moeda(valor):
         return None
 
 
-# =========================
-# CONVERSÃO COM VALIDAÇÃO
-# =========================
 def converter_valores(colunas, valores):
-
     valores_convertidos = []
 
     for i, c in enumerate(colunas):
@@ -77,11 +66,7 @@ def converter_valores(colunas, valores):
     return valores_convertidos
 
 
-# =========================
-# CRUD GENÉRICO
-# =========================
 def crud(arquivo, colunas, titulo, chave):
-
     st.subheader(titulo)
 
     df = carregar_github(arquivo, TOKEN, REPO)
@@ -101,11 +86,7 @@ def crud(arquivo, colunas, titulo, chave):
 
     st.dataframe(df_display, use_container_width=True, hide_index=True)
 
-    # =========================
-    # EDITAR
-    # =========================
     if not df.empty:
-
         st.divider()
         st.write("Editar registro")
 
@@ -115,20 +96,16 @@ def crud(arquivo, colunas, titulo, chave):
         novos = []
 
         for c in colunas:
-
             if c.lower() in ["valor", "valor_hora", "consumo"]:
                 valor_atual = formatar_real(linha[c])
             else:
                 valor_atual = str(linha[c])
 
-            novos.append(
-                st.text_input(c, value=valor_atual, key=f"{chave}_{c}")
-            )
+            novos.append(st.text_input(c, value=valor_atual, key=f"{chave}_{c}"))
 
         col1, col2 = st.columns(2)
 
         if col1.button("Salvar", key=f"save_{chave}", use_container_width=True):
-
             novos_convertidos = converter_valores(colunas, novos)
 
             if novos_convertidos is None:
@@ -138,12 +115,10 @@ def crud(arquivo, colunas, titulo, chave):
                 df.at[idx, c] = novos_convertidos[i]
 
             salvar_github(df, arquivo, TOKEN, REPO)
-
             st.success("Atualizado com sucesso!")
             st.rerun()
 
         if col2.button("Excluir", key=f"del_{chave}", use_container_width=True):
-
             df = df.drop(idx).reset_index(drop=True)
             salvar_github(df, arquivo, TOKEN, REPO)
 
@@ -151,10 +126,6 @@ def crud(arquivo, colunas, titulo, chave):
             st.rerun()
 
     st.divider()
-
-    # =========================
-    # NOVO
-    # =========================
     st.write("Adicionar novo")
 
     valores = []
@@ -163,7 +134,6 @@ def crud(arquivo, colunas, titulo, chave):
         valores.append(st.text_input(c, key=f"new_{chave}_{c}"))
 
     if st.button("Adicionar", key=f"add_{chave}", use_container_width=True):
-
         valores_convertidos = converter_valores(colunas, valores)
 
         if valores_convertidos is None:
@@ -177,11 +147,7 @@ def crud(arquivo, colunas, titulo, chave):
         st.rerun()
 
 
-# =========================
-# ATESTADOS - ESTRUTURA
-# =========================
 def garantir_estrutura_atestados():
-
     col_atestados = [
         "id_atestado",
         "cliente",
@@ -227,11 +193,35 @@ def garantir_estrutura_atestados():
     return df_atestados, df_servicos
 
 
-# =========================
-# ATESTADOS
-# =========================
-def render_atestados():
+def filtrar_atestados_por_busca(df_atestados, df_servicos, busca):
+    if not busca or busca.strip() == "":
+        return df_atestados.copy()
 
+    termo = busca.strip().lower()
+
+    servicos_filtrados = df_servicos[
+        df_servicos.apply(
+            lambda row: termo in " ".join([str(v).lower() for v in row.values]),
+            axis=1
+        )
+    ]
+
+    ids_por_servico = servicos_filtrados["id_atestado"].unique().tolist()
+
+    atestados_filtrados = df_atestados[
+        df_atestados.apply(
+            lambda row: (
+                termo in " ".join([str(v).lower() for v in row.values])
+                or row["id_atestado"] in ids_por_servico
+            ),
+            axis=1
+        )
+    ]
+
+    return atestados_filtrados.copy()
+
+
+def render_atestados():
     st.subheader("Atestados")
 
     df_atestados, df_servicos = garantir_estrutura_atestados()
@@ -242,16 +232,31 @@ def render_atestados():
         "Serviços Vinculados"
     ])
 
-    # =========================
-    # LISTAR
-    # =========================
     with aba1:
-
         st.write("Atestados cadastrados")
+
+        busca = st.text_input(
+            "Buscar por palavra-chave",
+            placeholder="Ex: con, concreto, dragagem, tubo, geotêxtil, lodo..."
+        )
+
+        df_atestados_filtrado = filtrar_atestados_por_busca(
+            df_atestados,
+            df_servicos,
+            busca
+        )
 
         if df_atestados.empty:
             st.info("Nenhum atestado cadastrado.")
+
+        elif df_atestados_filtrado.empty:
+            st.warning("Nenhum atestado encontrado para essa busca.")
+
         else:
+            st.caption(
+                f"Exibindo {len(df_atestados_filtrado)} de {len(df_atestados)} atestados cadastrados."
+            )
+
             colunas_exibir = [
                 "cliente",
                 "contrato",
@@ -263,7 +268,7 @@ def render_atestados():
             ]
 
             st.dataframe(
-                df_atestados[colunas_exibir],
+                df_atestados_filtrado[colunas_exibir],
                 use_container_width=True,
                 hide_index=True
             )
@@ -273,7 +278,7 @@ def render_atestados():
 
             opcoes = {
                 f"{row['cliente']} | {row['obra']} | {row['contrato']}": row["id_atestado"]
-                for _, row in df_atestados.iterrows()
+                for _, row in df_atestados_filtrado.iterrows()
             }
 
             escolha = st.selectbox(
@@ -303,11 +308,28 @@ def render_atestados():
 
             servicos = df_servicos[df_servicos["id_atestado"] == id_atestado]
 
-            if servicos.empty:
+            if busca and busca.strip() != "":
+                termo = busca.strip().lower()
+                servicos_display = servicos[
+                    servicos.apply(
+                        lambda row: termo in " ".join([str(v).lower() for v in row.values]),
+                        axis=1
+                    )
+                ]
+
+                if servicos_display.empty:
+                    servicos_display = servicos.copy()
+                    st.caption("O atestado foi encontrado pelos dados principais. Exibindo todos os serviços vinculados.")
+                else:
+                    st.caption("Exibindo serviços que bateram com a busca.")
+            else:
+                servicos_display = servicos.copy()
+
+            if servicos_display.empty:
                 st.info("Nenhum serviço vinculado a este atestado.")
             else:
                 st.dataframe(
-                    servicos[["servico", "unidade", "quantidade", "observacoes"]],
+                    servicos_display[["servico", "unidade", "quantidade", "observacoes"]],
                     use_container_width=True,
                     hide_index=True
                 )
@@ -322,7 +344,6 @@ def render_atestados():
 
             with col_excluir:
                 if st.button("Excluir este atestado", key="btn_excluir_atestado", use_container_width=True):
-
                     df_atestados = df_atestados[
                         df_atestados["id_atestado"] != id_atestado
                     ].reset_index(drop=True)
@@ -351,7 +372,6 @@ def render_atestados():
                     linha = df_atestados.loc[idx]
 
                     with st.form("form_editar_atestado"):
-
                         cliente = st.text_input("Cliente", value=linha["cliente"])
                         contrato = st.text_input("Contrato", value=linha["contrato"])
                         obra = st.text_input("Obra", value=linha["obra"])
@@ -382,15 +402,10 @@ def render_atestados():
                             st.success("Atestado atualizado com sucesso!")
                             st.rerun()
 
-    # =========================
-    # NOVO
-    # =========================
     with aba2:
-
         st.write("Cadastrar novo atestado")
 
         with st.form("form_novo_atestado"):
-
             cliente = st.text_input("Cliente")
             contrato = st.text_input("Contrato")
             obra = st.text_input("Obra")
@@ -404,7 +419,6 @@ def render_atestados():
             salvar = st.form_submit_button("Salvar atestado")
 
             if salvar:
-
                 if not cliente or not obra:
                     st.error("Cliente e obra são campos obrigatórios.")
                     return
@@ -432,11 +446,7 @@ def render_atestados():
                 st.success("Atestado cadastrado com sucesso!")
                 st.rerun()
 
-    # =========================
-    # SERVIÇOS
-    # =========================
     with aba3:
-
         st.write("Adicionar serviços vinculados")
 
         if df_atestados.empty:
@@ -458,7 +468,6 @@ def render_atestados():
             st.divider()
 
             with st.form("form_novo_servico_atestado"):
-
                 servico = st.text_input("Serviço")
                 unidade = st.text_input("Unidade", placeholder="m³, m², m, un, mês...")
                 quantidade = st.number_input("Quantidade", min_value=0.0, step=0.01)
@@ -467,7 +476,6 @@ def render_atestados():
                 salvar_servico = st.form_submit_button("Adicionar serviço")
 
                 if salvar_servico:
-
                     if not servico:
                         st.error("Informe o serviço.")
                         return
@@ -492,7 +500,6 @@ def render_atestados():
                     st.rerun()
 
             st.divider()
-
             st.write("Serviços já vinculados")
 
             servicos_atestado = df_servicos[
@@ -517,7 +524,6 @@ def render_atestados():
                 )
 
                 if st.button("Excluir serviço selecionado", key="btn_excluir_servico_atestado", use_container_width=True):
-
                     id_servico = servicos_atestado.loc[idx_servico, "id_servico"]
 
                     df_servicos = df_servicos[
@@ -530,11 +536,7 @@ def render_atestados():
                     st.rerun()
 
 
-# =========================
-# TELA PRINCIPAL
-# =========================
 def render():
-
     st.title("Dados")
 
     if "subdados" not in st.session_state:
