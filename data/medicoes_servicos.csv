@@ -1,0 +1,9 @@
+codigo,descricao,unidade
+DR-01,Dragagem,m³
+DR-02,Tubulação,m
+DR-03,Escavação,m³
+DR-04,Desassoreamento,m³
+DR-05,Limpeza de margem,m²
+DR-06,Transporte,h
+DR-07,Equipamento,h
+DR-08,Bag geotêxtil,und
