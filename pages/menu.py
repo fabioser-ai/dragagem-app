@@ -219,6 +219,19 @@ def render():
         else:
             st.button("DADOS BLOQUEADO", use_container_width=True, disabled=True)
 
+        st.markdown(
+            """
+            <div class="module-card">
+                <h3>Medições</h3>
+                <p>Controle de boletins de medição, frentes de serviço, itens medidos e totais por obra.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button("ABRIR MEDIÇÕES", use_container_width=True):
+            st.session_state.tela = "medicoes"
+
     st.markdown(
         """
         <div class="footer-note">
