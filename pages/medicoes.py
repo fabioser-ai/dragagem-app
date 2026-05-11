@@ -8,10 +8,6 @@ import streamlit as st
 from services.github import carregar_github, salvar_github
 
 
-# ============================================================
-# MÓDULO MEDIÇÕES - FOS ENGENHARIA
-# ============================================================
-
 ARQ_OBRAS = "data/obras.csv"
 ARQ_MEDICOES = "data/medicoes.csv"
 ARQ_FRENTES = "data/medicoes_frentes.csv"
@@ -19,72 +15,28 @@ ARQ_ITENS = "data/medicoes_itens.csv"
 
 
 COL_OBRAS = [
-    "obra_id",
-    "nome_obra",
-    "contratante",
-    "contrato",
-    "objeto",
-    "cidade",
-    "status",
-    "observacoes",
-    "criado_em",
-    "atualizado_em",
+    "obra_id", "nome_obra", "contratante", "contrato", "objeto", "cidade",
+    "status", "observacoes", "criado_em", "atualizado_em",
 ]
 
 COL_MEDICOES = [
-    "medicao_id",
-    "obra_id",
-    "numero_bm",
-    "aditivo",
-    "periodo_inicio",
-    "periodo_fim",
-    "data_bm",
-    "dias_uteis_mes",
-    "apostilamento_percentual",
-    "status",
-    "observacoes",
-    "criado_em",
-    "atualizado_em",
+    "medicao_id", "obra_id", "numero_bm", "aditivo", "periodo_inicio",
+    "periodo_fim", "data_bm", "dias_uteis_mes", "apostilamento_percentual",
+    "status", "observacoes", "criado_em", "atualizado_em",
 ]
 
 COL_FRENTES = [
-    "frente_id",
-    "medicao_id",
-    "nome_frente",
-    "dias_trabalhados",
-    "observacoes",
-    "criado_em",
-    "atualizado_em",
+    "frente_id", "medicao_id", "nome_frente", "dias_trabalhados",
+    "observacoes", "criado_em", "atualizado_em",
 ]
 
 COL_ITENS = [
-    "item_id",
-    "medicao_id",
-    "frente_id",
-    "codigo",
-    "descricao",
-    "unidade",
-    "valor_unitario",
-    "tipo_calculo",
-    "quantidade_manual",
-    "comprimento_total",
-    "dias_uteis_mes",
-    "dias_trabalhados",
-    "horas_dia",
-    "volume_desaguado",
-    "st_des",
-    "st_br",
-    "volume_anterior",
-    "custo_nf",
-    "bdi_percentual",
-    "reajuste_percentual",
-    "parametros_json",
-    "quantidade_calculada",
-    "quantidade_medida",
-    "valor_total",
-    "observacoes",
-    "criado_em",
-    "atualizado_em",
+    "item_id", "medicao_id", "frente_id", "codigo", "descricao", "unidade",
+    "valor_unitario", "tipo_calculo", "quantidade_manual", "comprimento_total",
+    "dias_uteis_mes", "dias_trabalhados", "horas_dia", "volume_desaguado",
+    "st_des", "st_br", "volume_anterior", "custo_nf", "bdi_percentual",
+    "reajuste_percentual", "parametros_json", "quantidade_calculada",
+    "quantidade_medida", "valor_total", "observacoes", "criado_em", "atualizado_em",
 ]
 
 
@@ -97,10 +49,6 @@ TIPOS_CALCULO = {
     "custo_para_quantidade": "Custo convertido em quantidade: custo final ÷ valor unitário",
 }
 
-
-# ============================================================
-# FUNÇÕES AUXILIARES
-# ============================================================
 
 def agora_iso():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -161,9 +109,7 @@ def normalizar_colunas(df, tipo):
         },
     }
 
-    mapa = mapas.get(tipo, {})
-
-    for antiga, nova in mapa.items():
+    for antiga, nova in mapas.get(tipo, {}).items():
         if antiga in df.columns and nova not in df.columns:
             df[nova] = df[antiga]
 
@@ -186,7 +132,6 @@ def carregar_csv(caminho, colunas, tipo):
     if isinstance(df, str):
         try:
             from io import StringIO
-
             df = pd.read_csv(StringIO(df))
         except Exception:
             df = _df_vazio(colunas)
@@ -216,10 +161,6 @@ def salvar_csv(caminho, df):
         st.error(f"Erro ao salvar {caminho}: {e}")
         return False
 
-
-# ============================================================
-# CÁLCULOS
-# ============================================================
 
 def calcular_item(row):
     tipo = row.get("tipo_calculo", "manual")
@@ -254,7 +195,6 @@ def calcular_item(row):
         st_des = num(row.get("st_des"))
         st_br = num(row.get("st_br"))
         anterior = num(row.get("volume_anterior"))
-
         vld_total = (vl_des * st_des / st_br) if st_br else 0.0
         quantidade = max(vld_total - anterior, 0.0)
 
@@ -262,10 +202,8 @@ def calcular_item(row):
         custo_nf = num(row.get("custo_nf"))
         bdi = num(row.get("bdi_percentual"))
         reajuste = num(row.get("reajuste_percentual"))
-
         custo_com_bdi = custo_nf * (1 + bdi)
         custo_final = custo_com_bdi * (1 - reajuste)
-
         quantidade = (custo_final / valor_unitario) if valor_unitario else 0.0
 
     valor_total = quantidade * valor_unitario
@@ -292,16 +230,11 @@ def recalcular_itens(df_itens):
     return df
 
 
-# ============================================================
-# CARREGAMENTO / SALVAMENTO
-# ============================================================
-
 def carregar_bases():
     obras = carregar_csv(ARQ_OBRAS, COL_OBRAS, "obras")
     medicoes = carregar_csv(ARQ_MEDICOES, COL_MEDICOES, "medicoes")
     frentes = carregar_csv(ARQ_FRENTES, COL_FRENTES, "frentes")
     itens = carregar_csv(ARQ_ITENS, COL_ITENS, "itens")
-
     return obras, medicoes, frentes, recalcular_itens(itens)
 
 
@@ -310,22 +243,15 @@ def salvar_bases(obras=None, medicoes=None, frentes=None, itens=None):
 
     if obras is not None:
         ok = salvar_csv(ARQ_OBRAS, obras) and ok
-
     if medicoes is not None:
         ok = salvar_csv(ARQ_MEDICOES, medicoes) and ok
-
     if frentes is not None:
         ok = salvar_csv(ARQ_FRENTES, frentes) and ok
-
     if itens is not None:
         ok = salvar_csv(ARQ_ITENS, recalcular_itens(itens)) and ok
 
     return ok
 
-
-# ============================================================
-# OPÇÕES
-# ============================================================
 
 def opcoes_obras(obras):
     if obras.empty:
@@ -372,12 +298,35 @@ def opcoes_frentes(frentes, medicao_id):
     }
 
 
-# ============================================================
-# TELAS
-# ============================================================
+def ir_para_etapa(etapa):
+    st.session_state.etapa_medicoes = etapa
+    st.rerun()
+
+
+def guardar_obra(obra_id):
+    st.session_state.medicao_obra_id = obra_id
+
+
+def guardar_bm(medicao_id):
+    st.session_state.medicao_bm_id = medicao_id
+
 
 def tela_obras(obras):
-    st.subheader("1. Cadastro de obras")
+    st.subheader("1. Obra")
+
+    obras_opts = opcoes_obras(obras)
+
+    if obras_opts:
+        obra_label = st.selectbox(
+            "Selecionar obra existente",
+            list(obras_opts.keys()),
+            key="select_obra_fluxo",
+        )
+        obra_id = obras_opts[obra_label]
+        guardar_obra(obra_id)
+    else:
+        obra_id = None
+        st.info("Nenhuma obra cadastrada ainda.")
 
     with st.expander("Cadastrar nova obra", expanded=obras.empty):
         with st.form("form_nova_obra", clear_on_submit=False):
@@ -391,13 +340,12 @@ def tela_obras(obras):
             cidade = st.text_input("Cidade", value="Curitiba/PR")
             status = st.selectbox("Status", ["Ativa", "Concluída", "Suspensa", "Arquivada"])
             observacoes = st.text_area("Observações")
-
             ok = st.form_submit_button("Salvar obra")
 
         if ok:
             if not nome_obra.strip():
                 st.error("Informe o nome da obra.")
-                return obras
+                return obras, obra_id
 
             nova = {
                 "obra_id": novo_id("obra"),
@@ -413,6 +361,7 @@ def tela_obras(obras):
             }
 
             obras = pd.concat([obras, pd.DataFrame([nova])], ignore_index=True)
+            guardar_obra(nova["obra_id"])
 
             if salvar_bases(obras=obras):
                 st.success("Obra cadastrada com sucesso.")
@@ -425,20 +374,33 @@ def tela_obras(obras):
             hide_index=True,
         )
 
-    return obras
+    return obras, st.session_state.get("medicao_obra_id", obra_id)
 
 
 def tela_medicoes(obras, medicoes):
-    st.subheader("2. Cadastro do BM")
+    st.subheader("2. Boletim de Medição")
 
-    obras_opts = opcoes_obras(obras)
+    obra_id = st.session_state.get("medicao_obra_id")
 
-    if not obras_opts:
-        st.info("Cadastre uma obra antes de criar o BM.")
+    if not obra_id:
+        st.warning("Selecione ou cadastre uma obra primeiro.")
         return medicoes, None
 
-    obra_label = st.selectbox("Obra", list(obras_opts.keys()), key="obra_medicao")
-    obra_id = obras_opts[obra_label]
+    obra_nome = obras.loc[obras["obra_id"].astype(str) == str(obra_id), "nome_obra"]
+    if not obra_nome.empty:
+        st.info(f"Obra selecionada: {obra_nome.iloc[0]}")
+
+    med_opts = opcoes_medicoes(medicoes, obra_id)
+
+    if med_opts:
+        med_label = st.selectbox(
+            "Selecionar BM existente",
+            list(med_opts.keys()),
+            key="select_bm_fluxo",
+        )
+        guardar_bm(med_opts[med_label])
+    else:
+        st.info("Nenhum BM cadastrado para esta obra.")
 
     df_obra = medicoes[medicoes["obra_id"].astype(str) == str(obra_id)]
 
@@ -467,7 +429,6 @@ def tela_medicoes(obras, medicoes):
 
             status = st.selectbox("Status do BM", ["Rascunho", "Fechado", "Enviado", "Aprovado", "Pago"])
             observacoes = st.text_area("Observações do BM")
-
             ok = st.form_submit_button("Salvar BM")
 
         if ok:
@@ -488,6 +449,7 @@ def tela_medicoes(obras, medicoes):
             }
 
             medicoes = pd.concat([medicoes, pd.DataFrame([nova])], ignore_index=True)
+            guardar_bm(nova["medicao_id"])
 
             if salvar_bases(medicoes=medicoes):
                 st.success("BM cadastrado com sucesso.")
@@ -502,20 +464,29 @@ def tela_medicoes(obras, medicoes):
             hide_index=True,
         )
 
-    return medicoes, obra_id
+    return medicoes, st.session_state.get("medicao_bm_id")
 
 
-def tela_frentes(medicoes, frentes, obra_id):
-    st.subheader("3. Frentes / parques")
+def tela_frentes(medicoes, frentes):
+    st.subheader("3. Frentes / Parques")
 
-    med_opts = opcoes_medicoes(medicoes, obra_id)
+    medicao_id = st.session_state.get("medicao_bm_id")
 
-    if not med_opts:
-        st.info("Cadastre um BM antes de criar frentes/parques.")
+    if not medicao_id:
+        st.warning("Selecione ou cadastre um BM primeiro.")
         return frentes, None
 
-    med_label = st.selectbox("BM", list(med_opts.keys()), key="bm_frente")
-    medicao_id = med_opts[med_label]
+    fr_opts = opcoes_frentes(frentes, medicao_id)
+
+    if fr_opts:
+        frente_label = st.selectbox(
+            "Selecionar frente/parque existente",
+            list(fr_opts.keys()),
+            key="select_frente_fluxo",
+        )
+        st.session_state.medicao_frente_id = fr_opts[frente_label]
+    else:
+        st.info("Nenhuma frente/parque cadastrada para este BM.")
 
     df_med = frentes[frentes["medicao_id"].astype(str) == str(medicao_id)]
 
@@ -529,7 +500,6 @@ def tela_frentes(medicoes, frentes, obra_id):
                 step=0.5,
             )
             observacoes = st.text_area("Observações")
-
             ok = st.form_submit_button("Salvar frente")
 
         if ok:
@@ -544,6 +514,7 @@ def tela_frentes(medicoes, frentes, obra_id):
             }
 
             frentes = pd.concat([frentes, pd.DataFrame([nova])], ignore_index=True)
+            st.session_state.medicao_frente_id = nova["frente_id"]
 
             if salvar_bases(frentes=frentes):
                 st.success("Frente cadastrada com sucesso.")
@@ -561,8 +532,14 @@ def tela_frentes(medicoes, frentes, obra_id):
     return frentes, medicao_id
 
 
-def tela_itens(medicoes, frentes, itens, medicao_id):
+def tela_itens(medicoes, frentes, itens):
     st.subheader("4. Itens medidos e memória de cálculo")
+
+    medicao_id = st.session_state.get("medicao_bm_id")
+
+    if not medicao_id:
+        st.warning("Selecione ou cadastre um BM primeiro.")
+        return itens
 
     fr_opts = opcoes_frentes(frentes, medicao_id)
 
@@ -570,11 +547,15 @@ def tela_itens(medicoes, frentes, itens, medicao_id):
         st.info("Cadastre uma frente/parque antes de lançar itens.")
         return itens
 
+    frente_label = st.selectbox(
+        "Frente/parque",
+        list(fr_opts.keys()),
+        key="frente_item_fluxo",
+    )
+    frente_id = fr_opts[frente_label]
+
     med_row = medicoes[medicoes["medicao_id"].astype(str) == str(medicao_id)]
     dias_uteis_padrao = int(num(med_row.iloc[0]["dias_uteis_mes"], 20)) if not med_row.empty else 20
-
-    frente_label = st.selectbox("Frente/parque", list(fr_opts.keys()), key="frente_item")
-    frente_id = fr_opts[frente_label]
 
     frente_row = frentes[frentes["frente_id"].astype(str) == str(frente_id)]
     dias_trab_padrao = float(num(frente_row.iloc[0]["dias_trabalhados"], 0)) if not frente_row.empty else 0
@@ -757,7 +738,6 @@ def tela_itens(medicoes, frentes, itens, medicao_id):
                     ) / 100
 
             observacoes = st.text_area("Observações do item")
-
             ok = st.form_submit_button("Salvar item")
 
         if ok:
@@ -804,26 +784,27 @@ def tela_itens(medicoes, frentes, itens, medicao_id):
         fr_map = frentes.set_index("frente_id")["nome_frente"].to_dict()
         df["frente"] = df["frente_id"].map(fr_map)
 
-        cols = [
-            "frente",
-            "codigo",
-            "descricao",
-            "unidade",
-            "tipo_calculo",
-            "quantidade_medida",
-            "valor_unitario",
-            "valor_total",
-        ]
-
-        st.dataframe(df[cols], use_container_width=True, hide_index=True)
+        st.dataframe(
+            df[
+                [
+                    "frente", "codigo", "descricao", "unidade", "tipo_calculo",
+                    "quantidade_medida", "valor_unitario", "valor_total",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
 
     return itens
 
 
-def tela_resumo(medicoes, frentes, itens, medicao_id):
+def tela_resumo(medicoes, frentes, itens):
     st.subheader("5. Resumo do BM")
 
+    medicao_id = st.session_state.get("medicao_bm_id")
+
     if not medicao_id:
+        st.warning("Selecione ou cadastre um BM primeiro.")
         return
 
     df = recalcular_itens(itens[itens["medicao_id"].astype(str) == str(medicao_id)].copy())
@@ -845,7 +826,6 @@ def tela_resumo(medicoes, frentes, itens, medicao_id):
     total_com_apost = total_geral + valor_apost
 
     c1, c2, c3 = st.columns(3)
-
     c1.metric("Total geral da medição", moeda(total_geral))
     c2.metric("Apostilamento / reajuste", moeda(valor_apost))
     c3.metric("Valor total do BM", moeda(total_com_apost))
@@ -862,14 +842,8 @@ def tela_resumo(medicoes, frentes, itens, medicao_id):
 
     df_view = df[
         [
-            "frente",
-            "codigo",
-            "descricao",
-            "unidade",
-            "quantidade_medida",
-            "valor_unitario",
-            "valor_total",
-            "observacoes",
+            "frente", "codigo", "descricao", "unidade", "quantidade_medida",
+            "valor_unitario", "valor_total", "observacoes",
         ]
     ].copy()
 
@@ -885,94 +859,94 @@ def tela_resumo(medicoes, frentes, itens, medicao_id):
     )
 
 
-# ============================================================
-# FUNÇÃO PRINCIPAL
-# ============================================================
+def barra_fluxo():
+    etapas = {
+        "obra": "1. Obra",
+        "bm": "2. BM",
+        "frentes": "3. Frentes",
+        "itens": "4. Itens",
+        "resumo": "5. Resumo",
+    }
+
+    etapa_atual = st.session_state.get("etapa_medicoes", "obra")
+
+    st.markdown("### Fluxo da medição")
+    cols = st.columns(len(etapas))
+
+    for i, (etapa, label) in enumerate(etapas.items()):
+        with cols[i]:
+            if etapa == etapa_atual:
+                st.button(f"✅ {label}", key=f"fluxo_{etapa}", disabled=True, use_container_width=True)
+            else:
+                if st.button(label, key=f"fluxo_{etapa}", use_container_width=True):
+                    ir_para_etapa(etapa)
+
+
+def navegacao_etapas():
+    etapa = st.session_state.get("etapa_medicoes", "obra")
+
+    st.divider()
+    col1, col2, col3 = st.columns([1, 1, 1])
+
+    with col1:
+        if etapa != "obra":
+            if st.button("← Voltar", use_container_width=True):
+                ordem = ["obra", "bm", "frentes", "itens", "resumo"]
+                idx = ordem.index(etapa)
+                ir_para_etapa(ordem[idx - 1])
+
+    with col2:
+        if st.button("⬅ Voltar ao menu", use_container_width=True):
+            st.session_state.tela = "menu"
+            st.rerun()
+
+    with col3:
+        ordem = ["obra", "bm", "frentes", "itens", "resumo"]
+        if etapa != "resumo":
+            idx = ordem.index(etapa)
+            proxima = ordem[idx + 1]
+
+            label = {
+                "bm": "Próximo: BM →",
+                "frentes": "Próximo: Frentes →",
+                "itens": "Próximo: Itens →",
+                "resumo": "Próximo: Resumo →",
+            }.get(proxima, "Próximo →")
+
+            if st.button(label, use_container_width=True):
+                ir_para_etapa(proxima)
+
 
 def medicoes():
     st.title("Medições")
     st.caption("Boletins de medição, frentes/parques, memória de cálculo e totais por BM.")
 
+    if "etapa_medicoes" not in st.session_state:
+        st.session_state.etapa_medicoes = "obra"
+
     obras, medicoes_df, frentes, itens = carregar_bases()
 
-    abas = st.tabs(["Obras", "BM", "Frentes/Parques", "Itens", "Resumo"])
+    barra_fluxo()
+    st.divider()
 
-    with abas[0]:
-        obras = tela_obras(obras)
+    etapa = st.session_state.etapa_medicoes
 
-    with abas[1]:
-        medicoes_df, obra_id = tela_medicoes(obras, medicoes_df)
+    if etapa == "obra":
+        obras, obra_id = tela_obras(obras)
 
-    with abas[2]:
-        obras_opts = opcoes_obras(obras)
+    elif etapa == "bm":
+        medicoes_df, medicao_id = tela_medicoes(obras, medicoes_df)
 
-        obra_id_frente = None
+    elif etapa == "frentes":
+        frentes, medicao_id = tela_frentes(medicoes_df, frentes)
 
-        if obras_opts:
-            obra_label = st.selectbox(
-                "Selecione a obra",
-                list(obras_opts.keys()),
-                key="obra_frente_tab",
-            )
-            obra_id_frente = obras_opts[obra_label]
+    elif etapa == "itens":
+        itens = tela_itens(medicoes_df, frentes, itens)
 
-        frentes, medicao_id_frente = tela_frentes(medicoes_df, frentes, obra_id_frente)
+    elif etapa == "resumo":
+        tela_resumo(medicoes_df, frentes, itens)
 
-    with abas[3]:
-        obras_opts = opcoes_obras(obras)
-
-        if obras_opts:
-            obra_label = st.selectbox(
-                "Obra",
-                list(obras_opts.keys()),
-                key="obra_item_tab",
-            )
-            obra_id_item = obras_opts[obra_label]
-
-            med_opts = opcoes_medicoes(medicoes_df, obra_id_item)
-
-            if med_opts:
-                med_label = st.selectbox(
-                    "BM",
-                    list(med_opts.keys()),
-                    key="bm_item_tab",
-                )
-                medicao_id_item = med_opts[med_label]
-                itens = tela_itens(medicoes_df, frentes, itens, medicao_id_item)
-            else:
-                st.info("Cadastre um BM para esta obra.")
-        else:
-            st.info("Cadastre uma obra primeiro.")
-
-    with abas[4]:
-        obras_opts = opcoes_obras(obras)
-
-        if obras_opts:
-            obra_label = st.selectbox(
-                "Obra",
-                list(obras_opts.keys()),
-                key="obra_resumo_tab",
-            )
-            obra_id_resumo = obras_opts[obra_label]
-
-            med_opts = opcoes_medicoes(medicoes_df, obra_id_resumo)
-
-            if med_opts:
-                med_label = st.selectbox(
-                    "BM",
-                    list(med_opts.keys()),
-                    key="bm_resumo_tab",
-                )
-                medicao_id_resumo = med_opts[med_label]
-                tela_resumo(medicoes_df, frentes, itens, medicao_id_resumo)
-            else:
-                st.info("Cadastre um BM para esta obra.")
-        else:
-            st.info("Cadastre uma obra primeiro.")
-
-    if st.button("⬅ Voltar ao menu", key="voltar_menu_medicoes"):
-        st.session_state.tela = "menu"
-        st.rerun()
+    navegacao_etapas()
 
 
 def render():
