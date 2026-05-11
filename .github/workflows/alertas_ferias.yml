@@ -5,7 +5,7 @@ on:
     # 11:00 UTC = 08:00 Brasil
     - cron: "0 11 * * *"
 
-  # Permite executar manualmente pelo GitHub
+  # Permite execução manual pelo GitHub
   workflow_dispatch:
 
 permissions:
@@ -31,7 +31,8 @@ jobs:
 
       - name: Executar alertas automáticos
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+
           REPO: ${{ secrets.REPO }}
 
           EMAIL_SMTP_HOST: ${{ secrets.EMAIL_SMTP_HOST }}
