@@ -3,6 +3,11 @@ import pandas as pd
 from datetime import date, datetime, timedelta
 from services.github import carregar_github, salvar_github
 
+try:
+    from services.email_service import enviar_email_smtp
+except Exception:
+    enviar_email_smtp = None
+
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
@@ -12,6 +17,7 @@ ARQ_FOLGAS = "data/folgas.csv"
 
 DIAS_INTERVALO_FOLGA = 60
 DIAS_ALERTA_FOLGA = 20
+DIAS_ALERTA_FERIAS = 60
 
 COLUNAS_FERIAS = [
     "Matricula",
@@ -43,6 +49,9 @@ COLUNAS_FOLGAS = [
 ]
 
 
+# =========================
+# FUNÇÕES AUXILIARES
+# =========================
 def normalizar_dataframe(df, colunas):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
@@ -96,7 +105,7 @@ def calcular_status(periodo_fim, limite_gozo):
 
     if hoje > limite_gozo:
         situacao_prazo = "Férias em Dobro"
-    elif (limite_gozo - hoje).days <= 60:
+    elif (limite_gozo - hoje).days <= DIAS_ALERTA_FERIAS:
         situacao_prazo = "Atenção"
     else:
         situacao_prazo = "Dentro do Prazo"
@@ -165,6 +174,142 @@ def cor_linha_folgas(row):
     return [""] * len(row)
 
 
+# =========================
+# ALERTAS POR E-MAIL
+# =========================
+def secrets_email_configurados():
+    chaves = [
+        "EMAIL_SMTP_HOST",
+        "EMAIL_SMTP_PORT",
+        "EMAIL_USUARIO",
+        "EMAIL_SENHA",
+        "EMAIL_ORIGEM",
+        "EMAIL_DESTINO_ALERTAS",
+    ]
+
+    ausentes = []
+
+    for chave in chaves:
+        try:
+            valor = st.secrets[chave]
+            if valor is None or str(valor).strip() == "":
+                ausentes.append(chave)
+        except Exception:
+            ausentes.append(chave)
+
+    return len(ausentes) == 0, ausentes
+
+
+def obter_alertas_ferias(df_ferias):
+    hoje = date.today()
+
+    if df_ferias.empty:
+        return pd.DataFrame(), pd.DataFrame()
+
+    df_alerta = df_ferias.copy()
+    df_alerta["Limite_Gozo_Data"] = df_alerta["Limite_Gozo"].apply(para_data)
+
+    ferias_dobro = df_alerta[df_alerta["Situacao_Prazo"] == "Férias em Dobro"].copy()
+
+    proximos_limite = df_alerta[
+        df_alerta["Limite_Gozo_Data"].apply(
+            lambda x: x is not None and 0 <= (x - hoje).days <= DIAS_ALERTA_FERIAS
+        )
+    ].copy()
+
+    if not proximos_limite.empty:
+        proximos_limite["Dias_Para_Limite"] = proximos_limite["Limite_Gozo_Data"].apply(
+            lambda x: (x - hoje).days if x else None
+        )
+        proximos_limite = proximos_limite.sort_values(by="Dias_Para_Limite")
+
+    return ferias_dobro, proximos_limite
+
+
+def montar_corpo_email_alerta_ferias(df_ferias):
+    hoje = date.today()
+    ferias_dobro, proximos_limite = obter_alertas_ferias(df_ferias)
+
+    if ferias_dobro.empty and proximos_limite.empty:
+        return None
+
+    linhas = []
+    linhas.append("ALERTA AUTOMÁTICO - CONTROLE DE FÉRIAS")
+    linhas.append("")
+    linhas.append(f"Data da verificação: {hoje.strftime('%d/%m/%Y')}")
+    linhas.append("")
+
+    if not ferias_dobro.empty:
+        linhas.append("FÉRIAS EM DOBRO")
+        linhas.append("----------------")
+
+        for _, linha in ferias_dobro.iterrows():
+            linhas.append(
+                f"- {linha.get('Funcionario', '')} | "
+                f"Matrícula: {linha.get('Matricula', '')} | "
+                f"Unidade: {linha.get('Unidade', '')} | "
+                f"Departamento: {linha.get('Departamento', '')} | "
+                f"Limite de gozo: {formatar_data_br(linha.get('Limite_Gozo'))}"
+            )
+
+        linhas.append("")
+
+    if not proximos_limite.empty:
+        linhas.append(f"FÉRIAS PRÓXIMAS DO LIMITE - ATÉ {DIAS_ALERTA_FERIAS} DIAS")
+        linhas.append("------------------------------------------------")
+
+        for _, linha in proximos_limite.iterrows():
+            limite = linha.get("Limite_Gozo_Data")
+            dias = linha.get("Dias_Para_Limite")
+
+            linhas.append(
+                f"- {linha.get('Funcionario', '')} | "
+                f"Matrícula: {linha.get('Matricula', '')} | "
+                f"Unidade: {linha.get('Unidade', '')} | "
+                f"Departamento: {linha.get('Departamento', '')} | "
+                f"Limite de gozo: {limite.strftime('%d/%m/%Y') if limite else ''} | "
+                f"Dias restantes: {dias}"
+            )
+
+        linhas.append("")
+
+    linhas.append("Mensagem gerada automaticamente pelo sistema FOS Engenharia.")
+    linhas.append("Favor verificar o planejamento de férias e tomar as providências necessárias.")
+
+    return "\n".join(linhas)
+
+
+def enviar_alerta_ferias_por_email(df_ferias):
+    if enviar_email_smtp is None:
+        return False, "Arquivo services/email_service.py não encontrado ou com erro de importação."
+
+    configurado, ausentes = secrets_email_configurados()
+
+    if not configurado:
+        return False, "Configurações de e-mail ausentes no secrets.toml: " + ", ".join(ausentes)
+
+    corpo = montar_corpo_email_alerta_ferias(df_ferias)
+
+    if not corpo:
+        return False, "Nenhum alerta crítico de férias encontrado para envio."
+
+    enviar_email_smtp(
+        smtp_host=st.secrets["EMAIL_SMTP_HOST"],
+        smtp_port=st.secrets["EMAIL_SMTP_PORT"],
+        smtp_usuario=st.secrets["EMAIL_USUARIO"],
+        smtp_senha=st.secrets["EMAIL_SENHA"],
+        email_origem=st.secrets["EMAIL_ORIGEM"],
+        email_destino=st.secrets["EMAIL_DESTINO_ALERTAS"],
+        assunto="Alerta de férias - FOS Engenharia",
+        corpo=corpo,
+    )
+
+    return True, "E-mail de alerta de férias enviado com sucesso."
+
+
+# =========================
+# REGRAS DE FOLGAS
+# =========================
 def existe_sobreposicao_folga(df_folgas, matricula, data_saida, data_retorno, ignorar_idx=None):
     if df_folgas.empty:
         return False, None
@@ -205,22 +350,14 @@ def ordenar_folgas_por_data(df):
     return df_tmp
 
 
+# =========================
+# ALERTAS NA TELA
+# =========================
 def mostrar_alertas_ferias(df):
     if df.empty:
         return
 
-    df_alerta = df.copy()
-    df_alerta["Limite_Gozo_Data"] = df_alerta["Limite_Gozo"].apply(para_data)
-
-    ferias_dobro = df_alerta[df_alerta["Situacao_Prazo"] == "Férias em Dobro"]
-
-    hoje = date.today()
-
-    proximos_60 = df_alerta[
-        df_alerta["Limite_Gozo_Data"].apply(
-            lambda x: x is not None and 0 <= (x - hoje).days <= 60
-        )
-    ].copy()
+    ferias_dobro, proximos_60 = obter_alertas_ferias(df)
 
     if not ferias_dobro.empty:
         st.error(f"🚨 {len(ferias_dobro)} funcionário(s) com férias em dobro:")
@@ -229,12 +366,6 @@ def mostrar_alertas_ferias(df):
             st.markdown(f"- 🔴 **{nome}**")
 
     if not proximos_60.empty:
-        proximos_60["Dias_Para_Limite"] = proximos_60["Limite_Gozo_Data"].apply(
-            lambda x: (x - hoje).days if x else None
-        )
-
-        proximos_60 = proximos_60.sort_values(by="Dias_Para_Limite")
-
         st.warning("⚠️ Funcionários próximos do limite de férias:")
 
         for _, linha in proximos_60.iterrows():
@@ -361,10 +492,49 @@ def mostrar_alertas_proximas_folgas(df_ferias, df_folgas):
                 st.markdown(f"- ℹ️ **{nome}**")
 
 
+# =========================
+# TELA DE FÉRIAS
+# =========================
 def render_ferias(df_ferias):
     st.subheader("Resumo de Férias")
 
     mostrar_alertas_ferias(df_ferias)
+
+    with st.expander("📧 Envio de alerta por e-mail", expanded=False):
+        st.caption(
+            "Este envio usa as configurações de e-mail cadastradas no secrets.toml. "
+            "Nesta fase, o disparo é manual para teste e validação."
+        )
+
+        configurado, ausentes = secrets_email_configurados()
+
+        if configurado:
+            st.success("Configurações de e-mail encontradas.")
+        else:
+            st.warning("Configurações de e-mail incompletas.")
+            st.markdown("Chaves ausentes ou vazias:")
+            for chave in ausentes:
+                st.markdown(f"- `{chave}`")
+
+        corpo_preview = montar_corpo_email_alerta_ferias(df_ferias)
+
+        if corpo_preview:
+            with st.expander("Pré-visualizar conteúdo do e-mail"):
+                st.code(corpo_preview, language="text")
+        else:
+            st.info("Nenhum alerta crítico encontrado para montar e-mail neste momento.")
+
+        if st.button("📧 Enviar alerta de férias por e-mail", use_container_width=True, key="btn_enviar_alerta_ferias_email"):
+            try:
+                enviado, mensagem = enviar_alerta_ferias_por_email(df_ferias)
+
+                if enviado:
+                    st.success(mensagem)
+                else:
+                    st.info(mensagem)
+
+            except Exception as e:
+                st.error(f"Erro ao enviar e-mail de alerta: {e}")
 
     total = len(df_ferias)
     vencidas = len(df_ferias[df_ferias["Situacao_Ferias"] == "Férias Vencidas"])
@@ -388,7 +558,7 @@ def render_ferias(df_ferias):
     col3.metric(
         "Atenção",
         atencao,
-        help="Funcionários próximos do limite legal de gozo das férias. Hoje o sistema considera Atenção quando faltam 60 dias ou menos para o limite.",
+        help=f"Funcionários próximos do limite legal de gozo das férias. Hoje o sistema considera Atenção quando faltam {DIAS_ALERTA_FERIAS} dias ou menos para o limite.",
     )
 
     col4.metric(
@@ -641,6 +811,9 @@ def render_ferias(df_ferias):
                 st.rerun()
 
 
+# =========================
+# TELA DE FOLGAS
+# =========================
 def render_folgas(df_ferias):
     st.subheader("Controle de Folgas")
 
@@ -968,6 +1141,9 @@ def render_folgas(df_ferias):
                 st.rerun()
 
 
+# =========================
+# RENDER PRINCIPAL
+# =========================
 def render():
     st.title("Férias e Folgas")
 
