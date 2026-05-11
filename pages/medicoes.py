@@ -1,0 +1,544 @@
+import json
+import uuid
+from datetime import date, datetime
+
+import pandas as pd
+import streamlit as st
+
+try:
+    from services.github import carregar_github, salvar_github
+except Exception:
+    carregar_github = None
+    salvar_github = None
+
+
+# ============================================================
+# MÓDULO MEDIÇÕES - FOS ENGENHARIA
+# Primeira versão baseada no modelo de BM enviado:
+# BM 04 - Contrato 26.171 - Aditivo 01
+# ============================================================
+
+ARQ_OBRAS = "data/obras.csv"
+ARQ_MEDICOES = "data/medicoes.csv"
+ARQ_FRENTES = "data/medicoes_frentes.csv"
+ARQ_ITENS = "data/medicoes_itens.csv"
+
+COL_OBRAS = [
+    "obra_id", "nome_obra", "contratante", "contrato", "objeto", "cidade", "status", "observacoes",
+    "criado_em", "atualizado_em"
+]
+
+COL_MEDICOES = [
+    "medicao_id", "obra_id", "numero_bm", "aditivo", "periodo_inicio", "periodo_fim", "data_bm",
+    "dias_uteis_mes", "apostilamento_percentual", "status", "observacoes", "criado_em", "atualizado_em"
+]
+
+COL_FRENTES = [
+    "frente_id", "medicao_id", "nome_frente", "dias_trabalhados", "observacoes", "criado_em", "atualizado_em"
+]
+
+COL_ITENS = [
+    "item_id", "medicao_id", "frente_id", "codigo", "descricao", "unidade", "valor_unitario",
+    "tipo_calculo", "quantidade_manual", "comprimento_total", "dias_uteis_mes", "dias_trabalhados",
+    "horas_dia", "volume_desaguado", "st_des", "st_br", "volume_anterior", "custo_nf",
+    "bdi_percentual", "reajuste_percentual", "parametros_json", "quantidade_calculada",
+    "quantidade_medida", "valor_total", "observacoes", "criado_em", "atualizado_em"
+]
+
+TIPOS_CALCULO = {
+    "manual": "Manual: quantidade informada diretamente",
+    "proporcional_dias": "Proporcional por dias: comprimento/valor base ÷ dias úteis × dias trabalhados",
+    "horas": "Horas: dias trabalhados × horas/dia",
+    "volume_bag": "Volume de bag: comprimento × AST",
+    "volume_lodo_dragado": "Volume lodo dragado: VLdes × %STdes ÷ %STbr - volume anterior",
+    "custo_para_quantidade": "Custo convertido em quantidade: custo final ÷ valor unitário",
+}
+
+
+def agora_iso():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def novo_id(prefixo):
+    return f"{prefixo}_{uuid.uuid4().hex[:10]}"
+
+
+def _df_vazio(colunas):
+    return pd.DataFrame(columns=colunas)
+
+
+def carregar_csv(caminho, colunas):
+    if carregar_github is None:
+        return _df_vazio(colunas)
+    try:
+        df = carregar_github(caminho)
+    except Exception:
+        df = None
+    if df is None:
+        return _df_vazio(colunas)
+    if isinstance(df, str):
+        try:
+            from io import StringIO
+            df = pd.read_csv(StringIO(df))
+        except Exception:
+            return _df_vazio(colunas)
+    if not isinstance(df, pd.DataFrame):
+        return _df_vazio(colunas)
+    for c in colunas:
+        if c not in df.columns:
+            df[c] = None
+    return df[colunas]
+
+
+def salvar_csv(caminho, df):
+    if salvar_github is None:
+        st.warning("services/github.py não foi carregado. Dados não foram enviados ao GitHub.")
+        return False
+    try:
+        salvar_github(caminho, df)
+        return True
+    except TypeError:
+        try:
+            salvar_github(df, caminho)
+            return True
+        except Exception as e:
+            st.error(f"Erro ao salvar {caminho}: {e}")
+            return False
+    except Exception as e:
+        st.error(f"Erro ao salvar {caminho}: {e}")
+        return False
+
+
+def num(v, padrao=0.0):
+    try:
+        if v is None or v == "":
+            return padrao
+        if pd.isna(v):
+            return padrao
+        return float(v)
+    except Exception:
+        return padrao
+
+
+def moeda(v):
+    return f"R$ {num(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def calcular_item(row):
+    tipo = row.get("tipo_calculo", "manual")
+    valor_unitario = num(row.get("valor_unitario"))
+    quantidade = 0.0
+
+    if tipo == "manual":
+        quantidade = num(row.get("quantidade_manual"))
+
+    elif tipo == "proporcional_dias":
+        base = num(row.get("comprimento_total")) or num(row.get("quantidade_manual"))
+        dias_uteis = num(row.get("dias_uteis_mes"), 1)
+        dias_trab = num(row.get("dias_trabalhados"))
+        quantidade = (base / dias_uteis * dias_trab) if dias_uteis else 0.0
+
+    elif tipo == "horas":
+        quantidade = num(row.get("dias_trabalhados")) * num(row.get("horas_dia"))
+
+    elif tipo == "volume_bag":
+        # Usa parametros_json para armazenar lista de bags:
+        # [{"bag":"Bag 01", "comprimento":45, "ast":14.6}, ...]
+        total = 0.0
+        try:
+            params = json.loads(row.get("parametros_json") or "[]")
+            if isinstance(params, list):
+                for b in params:
+                    total += num(b.get("comprimento")) * num(b.get("ast"))
+        except Exception:
+            total = 0.0
+        quantidade = total
+
+    elif tipo == "volume_lodo_dragado":
+        vl_des = num(row.get("volume_desaguado"))
+        st_des = num(row.get("st_des"))
+        st_br = num(row.get("st_br"))
+        anterior = num(row.get("volume_anterior"))
+        vld_total = (vl_des * st_des / st_br) if st_br else 0.0
+        quantidade = max(vld_total - anterior, 0.0)
+
+    elif tipo == "custo_para_quantidade":
+        custo_nf = num(row.get("custo_nf"))
+        bdi = num(row.get("bdi_percentual"))
+        reajuste = num(row.get("reajuste_percentual"))
+        custo_com_bdi = custo_nf * (1 + bdi)
+        custo_final = custo_com_bdi * (1 - reajuste)
+        quantidade = (custo_final / valor_unitario) if valor_unitario else 0.0
+
+    valor_total = quantidade * valor_unitario
+    return quantidade, valor_total
+
+
+def recalcular_itens(df_itens):
+    if df_itens.empty:
+        return df_itens
+    df = df_itens.copy()
+    quantidades = []
+    totais = []
+    for _, row in df.iterrows():
+        q, vt = calcular_item(row)
+        quantidades.append(q)
+        totais.append(vt)
+    df["quantidade_calculada"] = quantidades
+    df["quantidade_medida"] = quantidades
+    df["valor_total"] = totais
+    return df
+
+
+def carregar_bases():
+    obras = carregar_csv(ARQ_OBRAS, COL_OBRAS)
+    medicoes = carregar_csv(ARQ_MEDICOES, COL_MEDICOES)
+    frentes = carregar_csv(ARQ_FRENTES, COL_FRENTES)
+    itens = carregar_csv(ARQ_ITENS, COL_ITENS)
+    return obras, medicoes, frentes, recalcular_itens(itens)
+
+
+def salvar_bases(obras=None, medicoes=None, frentes=None, itens=None):
+    if obras is not None:
+        salvar_csv(ARQ_OBRAS, obras)
+    if medicoes is not None:
+        salvar_csv(ARQ_MEDICOES, medicoes)
+    if frentes is not None:
+        salvar_csv(ARQ_FRENTES, frentes)
+    if itens is not None:
+        salvar_csv(ARQ_ITENS, recalcular_itens(itens))
+
+
+def opcoes_obras(obras):
+    if obras.empty:
+        return {}
+    return {f"{r['nome_obra']} | {r['contrato']}": r["obra_id"] for _, r in obras.iterrows()}
+
+
+def opcoes_medicoes(medicoes, obra_id):
+    df = medicoes[medicoes["obra_id"] == obra_id] if obra_id else medicoes.iloc[0:0]
+    if df.empty:
+        return {}
+    return {f"BM {r['numero_bm']} | {r['periodo_inicio']} a {r['periodo_fim']}": r["medicao_id"] for _, r in df.iterrows()}
+
+
+def opcoes_frentes(frentes, medicao_id):
+    df = frentes[frentes["medicao_id"] == medicao_id] if medicao_id else frentes.iloc[0:0]
+    if df.empty:
+        return {}
+    return {f"{r['nome_frente']} | {r['dias_trabalhados']} dias": r["frente_id"] for _, r in df.iterrows()}
+
+
+def tela_obras(obras):
+    st.subheader("1. Cadastro de obras")
+    with st.expander("Cadastrar nova obra", expanded=obras.empty):
+        with st.form("form_nova_obra"):
+            nome_obra = st.text_input("Nome da obra", value="Contrato 26.171 - Curitiba")
+            contratante = st.text_input("Contratante", value="Prefeitura Municipal de Curitiba - SMMA")
+            contrato = st.text_input("Contrato", value="26.171 - Aditivo 01")
+            objeto = st.text_area("Objeto", value="Execução de serviços contínuos de engenharia para manutenção e execução de dragagem nos lagos e rios dos parques e bosques no município de Curitiba")
+            cidade = st.text_input("Cidade", value="Curitiba/PR")
+            status = st.selectbox("Status", ["Ativa", "Concluída", "Suspensa", "Arquivada"])
+            observacoes = st.text_area("Observações")
+            ok = st.form_submit_button("Salvar obra")
+        if ok:
+            nova = {
+                "obra_id": novo_id("obra"), "nome_obra": nome_obra, "contratante": contratante,
+                "contrato": contrato, "objeto": objeto, "cidade": cidade, "status": status,
+                "observacoes": observacoes, "criado_em": agora_iso(), "atualizado_em": agora_iso()
+            }
+            obras = pd.concat([obras, pd.DataFrame([nova])], ignore_index=True)
+            salvar_bases(obras=obras)
+            st.success("Obra cadastrada.")
+            st.rerun()
+
+    if not obras.empty:
+        st.dataframe(obras[["nome_obra", "contratante", "contrato", "cidade", "status"]], use_container_width=True, hide_index=True)
+    return obras
+
+
+def tela_medicoes(obras, medicoes):
+    st.subheader("2. Cadastro do BM")
+    obras_opts = opcoes_obras(obras)
+    if not obras_opts:
+        st.info("Cadastre uma obra antes de criar o BM.")
+        return medicoes, None
+
+    obra_label = st.selectbox("Obra", list(obras_opts.keys()), key="obra_medicao")
+    obra_id = obras_opts[obra_label]
+
+    with st.expander("Cadastrar novo BM", expanded=medicoes[medicoes["obra_id"] == obra_id].empty):
+        with st.form("form_novo_bm"):
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                numero_bm = st.text_input("Número do BM", value="04")
+                aditivo = st.text_input("Aditivo", value="01")
+            with c2:
+                periodo_inicio = st.date_input("Início do período", value=date(2025, 11, 22))
+                periodo_fim = st.date_input("Fim do período", value=date(2025, 12, 21))
+            with c3:
+                data_bm = st.date_input("Data do BM", value=date(2025, 12, 21))
+                dias_uteis_mes = st.number_input("Dias úteis no mês", min_value=1, value=20, step=1)
+            apost = st.number_input("Apostilamento / reajuste (%)", min_value=0.0, value=5.53, step=0.01) / 100
+            status = st.selectbox("Status do BM", ["Rascunho", "Fechado", "Enviado", "Aprovado", "Pago"])
+            observacoes = st.text_area("Observações do BM")
+            ok = st.form_submit_button("Salvar BM")
+        if ok:
+            nova = {
+                "medicao_id": novo_id("bm"), "obra_id": obra_id, "numero_bm": numero_bm, "aditivo": aditivo,
+                "periodo_inicio": str(periodo_inicio), "periodo_fim": str(periodo_fim), "data_bm": str(data_bm),
+                "dias_uteis_mes": dias_uteis_mes, "apostilamento_percentual": apost, "status": status,
+                "observacoes": observacoes, "criado_em": agora_iso(), "atualizado_em": agora_iso()
+            }
+            medicoes = pd.concat([medicoes, pd.DataFrame([nova])], ignore_index=True)
+            salvar_bases(medicoes=medicoes)
+            st.success("BM cadastrado.")
+            st.rerun()
+
+    df = medicoes[medicoes["obra_id"] == obra_id]
+    if not df.empty:
+        st.dataframe(df[["numero_bm", "aditivo", "periodo_inicio", "periodo_fim", "dias_uteis_mes", "status"]], use_container_width=True, hide_index=True)
+    return medicoes, obra_id
+
+
+def tela_frentes(medicoes, frentes, obra_id):
+    st.subheader("3. Frentes / parques")
+    med_opts = opcoes_medicoes(medicoes, obra_id)
+    if not med_opts:
+        st.info("Cadastre um BM antes de criar frentes/parques.")
+        return frentes, None
+
+    med_label = st.selectbox("BM", list(med_opts.keys()), key="bm_frente")
+    medicao_id = med_opts[med_label]
+
+    with st.expander("Cadastrar frente/parque", expanded=frentes[frentes["medicao_id"] == medicao_id].empty):
+        with st.form("form_nova_frente"):
+            nome_frente = st.text_input("Nome da frente/parque", value="PARQUE BARIGUI")
+            dias_trabalhados = st.number_input("Dias trabalhados nesta frente", min_value=0.0, value=19.0, step=0.5)
+            observacoes = st.text_area("Observações")
+            ok = st.form_submit_button("Salvar frente")
+        if ok:
+            nova = {
+                "frente_id": novo_id("frente"), "medicao_id": medicao_id, "nome_frente": nome_frente,
+                "dias_trabalhados": dias_trabalhados, "observacoes": observacoes,
+                "criado_em": agora_iso(), "atualizado_em": agora_iso()
+            }
+            frentes = pd.concat([frentes, pd.DataFrame([nova])], ignore_index=True)
+            salvar_bases(frentes=frentes)
+            st.success("Frente cadastrada.")
+            st.rerun()
+
+    df = frentes[frentes["medicao_id"] == medicao_id]
+    if not df.empty:
+        st.dataframe(df[["nome_frente", "dias_trabalhados", "observacoes"]], use_container_width=True, hide_index=True)
+    return frentes, medicao_id
+
+
+def tela_itens(medicoes, frentes, itens, medicao_id):
+    st.subheader("4. Itens medidos e memória de cálculo")
+    fr_opts = opcoes_frentes(frentes, medicao_id)
+    if not fr_opts:
+        st.info("Cadastre uma frente/parque antes de lançar itens.")
+        return itens
+
+    med_row = medicoes[medicoes["medicao_id"] == medicao_id]
+    dias_uteis_padrao = int(num(med_row.iloc[0]["dias_uteis_mes"], 20)) if not med_row.empty else 20
+
+    frente_label = st.selectbox("Frente/parque", list(fr_opts.keys()), key="frente_item")
+    frente_id = fr_opts[frente_label]
+    frente_row = frentes[frentes["frente_id"] == frente_id]
+    dias_trab_padrao = float(num(frente_row.iloc[0]["dias_trabalhados"], 0)) if not frente_row.empty else 0
+
+    with st.expander("Cadastrar item medido", expanded=True):
+        with st.form("form_novo_item"):
+            c1, c2, c3 = st.columns([1, 3, 1])
+            with c1:
+                codigo = st.text_input("Código", value="DR-31")
+            with c2:
+                descricao = st.text_input("Descrição", value="Locação e Montagem de Tubulação de Recalque")
+            with c3:
+                unidade = st.text_input("Unidade", value="m")
+
+            c4, c5 = st.columns(2)
+            with c4:
+                valor_unitario = st.number_input("Valor unitário", min_value=0.0, value=0.0, step=0.01, format="%.4f")
+            with c5:
+                tipo_calculo = st.selectbox("Tipo de cálculo", list(TIPOS_CALCULO.keys()), format_func=lambda x: TIPOS_CALCULO[x])
+
+            st.markdown("**Parâmetros de cálculo**")
+            quantidade_manual = comprimento_total = horas_dia = volume_desaguado = st_des = st_br = volume_anterior = custo_nf = 0.0
+            bdi_percentual = reajuste_percentual = 0.0
+            parametros_json = ""
+
+            if tipo_calculo == "manual":
+                quantidade_manual = st.number_input("Quantidade medida", min_value=0.0, value=0.0, step=0.01, format="%.6f")
+
+            elif tipo_calculo == "proporcional_dias":
+                c6, c7, c8 = st.columns(3)
+                with c6:
+                    comprimento_total = st.number_input("Comprimento/base total", min_value=0.0, value=0.0, step=0.01, format="%.6f")
+                with c7:
+                    dias_uteis_mes = st.number_input("Dias úteis no mês", min_value=1.0, value=float(dias_uteis_padrao), step=1.0)
+                with c8:
+                    dias_trabalhados = st.number_input("Dias trabalhados", min_value=0.0, value=dias_trab_padrao, step=0.5)
+
+            elif tipo_calculo == "horas":
+                c6, c7 = st.columns(2)
+                with c6:
+                    dias_trabalhados = st.number_input("Dias trabalhados", min_value=0.0, value=dias_trab_padrao, step=0.5)
+                with c7:
+                    horas_dia = st.number_input("Horas por dia", min_value=0.0, value=9.0, step=0.5)
+
+            elif tipo_calculo == "volume_bag":
+                st.caption("Informe os bags em JSON. Exemplo: [{\"bag\":\"Bag 01\",\"comprimento\":45,\"ast\":14.6}]")
+                parametros_json = st.text_area("Bags / AST", value='[{"bag":"Bag 01","comprimento":45,"ast":14.6}]')
+
+            elif tipo_calculo == "volume_lodo_dragado":
+                c6, c7, c8, c9 = st.columns(4)
+                with c6:
+                    volume_desaguado = st.number_input("VLdes - volume desaguado", min_value=0.0, value=0.0, step=0.01, format="%.6f")
+                with c7:
+                    st_des = st.number_input("% ST des", min_value=0.0, value=0.0, step=0.01, format="%.6f")
+                with c8:
+                    st_br = st.number_input("% ST bruto", min_value=0.0, value=0.0, step=0.01, format="%.6f")
+                with c9:
+                    volume_anterior = st.number_input("Volume anterior", min_value=0.0, value=0.0, step=0.01, format="%.6f")
+
+            elif tipo_calculo == "custo_para_quantidade":
+                c6, c7, c8 = st.columns(3)
+                with c6:
+                    custo_nf = st.number_input("Custo NF / serviços", min_value=0.0, value=0.0, step=0.01, format="%.2f")
+                with c7:
+                    bdi_percentual = st.number_input("BDI (%)", min_value=0.0, value=29.98, step=0.01) / 100
+                with c8:
+                    reajuste_percentual = st.number_input("Reajuste a retirar (%)", min_value=0.0, value=5.53, step=0.01) / 100
+
+            observacoes = st.text_area("Observações do item")
+            ok = st.form_submit_button("Salvar item")
+
+        if ok:
+            if tipo_calculo not in ["proporcional_dias", "horas"]:
+                dias_trabalhados = dias_trab_padrao
+                dias_uteis_mes = dias_uteis_padrao
+            nova = {
+                "item_id": novo_id("item"), "medicao_id": medicao_id, "frente_id": frente_id,
+                "codigo": codigo, "descricao": descricao, "unidade": unidade, "valor_unitario": valor_unitario,
+                "tipo_calculo": tipo_calculo, "quantidade_manual": quantidade_manual,
+                "comprimento_total": comprimento_total, "dias_uteis_mes": dias_uteis_mes,
+                "dias_trabalhados": dias_trabalhados, "horas_dia": horas_dia,
+                "volume_desaguado": volume_desaguado, "st_des": st_des, "st_br": st_br,
+                "volume_anterior": volume_anterior, "custo_nf": custo_nf,
+                "bdi_percentual": bdi_percentual, "reajuste_percentual": reajuste_percentual,
+                "parametros_json": parametros_json, "quantidade_calculada": 0,
+                "quantidade_medida": 0, "valor_total": 0, "observacoes": observacoes,
+                "criado_em": agora_iso(), "atualizado_em": agora_iso()
+            }
+            itens = pd.concat([itens, pd.DataFrame([nova])], ignore_index=True)
+            itens = recalcular_itens(itens)
+            salvar_bases(itens=itens)
+            st.success("Item cadastrado e calculado.")
+            st.rerun()
+
+    df = recalcular_itens(itens[itens["medicao_id"] == medicao_id].copy())
+    if not df.empty:
+        fr_map = frentes.set_index("frente_id")["nome_frente"].to_dict()
+        df["frente"] = df["frente_id"].map(fr_map)
+        cols = ["frente", "codigo", "descricao", "unidade", "tipo_calculo", "quantidade_medida", "valor_unitario", "valor_total"]
+        st.dataframe(df[cols], use_container_width=True, hide_index=True)
+    return itens
+
+
+def tela_resumo(medicoes, frentes, itens, medicao_id):
+    st.subheader("5. Resumo do BM")
+    if not medicao_id:
+        return
+
+    df = recalcular_itens(itens[itens["medicao_id"] == medicao_id].copy())
+    if df.empty:
+        st.info("Ainda não há itens medidos neste BM.")
+        return
+
+    fr_map = frentes.set_index("frente_id")["nome_frente"].to_dict()
+    df["frente"] = df["frente_id"].map(fr_map)
+
+    resumo = df.groupby("frente", dropna=False)["valor_total"].sum().reset_index()
+    total_geral = resumo["valor_total"].sum()
+
+    med_row = medicoes[medicoes["medicao_id"] == medicao_id]
+    apost = num(med_row.iloc[0]["apostilamento_percentual"]) if not med_row.empty else 0.0
+    valor_apost = total_geral * apost
+    total_com_apost = total_geral + valor_apost
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Total geral da medição", moeda(total_geral))
+    c2.metric("Apostilamento / reajuste", moeda(valor_apost))
+    c3.metric("Valor total do BM", moeda(total_com_apost))
+
+    resumo["valor_total_formatado"] = resumo["valor_total"].apply(moeda)
+    st.dataframe(resumo[["frente", "valor_total_formatado"]], use_container_width=True, hide_index=True)
+
+    st.markdown("**Itens consolidados**")
+    df_view = df[["frente", "codigo", "descricao", "unidade", "quantidade_medida", "valor_unitario", "valor_total", "observacoes"]].copy()
+    st.dataframe(df_view, use_container_width=True, hide_index=True)
+
+    csv = df_view.to_csv(index=False).encode("utf-8-sig")
+    st.download_button("Baixar itens do BM em CSV", data=csv, file_name="itens_medicao.csv", mime="text/csv")
+
+
+def medicoes():
+    st.title("Medições")
+    st.caption("Boletins de medição, frentes/parques, memória de cálculo e totais por BM.")
+
+    obras, medicoes_df, frentes, itens = carregar_bases()
+
+    abas = st.tabs(["Obras", "BM", "Frentes/Parques", "Itens", "Resumo"])
+
+    with abas[0]:
+        obras = tela_obras(obras)
+
+    with abas[1]:
+        medicoes_df, obra_id = tela_medicoes(obras, medicoes_df)
+
+    with abas[2]:
+        obras_opts = opcoes_obras(obras)
+        obra_id_frente = None
+        if obras_opts:
+            obra_label = st.selectbox("Selecione a obra", list(obras_opts.keys()), key="obra_frente_tab")
+            obra_id_frente = obras_opts[obra_label]
+        frentes, medicao_id_frente = tela_frentes(medicoes_df, frentes, obra_id_frente)
+
+    with abas[3]:
+        obras_opts = opcoes_obras(obras)
+        if obras_opts:
+            obra_label = st.selectbox("Obra", list(obras_opts.keys()), key="obra_item_tab")
+            obra_id_item = obras_opts[obra_label]
+            med_opts = opcoes_medicoes(medicoes_df, obra_id_item)
+            if med_opts:
+                med_label = st.selectbox("BM", list(med_opts.keys()), key="bm_item_tab")
+                medicao_id_item = med_opts[med_label]
+                itens = tela_itens(medicoes_df, frentes, itens, medicao_id_item)
+            else:
+                st.info("Cadastre um BM para esta obra.")
+        else:
+            st.info("Cadastre uma obra primeiro.")
+
+    with abas[4]:
+        obras_opts = opcoes_obras(obras)
+        if obras_opts:
+            obra_label = st.selectbox("Obra", list(obras_opts.keys()), key="obra_resumo_tab")
+            obra_id_resumo = obras_opts[obra_label]
+            med_opts = opcoes_medicoes(medicoes_df, obra_id_resumo)
+            if med_opts:
+                med_label = st.selectbox("BM", list(med_opts.keys()), key="bm_resumo_tab")
+                medicao_id_resumo = med_opts[med_label]
+                tela_resumo(medicoes_df, frentes, itens, medicao_id_resumo)
+            else:
+                st.info("Cadastre um BM para esta obra.")
+        else:
+            st.info("Cadastre uma obra primeiro.")
+
+
+# Permite usar tanto via app.py como page direta do Streamlit
+if __name__ == "__main__":
+    medicoes()
+
