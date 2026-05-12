@@ -1,50 +1,74 @@
+import pandas as pd
 import streamlit as st
 
-from modulos.medicoes.repositorio import carregar_bases
-from modulos.medicoes.navegacao import navegacao
-from modulos.medicoes.etapa1_obra import tela_obras
-from modulos.medicoes.etapa2_bm import tela_bm
-from modulos.medicoes.etapa3_frentes import tela_frentes
-from modulos.medicoes.etapa4_mc import tela_mc
-from modulos.medicoes.etapa5_itens import tela_medicao
-from modulos.medicoes.etapa6_resumo import tela_resumo
+from modulos.medicoes.utils import moeda
 
 
-def medicoes():
-    st.title("Medições")
-    st.caption("Controle técnico e financeiro de medições.")
+def tela_resumo(frentes, itens, medicoes):
+    st.subheader("6. Conferência / Resumo Financeiro")
 
-    if "etapa_medicoes" not in st.session_state:
-        st.session_state.etapa_medicoes = "obra"
+    medicao_id = st.session_state.get("medicao_id")
 
-    obras, medicoes_df, frentes, mc, itens, servicos = carregar_bases()
+    if not medicao_id:
+        st.warning("Selecione um BM.")
+        return
 
-    navegacao()
+    itens_bm = itens[
+        itens["medicao_id"].astype(str) == str(medicao_id)
+    ].copy()
 
-    etapa = st.session_state.etapa_medicoes
+    if itens_bm.empty:
+        st.info("Nenhum item medido.")
+        return
 
-    if etapa == "obra":
-        tela_obras(obras)
+    itens_bm["total"] = pd.to_numeric(
+        itens_bm["total"],
+        errors="coerce",
+    ).fillna(0.0)
 
-    elif etapa == "bm":
-        tela_bm(obras, medicoes_df)
+    mapa_frentes = {
+        r["frente_id"]: r["nome_frente"]
+        for _, r in frentes.iterrows()
+    }
 
-    elif etapa == "frentes":
-        tela_frentes(frentes)
+    itens_bm["frente"] = itens_bm["frente_id"].map(mapa_frentes)
 
-    elif etapa == "mc":
-        tela_mc(frentes, mc)
+    resumo = (
+        itens_bm
+        .groupby("frente", dropna=False)["total"]
+        .sum()
+        .reset_index()
+    )
 
-    elif etapa == "medicao":
-        tela_medicao(frentes, mc, itens, servicos)
+    subtotal = resumo["total"].sum()
 
-    elif etapa == "resumo":
-        tela_resumo(frentes, itens, medicoes_df)
+    med_row = medicoes[
+        medicoes["medicao_id"].astype(str) == str(medicao_id)
+    ]
 
+    apost = 0.0
 
-def render():
-    medicoes()
+    if not med_row.empty:
+        try:
+            apost = float(
+                med_row.iloc[0]["apostilamento_percentual"]
+            )
+        except Exception:
+            apost = 0.0
 
+    valor_apost = subtotal * (apost / 100)
+    total_final = subtotal + valor_apost
 
-if __name__ == "__main__":
-    medicoes()
+    resumo["valor"] = resumo["total"].apply(moeda)
+
+    st.dataframe(
+        resumo[["frente", "valor"]],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric("Subtotal", moeda(subtotal))
+    c2.metric("Apostilamento", moeda(valor_apost))
+    c3.metric("Total Final", moeda(total_final))
