@@ -1,15 +1,57 @@
 import pandas as pd
 import streamlit as st
 
-from modulos.medicoes.config import ARQ_MC, COL_MC
+from modulos.medicoes.config import ARQ_FRENTES, ARQ_MC, COL_FRENTES, COL_MC
 from modulos.medicoes.repositorio import salvar_csv
-from modulos.medicoes.utils import novo_id
+from modulos.medicoes.utils import agora, novo_id
+
+
+def obter_frente_padrao(frentes):
+    medicao_id = st.session_state.get("medicao_id")
+
+    if not medicao_id:
+        return None, frentes
+
+    df = frentes[
+        frentes["medicao_id"].astype(str) == str(medicao_id)
+    ].copy()
+
+    if not df.empty:
+        frente_id = df.iloc[0]["frente_id"]
+        st.session_state.frente_id = frente_id
+        return frente_id, frentes
+
+    nova = {
+        "frente_id": novo_id("frente"),
+        "medicao_id": medicao_id,
+        "nome_frente": "MEDIÇÃO GERAL",
+        "dias_trabalhados": 0.0,
+        "observacoes": "Frente padrão criada automaticamente para modelo sem etapa de frentes.",
+        "criado_em": agora(),
+        "atualizado_em": agora(),
+    }
+
+    frentes = pd.concat(
+        [frentes, pd.DataFrame([nova])],
+        ignore_index=True,
+    )
+
+    if salvar_csv(ARQ_FRENTES, frentes):
+        st.session_state.frente_id = nova["frente_id"]
+        return nova["frente_id"], frentes
+
+    return None, frentes
 
 
 def tela_mc(frentes, mc):
     st.subheader("4. Memória de Cálculo")
 
-    frente_id = st.session_state.get("frente_id")
+    modelo = st.session_state.get("modelo_medicao", "padrao_fos")
+
+    if modelo == "padrao_fos":
+        frente_id, frentes = obter_frente_padrao(frentes)
+    else:
+        frente_id = st.session_state.get("frente_id")
 
     if not frente_id:
         st.warning("Selecione ou cadastre uma frente antes de criar a MC.")
@@ -34,8 +76,8 @@ def tela_mc(frentes, mc):
                     "mc_id": novo_id("mc"),
                     "medicao_id": st.session_state.get("medicao_id"),
                     "frente_id": frente_id,
-                    "tipo": "Bag AST",
-                    "descricao": "Bag 01",
+                    "tipo": "Padrão FOS",
+                    "descricao": "Medição principal",
                     "comprimento": 0.0,
                     "ast": 0.0,
                     "resultado": 0.0,
