@@ -49,6 +49,44 @@ CONFIG_MODELOS_MEDICAO = {
 }
 
 # ============================================================
+# ETAPAS MODELO
+# ============================================================
+
+ETAPAS_MODELO = {
+    "padrao_fos": [
+        "obra",
+        "bm",
+        "mc",
+        "medicao",
+        "resumo",
+    ],
+
+    "ast_bags": [
+        "obra",
+        "bm",
+        "frentes",
+        "mc",
+        "medicao",
+        "resumo",
+    ],
+
+    "diario_equipamento": [
+        "obra",
+        "bm",
+        "frentes",
+        "medicao",
+        "resumo",
+    ],
+
+    "batimetria": [
+        "obra",
+        "bm",
+        "mc",
+        "resumo",
+    ],
+}
+
+# ============================================================
 # COLUNAS
 # ============================================================
 
