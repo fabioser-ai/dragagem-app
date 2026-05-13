@@ -1,2 +1,3 @@
-obra_id,nome_obra,contratante,contrato,objeto,cidade,status,observacoes,criado_em,atualizado_em
-obra_c6e3733766,Contrato 26.171 - Curitiba,Prefeitura Municipal de Curitiba - SMMA,26.171 - Aditivo 01,Execução de serviços contínuos de engenharia para manutenção e execução de dragagem nos lagos e rios dos parques e bosques no município de Curitiba,Curitiba/PR,Ativa,,2026-05-11 17:46:50,2026-05-11 17:46:50
+obra_id,nome_obra,contratante,contrato,objeto,cidade,status,modelo_medicao,observacoes,criado_em,atualizado_em
+obra_c6e3733766,Contrato 26.171 - Curitiba,Prefeitura Municipal de Curitiba - SMMA,26.171 - Aditivo 01,Execução de serviços contínuos de engenharia para manutenção e execução de dragagem nos lagos e rios dos parques e bosques no município de Curitiba,Curitiba/PR,Ativa,,,2026-05-11 17:46:50,2026-05-11 17:46:50
+obra_d09505902b,MANUTENÇÃO DE BOMBAS - GEDEON,PMC - CURITIBA - SMMA,XXXX,Manutençao de bombas e etc,CURITIBA,Ativa,padrao_fos,,2026-05-13 20:00:44,2026-05-13 20:00:44
