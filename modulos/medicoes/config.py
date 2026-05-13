@@ -22,6 +22,7 @@ COL_OBRAS = [
     "objeto",
     "cidade",
     "status",
+    "modelo_medicao",
     "observacoes",
     "criado_em",
     "atualizado_em",
