@@ -83,3 +83,10 @@ COL_SERVICOS = [
     "descricao",
     "unidade",
 ]
+
+MODELOS_MEDICAO = {
+    "ast_bags": "AST / Bags / Comprimento x AST",
+    "padrao_fos": "Padrão FOS",
+    "diario_equipamento": "Diária / Equipamento",
+    "batimetria": "Batimetria",
+}
