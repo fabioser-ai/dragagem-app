@@ -8,7 +8,7 @@ ARQ_FRENTES = "data/medicoes_frentes.csv"
 ARQ_MC = "data/medicoes_mc.csv"
 ARQ_ITENS = "data/medicoes_itens.csv"
 ARQ_SERVICOS = "data/medicoes_servicos.csv"
-
+ARQ_TABELAS_SERVICOS_DIR = "data/medicoes_tabelas"
 
 # ============================================================
 # MODELOS DE MEDIÇÃO
@@ -99,6 +99,7 @@ COL_OBRAS = [
     "cidade",
     "status",
     "modelo_medicao",
+    "arquivo_tabela_servicos",
     "observacoes",
     "criado_em",
     "atualizado_em",
@@ -159,3 +160,19 @@ COL_SERVICOS = [
     "descricao",
     "unidade",
 ]
+
+COL_TABELA_SERVICOS_CONTRATO = [
+    "fonte",
+    "codigo",
+    "item",
+    "descricao",
+    "unidade",
+    "quantidade_base",
+    "custo_unitario_sem_bdi",
+    "bdi",
+    "preco_unitario_com_bdi",
+    "preco_total",
+    "ativo",
+]
+
+
