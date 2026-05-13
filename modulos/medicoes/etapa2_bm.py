@@ -3,9 +3,22 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
-from modulos.medicoes.config import ARQ_MEDICOES
+from modulos.medicoes.config import (
+    ARQ_MEDICOES,
+    CONFIG_MODELOS_MEDICAO,
+    MODELOS_MEDICAO,
+)
 from modulos.medicoes.repositorio import salvar_csv
 from modulos.medicoes.utils import agora, novo_id
+
+
+def obter_config_modelo():
+    modelo = st.session_state.get("modelo_medicao", "padrao_fos")
+
+    return CONFIG_MODELOS_MEDICAO.get(
+        modelo,
+        CONFIG_MODELOS_MEDICAO["padrao_fos"],
+    )
 
 
 def tela_bm(obras, medicoes):
@@ -17,6 +30,9 @@ def tela_bm(obras, medicoes):
         st.warning("Selecione ou cadastre uma obra antes de criar o BM.")
         return
 
+    modelo = st.session_state.get("modelo_medicao", "padrao_fos")
+    config_modelo = obter_config_modelo()
+
     obra_nome = obras.loc[
         obras["obra_id"].astype(str) == str(obra_id),
         "nome_obra",
@@ -25,13 +41,20 @@ def tela_bm(obras, medicoes):
     if not obra_nome.empty:
         st.info(f"Obra selecionada: {obra_nome.iloc[0]}")
 
+    nome_modelo = MODELOS_MEDICAO.get(
+        modelo,
+        "Padrão FOS",
+    )
+
+    st.caption(f"Modelo de medição: {nome_modelo}")
+
     df_obra = medicoes[
         medicoes["obra_id"].astype(str) == str(obra_id)
     ]
 
     if not df_obra.empty:
         mapa = {
-            f"BM {r['numero_bm']} | {r['periodo_inicio']} a {r['periodo_fim']}": r["medicao_id"]
+            f"BM {r['numero_bm']} | {r['periodo_inicio']}": r["medicao_id"]
             for _, r in df_obra.iterrows()
         }
 
@@ -52,18 +75,25 @@ def tela_bm(obras, medicoes):
 
             with c1:
                 numero_bm = st.text_input("Número BM", value="01")
-                aditivo = st.text_input("Aditivo", value="00")
+
+                if config_modelo["usa_aditivo"]:
+                    aditivo = st.text_input("Aditivo", value="00")
+                else:
+                    aditivo = ""
 
             with c2:
                 periodo_inicio = st.date_input(
-                    "Período início",
+                    "Período de medição",
                     value=date.today(),
                 )
 
-                periodo_fim = st.date_input(
-                    "Período fim",
-                    value=date.today(),
-                )
+                if config_modelo["usa_periodo_fim"]:
+                    periodo_fim = st.date_input(
+                        "Período fim",
+                        value=date.today(),
+                    )
+                else:
+                    periodo_fim = periodo_inicio
 
             with c3:
                 data_bm = st.date_input(
@@ -77,11 +107,14 @@ def tela_bm(obras, medicoes):
                     value=20,
                 )
 
-            apost = st.number_input(
-                "Apostilamento (%)",
-                value=0.00,
-                step=0.01,
-            )
+            if config_modelo["usa_apostilamento"]:
+                apost = st.number_input(
+                    "Apostilamento (%)",
+                    value=0.00,
+                    step=0.01,
+                )
+            else:
+                apost = 0.0
 
             status = st.selectbox(
                 "Status",
@@ -99,7 +132,7 @@ def tela_bm(obras, medicoes):
             ok = st.form_submit_button("Salvar BM")
 
         if ok:
-            if str(periodo_fim) < str(periodo_inicio):
+            if periodo_fim < periodo_inicio:
                 st.error("A data final não pode ser anterior à data inicial.")
                 return
 
@@ -130,17 +163,22 @@ def tela_bm(obras, medicoes):
                 st.rerun()
 
     if not df_obra.empty:
+        colunas_visual = [
+            "numero_bm",
+            "periodo_inicio",
+            "data_bm",
+            "dias_uteis_mes",
+            "status",
+        ]
+
+        if config_modelo["usa_aditivo"]:
+            colunas_visual.insert(1, "aditivo")
+
+        if config_modelo["usa_periodo_fim"]:
+            colunas_visual.insert(3, "periodo_fim")
+
         st.dataframe(
-            df_obra[
-                [
-                    "numero_bm",
-                    "aditivo",
-                    "periodo_inicio",
-                    "periodo_fim",
-                    "dias_uteis_mes",
-                    "status",
-                ]
-            ],
+            df_obra[colunas_visual],
             use_container_width=True,
             hide_index=True,
         )
