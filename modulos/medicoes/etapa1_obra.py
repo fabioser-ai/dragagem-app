@@ -6,6 +6,13 @@ from modulos.medicoes.repositorio import salvar_csv
 from modulos.medicoes.utils import agora, novo_id
 
 
+def normalizar_modelo(modelo):
+    if pd.isna(modelo) or not str(modelo).strip():
+        return "padrao_fos"
+
+    return str(modelo).strip()
+
+
 def tela_obras(obras):
     st.subheader("1. Obra")
 
@@ -31,12 +38,26 @@ def tela_obras(obras):
         ]
 
         if not obra_sel.empty:
-            modelo = obra_sel.iloc[0].get("modelo_medicao", "ast_bags")
+            modelo = normalizar_modelo(
+                obra_sel.iloc[0].get("modelo_medicao", "padrao_fos")
+            )
 
-            if pd.isna(modelo) or not str(modelo).strip():
-                modelo = "ast_bags"
+            arquivo_tabela_servicos = obra_sel.iloc[0].get(
+                "arquivo_tabela_servicos",
+                "",
+            )
+
+            if pd.isna(arquivo_tabela_servicos):
+                arquivo_tabela_servicos = ""
+
+            arquivo_tabela_servicos = str(
+                arquivo_tabela_servicos
+            ).strip()
 
             st.session_state.modelo_medicao = modelo
+            st.session_state.arquivo_tabela_servicos = (
+                arquivo_tabela_servicos
+            )
 
             nome_modelo = MODELOS_MEDICAO.get(
                 modelo,
@@ -44,6 +65,16 @@ def tela_obras(obras):
             )
 
             st.info(f"Modelo de medição desta obra: {nome_modelo}")
+
+            if arquivo_tabela_servicos:
+                st.caption(
+                    f"Tabela contratual vinculada: {arquivo_tabela_servicos}"
+                )
+            else:
+                st.warning(
+                    "Esta obra ainda não possui tabela contratual "
+                    "de serviços vinculada."
+                )
 
     with st.expander(
         "Cadastrar nova obra",
@@ -70,6 +101,19 @@ def tela_obras(obras):
                 v: k for k, v in MODELOS_MEDICAO.items()
             }[modelo_label]
 
+            arquivo_tabela_servicos = st.text_input(
+                "Arquivo da tabela contratual de serviços",
+                value="",
+                placeholder=(
+                    "Ex: contrato_2026_curitiba_servicos_bombas.csv"
+                ),
+                help=(
+                    "Arquivo CSV específico do contrato/obra. "
+                    "Exemplo: data/medicoes_tabelas/"
+                    "contrato_2026_curitiba_servicos_bombas.csv"
+                ),
+            )
+
             observacoes = st.text_area("Observações")
 
             ok = st.form_submit_button("Salvar obra")
@@ -78,6 +122,10 @@ def tela_obras(obras):
             if not nome.strip():
                 st.error("Informe o nome da obra.")
                 return
+
+            arquivo_tabela_servicos = str(
+                arquivo_tabela_servicos
+            ).strip()
 
             nova = {
                 "obra_id": novo_id("obra"),
@@ -88,6 +136,7 @@ def tela_obras(obras):
                 "cidade": cidade,
                 "status": status,
                 "modelo_medicao": modelo_medicao,
+                "arquivo_tabela_servicos": arquivo_tabela_servicos,
                 "observacoes": observacoes,
                 "criado_em": agora(),
                 "atualizado_em": agora(),
@@ -101,6 +150,9 @@ def tela_obras(obras):
             if salvar_csv(ARQ_OBRAS, obras):
                 st.session_state.obra_id = nova["obra_id"]
                 st.session_state.modelo_medicao = modelo_medicao
+                st.session_state.arquivo_tabela_servicos = (
+                    arquivo_tabela_servicos
+                )
                 st.success("Obra cadastrada.")
                 st.rerun()
 
@@ -111,6 +163,9 @@ def tela_obras(obras):
             "modelo_medicao"
         ].map(MODELOS_MEDICAO)
 
+        if "arquivo_tabela_servicos" not in df_visual.columns:
+            df_visual["arquivo_tabela_servicos"] = ""
+
         st.dataframe(
             df_visual[
                 [
@@ -120,6 +175,7 @@ def tela_obras(obras):
                     "cidade",
                     "status",
                     "modelo_medicao_nome",
+                    "arquivo_tabela_servicos",
                 ]
             ],
             use_container_width=True,
