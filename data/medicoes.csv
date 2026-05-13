@@ -1,2 +1,3 @@
 medicao_id,obra_id,numero_bm,aditivo,periodo_inicio,periodo_fim,data_bm,dias_uteis_mes,apostilamento_percentual,status,observacoes,criado_em,atualizado_em
-bm_a3c6be960b,obra_c6e3733766,05,01,2025-11-22,2025-12-21,2026-01-10,20,0.0553,Rascunho,,2026-05-11 17:47:52,2026-05-11 17:47:52
+bm_a3c6be960b,obra_c6e3733766,5,1,2025-11-22,2025-12-21,2026-01-10,20,0.0553,Rascunho,,2026-05-11 17:47:52,2026-05-11 17:47:52
+bm_aeb5f7c270,obra_d09505902b,01,,2026-04-04,2026-04-04,2026-05-04,22,0.0,Rascunho,Mediçao Chafariz,2026-05-13 20:16:30,2026-05-13 20:16:30
