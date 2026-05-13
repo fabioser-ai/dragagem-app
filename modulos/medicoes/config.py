@@ -11,6 +11,18 @@ ARQ_SERVICOS = "data/medicoes_servicos.csv"
 
 
 # ============================================================
+# MODELOS DE MEDIÇÃO
+# ============================================================
+
+MODELOS_MEDICAO = {
+    "ast_bags": "AST / Bags / Comprimento x AST",
+    "padrao_fos": "Padrão FOS",
+    "diario_equipamento": "Diária / Equipamento",
+    "batimetria": "Batimetria",
+}
+
+
+# ============================================================
 # COLUNAS
 # ============================================================
 
@@ -83,10 +95,3 @@ COL_SERVICOS = [
     "descricao",
     "unidade",
 ]
-
-MODELOS_MEDICAO = {
-    "ast_bags": "AST / Bags / Comprimento x AST",
-    "padrao_fos": "Padrão FOS",
-    "diario_equipamento": "Diária / Equipamento",
-    "batimetria": "Batimetria",
-}
