@@ -1,6 +1,31 @@
 import streamlit as st
 
+from modulos.medicoes.config import (
+    ETAPAS_MODELO,
+)
 from modulos.medicoes.utils import ir_para
+
+
+LABELS_ETAPAS = {
+    "obra": "1. Obra",
+    "bm": "2. BM",
+    "frentes": "3. Frentes",
+    "mc": "4. MC",
+    "medicao": "5. Medição",
+    "resumo": "6. Resumo",
+}
+
+
+def obter_etapas():
+    modelo = st.session_state.get(
+        "modelo_medicao",
+        "padrao_fos",
+    )
+
+    return ETAPAS_MODELO.get(
+        modelo,
+        ETAPAS_MODELO["padrao_fos"],
+    )
 
 
 def navegacao():
@@ -9,23 +34,11 @@ def navegacao():
         "obra",
     )
 
-    ordem = [
-        "obra",
-        "bm",
-        "frentes",
-        "mc",
-        "medicao",
-        "resumo",
-    ]
+    ordem = obter_etapas()
 
-    labels = {
-        "obra": "1. Obra",
-        "bm": "2. BM",
-        "frentes": "3. Frentes",
-        "mc": "4. MC",
-        "medicao": "5. Medição",
-        "resumo": "6. Resumo",
-    }
+    if etapa not in ordem:
+        etapa = ordem[0]
+        st.session_state.etapa_medicoes = etapa
 
     st.markdown("### Fluxo da medição")
 
@@ -37,7 +50,7 @@ def navegacao():
             ativo = etapa_nome == etapa
 
             st.button(
-                f"{'✅ ' if ativo else ''}{labels[etapa_nome]}",
+                f"{'✅ ' if ativo else ''}{LABELS_ETAPAS[etapa_nome]}",
                 disabled=ativo,
                 use_container_width=True,
                 key=f"barra_medicoes_{etapa_nome}",
@@ -48,9 +61,9 @@ def navegacao():
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        if etapa != "obra":
-            idx = ordem.index(etapa)
+        idx = ordem.index(etapa)
 
+        if idx > 0:
             if st.button(
                 "← Voltar",
                 use_container_width=True,
@@ -66,9 +79,9 @@ def navegacao():
             st.rerun()
 
     with c3:
-        if etapa != "resumo":
-            idx = ordem.index(etapa)
+        idx = ordem.index(etapa)
 
+        if idx < len(ordem) - 1:
             if st.button(
                 "Próximo →",
                 use_container_width=True,
