@@ -21,6 +21,32 @@ MODELOS_MEDICAO = {
     "batimetria": "Batimetria",
 }
 
+# ============================================================
+# CONFIG MODELOS MEDIÇÃO
+# ============================================================
+
+CONFIG_MODELOS_MEDICAO = {
+    "padrao_fos": {
+        "usa_aditivo": False,
+        "usa_periodo_fim": False,
+        "usa_apostilamento": False,
+    },
+    "ast_bags": {
+        "usa_aditivo": True,
+        "usa_periodo_fim": True,
+        "usa_apostilamento": True,
+    },
+    "diario_equipamento": {
+        "usa_aditivo": False,
+        "usa_periodo_fim": True,
+        "usa_apostilamento": False,
+    },
+    "batimetria": {
+        "usa_aditivo": False,
+        "usa_periodo_fim": True,
+        "usa_apostilamento": False,
+    },
+}
 
 # ============================================================
 # COLUNAS
