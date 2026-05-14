@@ -242,14 +242,18 @@ def render():
             """
             <div class="module-card">
                 <h3>Medições</h3>
-                <p>Controle de boletins de medição, frentes de serviço, itens medidos e totais por obra.</p>
+                <p>Controle de boletins de medição, memórias de cálculo, frentes de serviço e totais por obra.</p>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
         if st.button("ABRIR MEDIÇÕES", use_container_width=True):
-            st.session_state.tela = "medicoes"
+            st.session_state.tela = "carregando_medicoes"
+
+            # Limpeza leve de estados visuais antigos do módulo
+            st.session_state.pop("medicoes_carregadas", None)
+
             st.rerun()
 
     st.markdown(
