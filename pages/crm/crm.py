@@ -1,10 +1,17 @@
 import streamlit as st
 
-from pages.crm.repositorio import carregar_clientes, carregar_contatos, carregar_interacoes
+from pages.crm.repositorio import (
+    carregar_clientes,
+    carregar_contatos,
+    carregar_interacoes,
+)
+
 from pages.crm.navegacao import menu_crm
+
 from pages.crm.etapa1_clientes import tela_clientes
 from pages.crm.etapa2_contatos import tela_contatos
 from pages.crm.etapa3_interacoes import tela_interacoes
+
 from pages.crm.utils import preparar_dataframe_para_exibicao
 
 
@@ -27,7 +34,10 @@ def tela_consulta_geral():
         st.info("Nenhum cliente cadastrado ainda.")
         return
 
-    busca = st.text_input("Busca rápida", placeholder="Empresa, cidade, responsável, necessidade...")
+    busca = st.text_input(
+        "Busca rápida",
+        placeholder="Empresa, cidade, responsável, necessidade..."
+    )
 
     df = clientes.copy()
 
@@ -67,17 +77,36 @@ def tela_consulta_geral():
 
 
 def crm():
-    st.title("CRM FOS")
-    st.caption("Relacionamento comercial, prospecção e histórico de contatos.")
+
+    col1, col2 = st.columns([6, 1])
+
+    with col1:
+        st.title("CRM FOS")
+        st.caption(
+            "Relacionamento comercial, prospecção e histórico de contatos."
+        )
+
+    with col2:
+        st.write("")
+        st.write("")
+
+        if st.button("⬅ MENU", use_container_width=True):
+            st.session_state.tela = "menu"
+            st.rerun()
+
+    st.markdown("---")
 
     pagina = menu_crm()
 
     if pagina == "clientes":
         tela_clientes()
+
     elif pagina == "contatos":
         tela_contatos()
+
     elif pagina == "interacoes":
         tela_interacoes()
+
     elif pagina == "consulta":
         tela_consulta_geral()
 
