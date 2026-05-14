@@ -1,1 +1,1 @@
-
+id_cliente,nome_empresa,tipo_cliente,documento,cidade,estado,endereco_local,setor_atividade,origem_cliente,status_relacionamento,responsavel,necessidade_cliente,ultimo_contato,proxima_acao,data_proxima_acao,observacoes_gerais,created_at,updated_at
