@@ -2,6 +2,7 @@ import streamlit as st
 
 # Módulos principais
 from pages import menu, dados, ferias, prestacao_contas, medicoes
+from pages.crm.crm import crm
 
 # Serviços
 from services.auth import verificar_login
@@ -70,6 +71,9 @@ elif st.session_state.tela == "prestacao_contas":
 
 elif st.session_state.tela == "medicoes":
     medicoes.medicoes()
+
+elif st.session_state.tela == "crm":
+    crm()
 
 # =========================
 # MÓDULO OBRAS
