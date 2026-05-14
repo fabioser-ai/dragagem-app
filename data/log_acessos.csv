@@ -145,3 +145,4 @@ data_hora,usuario,perfil,acao
 2026-05-13 22:07:27,Fabio,admin,login
 2026-05-14 13:21:15,Fabio,admin,login
 2026-05-14 14:08:36,Karina,user,login
+2026-05-14 15:15:56,Fabio,admin,sessao_expirada
