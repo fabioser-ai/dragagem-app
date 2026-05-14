@@ -1,6 +1,6 @@
 import streamlit as st
 
-from pages.crm.repositorio import garantir_estrutura_crm, carregar_clientes, carregar_contatos, carregar_interacoes
+from pages.crm.repositorio import carregar_clientes, carregar_contatos, carregar_interacoes
 from pages.crm.navegacao import menu_crm
 from pages.crm.etapa1_clientes import tela_clientes
 from pages.crm.etapa2_contatos import tela_contatos
@@ -67,8 +67,6 @@ def tela_consulta_geral():
 
 
 def crm():
-    garantir_estrutura_crm()
-
     st.title("CRM FOS")
     st.caption("Relacionamento comercial, prospecção e histórico de contatos.")
 
