@@ -162,6 +162,7 @@ def render():
 
         if st.button("ABRIR ORÇAMENTO", use_container_width=True):
             st.session_state.tela = "orcamento"
+            st.rerun()
 
         st.markdown(
             """
@@ -175,6 +176,7 @@ def render():
 
         if st.button("ABRIR FÉRIAS", use_container_width=True):
             st.session_state.tela = "ferias"
+            st.rerun()
 
         st.markdown(
             """
@@ -188,6 +190,21 @@ def render():
 
         if st.button("ABRIR PRESTAÇÃO DE CONTAS", use_container_width=True):
             st.session_state.tela = "prestacao_contas"
+            st.rerun()
+
+        st.markdown(
+            """
+            <div class="module-card">
+                <h3>CRM</h3>
+                <p>Cadastro de clientes, contatos, histórico comercial e prospecção de oportunidades.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.button("ABRIR CRM", use_container_width=True):
+            st.session_state.tela = "crm"
+            st.rerun()
 
     with col2:
         st.markdown(
@@ -202,6 +219,7 @@ def render():
 
         if st.button("ABRIR OBRAS", use_container_width=True):
             st.session_state.tela = "obras"
+            st.rerun()
 
         st.markdown(
             """
@@ -216,6 +234,7 @@ def render():
         if st.session_state.get("perfil") == "admin":
             if st.button("ABRIR DADOS", use_container_width=True):
                 st.session_state.tela = "dados"
+                st.rerun()
         else:
             st.button("DADOS BLOQUEADO", use_container_width=True, disabled=True)
 
@@ -231,6 +250,7 @@ def render():
 
         if st.button("ABRIR MEDIÇÕES", use_container_width=True):
             st.session_state.tela = "medicoes"
+            st.rerun()
 
     st.markdown(
         """
