@@ -96,6 +96,9 @@ def tela_mc_padrao_fos(frentes, mc):
         "preco_unitario_com_bdi",
         "preco_total",
     ]:
+        if col not in tabela.columns:
+            tabela[col] = 0.0
+
         tabela[col] = pd.to_numeric(
             tabela[col],
             errors="coerce",
@@ -128,17 +131,46 @@ def tela_mc_padrao_fos(frentes, mc):
     else:
         df_editor = df_existente.copy()
 
-        if "quantidade_executada" not in df_editor.columns:
-            df_editor["quantidade_executada"] = pd.to_numeric(
-                df_editor.get("resultado", 0),
-                errors="coerce",
-            ).fillna(0.0)
+        # Compatibilidade com COL_MC:
+        # comprimento = quantidade executada
+        # ast = preço unitário
+        # resultado = total
+        df_editor["quantidade_executada"] = pd.to_numeric(
+            df_editor.get("comprimento", 0.0),
+            errors="coerce",
+        ).fillna(0.0)
 
-        if "preco_unitario_com_bdi" not in df_editor.columns:
-            df_editor["preco_unitario_com_bdi"] = 0.0
+        df_editor["preco_unitario_com_bdi"] = pd.to_numeric(
+            df_editor.get("ast", 0.0),
+            errors="coerce",
+        ).fillna(0.0)
 
-        if "total" not in df_editor.columns:
-            df_editor["total"] = 0.0
+        df_editor["total"] = pd.to_numeric(
+            df_editor.get("resultado", 0.0),
+            errors="coerce",
+        ).fillna(0.0)
+
+        # Campos podem não existir quando a MC foi salva no formato antigo.
+        # Mantemos vazios para evitar quebra da tela.
+        for col in ["fonte", "codigo", "item", "unidade"]:
+            if col not in df_editor.columns:
+                df_editor[col] = ""
+
+    for col in [
+        "mc_id",
+        "medicao_id",
+        "frente_id",
+        "fonte",
+        "codigo",
+        "item",
+        "descricao",
+        "unidade",
+        "preco_unitario_com_bdi",
+        "quantidade_executada",
+        "total",
+    ]:
+        if col not in df_editor.columns:
+            df_editor[col] = ""
 
     df_editor["quantidade_executada"] = pd.to_numeric(
         df_editor["quantidade_executada"],
@@ -150,56 +182,73 @@ def tela_mc_padrao_fos(frentes, mc):
         errors="coerce",
     ).fillna(0.0)
 
+    df_editor["total"] = (
+        df_editor["quantidade_executada"]
+        * df_editor["preco_unitario_com_bdi"]
+    )
+
+    colunas_editor = [
+        "mc_id",
+        "medicao_id",
+        "frente_id",
+        "fonte",
+        "codigo",
+        "item",
+        "descricao",
+        "unidade",
+        "preco_unitario_com_bdi",
+        "quantidade_executada",
+        "total",
+    ]
+
     st.caption(
         "Informe a quantidade executada somente nos itens que serão "
         "medidos neste BM."
     )
 
     df_editado = st.data_editor(
-        df_editor,
+        df_editor[colunas_editor],
         use_container_width=True,
         num_rows="fixed",
         hide_index=True,
         key=f"mc_padrao_fos_{frente_id}",
+        disabled=[
+            "mc_id",
+            "medicao_id",
+            "frente_id",
+            "fonte",
+            "codigo",
+            "item",
+            "descricao",
+            "unidade",
+            "preco_unitario_com_bdi",
+            "total",
+        ],
         column_config={
             "mc_id": None,
             "medicao_id": None,
             "frente_id": None,
-            "fonte": st.column_config.TextColumn(
-                "Fonte",
-                disabled=True,
-            ),
-            "codigo": st.column_config.TextColumn(
-                "Código",
-                disabled=True,
-            ),
-            "item": st.column_config.NumberColumn(
-                "Item",
-                disabled=True,
-            ),
+            "fonte": st.column_config.TextColumn("Fonte"),
+            "codigo": st.column_config.TextColumn("Código"),
+            "item": st.column_config.TextColumn("Item"),
             "descricao": st.column_config.TextColumn(
                 "Descrição",
-                disabled=True,
                 width="large",
             ),
-            "unidade": st.column_config.TextColumn(
-                "Un.",
-                disabled=True,
-            ),
+            "unidade": st.column_config.TextColumn("Un."),
             "preco_unitario_com_bdi": st.column_config.NumberColumn(
                 "Preço unit. c/ BDI",
-                format="%.2f",
-                disabled=True,
+                format="R$ %.2f",
             ),
             "quantidade_executada": st.column_config.NumberColumn(
                 "Quantidade executada",
                 format="%.2f",
                 min_value=0.0,
+                step=0.01,
             ),
             "total": st.column_config.NumberColumn(
                 "Total",
-                format="%.2f",
-                disabled=True,
+                format="R$ %.2f",
             ),
         },
     )
@@ -231,7 +280,13 @@ def tela_mc_padrao_fos(frentes, mc):
         f"Itens com quantidade lançada: {len(somente_medidos)}"
     )
 
-    if st.button("Salvar MC", use_container_width=True):
+    if st.button("Salvar MC", use_container_width=True, type="primary"):
+        if (df_editado["quantidade_executada"] < 0).any():
+            st.error(
+                "Existem quantidades negativas. Corrija antes de salvar."
+            )
+            return
+
         mc = mc[
             mc["frente_id"].astype(str) != str(frente_id)
         ]
