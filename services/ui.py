@@ -46,7 +46,7 @@ def aplicar_estilo_global():
 
     .stButton > button {
         background-color: #1e3a5f !important;
-        color: white !important;
+        color: #ffffff !important;
         border-radius: 10px;
         border: none;
         height: 42px;
@@ -55,7 +55,7 @@ def aplicar_estilo_global():
 
     .stButton > button:hover {
         background-color: #2c5282 !important;
-        color: white !important;
+        color: #ffffff !important;
     }
 
     /* ===== INPUTS ===== */
@@ -93,40 +93,56 @@ def aplicar_estilo_global():
         overflow: hidden !important;
     }
 
-    [data-testid="stDataFrame"] * {
-        color: #111827 !important;
-    }
-
+    /* Células da tabela */
     [data-testid="stDataFrame"] [role="gridcell"] {
         color: #111827 !important;
         background-color: #ffffff !important;
     }
 
+    [data-testid="stDataFrame"] [role="gridcell"] * {
+        color: #111827 !important;
+    }
+
+    /* Cabeçalho da tabela */
     [data-testid="stDataFrame"] [role="columnheader"] {
-        background-color: #0f172a !important;
+        background-color: #1e3a5f !important;
+    }
+
+    [data-testid="stDataFrame"] [role="columnheader"] * {
         color: #ffffff !important;
         font-weight: 700 !important;
     }
 
+    /* Índice lateral da tabela */
     [data-testid="stDataFrame"] [role="rowheader"] {
         background-color: #f1f5f9 !important;
+    }
+
+    [data-testid="stDataFrame"] [role="rowheader"] * {
         color: #334155 !important;
     }
 
-    /* Compatibilidade extra com tabelas HTML / Pandas Styler */
-
+    /* Compatibilidade extra com tabelas HTML / Pandas */
     table {
         background-color: #ffffff !important;
         color: #111827 !important;
     }
 
     table th {
-        background-color: #0f172a !important;
+        background-color: #1e3a5f !important;
+        color: #ffffff !important;
+    }
+
+    table th * {
         color: #ffffff !important;
     }
 
     table td {
         background-color: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    table td * {
         color: #111827 !important;
     }
 
@@ -141,6 +157,30 @@ def aplicar_estilo_global():
 
     div[data-testid="stMetric"] * {
         color: #0f172a !important;
+    }
+
+    /* ===== EXPANDERS ===== */
+
+    div[data-testid="stExpander"] {
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+    }
+
+    div[data-testid="stExpander"] * {
+        color: #0f172a !important;
+    }
+
+    /* ===== ABAS ===== */
+
+    button[data-baseweb="tab"] {
+        color: #0f172a !important;
+        font-weight: 600 !important;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #1e3a5f !important;
+        border-bottom-color: #1e3a5f !important;
     }
 
     /* ===== ESPAÇAMENTO ===== */
