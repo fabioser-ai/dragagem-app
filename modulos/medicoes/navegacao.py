@@ -1,8 +1,6 @@
 import streamlit as st
 
-from modulos.medicoes.config import (
-    ETAPAS_MODELO,
-)
+from modulos.medicoes.config import ETAPAS_MODELO
 from modulos.medicoes.utils import ir_para
 
 
@@ -28,7 +26,72 @@ def obter_etapas():
     )
 
 
-def navegacao():
+def tela_inicial_medicoes():
+    st.markdown("## 📏 Módulo de Medições")
+    st.caption("Escolha qual fluxo de trabalho deseja acessar.")
+
+    st.divider()
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("### 🧾 Criar / Gerenciar Medição")
+        st.write(
+            "Criar nova medição, selecionar obra, BM, frentes, MC, itens "
+            "e revisar o resumo antes de enviar para lançamento."
+        )
+
+        if st.button(
+            "Acessar Gestão da Medição",
+            use_container_width=True,
+            key="btn_acessar_gestao_medicao",
+        ):
+            st.session_state["fluxo_medicoes"] = "gestao"
+            st.session_state["etapa_medicoes"] = "obra"
+            st.rerun()
+
+    with col2:
+        st.markdown("### 📝 Lançar Produção")
+        st.write(
+            "Informar quantidades executadas, datas, observações e dados "
+            "operacionais usados na medição."
+        )
+
+        if st.button(
+            "Acessar Lançamentos",
+            use_container_width=True,
+            key="btn_acessar_lancamentos_medicao",
+        ):
+            st.session_state["fluxo_medicoes"] = "lancamento"
+            st.rerun()
+
+    with col3:
+        st.markdown("### ✅ Aprovar Medição")
+        st.write(
+            "Revisar lançamentos, validar informações, aprovar, reprovar "
+            "ou liberar a medição para faturamento."
+        )
+
+        if st.button(
+            "Acessar Aprovação",
+            use_container_width=True,
+            key="btn_acessar_aprovacao_medicao",
+        ):
+            st.session_state["fluxo_medicoes"] = "aprovacao"
+            st.rerun()
+
+    st.divider()
+
+    if st.button(
+        "⬅ Voltar ao Menu Principal",
+        use_container_width=True,
+        key="btn_voltar_menu_medicoes",
+    ):
+        st.session_state["tela"] = "menu"
+        st.rerun()
+
+
+def navegacao_gestao():
     etapa = st.session_state.get(
         "etapa_medicoes",
         "obra",
@@ -46,7 +109,6 @@ def navegacao():
 
     for i, etapa_nome in enumerate(ordem):
         with cols[i]:
-
             ativo = etapa_nome == etapa
 
             st.button(
@@ -67,15 +129,17 @@ def navegacao():
             if st.button(
                 "← Voltar",
                 use_container_width=True,
+                key="btn_voltar_etapa_medicoes",
             ):
                 ir_para(ordem[idx - 1])
 
     with c2:
         if st.button(
-            "⬅ Menu",
+            "⬅ Início Medições",
             use_container_width=True,
+            key="btn_inicio_medicoes",
         ):
-            st.session_state.tela = "menu"
+            st.session_state["fluxo_medicoes"] = "inicio"
             st.rerun()
 
     with c3:
@@ -85,5 +149,55 @@ def navegacao():
             if st.button(
                 "Próximo →",
                 use_container_width=True,
+                key="btn_proxima_etapa_medicoes",
             ):
                 ir_para(ordem[idx + 1])
+
+
+def tela_lancamento_placeholder():
+    st.markdown("## 📝 Lançamento de Produção")
+    st.info("Esta será a tela para entrada dos dados usados na medição.")
+
+    if st.button(
+        "⬅ Voltar ao início das Medições",
+        use_container_width=True,
+        key="btn_voltar_inicio_lancamento",
+    ):
+        st.session_state["fluxo_medicoes"] = "inicio"
+        st.rerun()
+
+
+def tela_aprovacao_placeholder():
+    st.markdown("## ✅ Aprovação de Medição")
+    st.info("Esta será a tela para revisão, aprovação ou reprovação das medições.")
+
+    if st.button(
+        "⬅ Voltar ao início das Medições",
+        use_container_width=True,
+        key="btn_voltar_inicio_aprovacao",
+    ):
+        st.session_state["fluxo_medicoes"] = "inicio"
+        st.rerun()
+
+
+def navegacao():
+    if "fluxo_medicoes" not in st.session_state:
+        st.session_state["fluxo_medicoes"] = "inicio"
+
+    fluxo = st.session_state["fluxo_medicoes"]
+
+    if fluxo == "inicio":
+        tela_inicial_medicoes()
+
+    elif fluxo == "gestao":
+        navegacao_gestao()
+
+    elif fluxo == "lancamento":
+        tela_lancamento_placeholder()
+
+    elif fluxo == "aprovacao":
+        tela_aprovacao_placeholder()
+
+    else:
+        st.session_state["fluxo_medicoes"] = "inicio"
+        st.rerun()
