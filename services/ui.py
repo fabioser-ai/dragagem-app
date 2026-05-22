@@ -14,8 +14,6 @@ def aplicar_estilo_global():
         color: #1e293b !important;
     }
 
-    /* ===== FUNDO ===== */
-
     [data-testid="stAppViewContainer"] {
         background: #e9eef3 !important;
         color: #1e293b !important;
@@ -24,8 +22,6 @@ def aplicar_estilo_global():
     [data-testid="stHeader"] {
         background: transparent;
     }
-
-    /* ===== SIDEBAR ===== */
 
     [data-testid="stSidebar"] {
         background-color: #0f172a !important;
@@ -36,21 +32,28 @@ def aplicar_estilo_global():
         color: #f8fafc !important;
     }
 
-    /* ===== TÍTULOS ===== */
-
-    h1, h2, h3, h4, h5, h6, p, span, label {
+    h1, h2, h3, h4, h5, h6 {
         color: #0f172a !important;
     }
 
-    /* ===== BOTÕES ===== */
+    p, label {
+        color: #0f172a !important;
+    }
 
     .stButton > button {
         background-color: #1e3a5f !important;
         color: #ffffff !important;
-        border-radius: 10px;
-        border: none;
+        border-radius: 10px !important;
+        border: none !important;
         height: 42px;
-        font-weight: 600;
+        font-weight: 600 !important;
+    }
+
+    .stButton > button p,
+    .stButton > button span,
+    .stButton > button div {
+        color: #ffffff !important;
+        font-weight: 600 !important;
     }
 
     .stButton > button:hover {
@@ -58,7 +61,11 @@ def aplicar_estilo_global():
         color: #ffffff !important;
     }
 
-    /* ===== INPUTS ===== */
+    .stButton > button:hover p,
+    .stButton > button:hover span,
+    .stButton > button:hover div {
+        color: #ffffff !important;
+    }
 
     input, textarea {
         background-color: #ffffff !important;
@@ -72,8 +79,6 @@ def aplicar_estilo_global():
         color: #64748b !important;
     }
 
-    /* ===== SELECTBOX ===== */
-
     [data-baseweb="select"] > div {
         background-color: #ffffff !important;
         color: #1e293b !important;
@@ -84,8 +89,6 @@ def aplicar_estilo_global():
         color: #1e293b !important;
     }
 
-    /* ===== TABELAS / DATAFRAMES ===== */
-
     [data-testid="stDataFrame"] {
         background-color: #ffffff !important;
         border-radius: 12px !important;
@@ -93,7 +96,6 @@ def aplicar_estilo_global():
         overflow: hidden !important;
     }
 
-    /* Células da tabela */
     [data-testid="stDataFrame"] [role="gridcell"] {
         color: #111827 !important;
         background-color: #ffffff !important;
@@ -103,7 +105,6 @@ def aplicar_estilo_global():
         color: #111827 !important;
     }
 
-    /* Cabeçalho da tabela */
     [data-testid="stDataFrame"] [role="columnheader"] {
         background-color: #1e3a5f !important;
     }
@@ -113,7 +114,6 @@ def aplicar_estilo_global():
         font-weight: 700 !important;
     }
 
-    /* Índice lateral da tabela */
     [data-testid="stDataFrame"] [role="rowheader"] {
         background-color: #f1f5f9 !important;
     }
@@ -122,7 +122,6 @@ def aplicar_estilo_global():
         color: #334155 !important;
     }
 
-    /* Compatibilidade extra com tabelas HTML / Pandas */
     table {
         background-color: #ffffff !important;
         color: #111827 !important;
@@ -146,8 +145,6 @@ def aplicar_estilo_global():
         color: #111827 !important;
     }
 
-    /* ===== MÉTRICAS / CARDS ===== */
-
     div[data-testid="stMetric"] {
         background-color: #ffffff !important;
         border: 1px solid #cbd5e1 !important;
@@ -159,8 +156,6 @@ def aplicar_estilo_global():
         color: #0f172a !important;
     }
 
-    /* ===== EXPANDERS ===== */
-
     div[data-testid="stExpander"] {
         background-color: #ffffff !important;
         border: 1px solid #cbd5e1 !important;
@@ -171,8 +166,6 @@ def aplicar_estilo_global():
         color: #0f172a !important;
     }
 
-    /* ===== ABAS ===== */
-
     button[data-baseweb="tab"] {
         color: #0f172a !important;
         font-weight: 600 !important;
@@ -182,8 +175,6 @@ def aplicar_estilo_global():
         color: #1e3a5f !important;
         border-bottom-color: #1e3a5f !important;
     }
-
-    /* ===== ESPAÇAMENTO ===== */
 
     .block-container {
         padding-top: 1.5rem;
