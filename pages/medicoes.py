@@ -14,8 +14,18 @@ def medicoes():
     st.title("Medições")
     st.caption("Controle técnico e financeiro de medições.")
 
+    if "fluxo_medicoes" not in st.session_state:
+        st.session_state["fluxo_medicoes"] = "inicio"
+
     if "etapa_medicoes" not in st.session_state:
-        st.session_state.etapa_medicoes = "obra"
+        st.session_state["etapa_medicoes"] = "obra"
+
+    navegacao()
+
+    fluxo = st.session_state.get("fluxo_medicoes", "inicio")
+
+    if fluxo != "gestao":
+        return
 
     (
         obras,
@@ -25,8 +35,6 @@ def medicoes():
         itens,
         servicos,
     ) = carregar_bases()
-
-    navegacao()
 
     etapa = st.session_state.etapa_medicoes
 
