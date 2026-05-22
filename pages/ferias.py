@@ -136,6 +136,13 @@ def preparar_exibicao_ferias(df):
         if col in df_exibir.columns:
             df_exibir[col] = df_exibir[col].apply(formatar_data_br)
 
+    # Evita Pandas Styler, que pode gerar texto branco/ilegível no Safari mobile.
+    df_exibir.insert(
+        0,
+        "Status",
+        df_exibir.apply(status_visual_ferias, axis=1),
+    )
+
     return df_exibir
 
 
@@ -149,29 +156,65 @@ def preparar_exibicao_folgas(df):
     if "Data_Registro" in df_exibir.columns:
         df_exibir["Data_Registro"] = df_exibir["Data_Registro"].apply(formatar_datetime_br)
 
+    df_exibir.insert(
+        0,
+        "Status",
+        df_exibir.apply(status_visual_folgas, axis=1),
+    )
+
     return df_exibir
 
 
+def status_visual_ferias(row):
+    situacao_prazo = row.get("Situacao_Prazo", "")
+    situacao_ferias = row.get("Situacao_Ferias", "")
+
+    if situacao_prazo == "Férias em Dobro":
+        return "🔴 Em Dobro"
+
+    if situacao_prazo == "Atenção":
+        return "🟡 Atenção"
+
+    if situacao_ferias == "Férias Vencidas":
+        return "🟠 Vencidas"
+
+    if situacao_prazo == "Dentro do Prazo":
+        return "🟢 OK"
+
+    return "⚪ Indefinido"
+
+
+def status_visual_folgas(row):
+    retorno = para_data(row.get("Data_Retorno"))
+
+    if retorno and retorno >= date.today():
+        return "🔵 Ativa/Futura"
+
+    return "⚪ Histórico"
+
+
+# Mantidas por compatibilidade, mas não usadas na exibição mobile.
+# Evitamos df.style.apply(...) porque no Safari/iPhone pode deixar texto branco.
 def cor_linha_ferias(row):
     if row.get("Situacao_Prazo") == "Férias em Dobro":
-        return ["background-color: #fee2e2"] * len(row)
+        return ["background-color: #fee2e2; color: #111827"] * len(row)
 
     if row.get("Situacao_Prazo") == "Atenção":
-        return ["background-color: #fef3c7"] * len(row)
+        return ["background-color: #fef3c7; color: #111827"] * len(row)
 
     if row.get("Situacao_Ferias") == "Férias Vencidas":
-        return ["background-color: #fff7ed"] * len(row)
+        return ["background-color: #fff7ed; color: #111827"] * len(row)
 
-    return ["background-color: #ecfdf5"] * len(row)
+    return ["background-color: #ecfdf5; color: #111827"] * len(row)
 
 
 def cor_linha_folgas(row):
     retorno = para_data(row.get("Data_Retorno"))
 
     if retorno and retorno >= date.today():
-        return ["background-color: #dbeafe"] * len(row)
+        return ["background-color: #dbeafe; color: #111827"] * len(row)
 
-    return [""] * len(row)
+    return ["color: #111827"] * len(row)
 
 
 # =========================
@@ -575,9 +618,13 @@ def render_ferias(df_ferias):
         st.warning("Nenhum registro de férias cadastrado.")
     else:
         df_exibir = preparar_exibicao_ferias(df_ferias)
+
+        # Importante:
+        # Não usamos df.style.apply(...) aqui, pois no Safari/iPhone pode deixar os textos ilegíveis.
         st.dataframe(
-            df_exibir.style.apply(cor_linha_ferias, axis=1),
+            df_exibir,
             use_container_width=True,
+            hide_index=True,
         )
 
     st.divider()
@@ -851,9 +898,12 @@ def render_folgas(df_ferias):
             df_exibir = ordenar_folgas_por_data(df_exibir)
             df_exibir_br = preparar_exibicao_folgas(df_exibir)
 
+            # Importante:
+            # Não usamos df.style.apply(...) aqui, pois no Safari/iPhone pode deixar os textos ilegíveis.
             st.dataframe(
-                df_exibir_br.style.apply(cor_linha_folgas, axis=1),
+                df_exibir_br,
                 use_container_width=True,
+                hide_index=True,
             )
 
     with aba_nova:
