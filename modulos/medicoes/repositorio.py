@@ -147,3 +147,74 @@ def carregar_tabela_contrato(nome_arquivo):
         return pd.DataFrame(
             columns=COL_TABELA_SERVICOS_CONTRATO
         )
+from pathlib import Path
+from datetime import datetime
+import pandas as pd
+import uuid
+
+
+PASTA_DADOS_MEDICOES = Path("data/medicoes")
+PASTA_FOTOS_LANCAMENTOS = PASTA_DADOS_MEDICOES / "fotos_lancamentos"
+ARQUIVO_LANCAMENTOS_PRODUCAO = PASTA_DADOS_MEDICOES / "lancamentos_producao.csv"
+
+
+COLUNAS_LANCAMENTOS_PRODUCAO = [
+    "id_lancamento",
+    "obra",
+    "local_trabalho",
+    "data_servico",
+    "atividade_executada",
+    "observacao",
+    "foto_arquivo",
+    "usuario",
+    "data_hora_lancamento",
+    "status",
+]
+
+def garantir_estrutura_lancamentos_producao():
+    PASTA_DADOS_MEDICOES.mkdir(parents=True, exist_ok=True)
+    PASTA_FOTOS_LANCAMENTOS.mkdir(parents=True, exist_ok=True)
+
+    if not ARQUIVO_LANCAMENTOS_PRODUCAO.exists():
+        df = pd.DataFrame(columns=COLUNAS_LANCAMENTOS_PRODUCAO)
+        df.to_csv(ARQUIVO_LANCAMENTOS_PRODUCAO, index=False, encoding="utf-8-sig")
+
+
+def salvar_foto_lancamento(id_lancamento, foto):
+    if foto is None:
+        return ""
+
+    extensao = Path(foto.name).suffix.lower()
+    nome_arquivo = f"{id_lancamento}{extensao}"
+    caminho_foto = PASTA_FOTOS_LANCAMENTOS / nome_arquivo
+
+    with open(caminho_foto, "wb") as f:
+        f.write(foto.getbuffer())
+
+    return str(caminho_foto)
+
+
+def salvar_lancamento_producao(dados, foto=None):
+    garantir_estrutura_lancamentos_producao()
+
+    id_lancamento = f"LP-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
+
+    foto_arquivo = salvar_foto_lancamento(id_lancamento, foto)
+
+    novo_registro = {
+        "id_lancamento": id_lancamento,
+        "obra": dados.get("obra", ""),
+        "local_trabalho": dados.get("local_trabalho", ""),
+        "data_servico": dados.get("data_servico", ""),
+        "atividade_executada": dados.get("atividade_executada", ""),
+        "observacao": dados.get("observacao", ""),
+        "foto_arquivo": foto_arquivo,
+        "usuario": dados.get("usuario", ""),
+        "data_hora_lancamento": dados.get("data_hora_lancamento", ""),
+        "status": dados.get("status", "PENDENTE_ANALISE"),
+    }
+
+    df = pd.read_csv(ARQUIVO_LANCAMENTOS_PRODUCAO, dtype=str, encoding="utf-8-sig")
+    df = pd.concat([df, pd.DataFrame([novo_registro])], ignore_index=True)
+    df.to_csv(ARQUIVO_LANCAMENTOS_PRODUCAO, index=False, encoding="utf-8-sig")
+
