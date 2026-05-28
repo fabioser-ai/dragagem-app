@@ -10,6 +10,10 @@ ARQ_ITENS = "data/medicoes_itens.csv"
 ARQ_SERVICOS = "data/medicoes_servicos.csv"
 ARQ_TABELAS_SERVICOS_DIR = "data/medicoes_tabelas"
 
+# Lançar Trabalho Executado
+ARQ_LOCAIS_TRABALHO = "data/medicoes_locais_trabalho.csv"
+ARQ_LANCAMENTOS_PRODUCAO = "data/medicoes_lancamentos_producao.csv"
+
 # ============================================================
 # MODELOS DE MEDIÇÃO
 # ============================================================
@@ -60,7 +64,6 @@ ETAPAS_MODELO = {
         "medicao",
         "resumo",
     ],
-
     "ast_bags": [
         "obra",
         "bm",
@@ -69,7 +72,6 @@ ETAPAS_MODELO = {
         "medicao",
         "resumo",
     ],
-
     "diario_equipamento": [
         "obra",
         "bm",
@@ -77,7 +79,6 @@ ETAPAS_MODELO = {
         "medicao",
         "resumo",
     ],
-
     "batimetria": [
         "obra",
         "bm",
@@ -175,4 +176,34 @@ COL_TABELA_SERVICOS_CONTRATO = [
     "ativo",
 ]
 
+# ============================================================
+# COLUNAS — LANÇAR TRABALHO EXECUTADO
+# ============================================================
 
+COL_LOCAIS_TRABALHO = [
+    "local_id",
+    "obra_id",
+    "nome_local",
+    "ativo",
+    "observacoes",
+    "criado_em",
+    "atualizado_em",
+]
+
+COL_LANCAMENTOS_PRODUCAO = [
+    "id_lancamento",
+    "obra_id",
+    "nome_obra",
+    "local_id",
+    "nome_local",
+    "codigo_item",
+    "descricao_item",
+    "unidade",
+    "quantidade",
+    "data_servico",
+    "observacao",
+    "foto_arquivo",
+    "usuario",
+    "data_hora_lancamento",
+    "status",
+]
