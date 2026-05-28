@@ -1,6 +1,11 @@
+import os
+import uuid
+from datetime import datetime
+from io import StringIO
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
-import os
 
 from services.github import carregar_github, salvar_github
 
@@ -11,21 +16,23 @@ from modulos.medicoes.config import (
     ARQ_MC,
     ARQ_ITENS,
     ARQ_SERVICOS,
+    ARQ_TABELAS_SERVICOS_DIR,
+    ARQ_LOCAIS_TRABALHO,
+    ARQ_LANCAMENTOS_PRODUCAO,
     COL_OBRAS,
     COL_MEDICOES,
     COL_FRENTES,
     COL_MC,
     COL_ITENS,
     COL_SERVICOS,
+    COL_TABELA_SERVICOS_CONTRATO,
+    COL_LOCAIS_TRABALHO,
+    COL_LANCAMENTOS_PRODUCAO,
 )
 
-from modulos.medicoes.config import (
-    ARQ_TABELAS_SERVICOS_DIR,
-    COL_TABELA_SERVICOS_CONTRATO,
-)
 
 # ============================================================
-# CSV
+# CSV — BASE GITHUB
 # ============================================================
 
 def carregar_csv(caminho, colunas):
@@ -37,7 +44,6 @@ def carregar_csv(caminho, colunas):
         )
 
         if isinstance(df, str):
-            from io import StringIO
             df = pd.read_csv(StringIO(df))
 
         if df is None:
@@ -61,7 +67,6 @@ def salvar_csv(caminho, df):
             st.secrets["GITHUB_TOKEN"],
             st.secrets["REPO"],
         )
-
         return True
 
     except Exception as e:
@@ -70,36 +75,16 @@ def salvar_csv(caminho, df):
 
 
 # ============================================================
-# BASES
+# BASES PRINCIPAIS
 # ============================================================
 
 def carregar_bases():
     obras = carregar_csv(ARQ_OBRAS, COL_OBRAS)
-
-    medicoes = carregar_csv(
-        ARQ_MEDICOES,
-        COL_MEDICOES,
-    )
-
-    frentes = carregar_csv(
-        ARQ_FRENTES,
-        COL_FRENTES,
-    )
-
-    mc = carregar_csv(
-        ARQ_MC,
-        COL_MC,
-    )
-
-    itens = carregar_csv(
-        ARQ_ITENS,
-        COL_ITENS,
-    )
-
-    servicos = carregar_csv(
-        ARQ_SERVICOS,
-        COL_SERVICOS,
-    )
+    medicoes = carregar_csv(ARQ_MEDICOES, COL_MEDICOES)
+    frentes = carregar_csv(ARQ_FRENTES, COL_FRENTES)
+    mc = carregar_csv(ARQ_MC, COL_MC)
+    itens = carregar_csv(ARQ_ITENS, COL_ITENS)
+    servicos = carregar_csv(ARQ_SERVICOS, COL_SERVICOS)
 
     return (
         obras,
@@ -110,103 +95,131 @@ def carregar_bases():
         servicos,
     )
 
-# ============================================================
-# Carregar tabela contrato
-# ============================================================
 
+# ============================================================
+# TABELA CONTRATUAL DA OBRA
+# ============================================================
 
 def carregar_tabela_contrato(nome_arquivo):
     if not nome_arquivo:
-        return pd.DataFrame(
-            columns=COL_TABELA_SERVICOS_CONTRATO
-        )
+        return pd.DataFrame(columns=COL_TABELA_SERVICOS_CONTRATO)
 
-    caminho = (
-        f"{ARQ_TABELAS_SERVICOS_DIR}/{nome_arquivo}"
-    )
-
-    if not os.path.exists(caminho):
-        return pd.DataFrame(
-            columns=COL_TABELA_SERVICOS_CONTRATO
-        )
+    caminho = f"{ARQ_TABELAS_SERVICOS_DIR}/{nome_arquivo}"
 
     try:
-        df = pd.read_csv(caminho)
-
-        for c in COL_TABELA_SERVICOS_CONTRATO:
-            if c not in df.columns:
-                df[c] = None
-
-        return df[COL_TABELA_SERVICOS_CONTRATO]
-
-    except Exception as e:
-        st.error(
-            f"Erro ao carregar tabela contratual: {e}"
+        df = carregar_github(
+            caminho,
+            st.secrets["GITHUB_TOKEN"],
+            st.secrets["REPO"],
         )
 
-        return pd.DataFrame(
-            columns=COL_TABELA_SERVICOS_CONTRATO
-        )
-from pathlib import Path
-from datetime import datetime
-import pandas as pd
-import uuid
+        if isinstance(df, str):
+            df = pd.read_csv(StringIO(df))
+
+        if df is None:
+            df = pd.DataFrame(columns=COL_TABELA_SERVICOS_CONTRATO)
+
+    except Exception:
+        try:
+            if not os.path.exists(caminho):
+                return pd.DataFrame(columns=COL_TABELA_SERVICOS_CONTRATO)
+
+            df = pd.read_csv(caminho)
+
+        except Exception as e:
+            st.error(f"Erro ao carregar tabela contratual: {e}")
+            return pd.DataFrame(columns=COL_TABELA_SERVICOS_CONTRATO)
+
+    for c in COL_TABELA_SERVICOS_CONTRATO:
+        if c not in df.columns:
+            df[c] = None
+
+    return df[COL_TABELA_SERVICOS_CONTRATO]
 
 
-PASTA_DADOS_MEDICOES = Path("data/medicoes")
-PASTA_FOTOS_LANCAMENTOS = PASTA_DADOS_MEDICOES / "fotos_lancamentos"
-ARQUIVO_LANCAMENTOS_PRODUCAO = PASTA_DADOS_MEDICOES / "lancamentos_producao.csv"
+# ============================================================
+# LANÇAR TRABALHO EXECUTADO — LOCAIS
+# ============================================================
+
+def carregar_locais_trabalho():
+    return carregar_csv(
+        ARQ_LOCAIS_TRABALHO,
+        COL_LOCAIS_TRABALHO,
+    )
 
 
-COLUNAS_LANCAMENTOS_PRODUCAO = [
-    "id_lancamento",
-    "obra",
-    "local_trabalho",
-    "data_servico",
-    "atividade_executada",
-    "observacao",
-    "foto_arquivo",
-    "usuario",
-    "data_hora_lancamento",
-    "status",
-]
-
-def garantir_estrutura_lancamentos_producao():
-    PASTA_DADOS_MEDICOES.mkdir(parents=True, exist_ok=True)
-    PASTA_FOTOS_LANCAMENTOS.mkdir(parents=True, exist_ok=True)
-
-    if not ARQUIVO_LANCAMENTOS_PRODUCAO.exists():
-        df = pd.DataFrame(columns=COLUNAS_LANCAMENTOS_PRODUCAO)
-        df.to_csv(ARQUIVO_LANCAMENTOS_PRODUCAO, index=False, encoding="utf-8-sig")
+def salvar_locais_trabalho(df):
+    return salvar_csv(
+        ARQ_LOCAIS_TRABALHO,
+        df[COL_LOCAIS_TRABALHO],
+    )
 
 
-def salvar_foto_lancamento(id_lancamento, foto):
+# ============================================================
+# LANÇAR TRABALHO EXECUTADO — LANÇAMENTOS
+# ============================================================
+
+def carregar_lancamentos_producao():
+    return carregar_csv(
+        ARQ_LANCAMENTOS_PRODUCAO,
+        COL_LANCAMENTOS_PRODUCAO,
+    )
+
+
+def _salvar_foto_lancamento_github(id_lancamento, foto):
     if foto is None:
         return ""
 
     extensao = Path(foto.name).suffix.lower()
     nome_arquivo = f"{id_lancamento}{extensao}"
-    caminho_foto = PASTA_FOTOS_LANCAMENTOS / nome_arquivo
+    caminho = f"data/medicoes/fotos_lancamentos/{nome_arquivo}"
 
-    with open(caminho_foto, "wb") as f:
-        f.write(foto.getbuffer())
+    try:
+        from services.github import salvar_arquivo_binario_github
 
-    return str(caminho_foto)
+        salvar_arquivo_binario_github(
+            foto.getvalue(),
+            caminho,
+            st.secrets["GITHUB_TOKEN"],
+            st.secrets["REPO"],
+        )
+
+        return caminho
+
+    except ImportError:
+        st.warning(
+            "Foto não salva ainda: falta criar a função "
+            "`salvar_arquivo_binario_github` em services/github.py."
+        )
+        return ""
+
+    except Exception as e:
+        st.warning(f"Não foi possível salvar a foto no GitHub: {e}")
+        return ""
 
 
 def salvar_lancamento_producao(dados, foto=None):
-    garantir_estrutura_lancamentos_producao()
+    id_lancamento = (
+        f"LP-{datetime.now().strftime('%Y%m%d-%H%M%S')}-"
+        f"{uuid.uuid4().hex[:6]}"
+    )
 
-    id_lancamento = f"LP-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
-
-    foto_arquivo = salvar_foto_lancamento(id_lancamento, foto)
+    foto_arquivo = _salvar_foto_lancamento_github(
+        id_lancamento,
+        foto,
+    )
 
     novo_registro = {
         "id_lancamento": id_lancamento,
-        "obra": dados.get("obra", ""),
-        "local_trabalho": dados.get("local_trabalho", ""),
+        "obra_id": dados.get("obra_id", ""),
+        "nome_obra": dados.get("nome_obra", ""),
+        "local_id": dados.get("local_id", ""),
+        "nome_local": dados.get("nome_local", ""),
+        "codigo_item": dados.get("codigo_item", ""),
+        "descricao_item": dados.get("descricao_item", ""),
+        "unidade": dados.get("unidade", ""),
+        "quantidade": dados.get("quantidade", ""),
         "data_servico": dados.get("data_servico", ""),
-        "atividade_executada": dados.get("atividade_executada", ""),
         "observacao": dados.get("observacao", ""),
         "foto_arquivo": foto_arquivo,
         "usuario": dados.get("usuario", ""),
@@ -214,7 +227,13 @@ def salvar_lancamento_producao(dados, foto=None):
         "status": dados.get("status", "PENDENTE_ANALISE"),
     }
 
-    df = pd.read_csv(ARQUIVO_LANCAMENTOS_PRODUCAO, dtype=str, encoding="utf-8-sig")
-    df = pd.concat([df, pd.DataFrame([novo_registro])], ignore_index=True)
-    df.to_csv(ARQUIVO_LANCAMENTOS_PRODUCAO, index=False, encoding="utf-8-sig")
+    df = carregar_lancamentos_producao()
+    df = pd.concat(
+        [df, pd.DataFrame([novo_registro])],
+        ignore_index=True,
+    )
 
+    return salvar_csv(
+        ARQ_LANCAMENTOS_PRODUCAO,
+        df[COL_LANCAMENTOS_PRODUCAO],
+    )
