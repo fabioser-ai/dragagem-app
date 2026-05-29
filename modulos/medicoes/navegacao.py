@@ -3,6 +3,10 @@ import streamlit as st
 from modulos.medicoes.config import ETAPAS_MODELO
 from modulos.medicoes.utils import ir_para
 
+from modulos.medicoes.lancamentos.tela_lancar import (
+    tela_lancar_producao,
+)
+
 
 LABELS_ETAPAS = {
     "obra": "1. Obra",
@@ -36,9 +40,10 @@ def tela_inicial_medicoes():
 
     with col1:
         st.markdown("### 🧾 Criar / Gerenciar Medição")
+
         st.write(
-            "Criar nova medição, selecionar obra, BM, frentes, MC, itens "
-            "e revisar o resumo antes de enviar para lançamento."
+            "Criar nova medição, selecionar obra, BM, "
+            "frentes, MC, itens e revisar o resumo."
         )
 
         if st.button(
@@ -51,10 +56,11 @@ def tela_inicial_medicoes():
             st.rerun()
 
     with col2:
-        st.markdown("### 📝 Lançar Produção")
+        st.markdown("### 📝 Lançar Trabalho Executado")
+
         st.write(
-            "Informar quantidades executadas, datas, observações e dados "
-            "operacionais usados na medição."
+            "Registrar serviços executados em campo, "
+            "quantidades, fotos e observações."
         )
 
         if st.button(
@@ -66,10 +72,11 @@ def tela_inicial_medicoes():
             st.rerun()
 
     with col3:
-        st.markdown("### ✅ Aprovar Medição")
+        st.markdown("### ✅ Aprovar Lançamentos")
+
         st.write(
-            "Revisar lançamentos, validar informações, aprovar, reprovar "
-            "ou liberar a medição para faturamento."
+            "Revisar lançamentos realizados pelos "
+            "encarregados e equipes de campo."
         )
 
         if st.button(
@@ -103,7 +110,7 @@ def navegacao_gestao():
         etapa = ordem[0]
         st.session_state.etapa_medicoes = etapa
 
-    st.markdown("### Fluxo da medição")
+    st.markdown("### Fluxo da Medição")
 
     cols = st.columns(len(ordem))
 
@@ -154,22 +161,12 @@ def navegacao_gestao():
                 ir_para(ordem[idx + 1])
 
 
-def tela_lancamento_placeholder():
-    st.markdown("## 📝 Lançamento de Produção")
-    st.info("Esta será a tela para entrada dos dados usados na medição.")
-
-    if st.button(
-        "⬅ Voltar ao início das Medições",
-        use_container_width=True,
-        key="btn_voltar_inicio_lancamento",
-    ):
-        st.session_state["fluxo_medicoes"] = "inicio"
-        st.rerun()
-
-
 def tela_aprovacao_placeholder():
-    st.markdown("## ✅ Aprovação de Medição")
-    st.info("Esta será a tela para revisão, aprovação ou reprovação das medições.")
+    st.markdown("## ✅ Aprovação de Lançamentos")
+
+    st.info(
+        "Tela de aprovação ainda será implementada."
+    )
 
     if st.button(
         "⬅ Voltar ao início das Medições",
@@ -193,7 +190,7 @@ def navegacao():
         navegacao_gestao()
 
     elif fluxo == "lancamento":
-        tela_lancamento_placeholder()
+        tela_lancar_producao()
 
     elif fluxo == "aprovacao":
         tela_aprovacao_placeholder()
