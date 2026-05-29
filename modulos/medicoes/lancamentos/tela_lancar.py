@@ -277,8 +277,9 @@ def tela_lancar_producao():
 
         novo = criar_lancamento_trabalho(
             obra_id=obra_id,
+            nome_obra=nome_obra,
             local_id="",
-            local_nome=local_nome.strip(),
+            nome_local=local_nome.strip(),
             item_id=item_id,
             codigo_item=codigo_item,
             descricao_item=descricao_item,
