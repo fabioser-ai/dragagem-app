@@ -1,6 +1,9 @@
 import streamlit as st
 
-from modulos.medicoes.repositorio import carregar_bases
+from modulos.medicoes.repositorio import (
+    carregar_bases,
+    carregar_tabela_contrato,
+)
 from modulos.medicoes.lancamentos.repositorio import carregar_usuarios_obras
 from modulos.medicoes.lancamentos.servicos import criar_lancamento_trabalho
 
@@ -61,9 +64,7 @@ def _filtrar_obras_por_usuario(obras):
     ].copy()
 
     if vinculos.empty:
-        st.warning(
-            f"O usuário {email_usuario} não possui obra ativa vinculada."
-        )
+        st.warning(f"O usuário {email_usuario} não possui obra ativa vinculada.")
         return obras.iloc[0:0].copy(), email_usuario, ""
 
     perfil = vinculos["perfil_medicao"].iloc[0].strip().lower()
@@ -78,6 +79,27 @@ def _filtrar_obras_por_usuario(obras):
     ].copy()
 
     return obras_filtradas, email_usuario, perfil
+
+
+def _filtrar_servicos_ativos(servicos_obra):
+    if "ativo" not in servicos_obra.columns:
+        return servicos_obra
+
+    return servicos_obra[
+        servicos_obra["ativo"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .isin(["sim", "s", "true", "1", "ativo", ""])
+    ].copy()
+
+
+def _montar_label_servico(row):
+    codigo = row.get("codigo", "")
+    descricao = row.get("descricao", "")
+    unidade = row.get("unidade", "")
+
+    return f"{codigo} - {descricao} ({unidade})"
 
 
 def tela_lancar_producao():
@@ -103,7 +125,7 @@ def tela_lancar_producao():
         frentes,
         mc,
         itens,
-        servicos,
+        servicos_genericos,
     ) = carregar_bases()
 
     if obras.empty:
@@ -117,7 +139,9 @@ def tela_lancar_producao():
     if obras.empty:
         return
 
-    st.caption(f"Usuário: {email_usuario} | Perfil: {perfil_usuario or 'não identificado'}")
+    st.caption(
+        f"Usuário: {email_usuario} | Perfil: {perfil_usuario or 'não identificado'}"
+    )
 
     obras["label_obra"] = obras.apply(
         lambda row: f"{row.get('obra_id', '')} - {_obter_nome_obra(row)}",
@@ -156,32 +180,27 @@ def tela_lancar_producao():
 
     st.markdown("### Item contratual")
 
-    if servicos.empty:
-        st.warning("Nenhum item contratual encontrado.")
+    arquivo_tabela = obra_selecionada.get("arquivo_tabela_servicos", "")
+
+    if not arquivo_tabela:
+        st.warning("Esta obra não possui tabela contratual vinculada.")
         return
 
-    servicos = servicos.fillna("").copy()
-
-    if "obra_id" in servicos.columns:
-        servicos_obra = servicos[
-            servicos["obra_id"].astype(str) == str(obra_id)
-        ].copy()
-    else:
-        servicos_obra = servicos.copy()
+    servicos_obra = carregar_tabela_contrato(arquivo_tabela)
 
     if servicos_obra.empty:
-        st.warning("Nenhum serviço contratual encontrado para a obra selecionada.")
+        st.warning("A tabela contratual da obra está vazia ou não foi encontrada.")
         return
 
-    def montar_label_servico(row):
-        codigo = row.get("codigo", row.get("codigo_item", ""))
-        descricao = row.get("descricao", row.get("descricao_item", ""))
-        unidade = row.get("unidade", "")
+    servicos_obra = servicos_obra.fillna("").copy()
+    servicos_obra = _filtrar_servicos_ativos(servicos_obra)
 
-        return f"{codigo} - {descricao} ({unidade})"
+    if servicos_obra.empty:
+        st.warning("Nenhum item contratual ativo encontrado para esta obra.")
+        return
 
     servicos_obra["label_servico"] = servicos_obra.apply(
-        montar_label_servico,
+        _montar_label_servico,
         axis=1,
     )
 
@@ -195,22 +214,10 @@ def tela_lancar_producao():
         servicos_obra["label_servico"] == label_servico
     ].iloc[0]
 
-    codigo_item = servico_selecionado.get(
-        "codigo",
-        servico_selecionado.get("codigo_item", ""),
-    )
-
-    descricao_item = servico_selecionado.get(
-        "descricao",
-        servico_selecionado.get("descricao_item", ""),
-    )
-
+    codigo_item = servico_selecionado.get("codigo", "")
+    descricao_item = servico_selecionado.get("descricao", "")
     unidade = servico_selecionado.get("unidade", "")
-
-    item_id = servico_selecionado.get(
-        "item_id",
-        codigo_item,
-    )
+    item_id = codigo_item
 
     st.markdown("### Quantidade e data")
 
@@ -232,7 +239,10 @@ def tela_lancar_producao():
 
     observacao = st.text_area(
         "Observação opcional",
-        placeholder="Ex.: serviço executado parcialmente, aguardando conferência, condição do local, etc.",
+        placeholder=(
+            "Ex.: serviço executado parcialmente, aguardando conferência, "
+            "condição do local, etc."
+        ),
         key="lancamento_observacao",
     )
 
@@ -280,6 +290,4 @@ def tela_lancar_producao():
             criado_por=email_usuario,
         )
 
-        st.success(
-            f"Lançamento salvo com sucesso: {novo['lancamento_id']}"
-        )
+        st.success(f"Lançamento salvo com sucesso: {novo['lancamento_id']}")
