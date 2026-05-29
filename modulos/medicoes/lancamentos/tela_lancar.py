@@ -142,10 +142,10 @@ def _selecionar_local_trabalho(obra_id):
             key=f"novo_local_nome_{obra_id}",
         )
 
-        descricao_local = st.text_input(
-            "Descrição opcional",
+        observacoes_local = st.text_input(
+            "Observações opcionais",
             placeholder="Ex.: Estaca 0+200 a 0+500, margem direita, área de descarga...",
-            key=f"novo_local_descricao_{obra_id}",
+            key=f"novo_local_observacoes_{obra_id}",
         )
 
         if st.button(
@@ -156,7 +156,7 @@ def _selecionar_local_trabalho(obra_id):
             sucesso, retorno = criar_local_trabalho(
                 obra_id=obra_id,
                 nome_local=novo_local_nome,
-                descricao=descricao_local,
+                observacoes=observacoes_local,
             )
 
             if sucesso:
