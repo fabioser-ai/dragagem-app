@@ -1,7 +1,30 @@
 import streamlit as st
 
 from modulos.medicoes.repositorio import carregar_bases
+from modulos.medicoes.lancamentos.repositorio import carregar_usuarios_obras
 from modulos.medicoes.lancamentos.servicos import criar_lancamento_trabalho
+
+
+def _obter_usuario_logado():
+    for chave in [
+        "email",
+        "usuario_email",
+        "user_email",
+        "usuario_logado",
+        "usuario",
+        "login",
+    ]:
+        valor = st.session_state.get(chave)
+
+        if isinstance(valor, dict):
+            email = valor.get("email") or valor.get("usuario") or valor.get("login")
+            if email:
+                return str(email).strip().lower()
+
+        if isinstance(valor, str) and valor.strip():
+            return valor.strip().lower()
+
+    return ""
 
 
 def _obter_nome_obra(linha_obra):
@@ -10,6 +33,51 @@ def _obter_nome_obra(linha_obra):
             return linha_obra[coluna]
 
     return linha_obra.get("obra_id", "Obra sem nome")
+
+
+def _filtrar_obras_por_usuario(obras):
+    email_usuario = _obter_usuario_logado()
+
+    if not email_usuario:
+        st.warning(
+            "Não consegui identificar o usuário logado. "
+            "Por segurança, nenhuma obra foi liberada para lançamento."
+        )
+        return obras.iloc[0:0].copy(), email_usuario, ""
+
+    usuarios_obras = carregar_usuarios_obras()
+
+    if usuarios_obras.empty:
+        st.warning("Nenhum vínculo usuário/obra cadastrado.")
+        return obras.iloc[0:0].copy(), email_usuario, ""
+
+    usuarios_obras = usuarios_obras.fillna("").copy()
+    usuarios_obras["email"] = usuarios_obras["email"].str.strip().str.lower()
+    usuarios_obras["ativo"] = usuarios_obras["ativo"].str.strip().str.lower()
+
+    vinculos = usuarios_obras[
+        (usuarios_obras["email"] == email_usuario)
+        & (usuarios_obras["ativo"].isin(["sim", "s", "true", "1", "ativo"]))
+    ].copy()
+
+    if vinculos.empty:
+        st.warning(
+            f"O usuário {email_usuario} não possui obra ativa vinculada."
+        )
+        return obras.iloc[0:0].copy(), email_usuario, ""
+
+    perfil = vinculos["perfil_medicao"].iloc[0].strip().lower()
+
+    if perfil in ["admin", "aprovador"]:
+        return obras.copy(), email_usuario, perfil
+
+    obras_permitidas = vinculos["obra_id"].dropna().astype(str).tolist()
+
+    obras_filtradas = obras[
+        obras["obra_id"].astype(str).isin(obras_permitidas)
+    ].copy()
+
+    return obras_filtradas, email_usuario, perfil
 
 
 def tela_lancar_producao():
@@ -44,19 +112,32 @@ def tela_lancar_producao():
 
     obras = obras.fillna("").copy()
 
+    obras, email_usuario, perfil_usuario = _filtrar_obras_por_usuario(obras)
+
+    if obras.empty:
+        return
+
+    st.caption(f"Usuário: {email_usuario} | Perfil: {perfil_usuario or 'não identificado'}")
+
     obras["label_obra"] = obras.apply(
         lambda row: f"{row.get('obra_id', '')} - {_obter_nome_obra(row)}",
         axis=1,
     )
 
-    label_obra = st.selectbox(
-        "Obra",
-        options=obras["label_obra"].tolist(),
-        key="lancamento_obra_label",
-    )
+    if len(obras) == 1:
+        obra_selecionada = obras.iloc[0]
+        st.info(f"Obra vinculada: {obra_selecionada['label_obra']}")
+    else:
+        label_obra = st.selectbox(
+            "Obra",
+            options=obras["label_obra"].tolist(),
+            key="lancamento_obra_label",
+        )
 
-    obra_selecionada = obras[obras["label_obra"] == label_obra].iloc[0]
+        obra_selecionada = obras[obras["label_obra"] == label_obra].iloc[0]
+
     obra_id = obra_selecionada["obra_id"]
+    nome_obra = _obter_nome_obra(obra_selecionada)
 
     st.info(
         "O lançamento será salvo como evidência operacional. "
@@ -76,13 +157,15 @@ def tela_lancar_producao():
     st.markdown("### Item contratual")
 
     if servicos.empty:
-        st.warning("Nenhum item contratual encontrado para esta obra.")
+        st.warning("Nenhum item contratual encontrado.")
         return
 
     servicos = servicos.fillna("").copy()
 
     if "obra_id" in servicos.columns:
-        servicos_obra = servicos[servicos["obra_id"] == obra_id].copy()
+        servicos_obra = servicos[
+            servicos["obra_id"].astype(str) == str(obra_id)
+        ].copy()
     else:
         servicos_obra = servicos.copy()
 
@@ -163,7 +246,7 @@ def tela_lancar_producao():
 
     if foto:
         st.caption(
-            "Foto carregada na tela. Nesta primeira versão ainda não estamos salvando o arquivo da imagem."
+            "Foto carregada na tela. Próximo passo: salvar o arquivo no GitHub."
         )
         foto_url = foto.name
 
@@ -194,7 +277,7 @@ def tela_lancar_producao():
             data_servico=data_servico,
             observacao=observacao,
             foto_url=foto_url,
-            criado_por="",
+            criado_por=email_usuario,
         )
 
         st.success(
