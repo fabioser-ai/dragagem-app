@@ -13,8 +13,9 @@ from modulos.medicoes.utils import agora_iso, novo_id
 
 def criar_lancamento_trabalho(
     obra_id,
+    nome_obra,
     local_id,
-    local_nome,
+    nome_local,
     item_id,
     codigo_item,
     descricao_item,
@@ -30,8 +31,9 @@ def criar_lancamento_trabalho(
     novo = {
         "lancamento_id": novo_id("LAN"),
         "obra_id": obra_id,
-        "local_id": local_id,
-        "local_nome": local_nome,
+        "nome_obra": nome_obra,
+        "local_id": local_id or "",
+        "nome_local": nome_local or "",
         "item_id": item_id,
         "codigo_item": codigo_item,
         "descricao_item": descricao_item,
