@@ -1,1 +1,2 @@
-
+usuario_id,email,nome,obra_id,perfil_medicao,ativo
+USR001,fabio@fos.com.br,Fabio,OBRA001,admin,sim
