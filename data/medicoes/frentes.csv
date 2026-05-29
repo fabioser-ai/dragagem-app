@@ -1,1 +1,4 @@
-
+frente_id,medicao_id,nome_frente,dias_trabalhados,observacoes,criado_em,atualizado_em
+frente_7057e6a3c6,bm_a3c6be960b,PARQUE BARIGUI,19.0,,2026-05-11 18:03:45,2026-05-11 18:03:45
+frente_c02bd67f6c,bm_a3c6be960b,PARQUE BARIGUI,22.0,,2026-05-11 19:23:09,2026-05-11 19:23:09
+frente_14ecb2eece,bm_aeb5f7c270,MEDIÇÃO GERAL,0.0,Frente padrão criada automaticamente para modelo sem etapa de frentes.,2026-05-13 20:29:39,2026-05-13 20:29:39
