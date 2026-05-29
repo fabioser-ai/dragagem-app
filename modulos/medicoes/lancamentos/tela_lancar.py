@@ -4,7 +4,13 @@ from modulos.medicoes.repositorio import (
     carregar_bases,
     carregar_tabela_contrato,
 )
-from modulos.medicoes.lancamentos.repositorio import carregar_usuarios_obras
+
+from modulos.medicoes.lancamentos.repositorio import (
+    carregar_usuarios_obras,
+    listar_locais_por_obra,
+    criar_local_trabalho,
+)
+
 from modulos.medicoes.lancamentos.servicos import criar_lancamento_trabalho
 
 
@@ -102,6 +108,76 @@ def _montar_label_servico(row):
     return f"{codigo} - {descricao} ({unidade})"
 
 
+def _selecionar_local_trabalho(obra_id):
+    st.markdown("### Local de trabalho")
+
+    locais_df = listar_locais_por_obra(obra_id)
+
+    opcoes_locais = []
+
+    if not locais_df.empty:
+        locais_df = locais_df.fillna("").copy()
+        opcoes_locais.extend(locais_df["nome_local"].tolist())
+
+    opcoes_locais.append("➕ Novo Local")
+
+    local_escolhido = st.selectbox(
+        "Local",
+        options=opcoes_locais,
+        key=f"lancamento_local_{obra_id}",
+    )
+
+    local_id = ""
+    nome_local = ""
+
+    if local_escolhido == "➕ Novo Local":
+        st.info(
+            "Cadastre um novo local uma única vez. "
+            "Depois ele ficará disponível para toda a equipe."
+        )
+
+        novo_local_nome = st.text_input(
+            "Nome do novo local",
+            placeholder="Ex.: Frente Norte, Trecho 01, Canal principal",
+            key=f"novo_local_nome_{obra_id}",
+        )
+
+        descricao_local = st.text_input(
+            "Descrição opcional",
+            placeholder="Ex.: Estaca 0+200 a 0+500, margem direita, área de descarga...",
+            key=f"novo_local_descricao_{obra_id}",
+        )
+
+        if st.button(
+            "Salvar novo local",
+            use_container_width=True,
+            key=f"btn_salvar_local_{obra_id}",
+        ):
+            sucesso, retorno = criar_local_trabalho(
+                obra_id=obra_id,
+                nome_local=novo_local_nome,
+                descricao=descricao_local,
+            )
+
+            if sucesso:
+                st.success("Local cadastrado com sucesso.")
+                st.rerun()
+            else:
+                st.error(retorno)
+
+    else:
+        linha_local = locais_df[
+            locais_df["nome_local"] == local_escolhido
+        ].iloc[0]
+
+        local_id = linha_local["local_id"]
+        nome_local = linha_local["nome_local"]
+
+        st.success(f"Local selecionado: {nome_local}")
+
+    return local_id, nome_local
+
+
 def tela_lancar_producao():
     st.markdown("## 📝 Lançar Trabalho Executado")
     st.caption(
@@ -170,13 +246,9 @@ def tela_lancar_producao():
 
     st.divider()
 
-    st.markdown("### Local de trabalho")
+    local_id, nome_local = _selecionar_local_trabalho(obra_id)
 
-    local_nome = st.text_input(
-        "Local / frente / trecho",
-        placeholder="Ex.: Frente Norte, Trecho 01, Canal principal, Estaca 0+200 a 0+500",
-        key="lancamento_local_nome",
-    )
+    st.divider()
 
     st.markdown("### Item contratual")
 
@@ -267,8 +339,8 @@ def tela_lancar_producao():
         use_container_width=True,
         key="btn_salvar_lancamento_trabalho",
     ):
-        if not local_nome.strip():
-            st.error("Informe o local de trabalho.")
+        if not nome_local:
+            st.error("Selecione um local de trabalho.")
             return
 
         if quantidade_executada <= 0:
@@ -278,8 +350,8 @@ def tela_lancar_producao():
         novo = criar_lancamento_trabalho(
             obra_id=obra_id,
             nome_obra=nome_obra,
-            local_id="",
-            nome_local=local_nome.strip(),
+            local_id=local_id,
+            nome_local=nome_local,
             item_id=item_id,
             codigo_item=codigo_item,
             descricao_item=descricao_item,
