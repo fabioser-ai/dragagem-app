@@ -3,6 +3,7 @@ import pandas as pd
 import uuid
 from datetime import date
 from services.github import carregar_github, salvar_github
+from pages.dados.locais_trabalho import render_locais_trabalho
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
@@ -551,6 +552,7 @@ def render():
         "Horários": "hor",
         "Dias": "dias",
         "Salários": "sal",
+        "Locais de Trabalho": "locais",
         "Atestados": "atestados"
     }
 
@@ -584,6 +586,9 @@ def render():
 
     elif st.session_state.subdados == "sal":
         crud(ARQ_SAL, ["Posicao", "Valor_Hora"], "Salários", "sal")
+
+    elif st.session_state.subdados == "locais":
+        render_locais_trabalho()
 
     elif st.session_state.subdados == "atestados":
         render_atestados()
