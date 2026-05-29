@@ -8,7 +8,6 @@ from modulos.medicoes.repositorio import (
 from modulos.medicoes.lancamentos.repositorio import (
     carregar_usuarios_obras,
     listar_locais_por_obra,
-    criar_local_trabalho,
 )
 
 from modulos.medicoes.lancamentos.servicos import criar_lancamento_trabalho
@@ -113,67 +112,27 @@ def _selecionar_local_trabalho(obra_id):
 
     locais_df = listar_locais_por_obra(obra_id)
 
-    opcoes_locais = []
+    if locais_df.empty:
+        st.warning(
+            "Esta obra não possui locais cadastrados. "
+            "Solicite ao administrador o cadastro dos locais."
+        )
+        return "", ""
 
-    if not locais_df.empty:
-        locais_df = locais_df.fillna("").copy()
-        opcoes_locais.extend(locais_df["nome_local"].tolist())
-
-    opcoes_locais.append("➕ Novo Local")
+    locais_df = locais_df.fillna("").copy()
 
     local_escolhido = st.selectbox(
-        "Local",
-        options=opcoes_locais,
+        "Local de Trabalho",
+        options=locais_df["nome_local"].tolist(),
         key=f"lancamento_local_{obra_id}",
     )
 
-    local_id = ""
-    nome_local = ""
+    linha_local = locais_df[
+        locais_df["nome_local"] == local_escolhido
+    ].iloc[0]
 
-    if local_escolhido == "➕ Novo Local":
-        st.info(
-            "Cadastre um novo local uma única vez. "
-            "Depois ele ficará disponível para toda a equipe."
-        )
-
-        novo_local_nome = st.text_input(
-            "Nome do novo local",
-            placeholder="Ex.: Frente Norte, Trecho 01, Canal principal",
-            key=f"novo_local_nome_{obra_id}",
-        )
-
-        observacoes_local = st.text_input(
-            "Observações opcionais",
-            placeholder="Ex.: Estaca 0+200 a 0+500, margem direita, área de descarga...",
-            key=f"novo_local_observacoes_{obra_id}",
-        )
-
-        if st.button(
-            "Salvar novo local",
-            use_container_width=True,
-            key=f"btn_salvar_local_{obra_id}",
-        ):
-            sucesso, retorno = criar_local_trabalho(
-                obra_id=obra_id,
-                nome_local=novo_local_nome,
-                observacoes=observacoes_local,
-            )
-
-            if sucesso:
-                st.success("Local cadastrado com sucesso.")
-                st.rerun()
-            else:
-                st.error(retorno)
-
-    else:
-        linha_local = locais_df[
-            locais_df["nome_local"] == local_escolhido
-        ].iloc[0]
-
-        local_id = linha_local["local_id"]
-        nome_local = linha_local["nome_local"]
-
-        st.success(f"Local selecionado: {nome_local}")
+    local_id = linha_local["local_id"]
+    nome_local = linha_local["nome_local"]
 
     return local_id, nome_local
 
