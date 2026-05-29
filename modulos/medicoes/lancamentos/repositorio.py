@@ -5,6 +5,8 @@ from modulos.medicoes.lancamentos.config import (
     ARQUIVO_LOCAIS_TRABALHO,
     COLUNAS_LANCAMENTOS_TRABALHO,
     COLUNAS_LOCAIS_TRABALHO,
+    ARQ_USUARIOS_OBRAS,
+    COL_USUARIOS_OBRAS,
 )
 from modulos.medicoes.utils import dataframe_vazio
 
@@ -60,4 +62,16 @@ def salvar_locais_trabalho(df):
     salvar_csv(
         df,
         ARQUIVO_LOCAIS_TRABALHO,
+    )
+    
+def carregar_usuarios_obras():
+    return carregar_csv(
+        ARQ_USUARIOS_OBRAS,
+        COL_USUARIOS_OBRAS,
+    )
+
+def salvar_usuarios_obras(df):
+    salvar_csv(
+        df,
+        ARQ_USUARIOS_OBRAS,
     )
