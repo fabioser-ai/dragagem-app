@@ -1,13 +1,14 @@
 import pandas as pd
 
 from modulos.medicoes.lancamentos.config import (
-    ARQUIVO_LANCAMENTOS_TRABALHO,
-    ARQUIVO_LOCAIS_TRABALHO,
-    COLUNAS_LANCAMENTOS_TRABALHO,
-    COLUNAS_LOCAIS_TRABALHO,
+    ARQ_LANCAMENTOS_PRODUCAO,
+    ARQ_LOCAIS_TRABALHO,
     ARQ_USUARIOS_OBRAS,
+    COL_LANCAMENTOS_PRODUCAO,
+    COL_LOCAIS_TRABALHO,
     COL_USUARIOS_OBRAS,
 )
+
 from modulos.medicoes.utils import dataframe_vazio
 
 try:
@@ -39,36 +40,38 @@ def salvar_csv(df, caminho):
 
 def carregar_lancamentos_trabalho():
     return carregar_csv(
-        ARQUIVO_LANCAMENTOS_TRABALHO,
-        COLUNAS_LANCAMENTOS_TRABALHO,
+        ARQ_LANCAMENTOS_PRODUCAO,
+        COL_LANCAMENTOS_PRODUCAO,
     )
 
 
 def salvar_lancamentos_trabalho(df):
     salvar_csv(
         df,
-        ARQUIVO_LANCAMENTOS_TRABALHO,
+        ARQ_LANCAMENTOS_PRODUCAO,
     )
 
 
 def carregar_locais_trabalho():
     return carregar_csv(
-        ARQUIVO_LOCAIS_TRABALHO,
-        COLUNAS_LOCAIS_TRABALHO,
+        ARQ_LOCAIS_TRABALHO,
+        COL_LOCAIS_TRABALHO,
     )
 
 
 def salvar_locais_trabalho(df):
     salvar_csv(
         df,
-        ARQUIVO_LOCAIS_TRABALHO,
+        ARQ_LOCAIS_TRABALHO,
     )
-    
+
+
 def carregar_usuarios_obras():
     return carregar_csv(
         ARQ_USUARIOS_OBRAS,
         COL_USUARIOS_OBRAS,
     )
+
 
 def salvar_usuarios_obras(df):
     salvar_csv(
