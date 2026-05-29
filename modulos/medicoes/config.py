@@ -2,17 +2,25 @@
 # ARQUIVOS
 # ============================================================
 
+# Cadastros gerais
 ARQ_OBRAS = "data/obras.csv"
-ARQ_MEDICOES = "data/medicoes.csv"
-ARQ_FRENTES = "data/medicoes_frentes.csv"
-ARQ_MC = "data/medicoes_mc.csv"
-ARQ_ITENS = "data/medicoes_itens.csv"
-ARQ_SERVICOS = "data/medicoes_servicos.csv"
+
+# Medições — nova organização
+ARQ_MEDICOES = "data/medicoes/medicoes.csv"
+ARQ_MEDICAO = "data/medicoes/medicao.csv"
+ARQ_FRENTES = "data/medicoes/frentes.csv"
+ARQ_MC = "data/medicoes/mc.csv"
+ARQ_ITENS = "data/medicoes/itens.csv"
+ARQ_SERVICOS = "data/medicoes/servicos.csv"
+
+# Tabelas contratuais específicas por obra
 ARQ_TABELAS_SERVICOS_DIR = "data/medicoes_tabelas"
 
 # Lançar Trabalho Executado
-ARQ_LOCAIS_TRABALHO = "data/medicoes_locais_trabalho.csv"
-ARQ_LANCAMENTOS_PRODUCAO = "data/medicoes_lancamentos_producao.csv"
+ARQ_LOCAIS_TRABALHO = "data/medicoes/locais_trabalho.csv"
+ARQ_LANCAMENTOS_PRODUCAO = "data/medicoes/lancamentos_trabalho.csv"
+ARQ_USUARIOS_OBRAS = "data/medicoes/usuarios_obras.csv"
+
 
 # ============================================================
 # MODELOS DE MEDIÇÃO
@@ -24,6 +32,7 @@ MODELOS_MEDICAO = {
     "diario_equipamento": "Diária / Equipamento",
     "batimetria": "Batimetria",
 }
+
 
 # ============================================================
 # CONFIG MODELOS MEDIÇÃO
@@ -51,6 +60,7 @@ CONFIG_MODELOS_MEDICAO = {
         "usa_apostilamento": False,
     },
 }
+
 
 # ============================================================
 # ETAPAS MODELO
@@ -86,6 +96,7 @@ ETAPAS_MODELO = {
         "resumo",
     ],
 }
+
 
 # ============================================================
 # COLUNAS
@@ -176,6 +187,7 @@ COL_TABELA_SERVICOS_CONTRATO = [
     "ativo",
 ]
 
+
 # ============================================================
 # COLUNAS — LANÇAR TRABALHO EXECUTADO
 # ============================================================
@@ -191,19 +203,69 @@ COL_LOCAIS_TRABALHO = [
 ]
 
 COL_LANCAMENTOS_PRODUCAO = [
-    "id_lancamento",
+    "lancamento_id",
     "obra_id",
     "nome_obra",
     "local_id",
     "nome_local",
+    "item_id",
     "codigo_item",
     "descricao_item",
     "unidade",
-    "quantidade",
+    "quantidade_executada",
     "data_servico",
     "observacao",
-    "foto_arquivo",
-    "usuario",
-    "data_hora_lancamento",
-    "status",
+    "foto_url",
+    "status_aprovacao",
+    "aprovado_por",
+    "aprovado_em",
+    "status_medicao",
+    "medicao_id_vinculada",
+    "criado_por",
+    "criado_em",
+    "atualizado_em",
+]
+
+COL_USUARIOS_OBRAS = [
+    "usuario_id",
+    "email",
+    "nome",
+    "obra_id",
+    "perfil_medicao",
+    "ativo",
+]
+
+
+# ============================================================
+# STATUS — LANÇAMENTOS
+# ============================================================
+
+STATUS_APROVACAO = [
+    "pendente",
+    "aprovado",
+    "reprovado",
+    "corrigir",
+]
+
+STATUS_MEDICAO = [
+    "nao_medido",
+    "selecionado_para_medicao",
+    "medido",
+    "glosado",
+    "postergado",
+]
+
+STATUS_APROVACAO_PADRAO = "pendente"
+STATUS_MEDICAO_PADRAO = "nao_medido"
+
+
+# ============================================================
+# PERFIS — MEDIÇÕES
+# ============================================================
+
+PERFIS_MEDICAO = [
+    "funcionario",
+    "encarregado",
+    "aprovador",
+    "admin",
 ]
