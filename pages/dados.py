@@ -3,7 +3,7 @@ import pandas as pd
 import uuid
 from datetime import date
 from services.github import carregar_github, salvar_github
-from pages.dados.locais_trabalho import render_locais_trabalho
+from pages.dados_detalhados.locais_trabalho import render_locais_trabalho
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO = st.secrets["REPO"]
