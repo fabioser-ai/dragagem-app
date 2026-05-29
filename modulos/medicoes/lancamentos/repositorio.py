@@ -1,4 +1,9 @@
+from io import StringIO
+
 import pandas as pd
+import streamlit as st
+
+from services.github import carregar_github, salvar_github
 
 from modulos.medicoes.lancamentos.config import (
     ARQ_LANCAMENTOS_PRODUCAO,
@@ -9,33 +14,44 @@ from modulos.medicoes.lancamentos.config import (
     COL_USUARIOS_OBRAS,
 )
 
-from modulos.medicoes.utils import dataframe_vazio
-
-try:
-    from core.github_storage import carregar_csv_github, salvar_csv_github
-except ImportError:
-    carregar_csv_github = None
-    salvar_csv_github = None
-
 
 def carregar_csv(caminho, colunas):
-    if carregar_csv_github:
-        return carregar_csv_github(caminho, colunas)
-
     try:
-        return pd.read_csv(caminho, dtype=str, encoding="utf-8-sig")
-    except FileNotFoundError:
-        return dataframe_vazio(colunas)
-    except pd.errors.EmptyDataError:
-        return dataframe_vazio(colunas)
+        df = carregar_github(
+            caminho,
+            st.secrets["GITHUB_TOKEN"],
+            st.secrets["REPO"],
+        )
+
+        if isinstance(df, str):
+            df = pd.read_csv(StringIO(df))
+
+        if df is None:
+            df = pd.DataFrame(columns=colunas)
+
+    except Exception:
+        df = pd.DataFrame(columns=colunas)
+
+    for coluna in colunas:
+        if coluna not in df.columns:
+            df[coluna] = ""
+
+    return df[colunas]
 
 
-def salvar_csv(df, caminho):
-    if salvar_csv_github:
-        salvar_csv_github(df, caminho)
-        return
+def salvar_csv(caminho, df):
+    try:
+        salvar_github(
+            df,
+            caminho,
+            st.secrets["GITHUB_TOKEN"],
+            st.secrets["REPO"],
+        )
+        return True
 
-    df.to_csv(caminho, index=False, encoding="utf-8-sig")
+    except Exception as e:
+        st.error(f"Erro ao salvar {caminho}: {e}")
+        return False
 
 
 def carregar_lancamentos_trabalho():
@@ -46,9 +62,9 @@ def carregar_lancamentos_trabalho():
 
 
 def salvar_lancamentos_trabalho(df):
-    salvar_csv(
-        df,
+    return salvar_csv(
         ARQ_LANCAMENTOS_PRODUCAO,
+        df[COL_LANCAMENTOS_PRODUCAO],
     )
 
 
@@ -60,9 +76,9 @@ def carregar_locais_trabalho():
 
 
 def salvar_locais_trabalho(df):
-    salvar_csv(
-        df,
+    return salvar_csv(
         ARQ_LOCAIS_TRABALHO,
+        df[COL_LOCAIS_TRABALHO],
     )
 
 
@@ -74,7 +90,7 @@ def carregar_usuarios_obras():
 
 
 def salvar_usuarios_obras(df):
-    salvar_csv(
-        df,
+    return salvar_csv(
         ARQ_USUARIOS_OBRAS,
+        df[COL_USUARIOS_OBRAS],
     )
