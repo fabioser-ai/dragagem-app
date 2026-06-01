@@ -122,6 +122,17 @@ def carregar_bases():
         servicos,
     )
 
+# ============================================================
+# USUÁRIOS x OBRAS — PERMISSÕES MEDIÇÕES
+# ============================================================
+
+def carregar_usuarios_obras():
+
+    return carregar_csv(
+        ARQ_USUARIOS_OBRAS,
+        COL_USUARIOS_OBRAS,
+    )
+
 
 # ============================================================
 # TABELA CONTRATUAL DA OBRA
