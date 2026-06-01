@@ -104,7 +104,11 @@ def _filtrar_obras_por_usuario(obras):
     obras_permitidas = vinculos["obra_id"].dropna().astype(str).tolist()
 
     obras_filtradas = obras[
-        obras["obra_id"].astype(str).isin(obras_permitidas)
+        obras["obra_id"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .isin(obras_permitidas)
     ].copy()
 
     return obras_filtradas, email_usuario, perfil
