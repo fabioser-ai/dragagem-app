@@ -187,3 +187,4 @@ data_hora,usuario,perfil,acao
 2026-05-30 00:08:45,Ana,admin,login
 2026-06-01 15:47:20,Fabio,admin,login
 2026-06-01 15:49:10,Fabio,admin,logout
+2026-06-01 15:49:25,Gedeon,funcionario,login
