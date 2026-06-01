@@ -39,9 +39,6 @@ aplicar_estilo_global()
 # ESTADO INICIAL
 # =========================
 if "tela" not in st.session_state:
-    if st.session_state.get("perfil") == "funcionario":
-        st.session_state.tela = "prestacao_contas"
-    else:
         st.session_state.tela = "menu"
 
 
@@ -50,11 +47,14 @@ if "tela" not in st.session_state:
 # =========================
 if st.session_state.get("perfil") == "funcionario":
     telas_permitidas_funcionario = [
+        "menu",
         "prestacao_contas",
+        "carregando_medicoes",
+        "medicoes",
     ]
 
     if st.session_state.tela not in telas_permitidas_funcionario:
-        st.session_state.tela = "prestacao_contas"
+        st.session_state.tela = "menu"
         st.rerun()
 
 
@@ -180,9 +180,5 @@ elif st.session_state.tela == "orcamento3":
 # FALLBACK
 # =========================
 else:
-    if st.session_state.get("perfil") == "funcionario":
-        st.session_state.tela = "prestacao_contas"
-    else:
-        st.session_state.tela = "menu"
-
+    st.session_state.tela = "menu"
     st.rerun()
