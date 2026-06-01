@@ -3,6 +3,14 @@ import streamlit as st
 from modulos.medicoes.config import ETAPAS_MODELO
 from modulos.medicoes.utils import ir_para
 
+from modulos.medicoes.permissoes import (
+    obter_perfil_medicao,
+    pode_lancar_trabalho,
+    pode_visualizar_lancamentos,
+    pode_aprovar_lancamentos,
+    pode_criar_medicao,
+)
+
 from modulos.medicoes.lancamentos.tela_lancar import (
     tela_lancar_producao,
 )
@@ -31,61 +39,97 @@ def obter_etapas():
 
 
 def tela_inicial_medicoes():
+    perfil = obter_perfil_medicao()
+
     st.markdown("## 📏 Módulo de Medições")
-    st.caption("Escolha qual fluxo de trabalho deseja acessar.")
+
+    if perfil == "funcionario":
+        st.caption("Lançamento operacional de trabalho executado.")
+    else:
+        st.caption("Escolha qual fluxo de trabalho deseja acessar.")
 
     st.divider()
 
-    col1, col2, col3 = st.columns(3)
+    opcoes_disponiveis = []
 
-    with col1:
-        st.markdown("### 🧾 Criar / Gerenciar Medição")
+    if pode_criar_medicao():
+        opcoes_disponiveis.append("gestao")
 
-        st.write(
-            "Criar nova medição, selecionar obra, BM, "
-            "frentes, MC, itens e revisar o resumo."
-        )
+    if pode_lancar_trabalho():
+        opcoes_disponiveis.append("lancamento")
 
-        if st.button(
-            "Acessar Gestão da Medição",
-            use_container_width=True,
-            key="btn_acessar_gestao_medicao",
-        ):
-            st.session_state["fluxo_medicoes"] = "gestao"
-            st.session_state["etapa_medicoes"] = "obra"
-            st.rerun()
+    if pode_aprovar_lancamentos():
+        opcoes_disponiveis.append("aprovacao")
 
-    with col2:
-        st.markdown("### 📝 Lançar Trabalho Executado")
+    if not opcoes_disponiveis:
+        st.warning("Nenhuma função disponível para seu perfil.")
+        return
 
-        st.write(
-            "Registrar serviços executados em campo, "
-            "quantidades, fotos e observações."
-        )
+    # Funcionário não escolhe fluxo. Vai direto para lançamento.
+    if perfil == "funcionario":
+        st.session_state["fluxo_medicoes"] = "lancamento"
+        st.rerun()
 
-        if st.button(
-            "Acessar Lançamentos",
-            use_container_width=True,
-            key="btn_acessar_lancamentos_medicao",
-        ):
-            st.session_state["fluxo_medicoes"] = "lancamento"
-            st.rerun()
+    qtd_colunas = len(opcoes_disponiveis)
+    cols = st.columns(qtd_colunas)
 
-    with col3:
-        st.markdown("### ✅ Aprovar Lançamentos")
+    idx = 0
 
-        st.write(
-            "Revisar lançamentos realizados pelos "
-            "encarregados e equipes de campo."
-        )
+    if "gestao" in opcoes_disponiveis:
+        with cols[idx]:
+            st.markdown("### 🧾 Criar / Gerenciar Medição")
 
-        if st.button(
-            "Acessar Aprovação",
-            use_container_width=True,
-            key="btn_acessar_aprovacao_medicao",
-        ):
-            st.session_state["fluxo_medicoes"] = "aprovacao"
-            st.rerun()
+            st.write(
+                "Criar nova medição, selecionar obra, BM, "
+                "frentes, MC, itens e revisar o resumo."
+            )
+
+            if st.button(
+                "Acessar Gestão da Medição",
+                use_container_width=True,
+                key="btn_acessar_gestao_medicao",
+            ):
+                st.session_state["fluxo_medicoes"] = "gestao"
+                st.session_state["etapa_medicoes"] = "obra"
+                st.rerun()
+
+        idx += 1
+
+    if "lancamento" in opcoes_disponiveis:
+        with cols[idx]:
+            st.markdown("### 📝 Lançar Trabalho Executado")
+
+            st.write(
+                "Registrar serviços executados em campo, "
+                "quantidades, fotos e observações."
+            )
+
+            if st.button(
+                "Acessar Lançamentos",
+                use_container_width=True,
+                key="btn_acessar_lancamentos_medicao",
+            ):
+                st.session_state["fluxo_medicoes"] = "lancamento"
+                st.rerun()
+
+        idx += 1
+
+    if "aprovacao" in opcoes_disponiveis:
+        with cols[idx]:
+            st.markdown("### ✅ Aprovar Lançamentos")
+
+            st.write(
+                "Revisar lançamentos realizados pelos "
+                "encarregados e equipes de campo."
+            )
+
+            if st.button(
+                "Acessar Aprovação",
+                use_container_width=True,
+                key="btn_acessar_aprovacao_medicao",
+            ):
+                st.session_state["fluxo_medicoes"] = "aprovacao"
+                st.rerun()
 
     st.divider()
 
@@ -99,6 +143,11 @@ def tela_inicial_medicoes():
 
 
 def navegacao_gestao():
+    if not pode_criar_medicao():
+        st.warning("Seu perfil não possui acesso à gestão de medições.")
+        st.session_state["fluxo_medicoes"] = "inicio"
+        st.rerun()
+
     etapa = st.session_state.get(
         "etapa_medicoes",
         "obra",
@@ -162,6 +211,11 @@ def navegacao_gestao():
 
 
 def tela_aprovacao_placeholder():
+    if not pode_aprovar_lancamentos():
+        st.warning("Seu perfil não possui acesso à aprovação de lançamentos.")
+        st.session_state["fluxo_medicoes"] = "inicio"
+        st.rerun()
+
     st.markdown("## ✅ Aprovação de Lançamentos")
 
     st.info(
@@ -177,6 +231,15 @@ def tela_aprovacao_placeholder():
         st.rerun()
 
 
+def navegacao_lancamento():
+    if not pode_lancar_trabalho():
+        st.warning("Seu perfil não possui acesso ao lançamento de trabalho executado.")
+        st.session_state["fluxo_medicoes"] = "inicio"
+        st.rerun()
+
+    tela_lancar_producao()
+
+
 def navegacao():
     if "fluxo_medicoes" not in st.session_state:
         st.session_state["fluxo_medicoes"] = "inicio"
@@ -190,7 +253,7 @@ def navegacao():
         navegacao_gestao()
 
     elif fluxo == "lancamento":
-        tela_lancar_producao()
+        navegacao_lancamento()
 
     elif fluxo == "aprovacao":
         tela_aprovacao_placeholder()
