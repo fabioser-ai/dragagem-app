@@ -33,6 +33,7 @@ def obter_usuario_logado():
 def carregar_vinculos_usuario():
     """
     Carrega vínculos ativos do usuário logado em usuarios_obras.csv.
+    Aceita correspondência por usuario_id, email ou nome.
     """
     usuario = obter_usuario_logado()
 
@@ -46,16 +47,23 @@ def carregar_vinculos_usuario():
 
     df = df.copy()
 
-    for coluna in ["email", "perfil_medicao", "ativo", "obra_id"]:
+    for coluna in ["usuario_id", "email", "nome", "perfil_medicao", "ativo", "obra_id"]:
         if coluna not in df.columns:
             df[coluna] = ""
 
+    df["usuario_id"] = df["usuario_id"].apply(_normalizar_texto)
     df["email"] = df["email"].apply(_normalizar_texto)
+    df["nome"] = df["nome"].apply(_normalizar_texto)
     df["perfil_medicao"] = df["perfil_medicao"].apply(_normalizar_texto)
     df["ativo"] = df["ativo"].apply(_normalizar_texto)
+    df["obra_id"] = df["obra_id"].apply(_normalizar_texto)
 
     df_ativo = df[
-        (df["email"] == usuario)
+        (
+            (df["usuario_id"] == usuario)
+            | (df["email"] == usuario)
+            | (df["nome"] == usuario)
+        )
         & (df["ativo"].isin(["sim", "s", "true", "1", "ativo"]))
     ].copy()
 
