@@ -32,6 +32,8 @@ from modulos.medicoes.config import (
     COL_TABELA_SERVICOS_CONTRATO,
     COL_LOCAIS_TRABALHO,
     COL_LANCAMENTOS_PRODUCAO,
+    ARQ_USUARIOS_OBRAS,
+    COL_USUARIOS_OBRAS,
 )
 
 # ============================================================
