@@ -1,6 +1,41 @@
 import streamlit as st
+
 from services.auth import logout
 from services.permissoes import pode_acessar_modulo, eh_superadmin
+
+
+def render_card(titulo, descricao, botao, tela_destino):
+    st.markdown(
+        f"""
+        <div class="module-card">
+            <h3>{titulo}</h3>
+            <p>{descricao}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if st.button(botao, use_container_width=True, key=f"btn_{tela_destino}"):
+        st.session_state.tela = tela_destino
+        st.rerun()
+
+
+def render_card_medicoes():
+    st.markdown(
+        """
+        <div class="module-card">
+            <h3>Medições</h3>
+            <p>Controle de boletins de medição, lançamentos de campo, aprovações e totais por obra.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if st.button("ABRIR MEDIÇÕES", use_container_width=True, key="btn_medicoes"):
+        st.session_state.tela = "carregando_medicoes"
+        st.session_state.pop("medicoes_carregadas", None)
+        st.rerun()
+
 
 def render():
     st.markdown(
@@ -139,122 +174,89 @@ def render():
         )
 
     with col_logout:
-        if st.button("SAIR", use_container_width=True):
+        if st.button("SAIR", use_container_width=True, key="btn_sair"):
             logout()
 
     st.markdown(
-        '<div class="section-title">Módulos principais</div>',
+        '<div class="section-title">Módulos disponíveis</div>',
         unsafe_allow_html=True,
     )
+
+    modulos_renderizados = 0
 
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>Orçamento</h3>
-                <p>Elaboração, consolidação e análise de custos de obras de dragagem.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        if pode_acessar_modulo("orcamento"):
+            render_card(
+                "Orçamento",
+                "Elaboração, consolidação e análise de custos de obras de dragagem.",
+                "ABRIR ORÇAMENTO",
+                "orcamento",
+            )
+            modulos_renderizados += 1
 
-        if st.button("ABRIR ORÇAMENTO", use_container_width=True):
-            st.session_state.tela = "orcamento"
-            st.rerun()
+        if pode_acessar_modulo("ferias"):
+            render_card(
+                "Férias",
+                "Controle interno de períodos aquisitivos, vencimentos e programação.",
+                "ABRIR FÉRIAS",
+                "ferias",
+            )
+            modulos_renderizados += 1
 
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>Férias</h3>
-                <p>Controle interno de períodos aquisitivos, vencimentos e programação.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        if pode_acessar_modulo("prestacao_contas"):
+            render_card(
+                "Prestação de Contas",
+                "Gestão de despesas, comprovantes, reembolsos e acompanhamento financeiro.",
+                "ABRIR PRESTAÇÃO DE CONTAS",
+                "prestacao_contas",
+            )
+            modulos_renderizados += 1
 
-        if st.button("ABRIR FÉRIAS", use_container_width=True):
-            st.session_state.tela = "ferias"
-            st.rerun()
-
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>Prestação de Contas</h3>
-                <p>Gestão de despesas, comprovantes, reembolsos e acompanhamento financeiro.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        if st.button("ABRIR PRESTAÇÃO DE CONTAS", use_container_width=True):
-            st.session_state.tela = "prestacao_contas"
-            st.rerun()
-
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>CRM</h3>
-                <p>Cadastro de clientes, contatos, histórico comercial e prospecção de oportunidades.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        if st.button("ABRIR CRM", use_container_width=True):
-            st.session_state.tela = "crm"
-            st.rerun()
+        if pode_acessar_modulo("crm"):
+            render_card(
+                "CRM",
+                "Cadastro de clientes, contatos, histórico comercial e prospecção de oportunidades.",
+                "ABRIR CRM",
+                "crm",
+            )
+            modulos_renderizados += 1
 
     with col2:
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>Obras</h3>
-                <p>Acompanhamento operacional, histórico e gestão de obras cadastradas.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        if pode_acessar_modulo("obras"):
+            render_card(
+                "Obras",
+                "Acompanhamento operacional, histórico e gestão de obras cadastradas.",
+                "ABRIR OBRAS",
+                "obras",
+            )
+            modulos_renderizados += 1
 
-        if st.button("ABRIR OBRAS", use_container_width=True):
-            st.session_state.tela = "obras"
-            st.rerun()
+        if pode_acessar_modulo("dados"):
+            render_card(
+                "Dados",
+                "Base técnica de insumos, equipes, equipamentos e parâmetros do sistema.",
+                "ABRIR DADOS",
+                "dados",
+            )
+            modulos_renderizados += 1
 
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>Dados</h3>
-                <p>Base técnica de insumos, equipes, equipamentos e parâmetros do sistema.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        if pode_acessar_modulo("medicoes"):
+            render_card_medicoes()
+            modulos_renderizados += 1
 
-        if st.session_state.get("perfil") == "admin":
-            if st.button("ABRIR DADOS", use_container_width=True):
-                st.session_state.tela = "dados"
-                st.rerun()
-        else:
-            st.button("DADOS BLOQUEADO", use_container_width=True, disabled=True)
+        if eh_superadmin():
+            render_card(
+                "Administração",
+                "Gestão de permissões e acessos dos usuários.",
+                "ABRIR ADMINISTRAÇÃO",
+                "administracao",
+            )
+            modulos_renderizados += 1
 
-        st.markdown(
-            """
-            <div class="module-card">
-                <h3>Medições</h3>
-                <p>Controle de boletins de medição, memórias de cálculo, frentes de serviço e totais por obra.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        if st.button("ABRIR MEDIÇÕES", use_container_width=True):
-            st.session_state.tela = "carregando_medicoes"
-
-            # Limpeza leve de estados visuais antigos do módulo
-            st.session_state.pop("medicoes_carregadas", None)
-
-            st.rerun()
+    if modulos_renderizados == 0:
+        st.warning("Nenhum módulo disponível para seu usuário.")
 
     st.markdown(
         """
