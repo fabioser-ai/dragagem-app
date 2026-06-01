@@ -2,7 +2,9 @@ import streamlit as st
 
 from modulos.medicoes.repositorio import carregar_bases
 from modulos.medicoes.navegacao import navegacao
-
+from modulos.medicoes.fluxo_medicao.etapa5_lancamentos import (
+    tela_lancamentos,
+)
 from modulos.medicoes.permissoes import (
     tem_acesso_medicoes,
     obter_perfil_medicao,
@@ -80,7 +82,7 @@ def medicoes():
     elif etapa == "mc":
         tela_mc(frentes, mc)
 
-    elif etapa == "medicao":
+    elif etapa == "lancamentos":
         tela_medicao(frentes, mc, itens, servicos)
 
     elif etapa == "resumo":
