@@ -68,7 +68,6 @@ def tela_inicial_medicoes():
     # Funcionário não escolhe fluxo. Vai direto para lançamento.
     if perfil == "funcionario":
         st.session_state["fluxo_medicoes"] = "lancamento"
-        tela_lancar_producao()
         return
 
     qtd_colunas = len(opcoes_disponiveis)
@@ -147,7 +146,7 @@ def navegacao_gestao():
     if not pode_criar_medicao():
         st.warning("Seu perfil não possui acesso à gestão de medições.")
         st.session_state["fluxo_medicoes"] = "inicio"
-        st.rerun()
+        return
 
     etapa = st.session_state.get(
         "etapa_medicoes",
@@ -236,7 +235,7 @@ def navegacao_lancamento():
     if not pode_lancar_trabalho():
         st.warning("Seu perfil não possui acesso ao lançamento de trabalho executado.")
         st.session_state["fluxo_medicoes"] = "inicio"
-        st.rerun()
+        return
 
     tela_lancar_producao()
 
