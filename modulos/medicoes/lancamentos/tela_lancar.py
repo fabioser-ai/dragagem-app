@@ -60,12 +60,36 @@ def _filtrar_obras_por_usuario(obras):
         return obras.iloc[0:0].copy(), email_usuario, ""
 
     usuarios_obras = usuarios_obras.fillna("").copy()
-    usuarios_obras["email"] = usuarios_obras["email"].str.strip().str.lower()
-    usuarios_obras["ativo"] = usuarios_obras["ativo"].str.strip().str.lower()
+
+    for coluna in [
+        "usuario_id",
+        "email",
+        "nome",
+        "perfil_medicao",
+        "ativo",
+        "obra_id",
+    ]:
+        if coluna not in usuarios_obras.columns:
+            usuarios_obras[coluna] = ""
+
+        usuarios_obras[coluna] = (
+            usuarios_obras[coluna]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+        )
 
     vinculos = usuarios_obras[
-        (usuarios_obras["email"] == email_usuario)
-        & (usuarios_obras["ativo"].isin(["sim", "s", "true", "1", "ativo"]))
+        (
+            (usuarios_obras["usuario_id"] == email_usuario)
+            | (usuarios_obras["email"] == email_usuario)
+            | (usuarios_obras["nome"] == email_usuario)
+        )
+        & (
+            usuarios_obras["ativo"].isin(
+                ["sim", "s", "true", "1", "ativo"]
+            )
+        )
     ].copy()
 
     if vinculos.empty:
