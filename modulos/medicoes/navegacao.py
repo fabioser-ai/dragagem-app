@@ -2,6 +2,9 @@ import streamlit as st
 
 from modulos.medicoes.config import ETAPAS_MODELO
 from modulos.medicoes.utils import ir_para
+from modulos.medicoes.lancamentos.tela_aprovar import (
+    tela_aprovar_lancamentos,
+)
 
 from modulos.medicoes.permissoes import (
     obter_perfil_medicao,
@@ -216,19 +219,7 @@ def tela_aprovacao_placeholder():
         st.session_state["fluxo_medicoes"] = "inicio"
         return
 
-    st.markdown("## ✅ Aprovação de Lançamentos")
-
-    st.info(
-        "Tela de aprovação ainda será implementada."
-    )
-
-    if st.button(
-        "⬅ Voltar ao início das Medições",
-        use_container_width=True,
-        key="btn_voltar_inicio_aprovacao",
-    ):
-        st.session_state["fluxo_medicoes"] = "inicio"
-        st.rerun()
+    tela_aprovar_lancamentos()
 
 
 def navegacao_lancamento():
