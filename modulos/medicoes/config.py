@@ -79,14 +79,14 @@ ETAPAS_MODELO = {
         "bm",
         "frentes",
         "mc",
-        "medicao",
+        "lancamentos",
         "resumo",
     ],
     "diario_equipamento": [
         "obra",
         "bm",
         "frentes",
-        "medicao",
+        "lancamentos",
         "resumo",
     ],
     "batimetria": [
