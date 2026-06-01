@@ -1,0 +1,6 @@
+usuario,modulo,recurso,permissao,obra_id,ativo
+Fabio,todos,todos,todos,todas,sim
+Ana,todos,todos,todos,todas,sim
+Gedeon,medicoes,lancamentos,lancar,OBRA001,sim
+Karina,ferias,todos,todos,todas,sim
+Peba,prestacao_contas,todos,todos,todas,sim
