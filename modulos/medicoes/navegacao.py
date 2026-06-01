@@ -214,7 +214,7 @@ def tela_aprovacao_placeholder():
     if not pode_aprovar_lancamentos():
         st.warning("Seu perfil não possui acesso à aprovação de lançamentos.")
         st.session_state["fluxo_medicoes"] = "inicio"
-        st.rerun()
+        return
 
     st.markdown("## ✅ Aprovação de Lançamentos")
 
@@ -260,4 +260,4 @@ def navegacao():
 
     else:
         st.session_state["fluxo_medicoes"] = "inicio"
-        st.rerun()
+        return
