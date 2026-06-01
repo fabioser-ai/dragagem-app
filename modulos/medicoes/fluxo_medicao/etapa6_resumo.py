@@ -1,11 +1,37 @@
 import pandas as pd
 import streamlit as st
 
+from modulos.medicoes.lancamentos.repositorio import (
+    carregar_lancamentos_trabalho,
+)
 from modulos.medicoes.utils import moeda
 
 
+def _carregar_lancamentos_selecionados():
+    df_session = st.session_state.get("df_lancamentos_selecionados")
+
+    if df_session is not None and not df_session.empty:
+        return df_session.copy()
+
+    ids = st.session_state.get("lancamentos_selecionados", [])
+
+    if not ids:
+        return pd.DataFrame()
+
+    df = carregar_lancamentos_trabalho()
+
+    if df.empty:
+        return pd.DataFrame()
+
+    df = df.fillna("").copy()
+
+    return df[
+        df["lancamento_id"].astype(str).isin([str(x) for x in ids])
+    ].copy()
+
+
 def tela_resumo(frentes, itens, medicoes):
-    st.subheader("6. Conferência / Resumo Financeiro")
+    st.subheader("Resumo da Medição")
 
     medicao_id = st.session_state.get("medicao_id")
 
@@ -13,62 +39,65 @@ def tela_resumo(frentes, itens, medicoes):
         st.warning("Selecione um BM.")
         return
 
-    itens_bm = itens[
-        itens["medicao_id"].astype(str) == str(medicao_id)
-    ].copy()
+    lancamentos = _carregar_lancamentos_selecionados()
 
-    if itens_bm.empty:
-        st.info("Nenhum item medido.")
+    if lancamentos.empty:
+        st.info("Nenhum lançamento selecionado para esta medição.")
         return
 
-    itens_bm["total"] = pd.to_numeric(
-        itens_bm["total"],
+    lancamentos["quantidade_executada"] = pd.to_numeric(
+        lancamentos["quantidade_executada"],
         errors="coerce",
     ).fillna(0.0)
 
-    mapa_frentes = {
-        r["frente_id"]: r["nome_frente"]
-        for _, r in frentes.iterrows()
-    }
+    st.markdown("### Lançamentos selecionados")
 
-    itens_bm["frente"] = itens_bm["frente_id"].map(mapa_frentes)
-
-    resumo = (
-        itens_bm
-        .groupby("frente", dropna=False)["total"]
-        .sum()
-        .reset_index()
-    )
-
-    subtotal = resumo["total"].sum()
-
-    med_row = medicoes[
-        medicoes["medicao_id"].astype(str) == str(medicao_id)
+    colunas_visual = [
+        "data_servico",
+        "nome_local",
+        "codigo_item",
+        "descricao_item",
+        "unidade",
+        "quantidade_executada",
     ]
 
-    apost = 0.0
-
-    if not med_row.empty:
-        try:
-            apost = float(
-                med_row.iloc[0]["apostilamento_percentual"]
-            )
-        except Exception:
-            apost = 0.0
-
-    valor_apost = subtotal * (apost / 100)
-    total_final = subtotal + valor_apost
-
-    resumo["valor"] = resumo["total"].apply(moeda)
+    colunas_existentes = [
+        c for c in colunas_visual if c in lancamentos.columns
+    ]
 
     st.dataframe(
-        resumo[["frente", "valor"]],
+        lancamentos[colunas_existentes],
         use_container_width=True,
         hide_index=True,
     )
 
-    c1, c2, c3 = st.columns(3)
+    st.markdown("### Resumo por item")
 
-    c1.metric("Subtotal", moeda(subtotal))
-    c2.metric("Apostilamento", moeda(valor_apost))
-    c3.metric("Total Final", moeda(total_final))
+    resumo = (
+        lancamentos
+        .groupby(
+            ["codigo_item", "descricao_item", "unidade"],
+            dropna=False,
+        )["quantidade_executada"]
+        .sum()
+        .reset_index()
+    )
+
+    st.dataframe(
+        resumo,
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    total_lancamentos = len(lancamentos)
+    total_quantidade = resumo["quantidade_executada"].sum()
+
+    c1, c2 = st.columns(2)
+
+    c1.metric("Lançamentos selecionados", total_lancamentos)
+    c2.metric("Quantidade total", f"{total_quantidade:,.2f}")
+
+    st.info(
+        "Nesta versão, o resumo está consolidando quantidades dos lançamentos. "
+        "O cálculo financeiro por preço unitário será conectado depois à tabela contratual da obra."
+    )
