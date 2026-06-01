@@ -2,9 +2,7 @@ import streamlit as st
 
 from modulos.medicoes.repositorio import carregar_bases
 from modulos.medicoes.navegacao import navegacao
-from modulos.medicoes.fluxo_medicao.etapa5_lancamentos import (
-    tela_lancamentos,
-)
+
 from modulos.medicoes.permissoes import (
     tem_acesso_medicoes,
     obter_perfil_medicao,
@@ -15,7 +13,9 @@ from modulos.medicoes.fluxo_medicao.etapa1_obra import tela_obras
 from modulos.medicoes.fluxo_medicao.etapa2_bm import tela_bm
 from modulos.medicoes.fluxo_medicao.etapa3_frentes import tela_frentes
 from modulos.medicoes.fluxo_medicao.etapa4_mc import tela_mc
-from modulos.medicoes.fluxo_medicao.etapa5_itens import tela_medicao
+from modulos.medicoes.fluxo_medicao.etapa5_lancamentos import (
+    tela_lancamentos,
+)
 from modulos.medicoes.fluxo_medicao.etapa6_resumo import tela_resumo
 
 
@@ -83,7 +83,7 @@ def medicoes():
         tela_mc(frentes, mc)
 
     elif etapa == "lancamentos":
-        tela_medicao(frentes, mc, itens, servicos)
+        tela_lancamentos()
 
     elif etapa == "resumo":
         tela_resumo(frentes, itens, medicoes_df)
