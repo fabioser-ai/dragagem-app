@@ -71,6 +71,8 @@ elif st.session_state.tela == "dados":
     exigir_admin()
     dados.render()
 
+elif st.session_state.tela == "administracao":
+    administracao.render()
 
 elif st.session_state.tela == "ferias":
     ferias.render()
