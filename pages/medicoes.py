@@ -35,8 +35,8 @@ def medicoes():
 
     # Funcionário entra direto no fluxo operacional de lançamento
     if perfil_medicao == "funcionario":
-    if st.session_state.get("fluxo_medicoes") != "lancamento":
-        st.session_state["fluxo_medicoes"] = "lancamento"
+        if st.session_state.get("fluxo_medicoes") != "lancamento":
+            st.session_state["fluxo_medicoes"] = "lancamento"
 
     # Proteção contra acesso indevido ao fluxo de gestão
     if (
