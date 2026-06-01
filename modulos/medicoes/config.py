@@ -71,7 +71,7 @@ ETAPAS_MODELO = {
         "obra",
         "bm",
         "mc",
-        "medicao",
+        "lancamentos",
         "resumo",
     ],
     "ast_bags": [
