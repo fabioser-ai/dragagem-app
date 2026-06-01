@@ -1,2 +1,3 @@
 usuario_id,email,nome,obra_id,perfil_medicao,ativo
 USR001,fabio,Fabio,OBRA001,admin,sim
+USR002,Gedeon,Gedeon,OBRA001,funcionario,sim
