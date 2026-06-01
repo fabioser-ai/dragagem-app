@@ -67,9 +67,9 @@ def tela_inicial_medicoes():
 
     # Funcionário não escolhe fluxo. Vai direto para lançamento.
     if perfil == "funcionario":
-    st.session_state["fluxo_medicoes"] = "lancamento"
-    tela_lancar_producao()
-    return
+        st.session_state["fluxo_medicoes"] = "lancamento"
+        tela_lancar_producao()
+        return
 
     qtd_colunas = len(opcoes_disponiveis)
     cols = st.columns(qtd_colunas)
