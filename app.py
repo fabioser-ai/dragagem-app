@@ -66,9 +66,6 @@ if st.session_state.tela == "menu":
 
 
 elif st.session_state.tela == "dados":
-    from services.auth import exigir_admin
-
-    exigir_admin()
     dados.render()
 
 elif st.session_state.tela == "administracao":
