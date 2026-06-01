@@ -24,7 +24,7 @@ LABELS_ETAPAS = {
     "bm": "2. BM",
     "frentes": "3. Frentes",
     "mc": "4. MC",
-    "medicao": "5. Medição",
+    "medicao": "5. Lançamentos",
     "resumo": "6. Resumo",
 }
 
