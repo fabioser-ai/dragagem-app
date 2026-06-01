@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Módulos principais
-from pages import menu, dados, ferias, prestacao_contas, medicoes
+from pages import menu, dados, ferias, prestacao_contas, medicoes, administracao
 from pages.crm.crm import crm
 
 # Serviços
