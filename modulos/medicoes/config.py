@@ -70,7 +70,6 @@ ETAPAS_MODELO = {
     "padrao_fos": [
         "obra",
         "bm",
-        "mc",
         "lancamentos",
         "resumo",
     ],
