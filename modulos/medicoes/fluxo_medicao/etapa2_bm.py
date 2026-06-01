@@ -54,7 +54,7 @@ def tela_bm(obras, medicoes):
 
     if not df_obra.empty:
         mapa = {
-            f"BM {r['numero_bm']} | {r['periodo_inicio']}": r["medicao_id"]
+            f"BM {r['numero_bm']} | {r['periodo_inicio']} a {r.get('periodo_fim', '')}": r["medicao_id"]
             for _, r in df_obra.iterrows()
         }
 
@@ -83,13 +83,13 @@ def tela_bm(obras, medicoes):
 
             with c2:
                 periodo_inicio = st.date_input(
-                    "Período de medição",
+                    "Data Inicial do Período",
                     value=date.today(),
                 )
 
                 if config_modelo["usa_periodo_fim"]:
                     periodo_fim = st.date_input(
-                        "Período fim",
+                        "Data Final do Período",
                         value=date.today(),
                     )
                 else:
@@ -116,17 +116,6 @@ def tela_bm(obras, medicoes):
             else:
                 apost = 0.0
 
-            status = st.selectbox(
-                "Status",
-                [
-                    "Rascunho",
-                    "Fechado",
-                    "Enviado",
-                    "Aprovado",
-                    "Pago",
-                ],
-            )
-
             observacoes = st.text_area("Observações")
 
             ok = st.form_submit_button("Salvar BM")
@@ -146,7 +135,7 @@ def tela_bm(obras, medicoes):
                 "data_bm": str(data_bm),
                 "dias_uteis_mes": dias_uteis,
                 "apostilamento_percentual": apost,
-                "status": status,
+                "status": "rascunho",
                 "observacoes": observacoes,
                 "criado_em": agora(),
                 "atualizado_em": agora(),
@@ -166,6 +155,7 @@ def tela_bm(obras, medicoes):
         colunas_visual = [
             "numero_bm",
             "periodo_inicio",
+            "periodo_fim",
             "data_bm",
             "dias_uteis_mes",
             "status",
@@ -174,11 +164,12 @@ def tela_bm(obras, medicoes):
         if config_modelo["usa_aditivo"]:
             colunas_visual.insert(1, "aditivo")
 
-        if config_modelo["usa_periodo_fim"]:
-            colunas_visual.insert(3, "periodo_fim")
+        colunas_existentes = [
+            c for c in colunas_visual if c in df_obra.columns
+        ]
 
         st.dataframe(
-            df_obra[colunas_visual],
+            df_obra[colunas_existentes],
             use_container_width=True,
             hide_index=True,
         )
