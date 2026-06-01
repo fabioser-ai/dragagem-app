@@ -1,6 +1,6 @@
 import streamlit as st
 from services.auth import logout
-
+from services.permissoes import pode_acessar_modulo, eh_superadmin
 
 def render():
     st.markdown(
