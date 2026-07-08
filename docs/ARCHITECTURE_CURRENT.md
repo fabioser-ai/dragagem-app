@@ -158,9 +158,9 @@ Arquivo:
 
 services/github.py
 
-Este serviço centraliza toda comunicação entre o aplicativo e o GitHub.
+Este serviço centraliza a comunicação direta com a GitHub Contents API.
 
-Toda leitura e gravação de dados deve passar por esse serviço.
+Toda leitura e gravação de dados deve passar por esse serviço ou por wrappers internos de módulos que chamam esse serviço.
 
 ---
 
@@ -173,7 +173,79 @@ Foram identificadas as seguintes responsabilidades:
 - carregar arquivos binários
 - salvar arquivos binários
 
-O restante do sistema normalmente não acessa a API do GitHub diretamente.
+Funções observadas:
+
+- salvar_github(df, arquivo, token, repo)
+- carregar_github(arquivo, token, repo)
+- salvar_arquivo_github(conteudo_bytes, arquivo, token, repo, mensagem=None)
+- carregar_arquivo_github(arquivo, token, repo)
+
+---
+
+## Funcionamento de CSV
+
+### Leitura
+
+Fluxo observado em `carregar_github()`:
+
+1. Monta URL da GitHub Contents API usando repo e caminho do arquivo.
+2. Faz GET autenticado com token.
+3. Se a resposta não for 200, retorna DataFrame vazio.
+4. Obtém o campo `content` retornado pela API.
+5. Decodifica o conteúdo base64.
+6. Lê o CSV com pandas.
+7. Retorna um DataFrame.
+
+Observação:
+
+A função não diferencia, no retorno, arquivo inexistente, erro de autenticação, erro de rede ou CSV vazio. Nesses casos, o comportamento observado é retornar DataFrame vazio quando o status não é 200.
+
+### Gravação
+
+Fluxo observado em `salvar_github()`:
+
+1. Monta URL da GitHub Contents API usando repo e caminho do arquivo.
+2. Faz GET para descobrir o SHA atual do arquivo.
+3. Converte o DataFrame para CSV sem índice.
+4. Codifica o CSV em base64.
+5. Faz PUT na GitHub Contents API.
+6. Se o arquivo já existir, envia o SHA obtido.
+7. Se a resposta não for 200 ou 201, lança exceção.
+
+Observação:
+
+A gravação substitui o arquivo inteiro.
+
+---
+
+## Funcionamento de arquivos binários
+
+### Gravação
+
+Fluxo observado em `salvar_arquivo_github()`:
+
+1. Monta URL da GitHub Contents API usando repo e caminho do arquivo.
+2. Faz GET para descobrir o SHA atual do arquivo, se existir.
+3. Codifica os bytes em base64.
+4. Faz PUT na GitHub Contents API.
+5. Se a resposta não for 200 ou 201, lança exceção.
+6. Retorna o caminho do arquivo.
+
+Uso observado:
+
+- Prestação de Contas salva comprovantes em `data/comprovantes`.
+- Medições salva fotos de lançamentos em `data/medicoes/fotos_lancamentos`.
+
+### Leitura
+
+Fluxo observado em `carregar_arquivo_github()`:
+
+1. Monta URL da GitHub Contents API usando repo e caminho do arquivo.
+2. Faz GET autenticado.
+3. Se a resposta não for 200, retorna None.
+4. Se houver `download_url`, baixa o conteúdo bruto.
+5. Se não houver `download_url`, usa fallback para decodificar o campo `content` em base64.
+6. Retorna bytes ou None.
 
 ---
 
@@ -197,6 +269,24 @@ Cada módulo é responsável apenas pelo conteúdo de seus próprios arquivos.
 
 ---
 
+## Wrappers por módulo
+
+Além do serviço central, alguns módulos possuem wrappers próprios para padronizar colunas e tratamento de erro.
+
+Exemplos observados:
+
+- `services/permissoes.py` usa `carregar_github()` e `salvar_github()` para `data/permissoes_usuarios.csv`.
+- `services/log.py` usa `carregar_github()` e `salvar_github()` para `data/log_acessos.csv`.
+- `modulos/medicoes/repositorio.py` define `carregar_csv()` e `salvar_csv()` sobre o serviço central.
+- `modulos/medicoes/lancamentos/repositorio.py` também define wrappers próprios de CSV sobre o serviço central.
+- `pages/prestacao_contas.py` chama diretamente as funções do serviço central para CSV e arquivos binários.
+
+Observação:
+
+Existe mais de um wrapper de CSV no sistema. Eles têm a mesma intenção geral, mas não são uma única abstração compartilhada.
+
+---
+
 ## Funcionamento
 
 Fluxo simplificado:
@@ -209,15 +299,19 @@ DataFrame (pandas)
 
 ↓
 
+Wrapper do módulo, quando existe
+
+↓
+
 services/github.py
 
 ↓
 
-GitHub
+GitHub Contents API
 
 ↓
 
-Arquivo CSV
+Arquivo CSV ou arquivo binário no repositório
 
 ---
 
@@ -246,6 +340,14 @@ Gravações simultâneas podem gerar conflitos.
 Arquivos CSV tendem a crescer continuamente.
 
 Não existe mecanismo de locking.
+
+A gravação de CSV substitui o arquivo inteiro.
+
+A leitura de CSV retorna DataFrame vazio quando a resposta HTTP não é 200, sem expor a causa para o chamador.
+
+Não foi observado mecanismo central de retry para falhas temporárias de rede ou API.
+
+Existem wrappers de CSV duplicados em módulos diferentes.
 
 ---
 
@@ -457,6 +559,25 @@ Nesta auditoria, não foi confirmado uso efetivo dessa função nos arquivos cen
 
 A autorização observada no fluxo principal depende de `pode_acessar_modulo()` para exibição de módulos e de permissões internas específicas no módulo Medições.
 
+## OT-004 — Persistência por substituição integral de arquivo
+
+As gravações CSV realizadas pelo serviço central convertem o DataFrame inteiro para CSV e substituem o conteúdo completo do arquivo no GitHub.
+
+Esse funcionamento é simples e coerente com a arquitetura atual, mas deve ser considerado em qualquer evolução futura que envolva muitos usuários, arquivos grandes ou edições simultâneas.
+
+## OT-005 — Wrappers duplicados de CSV
+
+Foram observados wrappers de CSV em mais de um módulo.
+
+Exemplos:
+
+- modulos/medicoes/repositorio.py
+- modulos/medicoes/lancamentos/repositorio.py
+
+Eles centralizam colunas e tratamento de erro dentro de seus respectivos contextos, mas ainda não existe uma única camada compartilhada de repositório CSV para todo o app.
+
+Não refatorar sem necessidade comprovada.
+
 # 10. Perguntas em Aberto
 
 ## PA-001 — Uso real de `pode_executar()`
@@ -468,3 +589,11 @@ Confirmar por busca ampla no repositório se `pode_executar()` é chamada em alg
 Confirmar se um `superadmin` global deve ou não possuir automaticamente perfil `admin` dentro do módulo Medições.
 
 Hoje, pela lógica observada, essas permissões pertencem a camadas diferentes.
+
+## PA-003 — Tratamento desejado para falhas de leitura no GitHub
+
+Definir se `carregar_github()` deve continuar retornando DataFrame vazio para qualquer status HTTP diferente de 200 ou se, futuramente, deve diferenciar arquivo inexistente, erro de autenticação, erro de rede e CSV realmente vazio.
+
+## PA-004 — Estratégia futura para concorrência
+
+Definir se o app continuará aceitando o risco de conflito em gravações simultâneas ou se, em etapa futura, precisará de controle de concorrência, fila, locking, banco de dados ou outro mecanismo.
