@@ -527,6 +527,188 @@ Da mesma forma, o funcionamento interno de Medições depende dos vínculos defi
 
 ---
 
+# 7. Módulos
+
+## 7.1 Módulo Medições — Repositórios
+
+### Visão geral
+
+O módulo Medições possui repositórios próprios acima de `services/github.py`.
+
+Esses repositórios não substituem o serviço central de GitHub. Eles funcionam como camadas intermediárias para:
+
+- definir quais arquivos CSV pertencem ao módulo;
+- aplicar schemas de colunas esperadas;
+- retornar DataFrames com colunas normalizadas;
+- encapsular operações específicas do domínio de Medições.
+
+Arquivos principais observados:
+
+- `modulos/medicoes/repositorio.py`
+- `modulos/medicoes/lancamentos/repositorio.py`
+- `modulos/medicoes/config.py`
+- `modulos/medicoes/lancamentos/config.py`
+
+---
+
+### 7.1.1 Configuração central de Medições
+
+Arquivo:
+
+`modulos/medicoes/config.py`
+
+Responsabilidades observadas:
+
+- Declarar caminhos dos arquivos usados pelo módulo Medições.
+- Declarar modelos de medição.
+- Declarar etapas por modelo.
+- Declarar colunas esperadas dos CSVs.
+- Declarar status usados em lançamentos.
+- Declarar perfis de Medições.
+
+Arquivos de dados observados:
+
+- `data/obras.csv`
+- `data/medicoes/medicoes.csv`
+- `data/medicoes/medicao.csv`
+- `data/medicoes/frentes.csv`
+- `data/medicoes/mc.csv`
+- `data/medicoes/itens.csv`
+- `data/medicoes/servicos.csv`
+- `data/medicoes_tabelas/`
+- `data/medicoes/locais_trabalho.csv`
+- `data/medicoes/lancamentos_trabalho.csv`
+- `data/medicoes/usuarios_obras.csv`
+
+Observação:
+
+`data/obras.csv` é tratado como cadastro geral de obras, mas é consumido diretamente pelo módulo Medições.
+
+---
+
+### 7.1.2 Repositório geral de Medições
+
+Arquivo:
+
+`modulos/medicoes/repositorio.py`
+
+Responsabilidades observadas:
+
+- Definir wrappers genéricos `carregar_csv()` e `salvar_csv()` sobre `services/github.py`.
+- Carregar bases principais do fluxo de gestão de Medições.
+- Carregar vínculos de usuários com obras.
+- Carregar tabela contratual por obra.
+- Carregar e salvar locais de trabalho.
+- Carregar lançamentos de produção.
+- Salvar fotos de lançamentos.
+- Manter temporariamente função legada de salvamento de lançamento de produção.
+
+Funções observadas:
+
+- `carregar_csv(caminho, colunas)`
+- `salvar_csv(caminho, df)`
+- `carregar_bases()`
+- `carregar_usuarios_obras()`
+- `carregar_tabela_contrato(nome_arquivo)`
+- `carregar_locais_trabalho()`
+- `salvar_locais_trabalho(df)`
+- `carregar_lancamentos_producao()`
+- `salvar_foto_lancamento(id_lancamento, foto)`
+- `salvar_lancamento_producao(dados, foto=None)`
+
+Uso observado:
+
+- `pages/medicoes.py` importa `carregar_bases()` para carregar obras, medições, frentes, MC, itens e serviços antes de renderizar o fluxo de gestão.
+- `modulos/medicoes/permissoes.py` usa `carregar_usuarios_obras()` para validar acesso interno ao módulo Medições.
+
+Observação importante:
+
+O próprio arquivo marca `salvar_lancamento_producao()` como legado e orienta que o fluxo oficial atual deve usar `modulos.medicoes.lancamentos.servicos.criar_lancamento_trabalho`.
+
+---
+
+### 7.1.3 Repositório de lançamentos de Medições
+
+Arquivo:
+
+`modulos/medicoes/lancamentos/repositorio.py`
+
+Responsabilidades observadas:
+
+- Definir wrappers próprios `carregar_csv()` e `salvar_csv()` sobre `services/github.py`.
+- Carregar e salvar lançamentos de trabalho.
+- Carregar e salvar locais de trabalho.
+- Listar locais ativos por obra.
+- Buscar local por ID.
+- Criar local de trabalho.
+- Carregar e salvar vínculos de usuários com obras.
+
+Funções observadas:
+
+- `carregar_csv(caminho, colunas)`
+- `salvar_csv(caminho, df)`
+- `carregar_lancamentos_trabalho()`
+- `salvar_lancamentos_trabalho(df)`
+- `carregar_locais_trabalho()`
+- `salvar_locais_trabalho(df)`
+- `listar_locais_por_obra(obra_id)`
+- `buscar_local_por_id(local_id)`
+- `criar_local_trabalho(obra_id, nome_local, observacoes='')`
+- `carregar_usuarios_obras()`
+- `salvar_usuarios_obras(df)`
+
+Uso observado:
+
+- `modulos/medicoes/lancamentos/servicos.py` usa `carregar_lancamentos_trabalho()` e `salvar_lancamentos_trabalho()` para criar, listar, aprovar e vincular lançamentos.
+
+Observação:
+
+Este repositório pertence ao subdomínio de lançamentos de trabalho executado, mas também acessa `locais_trabalho.csv` e `usuarios_obras.csv`.
+
+---
+
+### 7.1.4 Configuração de lançamentos
+
+Arquivo:
+
+`modulos/medicoes/lancamentos/config.py`
+
+Funcionamento observado:
+
+Este arquivo reexporta constantes definidas em `modulos/medicoes/config.py` para o subpacote de lançamentos.
+
+Não foi observada configuração independente neste arquivo.
+
+---
+
+### 7.1.5 Sobreposição observada
+
+Foi observada sobreposição entre o repositório geral de Medições e o repositório específico de lançamentos.
+
+Arquivos acessados por ambos:
+
+- `data/medicoes/locais_trabalho.csv`
+- `data/medicoes/usuarios_obras.csv`
+- `data/medicoes/lancamentos_trabalho.csv`
+
+Interpretação operacional:
+
+- O repositório geral atende o fluxo de gestão e mantém compatibilidade com partes legadas.
+- O repositório de lançamentos atende o fluxo operacional atual de lançamento de trabalho executado.
+
+Status:
+
+A sobreposição está documentada.
+Não refatorar sem necessidade comprovada.
+
+---
+
+# 8. Fluxos
+
+A documentar conforme próximas auditorias.
+
+---
+
 # 9. Observações Técnicas
 
 ## OT-001 — Fluxo legado de lançamentos
@@ -578,6 +760,16 @@ Eles centralizam colunas e tratamento de erro dentro de seus respectivos context
 
 Não refatorar sem necessidade comprovada.
 
+## OT-006 — Sobreposição entre repositórios de Medições
+
+O módulo Medições possui um repositório geral e um repositório específico de lançamentos.
+
+Ambos acessam parte dos mesmos arquivos de dados, especialmente locais de trabalho, vínculos de usuários com obras e lançamentos de trabalho.
+
+Essa sobreposição parece refletir a coexistência entre fluxo de gestão, fluxo operacional atual e compatibilidade temporária com código legado.
+
+Não consolidar esses repositórios sem auditoria completa dos fluxos que ainda dependem de cada um.
+
 # 10. Perguntas em Aberto
 
 ## PA-001 — Uso real de `pode_executar()`
@@ -597,3 +789,9 @@ Definir se `carregar_github()` deve continuar retornando DataFrame vazio para qu
 ## PA-004 — Estratégia futura para concorrência
 
 Definir se o app continuará aceitando o risco de conflito em gravações simultâneas ou se, em etapa futura, precisará de controle de concorrência, fila, locking, banco de dados ou outro mecanismo.
+
+## PA-005 — Fronteira futura entre repositório geral e repositório de lançamentos
+
+Confirmar se a sobreposição entre `modulos/medicoes/repositorio.py` e `modulos/medicoes/lancamentos/repositorio.py` deve permanecer como separação de contexto ou se, futuramente, deverá ser consolidada.
+
+Nenhuma consolidação deve ser feita antes da auditoria completa dos fluxos de Medições.
