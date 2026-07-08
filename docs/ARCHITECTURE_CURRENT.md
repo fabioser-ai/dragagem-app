@@ -137,3 +137,129 @@ Melhorar a experiência de uso em dispositivos móveis.
 Status:
 
 A confirmar.
+
+
+
+# 5. Persistência
+
+## Visão Geral
+
+O APP FOS utiliza arquivos CSV armazenados diretamente no repositório GitHub como mecanismo principal de persistência.
+
+O GitHub atua como repositório de dados da aplicação.
+
+Não existe atualmente um banco de dados relacional.
+
+---
+
+## Serviço responsável
+
+Arquivo:
+
+services/github.py
+
+Este serviço centraliza toda comunicação entre o aplicativo e o GitHub.
+
+Toda leitura e gravação de dados deve passar por esse serviço.
+
+---
+
+## Operações principais
+
+Foram identificadas as seguintes responsabilidades:
+
+- carregar arquivos CSV
+- salvar arquivos CSV
+- carregar arquivos binários
+- salvar arquivos binários
+
+O restante do sistema normalmente não acessa a API do GitHub diretamente.
+
+---
+
+## Estrutura dos dados
+
+Os módulos armazenam seus dados em arquivos CSV.
+
+Exemplos:
+
+data/orcamentos.csv
+
+data/permissoes_usuarios.csv
+
+data/log_acessos.csv
+
+data/crm/
+
+data/medicoes/
+
+Cada módulo é responsável apenas pelo conteúdo de seus próprios arquivos.
+
+---
+
+## Funcionamento
+
+Fluxo simplificado:
+
+Tela
+
+↓
+
+DataFrame (pandas)
+
+↓
+
+services/github.py
+
+↓
+
+GitHub
+
+↓
+
+Arquivo CSV
+
+---
+
+## Vantagens observadas
+
+Arquitetura simples.
+
+Baixo custo operacional.
+
+Deploy simples utilizando Streamlit Cloud.
+
+Versionamento automático através do GitHub.
+
+Facilidade para backup.
+
+Estrutura facilmente compreendida.
+
+---
+
+## Limitações observadas
+
+Não existe controle transacional.
+
+Gravações simultâneas podem gerar conflitos.
+
+Arquivos CSV tendem a crescer continuamente.
+
+Não existe mecanismo de locking.
+
+---
+
+## Motivo histórico
+
+DESCONHECIDO.
+
+Hipótese:
+
+A arquitetura foi escolhida para manter simplicidade operacional durante o desenvolvimento inicial.
+
+Status:
+
+A confirmar.
+
+
+# 9. Observações Técnicas
