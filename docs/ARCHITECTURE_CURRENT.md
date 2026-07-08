@@ -262,4 +262,209 @@ Status:
 A confirmar.
 
 
+# 6. Permissões
+
+## Visão geral
+
+O APP FOS possui mais de uma camada de autorização observada no código.
+
+Até esta auditoria, foram identificadas duas camadas principais:
+
+1. Permissão geral do aplicativo.
+2. Permissão específica do módulo Medições.
+
+Essas camadas não são equivalentes.
+
+---
+
+## 6.1 Permissão geral do aplicativo
+
+Arquivo principal:
+
+services/permissoes.py
+
+Arquivo de dados:
+
+data/permissoes_usuarios.csv
+
+Colunas esperadas:
+
+- usuario
+- modulo
+- recurso
+- permissao
+- obra_id
+- ativo
+
+Responsabilidades observadas:
+
+- Carregar permissões gerais do usuário.
+- Normalizar textos para comparação.
+- Identificar se o perfil global do usuário é superadmin.
+- Verificar se o usuário pode acessar um módulo.
+- Verificar permissões por módulo, recurso, permissão e obra.
+- Listar obras permitidas conforme filtros.
+
+Funções observadas:
+
+- eh_superadmin()
+- pode_acessar_modulo(modulo)
+- pode_executar(modulo, recurso, permissao, obra_id)
+- obras_permitidas(modulo, recurso, permissao)
+
+Funcionamento observado:
+
+- O perfil global `superadmin` retorna acesso verdadeiro nas verificações gerais.
+- `pode_acessar_modulo()` verifica apenas se existe permissão ativa para o módulo informado ou para `todos`.
+- `pode_executar()` possui lógica mais granular, cruzando módulo, recurso, permissão e obra.
+- `obras_permitidas()` retorna `['todas']` para superadmin.
+
+Uso efetivo observado:
+
+- O menu principal utiliza `pode_acessar_modulo()` para decidir quais módulos aparecem para o usuário.
+- O menu principal utiliza `eh_superadmin()` para exibir o módulo Administração.
+- A tela de Administração usa `eh_superadmin()` para restringir acesso à gestão de permissões.
+
+Status de `pode_executar()`:
+
+- A função existe e implementa regra granular.
+- Nesta auditoria, seu uso efetivo ainda não foi confirmado nos arquivos centrais analisados.
+- A autorização atualmente observada depende principalmente de `pode_acessar_modulo()` no menu, combinada com regras específicas dentro de cada módulo.
+
+---
+
+## 6.2 Administração de permissões
+
+Arquivo principal:
+
+pages/administracao.py
+
+Responsabilidades observadas:
+
+- Exibir permissões cadastradas.
+- Criar novas permissões.
+- Desativar permissões existentes.
+- Excluir linhas de permissão.
+
+Restrição de acesso observada:
+
+- Apenas usuários com perfil global `superadmin` acessam a tela de Administração.
+
+Observação:
+
+O perfil `superadmin` pertence à camada global do aplicativo.
+Ele não deve ser confundido com o perfil `admin` do módulo Medições.
+
+---
+
+## 6.3 Permissões específicas do módulo Medições
+
+Arquivo principal:
+
+modulos/medicoes/permissoes.py
+
+Arquivo de dados:
+
+data/medicoes/usuarios_obras.csv
+
+Colunas esperadas:
+
+- usuario_id
+- email
+- nome
+- obra_id
+- perfil_medicao
+- ativo
+
+Responsabilidades observadas:
+
+- Identificar o usuário logado a partir de chaves existentes em `st.session_state`.
+- Carregar vínculos ativos entre usuário e obra.
+- Aceitar correspondência por usuario_id, email ou nome.
+- Determinar o maior perfil de medição do usuário.
+- Autorizar fluxos internos do módulo Medições conforme perfil.
+
+Perfis observados em Medições:
+
+- funcionario
+- encarregado
+- aprovador
+- admin
+
+Hierarquia observada:
+
+admin > aprovador > encarregado > funcionario
+
+Permissões internas observadas:
+
+- `funcionario`, `encarregado`, `aprovador` e `admin` podem lançar trabalho.
+- `encarregado`, `aprovador` e `admin` podem visualizar lançamentos.
+- `aprovador` e `admin` podem aprovar lançamentos.
+- Apenas `admin` pode criar ou gerenciar medição.
+
+Observação:
+
+O perfil `admin` de Medições é específico do módulo Medições.
+Ele não equivale automaticamente ao perfil global `superadmin`.
+
+---
+
+## 6.4 Relação entre permissão global e Medições
+
+Fluxo observado:
+
+1. O menu principal usa a permissão geral para decidir se o módulo Medições aparece.
+2. Ao entrar em Medições, o próprio módulo valida se o usuário possui vínculo ativo em `usuarios_obras.csv`.
+3. O perfil interno de Medições decide quais fluxos aparecem ou são executáveis.
+
+Consequência observada:
+
+Ter acesso geral ao módulo Medições não significa, sozinho, ter acesso operacional interno às funções de Medições.
+
+Da mesma forma, o funcionamento interno de Medições depende dos vínculos definidos em `data/medicoes/usuarios_obras.csv`.
+
+---
+
 # 9. Observações Técnicas
+
+## OT-001 — Fluxo legado de lançamentos
+
+Existe histórico de fluxo legado de lançamentos dentro do módulo Medições.
+
+Status:
+
+Documentado parcialmente.
+
+Ação futura:
+
+Eliminar gradualmente código legado somente quando não houver mais referências ao fluxo antigo.
+
+## OT-002 — Duas camadas de autorização
+
+O sistema possui uma camada geral de permissões do aplicativo e uma camada específica de permissões de Medições.
+
+A camada geral usa `data/permissoes_usuarios.csv`.
+
+A camada de Medições usa `data/medicoes/usuarios_obras.csv`.
+
+Essas camadas devem ser tratadas como distintas até que o código prove o contrário.
+
+## OT-003 — `pode_executar()` ainda sem uso efetivo confirmado
+
+A função `pode_executar()` existe em `services/permissoes.py` e implementa verificação granular por módulo, recurso, permissão e obra.
+
+Nesta auditoria, não foi confirmado uso efetivo dessa função nos arquivos centrais analisados.
+
+A autorização observada no fluxo principal depende de `pode_acessar_modulo()` para exibição de módulos e de permissões internas específicas no módulo Medições.
+
+# 10. Perguntas em Aberto
+
+## PA-001 — Uso real de `pode_executar()`
+
+Confirmar por busca ampla no repositório se `pode_executar()` é chamada em algum módulo ainda não auditado.
+
+## PA-002 — Relação desejada entre `superadmin` e `admin` de Medições
+
+Confirmar se um `superadmin` global deve ou não possuir automaticamente perfil `admin` dentro do módulo Medições.
+
+Hoje, pela lógica observada, essas permissões pertencem a camadas diferentes.
