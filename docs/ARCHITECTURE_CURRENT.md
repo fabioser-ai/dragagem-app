@@ -703,9 +703,294 @@ Não refatorar sem necessidade comprovada.
 
 ---
 
+## 7.2 Módulo Medições — Fluxo principal
+
+### Visão geral
+
+O fluxo principal do módulo Medições é iniciado por `pages/medicoes.py` e delegado para `modulos/medicoes/navegacao.py`.
+
+Arquivos principais observados:
+
+- `pages/medicoes.py`
+- `modulos/medicoes/navegacao.py`
+- `modulos/medicoes/permissoes.py`
+- `modulos/medicoes/config.py`
+- `modulos/medicoes/utils.py`
+
+---
+
+### 7.2.1 Entrada do módulo
+
+Arquivo:
+
+`pages/medicoes.py`
+
+Responsabilidades observadas:
+
+- Exibir título e descrição do módulo.
+- Validar acesso interno ao módulo com `tem_acesso_medicoes()`.
+- Obter perfil interno com `obter_perfil_medicao()`.
+- Inicializar `st.session_state["fluxo_medicoes"]`.
+- Inicializar `st.session_state["etapa_medicoes"]`.
+- Redirecionar funcionário diretamente para o fluxo de lançamento.
+- Impedir acesso ao fluxo de gestão quando o perfil não pode criar medição.
+- Chamar `navegacao()`.
+- Carregar bases e renderizar etapas apenas quando o fluxo atual é `gestao`.
+
+Estados de sessão observados:
+
+- `fluxo_medicoes`
+- `etapa_medicoes`
+
+Fluxo simplificado:
+
+Entrada em Medições
+
+↓
+
+Validação por `tem_acesso_medicoes()`
+
+↓
+
+Inicialização de estado
+
+↓
+
+Ajuste automático para funcionário, se aplicável
+
+↓
+
+Proteção contra acesso indevido à gestão
+
+↓
+
+Delegação para `navegacao()`
+
+↓
+
+Se fluxo for `gestao`, carrega bases e renderiza etapa atual.
+
+---
+
+### 7.2.2 Navegação interna
+
+Arquivo:
+
+`modulos/medicoes/navegacao.py`
+
+Responsabilidades observadas:
+
+- Definir labels visuais das etapas de medição.
+- Resolver etapas disponíveis conforme modelo de medição.
+- Renderizar tela inicial do módulo Medições.
+- Definir opções disponíveis conforme permissões internas.
+- Direcionar para fluxo de gestão.
+- Direcionar para fluxo de lançamento.
+- Direcionar para fluxo de aprovação.
+- Proteger cada fluxo contra acesso indevido.
+- Controlar avanço e retorno entre etapas da gestão.
+
+Fluxos internos observados:
+
+- `inicio`
+- `gestao`
+- `lancamento`
+- `aprovacao`
+
+---
+
+### 7.2.3 Tela inicial de Medições
+
+Função:
+
+`tela_inicial_medicoes()`
+
+Funcionamento observado:
+
+- Obtém o perfil interno de medição.
+- Monta lista de opções disponíveis.
+- Inclui `gestao` quando `pode_criar_medicao()` é verdadeiro.
+- Inclui `lancamento` quando `pode_lancar_trabalho()` é verdadeiro.
+- Inclui `aprovacao` quando `pode_aprovar_lancamentos()` é verdadeiro.
+- Se não houver opções, exibe aviso.
+- Se o perfil for `funcionario`, define `fluxo_medicoes = "lancamento"` e retorna sem renderizar escolha manual.
+- Para demais perfis, renderiza botões de acesso aos fluxos disponíveis.
+
+Observação:
+
+O funcionário não escolhe fluxo manualmente. Ele é direcionado para lançamento.
+
+---
+
+### 7.2.4 Fluxo de gestão
+
+Função:
+
+`navegacao_gestao()`
+
+Proteção observada:
+
+- Se `pode_criar_medicao()` for falso, o fluxo volta para `inicio` e exibe aviso.
+
+Funcionamento observado:
+
+- Lê `etapa_medicoes` da sessão.
+- Obtém a ordem de etapas através de `obter_etapas()`.
+- Se a etapa atual não existir na ordem do modelo, ajusta para a primeira etapa.
+- Renderiza barra visual das etapas.
+- Renderiza botões Voltar, Início Medições e Próximo.
+- Usa `ir_para(etapa)` para mudar etapa e executar `st.rerun()`.
+
+Etapas possíveis por modelo:
+
+- `padrao_fos`: obra, bm, lancamentos, resumo.
+- `ast_bags`: obra, bm, frentes, mc, lancamentos, resumo.
+- `diario_equipamento`: obra, bm, frentes, lancamentos, resumo.
+- `batimetria`: obra, bm, mc, resumo.
+
+Renderização das etapas:
+
+A renderização concreta das telas de etapa ocorre em `pages/medicoes.py`, após a navegação, quando `fluxo_medicoes == "gestao"`.
+
+---
+
+### 7.2.5 Fluxo de lançamento
+
+Função:
+
+`navegacao_lancamento()`
+
+Proteção observada:
+
+- Se `pode_lancar_trabalho()` for falso, o fluxo volta para `inicio` e exibe aviso.
+
+Destino observado:
+
+- Chama `tela_lancar_producao()`.
+
+Observação:
+
+Os detalhes internos de `tela_lancar_producao()` ainda não foram auditados nesta etapa.
+
+---
+
+### 7.2.6 Fluxo de aprovação
+
+Função:
+
+`tela_aprovacao_placeholder()`
+
+Proteção observada:
+
+- Se `pode_aprovar_lancamentos()` for falso, o fluxo volta para `inicio` e exibe aviso.
+
+Destino observado:
+
+- Chama `tela_aprovar_lancamentos()`.
+
+Observação:
+
+Apesar do nome `placeholder`, a função chama uma tela real de aprovação.
+
+Os detalhes internos de `tela_aprovar_lancamentos()` ainda não foram auditados nesta etapa.
+
+---
+
 # 8. Fluxos
 
-A documentar conforme próximas auditorias.
+## 8.1 Fluxo principal de Medições
+
+Fluxo observado:
+
+Menu Principal
+
+↓
+
+Módulo Medições
+
+↓
+
+`pages/medicoes.py`
+
+↓
+
+Validação de acesso interno por `tem_acesso_medicoes()`
+
+↓
+
+Inicialização de `fluxo_medicoes` e `etapa_medicoes`
+
+↓
+
+`modulos/medicoes/navegacao.py`
+
+↓
+
+Escolha ou redirecionamento de fluxo interno
+
+↓
+
+Fluxo `gestao`, `lancamento` ou `aprovacao`.
+
+---
+
+## 8.2 Fluxo gestão de Medições
+
+Fluxo observado:
+
+`fluxo_medicoes = gestao`
+
+↓
+
+Validação por `pode_criar_medicao()`
+
+↓
+
+Determinação das etapas pelo modelo em `ETAPAS_MODELO`
+
+↓
+
+Navegação entre etapas por `etapa_medicoes`
+
+↓
+
+Renderização da etapa em `pages/medicoes.py`.
+
+---
+
+## 8.3 Fluxo operacional de lançamento
+
+Fluxo observado:
+
+`fluxo_medicoes = lancamento`
+
+↓
+
+Validação por `pode_lancar_trabalho()`
+
+↓
+
+`tela_lancar_producao()`.
+
+Detalhes internos ainda não auditados.
+
+---
+
+## 8.4 Fluxo de aprovação de lançamentos
+
+Fluxo observado:
+
+`fluxo_medicoes = aprovacao`
+
+↓
+
+Validação por `pode_aprovar_lancamentos()`
+
+↓
+
+`tela_aprovar_lancamentos()`.
+
+Detalhes internos ainda não auditados.
 
 ---
 
@@ -770,6 +1055,14 @@ Essa sobreposição parece refletir a coexistência entre fluxo de gestão, flux
 
 Não consolidar esses repositórios sem auditoria completa dos fluxos que ainda dependem de cada um.
 
+## OT-007 — `tela_aprovacao_placeholder()` chama tela real de aprovação
+
+A função `tela_aprovacao_placeholder()` em `modulos/medicoes/navegacao.py` possui nome de placeholder, mas chama `tela_aprovar_lancamentos()` após validar permissão.
+
+O nome pode não refletir mais o papel atual da função.
+
+Não renomear sem auditoria completa do fluxo de aprovação e dos imports relacionados.
+
 # 10. Perguntas em Aberto
 
 ## PA-001 — Uso real de `pode_executar()`
@@ -795,3 +1088,9 @@ Definir se o app continuará aceitando o risco de conflito em gravações simult
 Confirmar se a sobreposição entre `modulos/medicoes/repositorio.py` e `modulos/medicoes/lancamentos/repositorio.py` deve permanecer como separação de contexto ou se, futuramente, deverá ser consolidada.
 
 Nenhuma consolidação deve ser feita antes da auditoria completa dos fluxos de Medições.
+
+## PA-006 — Auditoria interna dos fluxos de lançamento e aprovação
+
+Auditar separadamente `tela_lancar_producao()` e `tela_aprovar_lancamentos()`.
+
+Essas telas são chamadas pelo fluxo principal de Medições, mas seus detalhes internos ainda não foram documentados.
