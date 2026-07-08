@@ -271,7 +271,17 @@ def salvar_foto_lancamento(id_lancamento, foto):
 
 
 # ============================================================
-# SALVAR LANÇAMENTO
+# LEGADO — SALVAR LANÇAMENTO DE PRODUÇÃO
+# ============================================================
+# ATENÇÃO:
+# Esta função pertence ao fluxo antigo de lançamentos e monta campos que
+# não correspondem integralmente ao schema atual de COL_LANCAMENTOS_PRODUCAO.
+#
+# O fluxo oficial atual deve usar:
+# modulos.medicoes.lancamentos.servicos.criar_lancamento_trabalho
+#
+# Mantida temporariamente para evitar quebra de imports ou chamadas antigas.
+# Não usar em novas telas ou novas regras de negócio.
 # ============================================================
 
 def salvar_lancamento_producao(
