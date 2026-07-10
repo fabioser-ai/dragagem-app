@@ -14,6 +14,8 @@ Centralizar o estado oficial do desenvolvimento do APP FOS.
 - Fluxo legado de lançamento identificado e documentado.
 - Dependências básicas declaradas em requirements.txt.
 - Auditorias incrementais preservadas em `docs/audit/`.
+- Auditoria de Orçamentos concluída em `docs/audit/AUDIT_034_ORCAMENTOS.md` e pendente de consolidação em `docs/ARCHITECTURE_CURRENT.md`.
+- Auditoria de Prestação de Contas concluída em `docs/audit/AUDIT_035_PRESTACAO_CONTAS.md` e pendente de consolidação em `docs/ARCHITECTURE_CURRENT.md`.
 
 ## Workflow oficial de auditoria
 1. Auditar um subsistema por vez.
@@ -30,4 +32,4 @@ Centralizar o estado oficial do desenvolvimento do APP FOS.
 - `docs/audit/`: histórico incremental e detalhado das auditorias realizadas.
 
 ## Próximo passo
-Consolidar a auditoria de Orçamentos em `docs/ARCHITECTURE_CURRENT.md` e, em seguida, auditar o módulo de Prestação de Contas.
+Consolidar as auditorias de Orçamentos e Prestação de Contas em `docs/ARCHITECTURE_CURRENT.md`. Depois, auditar o módulo CRM.
