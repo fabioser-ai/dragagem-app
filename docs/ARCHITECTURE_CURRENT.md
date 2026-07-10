@@ -234,7 +234,7 @@ Fluxo observado em `salvar_arquivo_github()`:
 Uso observado:
 
 - Prestação de Contas salva comprovantes em `data/comprovantes`.
-- Medições salva fotos de lançamentos em `data/medicoes/fotos_lancamentos`.
+- Medições possui função para salvar fotos em `data/medicoes/fotos_lancamentos`, mas o fluxo operacional atual não chama essa função.
 
 ### Leitura
 
@@ -870,7 +870,7 @@ Destino observado:
 
 Observação:
 
-Os detalhes internos de `tela_lancar_producao()` ainda não foram auditados nesta etapa.
+Os detalhes internos de `tela_lancar_producao()` estão documentados na seção 7.3.
 
 ---
 
@@ -892,7 +892,7 @@ Observação:
 
 Apesar do nome `placeholder`, a função chama uma tela real de aprovação.
 
-Os detalhes internos de `tela_aprovar_lancamentos()` ainda não foram auditados nesta etapa.
+Os detalhes internos de `tela_aprovar_lancamentos()` estão documentados na seção 7.4.
 
 ---
 
@@ -1171,6 +1171,242 @@ A tela também não altera `fluxo_medicoes` após uma decisão ou quando não ex
 O `st.rerun()` mantém o usuário no fluxo `aprovacao`.
 
 
+## 7.5 Módulo Medições — Gestão completa da medição
+
+### Visão geral
+
+O fluxo de gestão é acessível somente ao perfil interno `admin` de Medições.
+
+Ele é coordenado por:
+
+- `pages/medicoes.py`
+- `modulos/medicoes/navegacao.py`
+- `modulos/medicoes/config.py`
+- `modulos/medicoes/repositorio.py`
+- arquivos de etapa em `modulos/medicoes/fluxo_medicao/`
+- repositório e serviços de lançamentos
+
+O fluxo usa estado de sessão para conectar as etapas e arquivos CSV para persistir parte dos dados.
+
+### Estados de sessão diretamente envolvidos
+
+Foram observadas as seguintes chaves:
+
+- `fluxo_medicoes`
+- `etapa_medicoes`
+- `obra_id`
+- `modelo_medicao`
+- `arquivo_tabela_servicos`
+- `medicao_id`
+- `frente_id`
+- `lancamentos_selecionados`
+- `df_lancamentos_selecionados`, lida como alternativa no resumo
+
+A última chave não é preenchida pelas etapas auditadas.
+
+A troca de obra não limpa explicitamente o BM, a frente ou os lançamentos anteriormente mantidos na sessão.
+
+A troca de BM também não limpa explicitamente a frente ou os lançamentos selecionados.
+
+### Sequência por modelo
+
+A ordem é definida por `ETAPAS_MODELO`:
+
+- `padrao_fos`: obra, BM, lançamentos, resumo;
+- `ast_bags`: obra, BM, frentes, MC, lançamentos, resumo;
+- `diario_equipamento`: obra, BM, frentes, lançamentos, resumo;
+- `batimetria`: obra, BM, MC, resumo.
+
+A barra de etapas renderiza componentes `st.button()`, mas o retorno desses botões não é usado. A mudança de etapa ocorre pelos controles Voltar e Próximo.
+
+O botão Próximo altera a etapa sem validar se a etapa atual possui os dados necessários. As próprias telas posteriores exibem avisos quando faltam chaves de sessão.
+
+### Etapa 1 — Obra
+
+Arquivo:
+
+`modulos/medicoes/fluxo_medicao/etapa1_obra.py`
+
+Funcionamento observado:
+
+- lista toda obra com `obra_id` preenchido;
+- não filtra pelo campo `status`;
+- monta o seletor usando `nome_obra | contrato`;
+- grava `obra_id`, `modelo_medicao` e `arquivo_tabela_servicos` na sessão;
+- permite cadastrar uma nova obra;
+- exige somente o nome no cadastro;
+- grava a nova obra em `data/obras.csv`.
+
+O arquivo da tabela contratual é informado como texto livre. A etapa não confirma a existência desse arquivo ao cadastrar a obra.
+
+Rótulos iguais de nome e contrato resultam na mesma chave do mapa usado pelo seletor.
+
+### Etapa 2 — BM
+
+Arquivo:
+
+`modulos/medicoes/fluxo_medicao/etapa2_bm.py`
+
+Funcionamento observado:
+
+- exige `obra_id` na sessão;
+- lista BMs filtrados pela obra selecionada;
+- grava o `medicao_id` escolhido na sessão;
+- permite criar novo BM;
+- configura campos conforme o modelo da obra;
+- rejeita período final anterior ao inicial;
+- cria o BM com `status = rascunho`;
+- grava em `data/medicoes/medicoes.csv`.
+
+Não foi observada validação de duplicidade de número ou período.
+
+Se a obra selecionada não possui BM, a etapa não remove um `medicao_id` anterior que ainda esteja na sessão.
+
+Não foi observado, nas etapas auditadas, mecanismo que altere o status do BM após sua criação.
+
+### Etapa 3 — Frentes
+
+Arquivo:
+
+`modulos/medicoes/fluxo_medicao/etapa3_frentes.py`
+
+Funcionamento observado:
+
+- exige `medicao_id` na sessão;
+- lista frentes filtradas pelo BM;
+- grava `frente_id` na sessão;
+- permite criar frente com nome, dias trabalhados e observações;
+- exige somente o nome;
+- grava em `data/medicoes/frentes.csv`.
+
+Se o BM não possui frente, a etapa não remove um `frente_id` anterior mantido na sessão.
+
+Rótulos iguais de nome e dias trabalhados resultam na mesma chave do mapa usado pelo seletor.
+
+### Etapa 4 — Memória de cálculo
+
+Arquivo:
+
+`modulos/medicoes/fluxo_medicao/etapa4_mc.py`
+
+Existem dois comportamentos.
+
+#### Comportamento `padrao_fos`
+
+A função `tela_mc_padrao_fos()`:
+
+- cria ou reutiliza uma frente chamada `MEDIÇÃO GERAL`;
+- carrega a tabela contratual da obra;
+- permite informar quantidade executada por item;
+- calcula quantidade multiplicada pelo preço unitário com BDI;
+- grava os dados no schema legado de `COL_MC`;
+- substitui todos os registros de MC da frente.
+
+Mapeamento de compatibilidade observado:
+
+- `comprimento` recebe quantidade executada;
+- `ast` recebe preço unitário;
+- `resultado` recebe total;
+- `descricao` concatena item, código e descrição contratual.
+
+O schema `COL_MC` não preserva em colunas próprias fonte, código, item e unidade.
+
+Ao reabrir uma MC persistida, esses campos estruturados não existem no DataFrame carregado. A tela os recria vazios e não reconcilia o registro com a tabela contratual.
+
+A gravação inclui todas as linhas da tabela contratual, inclusive aquelas com quantidade zero.
+
+Observação de alcance:
+
+Embora esse comportamento exista no arquivo, `padrao_fos` não contém a etapa `mc` em `ETAPAS_MODELO`. Portanto, a tela não é alcançada pela sequência normal configurada atualmente para esse modelo.
+
+#### Comportamento dos demais modelos
+
+`tela_mc()` direciona todo modelo diferente de `padrao_fos` para `tela_mc_ast()`.
+
+Essa tela:
+
+- exige uma frente na sessão;
+- usa editor com linhas dinâmicas;
+- calcula `resultado = comprimento × ast`;
+- substitui todos os registros de MC da frente.
+
+Novas linhas adicionadas dinamicamente não recebem explicitamente novos `mc_id`, `medicao_id` ou `frente_id` antes da gravação.
+
+O modelo `batimetria`, quando chega à etapa MC, usa esse mesmo cálculo genérico de comprimento por AST.
+
+### Etapa 5 — Seleção de lançamentos
+
+Arquivo:
+
+`modulos/medicoes/fluxo_medicao/etapa5_lancamentos.py`
+
+Funcionamento observado:
+
+- exige somente `obra_id`;
+- carrega lançamentos de trabalho;
+- filtra pela obra;
+- exige `status_aprovacao = aprovado`;
+- exige `status_medicao = nao_medido`;
+- renderiza um checkbox por lançamento;
+- grava apenas a lista de IDs em `st.session_state.lancamentos_selecionados`.
+
+Não foi observado filtro pela data do serviço em relação ao período do BM.
+
+A etapa não exige `medicao_id` para permitir a seleção.
+
+A etapa não grava a seleção em CSV.
+
+A etapa não altera `status_medicao` e não preenche `medicao_id_vinculada`.
+
+### Etapa 6 — Resumo
+
+Arquivo:
+
+`modulos/medicoes/fluxo_medicao/etapa6_resumo.py`
+
+Funcionamento observado:
+
+- exige `medicao_id` na sessão;
+- tenta usar primeiro `df_lancamentos_selecionados`;
+- na ausência desse DataFrame, recarrega lançamentos pelos IDs de `lancamentos_selecionados`;
+- não revalida obra, aprovação, status de medição ou período;
+- apresenta os lançamentos;
+- agrupa quantidades por código, descrição e unidade;
+- não calcula valor financeiro;
+- não usa efetivamente os argumentos `frentes`, `itens` e `medicoes`.
+
+O indicador `Quantidade total` soma as quantidades dos grupos mesmo quando existirem unidades diferentes.
+
+Não existe ação de confirmar, salvar, finalizar ou vincular a medição nessa tela.
+
+### Persistência efetiva da gestão
+
+Persistências observadas:
+
+- obras em `data/obras.csv`;
+- BMs em `data/medicoes/medicoes.csv`;
+- frentes em `data/medicoes/frentes.csv`;
+- MC em `data/medicoes/mc.csv`.
+
+Não persistidos no fluxo auditado:
+
+- seleção de lançamentos para o BM;
+- mudança do lançamento para `medido`;
+- preenchimento de `medicao_id_vinculada`;
+- mudança do status do BM;
+- consolidação financeira do resumo.
+
+A função `vincular_lancamento_a_medicao()` existe em `modulos/medicoes/lancamentos/servicos.py`, mas não é chamada pelas etapas de gestão auditadas.
+
+### Etapa de itens desconectada
+
+O arquivo `modulos/medicoes/fluxo_medicao/etapa5_itens.py` implementa `tela_medicao()` para transformar resultado de MC em itens financeiros.
+
+Essa função não é importada nem chamada por `pages/medicoes.py` no fluxo atual.
+
+O arquivo permanece fora da sequência configurada de gestão.
+
+
 # 8. Fluxos
 
 ## 8.1 Fluxo principal de Medições
@@ -1399,6 +1635,65 @@ Aprovação altera `status_aprovacao` para `aprovado`
 A etapa de lançamentos da gestão pode apresentá-lo como elegível para seleção.
 
 
+## 8.7 Fluxo detalhado de gestão da medição
+
+Fluxo persistido observado:
+
+Perfil `admin` de Medições
+
+↓
+
+Seleção ou cadastro da obra
+
+↓
+
+Seleção ou cadastro do BM em estado `rascunho`
+
+↓
+
+Criação ou seleção de frente, quando prevista pelo modelo
+
+↓
+
+Criação de MC, quando prevista pelo modelo
+
+↓
+
+Gravação dos respectivos CSVs.
+
+Fluxo de lançamentos observado:
+
+Seleção da obra
+
+↓
+
+Carregamento de lançamentos aprovados e `nao_medido`
+
+↓
+
+Marcação por checkbox
+
+↓
+
+IDs armazenados somente na sessão
+
+↓
+
+Resumo por item e quantidade
+
+↓
+
+Fim da interface atual.
+
+Não foi observada, após o resumo:
+
+- persistência da associação entre lançamento e BM;
+- alteração para `status_medicao = medido`;
+- preenchimento de `medicao_id_vinculada`;
+- finalização do BM;
+- consolidação financeira.
+
+
 # 9. Observações Técnicas
 
 ## OT-001 — Fluxo legado de lançamentos
@@ -1546,6 +1841,81 @@ A decisão de reprovar não solicita nem grava um motivo.
 O lançamento conserva apenas sua observação original e o novo status.
 
 
+## OT-020 — Gestão não conclui a vinculação dos lançamentos
+
+A seleção feita na etapa de lançamentos permanece em `st.session_state`.
+
+O fluxo auditado não chama `vincular_lancamento_a_medicao()` e não modifica os campos persistidos dos lançamentos.
+
+## OT-021 — BM permanece em rascunho
+
+Novos BMs são criados com status `rascunho`.
+
+Não foi observada transição de status no fluxo completo de gestão auditado.
+
+## OT-022 — Estado descendente não é limpo ao mudar contexto
+
+A seleção de uma nova obra não limpa explicitamente BM, frente e lançamentos selecionados.
+
+A seleção de um novo BM não limpa explicitamente frente e lançamentos selecionados.
+
+Isso permite que chaves de um contexto anterior permaneçam na sessão até serem sobrescritas.
+
+## OT-023 — Avanço não valida conclusão da etapa
+
+O botão Próximo altera `etapa_medicoes` sem consultar a etapa renderizada ou validar seus pré-requisitos.
+
+As validações ocorrem apenas quando a etapa seguinte tenta usar o estado.
+
+## OT-024 — Botões da barra de etapas não alteram a etapa
+
+A barra visual cria botões para todas as etapas, mas não utiliza o retorno de clique desses componentes.
+
+A navegação efetiva ocorre apenas pelos controles Voltar e Próximo.
+
+## OT-025 — MC de `padrao_fos` fora da sequência atual
+
+Existe implementação específica de MC contratual para `padrao_fos`, mas a configuração atual desse modelo não inclui a etapa `mc`.
+
+## OT-026 — Schema de MC não preserva identidade contratual estruturada
+
+No comportamento contratual de MC, fonte, código, item e unidade são reduzidos a texto dentro de `descricao` porque `COL_MC` não possui essas colunas.
+
+Ao reabrir registros, a tela não reconstrói esses campos pela tabela contratual.
+
+## OT-027 — MC contratual grava itens com quantidade zero
+
+A persistência de `tela_mc_padrao_fos()` inclui a tabela contratual inteira, mesmo quando apenas poucos itens possuem quantidade executada.
+
+## OT-028 — Linhas dinâmicas da MC genérica sem IDs explícitos
+
+A MC genérica permite novas linhas, mas não atribui explicitamente IDs e vínculos às linhas adicionadas antes de salvar.
+
+## OT-029 — Seleção não considera período do BM
+
+A elegibilidade de lançamentos usa obra, aprovação e status de medição.
+
+A data do serviço não é comparada ao início ou fim do período selecionado.
+
+## OT-030 — Resumo não revalida elegibilidade
+
+Ao recuperar lançamentos por IDs da sessão, o resumo não confirma novamente obra, status de aprovação, status de medição ou período.
+
+## OT-031 — Quantidade total pode combinar unidades diferentes
+
+O resumo agrupa corretamente por unidade, mas o indicador final soma as quantidades de todos os grupos em um único número.
+
+## OT-032 — Etapa de itens fora do fluxo atual
+
+`etapa5_itens.py` contém uma tela de itens financeiros baseada em MC, mas não é chamada pelo roteamento atual.
+
+## OT-033 — Modelo batimetria usa cálculo genérico da MC AST
+
+Todo modelo diferente de `padrao_fos` é enviado a `tela_mc_ast()`.
+
+Assim, a etapa MC de `batimetria` usa `comprimento × ast` no código atual.
+
+
 # 10. Perguntas em Aberto
 
 ## PA-001 — Uso real de `pode_executar()`
@@ -1617,3 +1987,39 @@ Definir se a tela deve possuir retorno explícito ao início de Medições e ao 
 ## PA-016 — Identidade da obra no filtro de aprovação
 
 Confirmar se o filtro deve distinguir obras por `obra_id` além de exibir `nome_obra`.
+
+## PA-017 — Momento de consolidação da medição
+
+Definir qual ação deve confirmar a seleção, vincular os lançamentos ao BM e alterar seu status de medição.
+
+## PA-018 — Elegibilidade por período
+
+Confirmar se a data do serviço deve obrigatoriamente estar dentro do período do BM.
+
+## PA-019 — Limpeza de estado ao mudar obra ou BM
+
+Definir quais chaves descendentes devem ser apagadas quando o usuário troca a obra ou o BM.
+
+## PA-020 — Ciclo de vida do BM
+
+Definir os estados do BM e o evento que encerra o estado `rascunho`.
+
+## PA-021 — Papel da MC no modelo `padrao_fos`
+
+Confirmar se a etapa contratual de MC deve voltar à sequência desse modelo ou se sua implementação é compatibilidade histórica.
+
+## PA-022 — Regra de cálculo para batimetria
+
+Confirmar se `comprimento × ast` representa corretamente a memória de cálculo do modelo `batimetria`.
+
+## PA-023 — Modelo persistente da MC contratual
+
+Definir se fonte, código, item e unidade precisam ser preservados em colunas próprias.
+
+## PA-024 — Indicador de quantidade com múltiplas unidades
+
+Definir se o resumo deve apresentar totais separados por unidade e eliminar o somatório geral heterogêneo.
+
+## PA-025 — Destino de `etapa5_itens.py`
+
+Confirmar se a etapa desconectada deve ser reintegrada, preservada como legado ou removida futuramente após busca completa de referências.
