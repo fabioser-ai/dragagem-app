@@ -4,7 +4,7 @@ Status:
 Em construção.
 
 Última atualização:
-2026-07-08
+2026-07-10
 
 ---
 
@@ -1032,6 +1032,145 @@ A tela exibe mensagem de sucesso após o retorno do serviço. Consequentemente, 
 A gravação substitui integralmente o CSV e cria um commit no repositório de dados.
 
 
+## 7.4 Módulo Medições — Fluxo de aprovação
+
+### Visão geral
+
+A tela de aprovação é implementada por `tela_aprovar_lancamentos()`, em `modulos/medicoes/lancamentos/tela_aprovar.py`.
+
+Componentes diretamente envolvidos:
+
+- `pages/medicoes.py`
+- `modulos/medicoes/navegacao.py`
+- `modulos/medicoes/permissoes.py`
+- `modulos/medicoes/lancamentos/tela_aprovar.py`
+- `modulos/medicoes/lancamentos/repositorio.py`
+- `modulos/medicoes/lancamentos/servicos.py`
+- `modulos/medicoes/config.py`
+- `services/auth.py`
+- `services/github.py`
+- `modulos/medicoes/fluxo_medicao/etapa5_lancamentos.py`
+
+Arquivo de dados alterado:
+
+- `data/medicoes/lancamentos_trabalho.csv`
+
+### Entrada e permissão
+
+O acesso começa na opção de aprovação da tela inicial de Medições.
+
+A opção é exibida quando `pode_aprovar_lancamentos()` retorna verdadeiro.
+
+Ao entrar, `fluxo_medicoes` recebe `aprovacao`.
+
+`tela_aprovacao_placeholder()` executa novamente `pode_aprovar_lancamentos()` antes de chamar a tela real.
+
+Os perfis internos autorizados são:
+
+- `aprovador`
+- `admin`
+
+A permissão é determinada pelo maior perfil encontrado entre todos os vínculos ativos do usuário em `usuarios_obras.csv`.
+
+### Escopo dos lançamentos apresentados
+
+A tela carrega todo o conteúdo de `lancamentos_trabalho.csv`.
+
+Em seguida, apresenta somente linhas cujo `status_aprovacao`, após normalização de texto, seja `pendente`.
+
+Não foi observado filtro por:
+
+- `obra_id` vinculada ao usuário;
+- vínculos ativos do aprovador em `usuarios_obras.csv`;
+- autor do lançamento;
+- data do serviço;
+- `status_medicao`.
+
+Consequência observada:
+
+Um usuário que possua perfil interno `aprovador` ou `admin` em qualquer vínculo ativo pode visualizar e decidir sobre todos os lançamentos pendentes existentes no arquivo.
+
+### Filtro visual por obra
+
+A tela monta o filtro a partir dos valores únicos de `nome_obra` presentes nos lançamentos pendentes.
+
+A opção `Todas` preserva a lista completa.
+
+Quando uma obra é escolhida, a comparação usa `nome_obra`, não `obra_id`.
+
+Obras diferentes que compartilhem o mesmo nome são agrupadas pelo filtro visual.
+
+### Informações apresentadas
+
+Cada lançamento pendente é exibido em um `expander`.
+
+Campos apresentados:
+
+- ID do lançamento;
+- nome da obra;
+- nome do local;
+- código e descrição do item;
+- quantidade e unidade;
+- data do serviço;
+- observação;
+- valor textual de `foto_url`;
+- usuário criador.
+
+A tela não carrega nem renderiza os bytes de uma fotografia.
+
+### Aprovação
+
+Ao aprovar, a tela atualiza todas as linhas cujo `lancamento_id` corresponda ao ID selecionado:
+
+- `status_aprovacao = aprovado`;
+- `aprovado_por = usuário logado`;
+- `aprovado_em = data e hora atuais`;
+- `atualizado_em = data e hora atuais`.
+
+O fluxo oficial de autenticação grava o login em `st.session_state.usuario`, que é a primeira chave consultada por `_usuario_logado()`.
+
+O campo `status_medicao` não é alterado pela aprovação.
+
+Assim, um lançamento criado como `nao_medido` permanece nesse estado e passa a ser elegível na etapa de seleção da gestão da medição.
+
+### Reprovação
+
+Ao reprovar, a tela atualiza:
+
+- `status_aprovacao = reprovado`;
+- `aprovado_por = usuário logado`;
+- `aprovado_em = data e hora atuais`;
+- `atualizado_em = data e hora atuais`.
+
+Não existe campo específico para responsável ou data da reprovação no schema atual.
+
+Não existe campo nem entrada de justificativa da reprovação.
+
+O campo `status_medicao` também permanece inalterado.
+
+Lançamentos reprovados não aparecem na etapa de seleção da medição, pois essa etapa exige `status_aprovacao = aprovado`.
+
+### Persistência
+
+A própria tela modifica o DataFrame e chama `salvar_lancamentos_trabalho(df)`.
+
+A função `atualizar_status_aprovacao()` existente na camada de serviços não é usada pela tela auditada.
+
+A gravação substitui integralmente `lancamentos_trabalho.csv`.
+
+Após solicitar a gravação, a tela exibe mensagem de aprovação ou reprovação e executa `st.rerun()`.
+
+O retorno booleano de `salvar_lancamentos_trabalho()` não é verificado. Portanto, a interface pode informar aprovação ou reprovação mesmo quando o wrapper retornou `False`.
+
+### Navegação de saída
+
+Não existe, na tela auditada, botão para retornar ao início de Medições ou ao menu principal.
+
+A tela também não altera `fluxo_medicoes` após uma decisão ou quando não existem pendências.
+
+O `st.rerun()` mantém o usuário no fluxo `aprovacao`.
+
+
 # 8. Fluxos
 
 ## 8.1 Fluxo principal de Medições
@@ -1189,6 +1328,77 @@ Validação de local e quantidade
 Inclusão em `data/medicoes/lancamentos_trabalho.csv` com aprovação pendente e ainda não medido.
 
 
+## 8.6 Fluxo detalhado de aprovação
+
+Fluxo observado:
+
+Entrada no módulo Medições
+
+↓
+
+Validação interna por `tem_acesso_medicoes()`
+
+↓
+
+Opção de aprovação disponível para perfil `aprovador` ou `admin`
+
+↓
+
+`fluxo_medicoes = aprovacao`
+
+↓
+
+Nova validação por `pode_aprovar_lancamentos()`
+
+↓
+
+Carregamento integral de `lancamentos_trabalho.csv`
+
+↓
+
+Seleção de linhas com `status_aprovacao = pendente`
+
+↓
+
+Filtro visual opcional por `nome_obra`
+
+↓
+
+Exibição dos dados do lançamento
+
+↓
+
+Decisão de aprovar ou reprovar
+
+↓
+
+Atualização direta do DataFrame na tela
+
+↓
+
+Substituição integral de `lancamentos_trabalho.csv`
+
+↓
+
+`st.rerun()` mantendo o fluxo de aprovação.
+
+Relação com a gestão da medição:
+
+Lançamento pendente
+
+↓
+
+Aprovação altera `status_aprovacao` para `aprovado`
+
+↓
+
+`status_medicao` permanece `nao_medido`
+
+↓
+
+A etapa de lançamentos da gestão pode apresentá-lo como elegível para seleção.
+
+
 # 9. Observações Técnicas
 
 ## OT-001 — Fluxo legado de lançamentos
@@ -1293,6 +1503,49 @@ Quando o perfil obtido da primeira linha é `admin` ou `aprovador`, `_filtrar_ob
 `tela_lancar_producao()` carrega `data/obras.csv`, mas não filtra o campo `status` antes de apresentar ou liberar obras.
 
 
+## OT-013 — Aprovação sem restrição por obra vinculada
+
+A permissão de entrada depende do perfil interno do usuário, mas a tela de aprovação não cruza os lançamentos com os vínculos de obra do aprovador.
+
+Um perfil `aprovador` ou `admin` pode atuar sobre todos os lançamentos pendentes do arquivo.
+
+## OT-014 — Tela de aprovação não usa o serviço de atualização existente
+
+Existe `atualizar_status_aprovacao()` em `modulos/medicoes/lancamentos/servicos.py`.
+
+A tela auditada modifica o DataFrame diretamente e chama o repositório, duplicando a lógica de alteração dos campos de auditoria.
+
+## OT-015 — Campos de aprovação também registram reprovação
+
+A reprovação grava o responsável em `aprovado_por` e o momento em `aprovado_em`.
+
+O schema atual não possui campos específicos para reprovação.
+
+## OT-016 — Resultado da gravação não é verificado na aprovação
+
+`salvar_lancamentos_trabalho()` retorna um booleano.
+
+A tela ignora esse retorno, exibe mensagem de decisão concluída e executa `st.rerun()`.
+
+## OT-017 — Ausência de saída na tela de aprovação
+
+A tela de aprovação não oferece controle para alterar `fluxo_medicoes` e retornar ao início do módulo.
+
+Após as decisões, o rerun preserva o fluxo de aprovação.
+
+## OT-018 — Filtro de aprovação usa nome da obra
+
+O filtro visual agrupa pendências por `nome_obra`, e não por `obra_id`.
+
+Nomes iguais em obras distintas não são diferenciados pelo filtro.
+
+## OT-019 — Reprovação sem justificativa estruturada
+
+A decisão de reprovar não solicita nem grava um motivo.
+
+O lançamento conserva apenas sua observação original e o novo status.
+
+
 # 10. Perguntas em Aberto
 
 ## PA-001 — Uso real de `pode_executar()`
@@ -1344,3 +1597,23 @@ Definir como o fluxo deve comunicar falha de persistência antes de exibir suces
 ## PA-011 — Obras inativas no fluxo operacional
 
 Confirmar se obras com status diferente de ativo devem permanecer selecionáveis na tela de lançamento.
+
+## PA-012 — Escopo de atuação do aprovador
+
+Confirmar se o aprovador deve atuar globalmente sobre todas as obras ou somente sobre obras às quais possui vínculo ativo.
+
+## PA-013 — Dados próprios de reprovação
+
+Definir se reprovações precisam de responsável, data e justificativa em campos próprios.
+
+## PA-014 — Camada responsável pela mudança de status
+
+Confirmar se a regra de aprovação deve ser centralizada em `atualizar_status_aprovacao()` ou se a atualização direta na tela é intencional.
+
+## PA-015 — Navegação de saída da aprovação
+
+Definir se a tela deve possuir retorno explícito ao início de Medições e ao menu principal.
+
+## PA-016 — Identidade da obra no filtro de aprovação
+
+Confirmar se o filtro deve distinguir obras por `obra_id` além de exibir `nome_obra`.
