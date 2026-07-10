@@ -896,6 +896,142 @@ Os detalhes internos de `tela_aprovar_lancamentos()` ainda não foram auditados 
 
 ---
 
+## 7.3 Módulo Medições — Fluxo operacional de lançamentos
+
+### Visão geral
+
+A tela operacional de lançamento é implementada por `tela_lancar_producao()`, em `modulos/medicoes/lancamentos/tela_lancar.py`.
+
+Componentes diretamente envolvidos:
+
+- `pages/medicoes.py`
+- `modulos/medicoes/navegacao.py`
+- `modulos/medicoes/permissoes.py`
+- `modulos/medicoes/lancamentos/tela_lancar.py`
+- `modulos/medicoes/lancamentos/servicos.py`
+- `modulos/medicoes/lancamentos/repositorio.py`
+- `modulos/medicoes/repositorio.py`
+- `modulos/medicoes/config.py`
+- `modulos/medicoes/utils.py`
+- `services/github.py`
+
+Arquivos de dados diretamente consumidos:
+
+- `data/obras.csv`
+- `data/medicoes/usuarios_obras.csv`
+- `data/medicoes/locais_trabalho.csv`
+- tabela contratual indicada por `arquivo_tabela_servicos` em `data/obras.csv`
+- `data/medicoes/lancamentos_trabalho.csv`
+
+### Entrada, navegação e permissão
+
+O acesso começa em `pages/medicoes.py`, após `tem_acesso_medicoes()`.
+
+O fluxo `lancamento` é protegido novamente em `navegacao_lancamento()` por `pode_lancar_trabalho()`.
+
+Os perfis `funcionario`, `encarregado`, `aprovador` e `admin` podem entrar no fluxo.
+
+O perfil `funcionario` é redirecionado automaticamente para esse fluxo.
+
+### Identificação do usuário e obras disponíveis
+
+A tela possui a função local `_obter_usuario_logado()`, que procura, nesta ordem:
+
+- `email`
+- `usuario_email`
+- `user_email`
+- `usuario_logado`
+- `usuario`
+- `login`
+
+Ela aceita valor textual e, especificamente nessa tela, também aceita dicionário.
+
+A função `_filtrar_obras_por_usuario()` cruza o identificador encontrado com `usuario_id`, `email` ou `nome` em `usuarios_obras.csv`, considerando apenas vínculos ativos.
+
+Funcionamento observado:
+
+- sem identificação do usuário, nenhuma obra é liberada;
+- sem vínculos ativos, nenhuma obra é liberada;
+- para o perfil obtido da primeira linha de vínculo, `admin` ou `aprovador` recebe a lista completa de obras;
+- demais perfis recebem apenas as obras cujos `obra_id` aparecem nos vínculos;
+- o campo `status` de `data/obras.csv` não é usado para filtrar obras nessa tela.
+
+Observação:
+
+`obter_perfil_medicao()` escolhe o maior perfil do conjunto de vínculos, mas `_filtrar_obras_por_usuario()` usa o perfil da primeira linha encontrada. Os dois pontos não aplicam exatamente a mesma regra quando um usuário possui múltiplos vínculos com perfis diferentes.
+
+### Local e item contratual
+
+Os locais são obtidos por `listar_locais_por_obra(obra_id)`.
+
+Somente locais da obra cujo campo `ativo` corresponda a valor aceito são exibidos. A lista é ordenada por `nome_local`.
+
+A tela exige um local válido antes de criar o lançamento.
+
+A tabela contratual é definida pelo campo `arquivo_tabela_servicos` da obra e carregada a partir de `data/medicoes_tabelas/`.
+
+Itens inativos são filtrados quando a coluna `ativo` existe.
+
+O rótulo do serviço combina `codigo`, `descricao` e `unidade`.
+
+O campo `item_id` gravado recebe o mesmo valor de `codigo_item`. A coluna contratual `item` não é usada como identificador nessa tela.
+
+### Quantidade, data, observação e fotografia
+
+A quantidade é recebida por `st.number_input()`, com mínimo zero e passo 0,01.
+
+No salvamento, a tela rejeita quantidade menor ou igual a zero.
+
+A data é recebida por `st.date_input()`.
+
+A observação é opcional.
+
+O uploader aceita PNG, JPG e JPEG.
+
+Funcionamento observado da fotografia:
+
+- o objeto enviado não é repassado para `salvar_foto_lancamento()`;
+- a tela grava apenas `foto.name` no campo `foto_url`;
+- portanto, o fluxo atual não persiste os bytes da fotografia selecionada.
+
+### Criação, persistência e estados
+
+A tela chama `criar_lancamento_trabalho()`.
+
+O serviço:
+
+1. carrega todo o CSV de lançamentos;
+2. cria um ID com prefixo `LAN`;
+3. monta o registro;
+4. adiciona a linha ao DataFrame;
+5. solicita a substituição integral de `lancamentos_trabalho.csv`;
+6. retorna o dicionário montado.
+
+Estados iniciais observados:
+
+- `status_aprovacao = pendente`
+- `status_medicao = nao_medido`
+- `aprovado_por`, `aprovado_em` e `medicao_id_vinculada` vazios
+
+O lançamento nasce independente de uma medição.
+
+O fluxo de aprovação altera `status_aprovacao`.
+
+A etapa de gestão da medição considera elegíveis lançamentos da obra com `status_aprovacao = aprovado` e `status_medicao = nao_medido`.
+
+### Tratamento de erros e efeitos colaterais
+
+Os wrappers de leitura convertem exceções em DataFrames vazios.
+
+O wrapper de gravação captura exceções, exibe erro no Streamlit e retorna `False`.
+
+`criar_lancamento_trabalho()` não verifica o valor retornado por `salvar_lancamentos_trabalho()`.
+
+A tela exibe mensagem de sucesso após o retorno do serviço. Consequentemente, o código observado permite mensagem de sucesso mesmo quando o wrapper informou falha de persistência.
+
+A gravação substitui integralmente o CSV e cria um commit no repositório de dados.
+
+
 # 8. Fluxos
 
 ## 8.1 Fluxo principal de Medições
@@ -994,6 +1130,65 @@ Detalhes internos ainda não auditados.
 
 ---
 
+## 8.5 Fluxo detalhado de criação de lançamento
+
+Fluxo observado:
+
+Entrada no módulo Medições
+
+↓
+
+Validação interna por `tem_acesso_medicoes()`
+
+↓
+
+Seleção ou redirecionamento para `fluxo_medicoes = lancamento`
+
+↓
+
+Validação por `pode_lancar_trabalho()`
+
+↓
+
+Identificação do usuário na sessão
+
+↓
+
+Carregamento de obras e vínculos ativos
+
+↓
+
+Filtragem de obras conforme vínculo e perfil obtido na tela
+
+↓
+
+Seleção de local ativo da obra
+
+↓
+
+Carregamento da tabela contratual vinculada à obra
+
+↓
+
+Seleção de item contratual ativo
+
+↓
+
+Preenchimento de quantidade, data, observação e fotografia opcional
+
+↓
+
+Validação de local e quantidade
+
+↓
+
+`criar_lancamento_trabalho()`
+
+↓
+
+Inclusão em `data/medicoes/lancamentos_trabalho.csv` com aprovação pendente e ainda não medido.
+
+
 # 9. Observações Técnicas
 
 ## OT-001 — Fluxo legado de lançamentos
@@ -1063,6 +1258,41 @@ O nome pode não refletir mais o papel atual da função.
 
 Não renomear sem auditoria completa do fluxo de aprovação e dos imports relacionados.
 
+## OT-008 — Fotografia não persistida no fluxo operacional atual
+
+`tela_lancar_producao()` recebe uma fotografia pelo uploader, mas grava somente o nome original do arquivo em `foto_url`.
+
+A função existente `salvar_foto_lancamento()` não é chamada por esse fluxo.
+
+Assim, o CSV pode indicar um nome de fotografia sem que os bytes tenham sido salvos pelo fluxo atual.
+
+## OT-009 — Sucesso visual não confirma persistência
+
+`salvar_lancamentos_trabalho()` retorna `False` quando a gravação falha.
+
+`criar_lancamento_trabalho()` não verifica esse retorno e devolve o registro montado.
+
+A tela então exibe mensagem de sucesso.
+
+O sucesso visual do fluxo atual não confirma, por si só, que o CSV foi persistido.
+
+## OT-010 — Regras diferentes para perfil em múltiplos vínculos
+
+`obter_perfil_medicao()` escolhe o maior perfil encontrado em todos os vínculos ativos.
+
+`_filtrar_obras_por_usuario()` usa o perfil da primeira linha de vínculo.
+
+Um usuário com múltiplos vínculos e perfis diferentes pode, portanto, ser autorizado a entrar por uma regra e ter suas obras filtradas por outra.
+
+## OT-011 — Aprovador e admin recebem todas as obras na tela de lançamento
+
+Quando o perfil obtido da primeira linha é `admin` ou `aprovador`, `_filtrar_obras_por_usuario()` retorna todas as obras carregadas, não apenas as obras presentes nos vínculos do usuário.
+
+## OT-012 — Obras não são filtradas por status no lançamento
+
+`tela_lancar_producao()` carrega `data/obras.csv`, mas não filtra o campo `status` antes de apresentar ou liberar obras.
+
+
 # 10. Perguntas em Aberto
 
 ## PA-001 — Uso real de `pode_executar()`
@@ -1094,3 +1324,23 @@ Nenhuma consolidação deve ser feita antes da auditoria completa dos fluxos de 
 Auditar separadamente `tela_lancar_producao()` e `tela_aprovar_lancamentos()`.
 
 Essas telas são chamadas pelo fluxo principal de Medições, mas seus detalhes internos ainda não foram documentados.
+
+## PA-007 — Regra desejada para obras de aprovador e admin
+
+Confirmar se `aprovador` e `admin` devem lançar em todas as obras cadastradas ou somente nas obras às quais possuem vínculo ativo.
+
+## PA-008 — Persistência desejada para fotografias
+
+Definir se a fotografia é obrigatória ou opcional e se deve ser salva em `data/medicoes/fotos_lancamentos` por meio da função já existente.
+
+## PA-009 — Identificador contratual do lançamento
+
+Confirmar se `item_id` deve continuar recebendo o código contratual ou se deveria usar a coluna `item` da tabela contratual.
+
+## PA-010 — Confirmação de gravação na camada de serviço
+
+Definir como o fluxo deve comunicar falha de persistência antes de exibir sucesso ao usuário.
+
+## PA-011 — Obras inativas no fluxo operacional
+
+Confirmar se obras com status diferente de ativo devem permanecer selecionáveis na tela de lançamento.
