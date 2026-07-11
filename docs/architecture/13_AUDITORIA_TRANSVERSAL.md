@@ -6,7 +6,7 @@ Fonte de auditoria: `docs/audit/AUDIT_039_AUDITORIA_TRANSVERSAL.md`
 
 ## Escopo
 
-Esta consolidação cruza Medições, Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilhados. Medições permanece documentado no arquivo legado de transição; os demais domínios cruzados possuem consolidações modulares.
+Esta consolidação cruza Medições, Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilhados. Medições possui consolidações modulares em `01_MEDICOES_FUNDACAO.md` a `04_MEDICOES_GESTAO.md`; o documento legado permanece preservado como transição.
 
 ## Padrões comuns
 
