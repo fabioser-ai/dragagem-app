@@ -18,6 +18,7 @@ Centralizar o estado oficial do desenvolvimento do APP FOS.
 - Auditoria de Orçamentos concluída em `docs/audit/AUDIT_034_ORCAMENTOS.md` e consolidada em `docs/architecture/08_ORCAMENTOS.md`.
 - Auditoria de Prestação de Contas concluída em `docs/audit/AUDIT_035_PRESTACAO_CONTAS.md` e consolidada em `docs/architecture/09_PRESTACAO_CONTAS.md`.
 - Auditoria do CRM concluída em `docs/audit/AUDIT_036_CRM.md` e consolidada em `docs/architecture/10_CRM.md`.
+- Auditoria de Administração concluída em `docs/audit/AUDIT_037_ADMINISTRACAO.md` e consolidada em `docs/architecture/11_ADMINISTRACAO.md`.
 - `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado durante a migração gradual.
 
 ## Workflow oficial de auditoria
@@ -36,4 +37,4 @@ Centralizar o estado oficial do desenvolvimento do APP FOS.
 - `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; não remover conteúdo até a migração correspondente ser confirmada.
 
 ## Próximo passo
-Auditar o módulo Administração e consolidar o resultado em `docs/architecture/11_ADMINISTRACAO.md`.
+Auditar os Serviços Compartilhados e consolidar o resultado em `docs/architecture/12_SERVICOS_COMPARTILHADOS.md`.
