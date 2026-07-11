@@ -36,6 +36,8 @@ Princípios centrais:
 - A filosofia de desenvolvimento foi formalizada em `docs/DEVELOPMENT_PHILOSOPHY.md`.
 - AUDIT_039 — Auditoria Transversal de Consistência concluída em `docs/audit/AUDIT_039_AUDITORIA_TRANSVERSAL.md` e consolidada em `docs/architecture/13_AUDITORIA_TRANSVERSAL.md`.
 - AUDIT_040 — Auditoria do Conhecimento Registrado concluída em `docs/audit/AUDIT_040_CONHECIMENTO_REGISTRADO.md` e consolidada em `docs/architecture/14_CONHECIMENTO_REGISTRADO.md`.
+- AUDIT_041 — Migração documental de Medições concluída em `docs/audit/AUDIT_041_MIGRACAO_MEDICOES_LEGADO.md` e consolidada em `docs/architecture/01_MEDICOES_FUNDACAO.md` a `04_MEDICOES_GESTAO.md`.
+- O conhecimento específico de Medições possui agora fontes modulares; `docs/ARCHITECTURE_CURRENT.md` permanece legado até reconciliação completa.
 
 ## Workflow oficial de auditoria
 
@@ -58,4 +60,4 @@ Princípios centrais:
 
 ## Próximo passo
 
-Executar o baby step documental identificado na AUDIT_040: criar uma matriz de cobertura por módulo ou fluxo roteado, com fonte arquitetural vigente, auditoria de origem, nível de atualização e lacunas conhecidas. Só depois reavaliar o início da implementação do contrato de leitura em `services/github.py`.
+Executar o baby step documental identificado na AUDIT_040: criar uma matriz de cobertura por módulo ou fluxo roteado, com fonte arquitetural vigente, auditoria de origem, nível de atualização e lacunas conhecidas. A matriz deve apontar as novas fontes modulares de Medições. Só depois reavaliar o início da implementação do contrato de leitura em `services/github.py`.
