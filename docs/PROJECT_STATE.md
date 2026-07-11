@@ -41,7 +41,8 @@ Princípios centrais:
 - AUDIT_042 — Matriz de Cobertura Documental concluída em `docs/audit/AUDIT_042_MATRIZ_COBERTURA_DOCUMENTAL.md` e consolidada em `docs/architecture/15_MATRIZ_COBERTURA_DOCUMENTAL.md`.
 - A matriz demonstra cobertura forte para Medições, Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilhados.
 - AUDIT_043 — Auditoria do módulo Dados concluída em `docs/audit/AUDIT_043_DADOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
-- `Férias` e `Obras` permanecem sem auditoria modular dedicada; portanto, cobertura arquitetural integral do aplicativo ainda não está demonstrada.
+- AUDIT_044 — Auditoria do módulo Férias concluída em `docs/audit/AUDIT_044_FERIAS.md` e consolidada em `docs/architecture/17_FERIAS.md`.
+- `Obras` permanece sem auditoria modular dedicada; portanto, cobertura arquitetural integral do aplicativo ainda não está demonstrada.
 
 ## Workflow oficial de auditoria
 
@@ -66,6 +67,5 @@ Princípios centrais:
 
 Concluir a cobertura funcional antes da primeira implementação arquitetural transversal:
 
-1. auditar o módulo `Férias`, incluindo sua função como fonte de dados organizacionais para Prestação de Contas;
-2. auditar a rota/módulo `Obras`, incluindo sua relação com `data/orcamentos.csv`;
-3. somente depois reavaliar a implementação do contrato explícito de leitura em `services/github.py`.
+1. auditar a rota/módulo `Obras`, incluindo sua relação com `data/orcamentos.csv`;
+2. somente depois reavaliar a implementação do contrato explícito de leitura em `services/github.py`.
