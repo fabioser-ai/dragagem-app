@@ -40,12 +40,15 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `16_DADOS.md`
 - `17_FERIAS.md`
 - `18_OBRAS.md`
+- `19_CONTRATO_LEITURA.md`
 
 ## Cobertura
 
 A matriz em `15_MATRIZ_COBERTURA_DOCUMENTAL.md` relaciona as rotas observadas em `app.py` às fontes arquiteturais vigentes e registra o nível de cobertura e as lacunas conhecidas.
 
 A documentação modular possui agora cobertura forte para os domínios funcionais explicitamente roteados no ciclo auditado: Medições, Orçamentos, Prestação de Contas, CRM, Administração, Serviços Compartilhados, Dados, Férias e Obras.
+
+O contrato arquitetural para leitura explícita e bloqueio de escrita está definido em `19_CONTRATO_LEITURA.md`. Nenhuma implementação funcional foi realizada por essa definição.
 
 Permanecem lacunas secundárias já registradas para menu, bootstrap, fallback de rota e reconciliação final do documento legado.
 
