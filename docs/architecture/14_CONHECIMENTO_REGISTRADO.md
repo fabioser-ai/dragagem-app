@@ -17,7 +17,7 @@ Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilha
 
 ## Limites conhecidos
 
-- Medições continua documentado no arquivo legado de transição, não no índice modular.
+- Medições possui fontes modulares em `01_MEDICOES_FUNDACAO.md` a `04_MEDICOES_GESTAO.md`; o legado permanece preservado para reconciliação.
 - `ARCHITECTURE_CURRENT.md` possui atualização anterior às consolidações atuais e contém trechos temporais que precisam de reconciliação.
 - A documentação não apresenta ainda uma matriz única que prove a cobertura arquitetural de todos os módulos e fluxos roteados pelo aplicativo.
 - Não existe lista única, priorizada e rastreável de perguntas arquiteturais em aberto.
