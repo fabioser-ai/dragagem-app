@@ -36,6 +36,13 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `12_SERVICOS_COMPARTILHADOS.md`
 - `13_AUDITORIA_TRANSVERSAL.md`
 - `14_CONHECIMENTO_REGISTRADO.md`
+- `15_MATRIZ_COBERTURA_DOCUMENTAL.md`
+
+## Cobertura
+
+A matriz em `15_MATRIZ_COBERTURA_DOCUMENTAL.md` relaciona as rotas observadas em `app.py` às fontes arquiteturais vigentes e registra o nível de cobertura e as lacunas conhecidas.
+
+A documentação modular possui cobertura forte para Medições, Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilhados. `Dados`, `Férias` e `Obras` permanecem sem auditoria modular dedicada.
 
 ## Migração
 
