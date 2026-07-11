@@ -50,7 +50,8 @@ Princípios centrais:
 - `carregar_github()` e os demais chamadores permanecem legados; nenhum fluxo funcional foi migrado.
 - Foi criada a suíte `tests/test_github_leitura.py` com testes unitários focados no contrato explícito.
 - Foi criado `.github/workflows/tests.yml` para executar a suíte com `unittest` em Python 3.11.
-- A existência dos testes e do workflow foi confirmada por leitura posterior, mas nenhuma execução de CI foi confirmada pelas ferramentas disponíveis nesta sessão.
+- A suíte `tests/test_github_leitura.py` foi executada localmente com as dependências de `requirements.txt` no commit `14dd73d23b12f15607c4ebaffa15a3e18b1b8101`: 10 testes passaram.
+- Nenhuma execução de CI foi confirmada pelas ferramentas disponíveis nesta sessão; a validação confirmada é local e reproduz o comando do workflow.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -74,11 +75,8 @@ Princípios centrais:
 
 ## Próximo passo
 
-Concluir a validação da infraestrutura antes de migrar o primeiro chamador:
+Definir se a escrita estruturada com SHA esperado é indispensável ao piloto de Administração:
 
-1. confirmar execução bem-sucedida de `tests/test_github_leitura.py` pelo workflow ou por ambiente local confiável;
-2. corrigir apenas `services/github.py` ou os testes caso a validação revele falha;
-3. não migrar Administração enquanto a execução não estiver confirmada;
-4. depois preparar a escrita estruturada com SHA esperado, se necessária ao piloto;
-5. migrar somente Administração em alteração isolada;
-6. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
+1. se indispensável, implementá-la em Kid Step isolado, sem migrar chamadores;
+2. migrar somente Administração em alteração isolada após a escrita segura estar disponível;
+3. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
