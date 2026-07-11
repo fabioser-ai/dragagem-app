@@ -14,23 +14,26 @@ Centralizar o estado oficial do desenvolvimento do APP FOS.
 - Fluxo legado de lançamento identificado e documentado.
 - Dependências básicas declaradas em requirements.txt.
 - Auditorias incrementais preservadas em `docs/audit/`.
-- Auditoria de Orçamentos concluída em `docs/audit/AUDIT_034_ORCAMENTOS.md` e pendente de consolidação em `docs/ARCHITECTURE_CURRENT.md`.
-- Auditoria de Prestação de Contas concluída em `docs/audit/AUDIT_035_PRESTACAO_CONTAS.md` e pendente de consolidação em `docs/ARCHITECTURE_CURRENT.md`.
-- Auditoria do CRM concluída em `docs/audit/AUDIT_036_CRM.md` e pendente de consolidação em `docs/ARCHITECTURE_CURRENT.md`.
+- Estrutura modular oficial criada em `docs/architecture/`.
+- Auditoria de Orçamentos concluída em `docs/audit/AUDIT_034_ORCAMENTOS.md` e consolidada em `docs/architecture/08_ORCAMENTOS.md`.
+- Auditoria de Prestação de Contas concluída em `docs/audit/AUDIT_035_PRESTACAO_CONTAS.md` e consolidada em `docs/architecture/09_PRESTACAO_CONTAS.md`.
+- Auditoria do CRM concluída em `docs/audit/AUDIT_036_CRM.md` e consolidada em `docs/architecture/10_CRM.md`.
+- `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado durante a migração gradual.
 
 ## Workflow oficial de auditoria
 1. Auditar um subsistema por vez.
 2. Registrar a auditoria concluída em `docs/audit/AUDIT_XXX_<SUBSISTEMA>.md`.
-3. Atualizar `docs/ARCHITECTURE_CURRENT.md` na mesma sessão, quando operacionalmente possível.
+3. Consolidar os fatos observados no arquivo correspondente em `docs/architecture/`.
 4. Registrar apenas fatos observados; hipóteses devem ser explicitamente marcadas.
 5. Confirmar toda escrita por leitura posterior do trecho alterado.
-6. Se a consolidação no documento principal não puder ser concluída, preservar primeiro o relatório em `docs/audit/` e registrar que ele ainda está pendente de consolidação.
+6. Atualizar este `PROJECT_STATE.md`.
 7. Somente depois considerar a auditoria encerrada e avançar para o próximo subsistema.
 
 ## Hierarquia documental
 - `docs/PROJECT_STATE.md`: estado oficial e workflow do projeto.
-- `docs/ARCHITECTURE_CURRENT.md`: visão consolidada e oficial da arquitetura atual.
+- `docs/architecture/`: fonte modular e consolidada da arquitetura atual.
 - `docs/audit/`: histórico incremental e detalhado das auditorias realizadas.
+- `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; não remover conteúdo até a migração correspondente ser confirmada.
 
 ## Próximo passo
-Auditar o módulo Administração. As auditorias de Orçamentos, Prestação de Contas e CRM permanecem pendentes de consolidação segura em `docs/ARCHITECTURE_CURRENT.md`.
+Auditar o módulo Administração e consolidar o resultado em `docs/architecture/11_ADMINISTRACAO.md`.
