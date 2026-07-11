@@ -5,18 +5,23 @@ Esta pasta contém a documentação oficial e consolidada da arquitetura atual d
 ## Regra de autoridade
 
 - `docs/PROJECT_STATE.md` registra o estado oficial e o workflow do projeto.
+- `docs/DEVELOPMENT_PHILOSOPHY.md` define os princípios permanentes de desenvolvimento e auditoria.
 - `docs/architecture/` é a fonte consolidada da arquitetura atual por domínio.
 - `docs/audit/` preserva o histórico detalhado de cada auditoria.
 - `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado durante a transição para a estrutura modular.
 
+A documentação oficial prevalece sobre memória de conversas. Conclusões devem ser baseadas em código observado e nos registros oficiais; hipóteses, lacunas e limites precisam ser identificados como tais.
+
 ## Workflow oficial
 
-1. Auditar um subsistema por vez.
-2. Criar `docs/audit/AUDIT_XXX_<SUBSISTEMA>.md`.
-3. Consolidar os fatos observados no arquivo modular correspondente desta pasta.
-4. Confirmar toda escrita por leitura posterior.
-5. Atualizar `docs/PROJECT_STATE.md`.
-6. Não registrar hipóteses como fatos.
+1. Ler `docs/PROJECT_STATE.md`, `docs/DEVELOPMENT_PHILOSOPHY.md` e a documentação modular aplicável.
+2. Auditar um subsistema por vez ou um recorte transversal explicitamente definido.
+3. Criar `docs/audit/AUDIT_XXX_<SUBSISTEMA>.md`.
+4. Consolidar os fatos observados no arquivo modular correspondente desta pasta.
+5. Não alterar comportamento funcional nem refatorar por preferência durante auditorias.
+6. Confirmar toda escrita por leitura posterior.
+7. Atualizar `docs/PROJECT_STATE.md`.
+8. Não registrar hipóteses como fatos.
 
 ## Índice atual
 
