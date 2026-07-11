@@ -1,4 +1,4 @@
-# Arquitetura Atual — Contrato Explícito de Leitura
+# Arquitetura Atual — Contrato Explícito de Leitura e Escrita
 
 Última atualização: 2026-07-11
 
@@ -10,9 +10,9 @@ Fonte de auditoria: `docs/audit/AUDIT_046_CONTRATO_LEITURA.md`
 
 Como as gravações substituem o arquivo completo, essa ambiguidade pode levar à sobrescrita de dados válidos após falha de leitura.
 
-## Direção definida
+## Contrato explícito de leitura
 
-Adicionar uma nova API explícita, preservando temporariamente a função legada:
+A API estruturada é:
 
 ```python
 ler_csv_github(arquivo, token, repo) -> ResultadoLeituraCSV
@@ -27,7 +27,7 @@ O resultado transporta:
 - SHA observado;
 - descrição segura do erro.
 
-## Estados implementados
+### Estados implementados
 
 - `SUCESSO_COM_DADOS`;
 - `SUCESSO_VAZIO`;
@@ -38,72 +38,138 @@ O resultado transporta:
 - `CONTEUDO_INVALIDO`;
 - `ERRO_DESCONHECIDO`.
 
-## Política de escrita
+## Contrato explícito de escrita
+
+A API estruturada é:
+
+```python
+salvar_csv_github(
+    df,
+    arquivo,
+    token,
+    repo,
+    *,
+    sha_esperado=None,
+    criar=False,
+    mensagem=None,
+    timeout=DEFAULT_REQUEST_TIMEOUT,
+) -> ResultadoEscritaCSV
+```
+
+A escrita estruturada:
+
+- exige `sha_esperado` para atualização;
+- exige `criar=True` para criação;
+- rejeita criação acompanhada de SHA;
+- não executa GET para descobrir a versão remota;
+- devolve status estruturado em vez de levantar exceção genérica para respostas esperadas;
+- preserva o SHA resultante quando o GitHub o devolve.
+
+### Estados implementados
+
+- `SUCESSO_ATUALIZADO`;
+- `SUCESSO_CRIADO`;
+- `REQUISICAO_INVALIDA`;
+- `NAO_AUTORIZADO`;
+- `CONFLITO`;
+- `LIMITE_OU_VALIDACAO`;
+- `FALHA_TEMPORARIA`;
+- `ERRO_DESCONHECIDO`.
+
+## Política de segurança
 
 - atualização de arquivo existente somente após `SUCESSO_COM_DADOS` ou `SUCESSO_VAZIO`;
 - criação somente após `ARQUIVO_INEXISTENTE` e autorização explícita do chamador;
-- qualquer falha bloqueia a escrita derivada;
-- o SHA da leitura confirmada deve acompanhar a futura atualização;
-- a escrita não deve buscar um SHA novo e sobrescrever silenciosamente alterações concorrentes.
-
-A função estruturada de escrita com SHA esperado ainda não foi implementada. `salvar_github()` permanece legado.
+- qualquer falha de leitura bloqueia a escrita derivada;
+- o SHA da leitura confirmada acompanha a atualização;
+- a escrita não busca um SHA novo e não sobrescreve silenciosamente alterações concorrentes;
+- conflito HTTP 409 é devolvido como `StatusEscrita.CONFLITO`;
+- mensagens de sucesso só devem ser apresentadas após resultado estruturado com `sucesso=True`.
 
 ## Compatibilidade
 
-`carregar_github()` permanece temporariamente como adaptador legado porque muitos chamadores esperam um DataFrame.
+`carregar_github()` e `salvar_github()` permanecem temporariamente como adaptadores legados porque muitos chamadores esperam diretamente um DataFrame ou uma exceção simples.
 
-A migração será feita um fluxo por vez. O adaptador legado não deve ser considerado seguro em rotinas que regravam arquivos após uma leitura possivelmente vazia.
-
-Nenhum chamador foi migrado durante a implementação inicial da infraestrutura.
+A migração será feita um fluxo por vez. Os adaptadores legados não devem ser considerados seguros para novos fluxos que regravam arquivos após leitura possivelmente ambígua.
 
 ## Implementação realizada
 
 `services/github.py` contém agora:
 
 - `DEFAULT_REQUEST_TIMEOUT`;
-- enum `StatusLeitura`;
-- dataclass imutável `ResultadoLeituraCSV`;
-- propriedades `leitura_confirmada` e `pode_sobrescrever`;
-- função `ler_csv_github()`;
-- classificação de HTTP 401, 403, 404, 409, 422, 429 e 5xx;
-- classificação de timeout e falha de conexão;
-- validação de JSON, conteúdo base64, UTF-8 e CSV;
+- `StatusLeitura`;
+- `ResultadoLeituraCSV`;
+- `ler_csv_github()`;
+- `StatusEscrita`;
+- `ResultadoEscritaCSV`;
+- `salvar_csv_github()`;
+- classificação de HTTP, rede, conteúdo e CSV;
 - normalização das quebras de linha do base64 retornado pela API do GitHub;
-- preservação do SHA observado.
+- preservação do SHA observado e do SHA resultante.
 
 As funções legadas de leitura e escrita de CSV e arquivos binários permanecem disponíveis.
 
 ## Validação automatizada
 
-Foi criado `tests/test_github_leitura.py` usando `unittest` da biblioteca padrão, sem adicionar dependência de teste ao projeto.
+Foram criados:
 
-Cenários cobertos:
+- `tests/test_github_leitura.py`;
+- `tests/test_github_escrita.py`;
+- `.github/workflows/tests.yml`.
 
-1. sucesso com dados e SHA;
-2. base64 com quebras de linha;
-3. CSV somente com cabeçalho;
-4. arquivo fisicamente vazio;
-5. arquivo inexistente — HTTP 404;
-6. não autorizado — HTTP 401;
-7. limite ou conflito — HTTP 429;
-8. falha temporária — HTTP 500;
-9. timeout de rede;
-10. JSON inválido;
-11. base64 inválido.
-
-Foi criado `.github/workflows/tests.yml` para executar:
+A suíte completa foi executada localmente com as dependências instaladas:
 
 ```text
-python -m unittest discover -s tests -p "test_*.py" -v
+PYTHONPATH="$PWD/.venv/lib/python3.12/site-packages" python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-Em 2026-07-11, a suíte foi executada localmente no commit `14dd73d23b12f15607c4ebaffa15a3e18b1b8101`, após instalar as dependências declaradas em `requirements.txt`. Os 10 testes passaram. As ações disponíveis do conector ainda não retornaram uma execução ou status de CI para esse commit; a confirmação registrada é, portanto, local e reproduz o comando definido pelo workflow.
+Resultado confirmado:
+
+- 20 testes executados;
+- 20 aprovados;
+- 0 falhas;
+- 0 erros.
+
+A execução direta com o Python padrão falhou antes de carregar os testes porque aquele interpretador não possuía `requests`. A execução com as dependências declaradas do projeto foi bem-sucedida.
+
+## Primeiro consumidor migrado
+
+Administração foi migrada como piloto.
+
+`services/permissoes.py` oferece agora:
+
+- `carregar_permissoes_resultado()`;
+- `salvar_permissoes_seguro()`.
+
+`pages/administracao.py`:
+
+- usa o resultado explícito de leitura;
+- bloqueia inclusão, desativação e exclusão quando `pode_sobrescrever` é falso;
+- encaminha o SHA da leitura para a escrita;
+- apresenta mensagens coerentes de falha e conflito;
+- não cria automaticamente o arquivo quando ele está ausente.
+
+A migração foi validada com:
+
+- 20 testes unitários aprovados;
+- `py_compile` bem-sucedido para `services/permissoes.py` e `pages/administracao.py`;
+- inspeção estática dos caminhos de inclusão, desativação e exclusão;
+- nenhum arquivo rastreado modificado durante a validação.
+
+Não foram alterados no piloto:
+
+- schema de permissões;
+- regras de autorização;
+- validação de usuários;
+- duplicidades;
+- trilha de auditoria;
+- exclusão física.
 
 ## Ordem de migração
 
-### Prioridade de bloqueio de escrita
+A ordem transversal vigente é:
 
-1. Administração;
+1. Administração — concluída;
 2. logs;
 3. Dados;
 4. Férias;
@@ -112,26 +178,10 @@ Em 2026-07-11, a suíte foi executada localmente no commit `14dd73d23b12f15607c4
 7. Orçamentos;
 8. Medições.
 
-### Somente leitura e mensagens operacionais
-
-Depois dos fluxos de escrita, migrar consultas como Obras e demais telas que apresentam falha como ausência de dados.
-
-## Piloto recomendado
-
-Administração será o primeiro chamador migrado depois que a execução dos testes da infraestrutura estiver confirmada.
-
-O piloto deve apenas:
-
-- usar o resultado explícito;
-- bloquear inclusão, desativação e exclusão quando a leitura não for confirmada;
-- preservar o SHA observado para a escrita;
-- apresentar mensagem coerente.
-
-Não deve incluir no mesmo passo validação de usuários, duplicidades, trilha de auditoria ou alteração de schema.
+Depois dos fluxos de escrita, migrar consultas somente leitura, como Obras, para deixarem de apresentar falha como ausência de dados.
 
 ## Próximo passo seguro
 
-1. definir se a escrita estruturada que receba o SHA esperado é indispensável ao piloto de Administração;
-2. se for indispensável, implementá-la em Kid Step isolado, sem migrar chamadores;
-3. migrar Administração em alteração isolada;
-4. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
+Auditar e preparar a migração isolada de `services/log.py` para o contrato explícito, porque cada evento relê e regrava integralmente `data/log_acessos.csv`.
+
+A próxima alteração não deve ser combinada com mudanças de formato de log, retenção, schema ou regras de autenticação.
