@@ -1,4 +1,5 @@
 import base64
+import binascii
 from dataclasses import dataclass
 from enum import Enum
 from io import StringIO
@@ -184,9 +185,10 @@ def ler_csv_github(
         )
 
     try:
-        decoded_bytes = base64.b64decode(content, validate=True)
+        content_normalizado = "".join(str(content).split())
+        decoded_bytes = base64.b64decode(content_normalizado, validate=True)
         decoded = decoded_bytes.decode("utf-8")
-    except (ValueError, UnicodeDecodeError, base64.binascii.Error):
+    except (ValueError, UnicodeDecodeError, binascii.Error):
         return _resultado_leitura(
             status=StatusLeitura.CONTEUDO_INVALIDO,
             arquivo=arquivo,
