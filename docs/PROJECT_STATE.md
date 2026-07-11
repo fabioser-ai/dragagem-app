@@ -40,7 +40,8 @@ Princípios centrais:
 - O conhecimento específico de Medições possui agora fontes modulares; `docs/ARCHITECTURE_CURRENT.md` permanece legado até reconciliação completa.
 - AUDIT_042 — Matriz de Cobertura Documental concluída em `docs/audit/AUDIT_042_MATRIZ_COBERTURA_DOCUMENTAL.md` e consolidada em `docs/architecture/15_MATRIZ_COBERTURA_DOCUMENTAL.md`.
 - A matriz demonstra cobertura forte para Medições, Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilhados.
-- `Dados`, `Férias` e `Obras` permanecem sem auditoria modular dedicada; portanto, cobertura arquitetural integral do aplicativo ainda não está demonstrada.
+- AUDIT_043 — Auditoria do módulo Dados concluída em `docs/audit/AUDIT_043_DADOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
+- `Férias` e `Obras` permanecem sem auditoria modular dedicada; portanto, cobertura arquitetural integral do aplicativo ainda não está demonstrada.
 
 ## Workflow oficial de auditoria
 
@@ -65,7 +66,6 @@ Princípios centrais:
 
 Concluir a cobertura funcional antes da primeira implementação arquitetural transversal:
 
-1. auditar o módulo `Dados`, por concentrar cadastros técnicos consumidos por outros fluxos;
-2. auditar o módulo `Férias`, incluindo sua função como fonte de dados organizacionais para Prestação de Contas;
-3. auditar a rota/módulo `Obras`, incluindo sua relação com `data/orcamentos.csv`;
-4. somente depois reavaliar a implementação do contrato explícito de leitura em `services/github.py`.
+1. auditar o módulo `Férias`, incluindo sua função como fonte de dados organizacionais para Prestação de Contas;
+2. auditar a rota/módulo `Obras`, incluindo sua relação com `data/orcamentos.csv`;
+3. somente depois reavaliar a implementação do contrato explícito de leitura em `services/github.py`.
