@@ -23,6 +23,17 @@ class StatusLeitura(str, Enum):
     ERRO_DESCONHECIDO = "erro_desconhecido"
 
 
+class StatusEscrita(str, Enum):
+    SUCESSO_ATUALIZADO = "sucesso_atualizado"
+    SUCESSO_CRIADO = "sucesso_criado"
+    REQUISICAO_INVALIDA = "requisicao_invalida"
+    NAO_AUTORIZADO = "nao_autorizado"
+    CONFLITO = "conflito"
+    LIMITE_OU_VALIDACAO = "limite_ou_validacao"
+    FALHA_TEMPORARIA = "falha_temporaria"
+    ERRO_DESCONHECIDO = "erro_desconhecido"
+
+
 @dataclass(frozen=True)
 class ResultadoLeituraCSV:
     status: StatusLeitura
@@ -48,6 +59,23 @@ class ResultadoLeituraCSV:
         }
 
 
+@dataclass(frozen=True)
+class ResultadoEscritaCSV:
+    status: StatusEscrita
+    arquivo: str
+    http_status: Optional[int] = None
+    sha: Optional[str] = None
+    erro: Optional[str] = None
+
+    @property
+    def sucesso(self) -> bool:
+        return self.status in {
+            StatusEscrita.SUCESSO_ATUALIZADO,
+            StatusEscrita.SUCESSO_CRIADO,
+        }
+
+
+
 def _resultado_leitura(
     *,
     status,
@@ -65,6 +93,25 @@ def _resultado_leitura(
         sha=sha,
         erro=erro,
     )
+
+
+
+def _resultado_escrita(
+    *,
+    status,
+    arquivo,
+    http_status=None,
+    sha=None,
+    erro=None,
+):
+    return ResultadoEscritaCSV(
+        status=status,
+        arquivo=arquivo,
+        http_status=http_status,
+        sha=sha,
+        erro=erro,
+    )
+
 
 
 def ler_csv_github(
@@ -239,8 +286,146 @@ def ler_csv_github(
     )
 
 
+
+def salvar_csv_github(
+    df,
+    arquivo,
+    token,
+    repo,
+    *,
+    sha_esperado=None,
+    criar=False,
+    mensagem=None,
+    timeout=DEFAULT_REQUEST_TIMEOUT,
+):
+    """Cria ou atualiza um CSV usando explicitamente o SHA lido pelo chamador.
+
+    Atualizações exigem ``sha_esperado``. Criações exigem ``criar=True`` e não
+    aceitam SHA. A função não executa GET para descobrir a versão remota.
+    """
+
+    if criar and sha_esperado:
+        return _resultado_escrita(
+            status=StatusEscrita.REQUISICAO_INVALIDA,
+            arquivo=arquivo,
+            erro="Criação não aceita SHA esperado.",
+        )
+
+    if not criar and not sha_esperado:
+        return _resultado_escrita(
+            status=StatusEscrita.REQUISICAO_INVALIDA,
+            arquivo=arquivo,
+            erro="Atualização exige SHA esperado da leitura confirmada.",
+        )
+
+    url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
+    headers = {"Authorization": f"token {token}"}
+
+    csv_string = df.to_csv(index=False)
+    content = base64.b64encode(csv_string.encode("utf-8")).decode("ascii")
+
+    data = {
+        "message": mensagem or (f"Create {arquivo}" if criar else f"Update {arquivo}"),
+        "content": content,
+    }
+
+    if sha_esperado:
+        data["sha"] = sha_esperado
+
+    try:
+        response = requests.put(
+            url,
+            headers=headers,
+            json=data,
+            timeout=timeout,
+        )
+    except (requests.Timeout, requests.ConnectionError) as exc:
+        return _resultado_escrita(
+            status=StatusEscrita.FALHA_TEMPORARIA,
+            arquivo=arquivo,
+            erro=f"Falha temporária ao salvar o arquivo: {exc.__class__.__name__}",
+        )
+    except requests.RequestException as exc:
+        return _resultado_escrita(
+            status=StatusEscrita.ERRO_DESCONHECIDO,
+            arquivo=arquivo,
+            erro=f"Erro de comunicação ao salvar o arquivo: {exc.__class__.__name__}",
+        )
+    except Exception as exc:
+        return _resultado_escrita(
+            status=StatusEscrita.ERRO_DESCONHECIDO,
+            arquivo=arquivo,
+            erro=f"Erro inesperado ao salvar o arquivo: {exc.__class__.__name__}",
+        )
+
+    http_status = response.status_code
+
+    if http_status in (200, 201):
+        sha_resultante = None
+        try:
+            payload = response.json()
+            if isinstance(payload, dict):
+                conteudo = payload.get("content")
+                if isinstance(conteudo, dict):
+                    sha_resultante = conteudo.get("sha")
+        except ValueError:
+            pass
+
+        return _resultado_escrita(
+            status=(
+                StatusEscrita.SUCESSO_CRIADO
+                if http_status == 201
+                else StatusEscrita.SUCESSO_ATUALIZADO
+            ),
+            arquivo=arquivo,
+            http_status=http_status,
+            sha=sha_resultante,
+        )
+
+    if http_status in (401, 403):
+        return _resultado_escrita(
+            status=StatusEscrita.NAO_AUTORIZADO,
+            arquivo=arquivo,
+            http_status=http_status,
+            erro="Escrita não autorizada pelo GitHub.",
+        )
+
+    if http_status == 409:
+        return _resultado_escrita(
+            status=StatusEscrita.CONFLITO,
+            arquivo=arquivo,
+            http_status=http_status,
+            erro="O arquivo foi alterado desde a leitura confirmada.",
+        )
+
+    if http_status in (422, 429):
+        return _resultado_escrita(
+            status=StatusEscrita.LIMITE_OU_VALIDACAO,
+            arquivo=arquivo,
+            http_status=http_status,
+            erro="O GitHub recusou a escrita por validação ou limite.",
+        )
+
+    if 500 <= http_status <= 599:
+        return _resultado_escrita(
+            status=StatusEscrita.FALHA_TEMPORARIA,
+            arquivo=arquivo,
+            http_status=http_status,
+            erro="O GitHub está temporariamente indisponível para esta escrita.",
+        )
+
+    return _resultado_escrita(
+        status=StatusEscrita.ERRO_DESCONHECIDO,
+        arquivo=arquivo,
+        http_status=http_status,
+        erro="Resposta HTTP inesperada ao salvar o arquivo.",
+    )
+
+
 # =========================
 # SALVAR CSV NO GITHUB
+# Adaptador legado: busca o SHA novamente antes do PUT.
+# Não usar em novos fluxos que exigem controle de concorrência.
 # =========================
 def salvar_github(df, arquivo, token, repo):
     url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
