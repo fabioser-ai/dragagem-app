@@ -25,6 +25,10 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 
 ## Índice atual
 
+- `01_MEDICOES_FUNDACAO.md`
+- `02_MEDICOES_LANCAMENTOS.md`
+- `03_MEDICOES_APROVACAO.md`
+- `04_MEDICOES_GESTAO.md`
 - `08_ORCAMENTOS.md`
 - `09_PRESTACAO_CONTAS.md`
 - `10_CRM.md`
