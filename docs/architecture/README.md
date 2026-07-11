@@ -31,6 +31,7 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `11_ADMINISTRACAO.md`
 - `12_SERVICOS_COMPARTILHADOS.md`
 - `13_AUDITORIA_TRANSVERSAL.md`
+- `14_CONHECIMENTO_REGISTRADO.md`
 
 ## Migração
 
