@@ -24,6 +24,7 @@ Esta pasta contém a documentação oficial e consolidada da arquitetura atual d
 - `09_PRESTACAO_CONTAS.md`
 - `10_CRM.md`
 - `11_ADMINISTRACAO.md`
+- `12_SERVICOS_COMPARTILHADOS.md`
 
 ## Migração
 
