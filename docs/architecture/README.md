@@ -23,6 +23,7 @@ Esta pasta contém a documentação oficial e consolidada da arquitetura atual d
 - `08_ORCAMENTOS.md`
 - `09_PRESTACAO_CONTAS.md`
 - `10_CRM.md`
+- `11_ADMINISTRACAO.md`
 
 ## Migração
 
