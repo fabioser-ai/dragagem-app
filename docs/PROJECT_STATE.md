@@ -44,6 +44,9 @@ Princípios centrais:
 - AUDIT_044 — Auditoria do módulo Férias concluída em `docs/audit/AUDIT_044_FERIAS.md` e consolidada em `docs/architecture/17_FERIAS.md`.
 - AUDIT_045 — Auditoria da rota Obras concluída em `docs/audit/AUDIT_045_OBRAS.md` e consolidada em `docs/architecture/18_OBRAS.md`.
 - A cobertura modular dos domínios funcionais explicitamente roteados no ciclo auditado está concluída.
+- AUDIT_046 — Contrato Explícito de Resultado de Leitura concluída em `docs/audit/AUDIT_046_CONTRATO_LEITURA.md` e consolidada em `docs/architecture/19_CONTRATO_LEITURA.md`.
+- O contrato define estados explícitos de leitura, bloqueio de escrita após falha, preservação do SHA observado e migração gradual dos chamadores.
+- Nenhum comportamento funcional foi alterado na AUDIT_046.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -67,9 +70,13 @@ Princípios centrais:
 
 ## Próximo passo
 
-Reavaliar, com base na cobertura funcional concluída e na AUDIT_039, o primeiro baby step de implementação arquitetural transversal:
+Executar o primeiro baby step de implementação arquitetural transversal, sem migrar chamadores no mesmo commit:
 
-1. definir formalmente o contrato explícito de resultado de leitura em `services/github.py`;
-2. identificar os chamadores que devem bloquear escrita após leitura não confirmada;
-3. preparar uma alteração isolada, sem combinar com mudanças de schema, permissões ou regras de negócio;
-4. somente então iniciar implementação funcional.
+1. alterar somente `services/github.py`;
+2. adicionar `StatusLeitura`;
+3. adicionar `ResultadoLeituraCSV` imutável;
+4. adicionar `ler_csv_github()` com timeout e classificação de HTTP, rede, conteúdo e CSV;
+5. preservar `carregar_github()` como adaptador legado;
+6. validar a nova função com testes ou respostas simuladas;
+7. confirmar que nenhum fluxo funcional mudou;
+8. somente depois preparar a migração isolada de Administração como primeiro chamador.
