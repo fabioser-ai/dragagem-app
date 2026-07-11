@@ -1,18 +1,30 @@
 # PROJECT_STATE
 
 ## Objetivo
+
 Centralizar o estado oficial do desenvolvimento do APP FOS.
 
 ## Filosofia
+
+A filosofia oficial de desenvolvimento está registrada em `docs/DEVELOPMENT_PHILOSOPHY.md`.
+
+Princípios centrais:
+
 - Baby steps.
-- Uma mudança por vez.
-- Evitar refatorações grandes.
+- Uma alteração por vez.
+- Arquitetura antes de implementação.
 - Auditoria antes de implementação.
+- Código observado acima de hipóteses.
+- Documentação oficial acima da memória.
+- Não refatorar por preferência pessoal.
+- Confirmar toda escrita por leitura posterior.
+- O conhecimento oficial do projeto pertence ao repositório.
 
 ## Estado atual
+
 - Arquitetura auditada.
 - Fluxo legado de lançamento identificado e documentado.
-- Dependências básicas declaradas em requirements.txt.
+- Dependências básicas declaradas em `requirements.txt`.
 - Auditorias incrementais preservadas em `docs/audit/`.
 - Estrutura modular oficial criada em `docs/architecture/`.
 - Auditoria de Orçamentos concluída em `docs/audit/AUDIT_034_ORCAMENTOS.md` e consolidada em `docs/architecture/08_ORCAMENTOS.md`.
@@ -21,21 +33,27 @@ Centralizar o estado oficial do desenvolvimento do APP FOS.
 - Auditoria de Administração concluída em `docs/audit/AUDIT_037_ADMINISTRACAO.md` e consolidada em `docs/architecture/11_ADMINISTRACAO.md`.
 - Auditoria de Serviços Compartilhados concluída em `docs/audit/AUDIT_038_SERVICOS_COMPARTILHADOS.md` e consolidada em `docs/architecture/12_SERVICOS_COMPARTILHADOS.md`.
 - `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado durante a migração gradual.
+- A filosofia de desenvolvimento foi formalizada em `docs/DEVELOPMENT_PHILOSOPHY.md`.
 
 ## Workflow oficial de auditoria
-1. Auditar um subsistema por vez.
-2. Registrar a auditoria concluída em `docs/audit/AUDIT_XXX_<SUBSISTEMA>.md`.
-3. Consolidar os fatos observados no arquivo correspondente em `docs/architecture/`.
-4. Registrar apenas fatos observados; hipóteses devem ser explicitamente marcadas.
-5. Confirmar toda escrita por leitura posterior do trecho alterado.
-6. Atualizar este `PROJECT_STATE.md`.
-7. Somente depois considerar a auditoria encerrada e avançar para o próximo subsistema.
+
+1. Ler `docs/PROJECT_STATE.md`, `docs/DEVELOPMENT_PHILOSOPHY.md` e a documentação aplicável de `docs/architecture/`.
+2. Auditar um subsistema por vez ou um recorte transversal explicitamente definido.
+3. Registrar a auditoria concluída em `docs/audit/AUDIT_XXX_<SUBSISTEMA>.md`.
+4. Consolidar os fatos observados no arquivo correspondente em `docs/architecture/`.
+5. Registrar apenas fatos observados; hipóteses, lacunas e limites devem ser explicitamente marcados.
+6. Confirmar toda escrita por leitura posterior do trecho alterado.
+7. Atualizar este `PROJECT_STATE.md`.
+8. Somente depois considerar a auditoria encerrada e avançar para o próximo subsistema.
 
 ## Hierarquia documental
+
 - `docs/PROJECT_STATE.md`: estado oficial e workflow do projeto.
-- `docs/architecture/`: fonte modular e consolidada da arquitetura atual.
+- `docs/DEVELOPMENT_PHILOSOPHY.md`: princípios e regras permanentes de desenvolvimento e auditoria.
+- `docs/architecture/`: fonte modular e consolidada da arquitetura atual por domínio.
 - `docs/audit/`: histórico incremental e detalhado das auditorias realizadas.
 - `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; não remover conteúdo até a migração correspondente ser confirmada.
 
 ## Próximo passo
-Executar a auditoria transversal final de consistência, cruzando os módulos e serviços já auditados para identificar padrões, duplicações, riscos sistêmicos e uma sequência segura de evolução arquitetural.
+
+Executar `AUDIT_039 — Auditoria Transversal de Consistência`, cruzando os módulos e serviços já auditados para identificar padrões arquiteturais, inconsistências, duplicações, acoplamentos, estados, autorização, persistência, identidade dos dados, riscos sistêmicos, oportunidades de simplificação e uma sequência segura de evolução. Registrar apenas fatos observados; hipóteses devem ser explicitamente identificadas.
