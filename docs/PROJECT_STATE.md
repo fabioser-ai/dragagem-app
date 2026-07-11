@@ -46,7 +46,11 @@ Princípios centrais:
 - A cobertura modular dos domínios funcionais explicitamente roteados no ciclo auditado está concluída.
 - AUDIT_046 — Contrato Explícito de Resultado de Leitura concluída em `docs/audit/AUDIT_046_CONTRATO_LEITURA.md` e consolidada em `docs/architecture/19_CONTRATO_LEITURA.md`.
 - O contrato define estados explícitos de leitura, bloqueio de escrita após falha, preservação do SHA observado e migração gradual dos chamadores.
-- Nenhum comportamento funcional foi alterado na AUDIT_046.
+- A infraestrutura inicial foi implementada em `services/github.py` com `StatusLeitura`, `ResultadoLeituraCSV` e `ler_csv_github()`.
+- `carregar_github()` e os demais chamadores permanecem legados; nenhum fluxo funcional foi migrado.
+- Foi criada a suíte `tests/test_github_leitura.py` com testes unitários focados no contrato explícito.
+- Foi criado `.github/workflows/tests.yml` para executar a suíte com `unittest` em Python 3.11.
+- A existência dos testes e do workflow foi confirmada por leitura posterior, mas nenhuma execução de CI foi confirmada pelas ferramentas disponíveis nesta sessão.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -70,13 +74,11 @@ Princípios centrais:
 
 ## Próximo passo
 
-Executar o primeiro baby step de implementação arquitetural transversal, sem migrar chamadores no mesmo commit:
+Concluir a validação da infraestrutura antes de migrar o primeiro chamador:
 
-1. alterar somente `services/github.py`;
-2. adicionar `StatusLeitura`;
-3. adicionar `ResultadoLeituraCSV` imutável;
-4. adicionar `ler_csv_github()` com timeout e classificação de HTTP, rede, conteúdo e CSV;
-5. preservar `carregar_github()` como adaptador legado;
-6. validar a nova função com testes ou respostas simuladas;
-7. confirmar que nenhum fluxo funcional mudou;
-8. somente depois preparar a migração isolada de Administração como primeiro chamador.
+1. confirmar execução bem-sucedida de `tests/test_github_leitura.py` pelo workflow ou por ambiente local confiável;
+2. corrigir apenas `services/github.py` ou os testes caso a validação revele falha;
+3. não migrar Administração enquanto a execução não estiver confirmada;
+4. depois preparar a escrita estruturada com SHA esperado, se necessária ao piloto;
+5. migrar somente Administração em alteração isolada;
+6. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
