@@ -45,13 +45,16 @@ Princípios centrais:
 - AUDIT_045 — Auditoria da rota Obras concluída em `docs/audit/AUDIT_045_OBRAS.md` e consolidada em `docs/architecture/18_OBRAS.md`.
 - A cobertura modular dos domínios funcionais explicitamente roteados no ciclo auditado está concluída.
 - AUDIT_046 — Contrato Explícito de Resultado de Leitura concluída em `docs/audit/AUDIT_046_CONTRATO_LEITURA.md` e consolidada em `docs/architecture/19_CONTRATO_LEITURA.md`.
-- O contrato define estados explícitos de leitura, bloqueio de escrita após falha, preservação do SHA observado e migração gradual dos chamadores.
-- A infraestrutura inicial foi implementada em `services/github.py` com `StatusLeitura`, `ResultadoLeituraCSV` e `ler_csv_github()`.
-- `carregar_github()` e os demais chamadores permanecem legados; nenhum fluxo funcional foi migrado.
-- Foi criada a suíte `tests/test_github_leitura.py` com testes unitários focados no contrato explícito.
-- Foi criado `.github/workflows/tests.yml` para executar a suíte com `unittest` em Python 3.11.
-- A suíte `tests/test_github_leitura.py` foi executada localmente com as dependências de `requirements.txt` no commit `14dd73d23b12f15607c4ebaffa15a3e18b1b8101`: 10 testes passaram.
-- Nenhuma execução de CI foi confirmada pelas ferramentas disponíveis nesta sessão; a validação confirmada é local e reproduz o comando do workflow.
+- O contrato explícito de leitura foi implementado em `services/github.py` com `StatusLeitura`, `ResultadoLeituraCSV` e `ler_csv_github()`.
+- O contrato explícito de escrita foi implementado em `services/github.py` com `StatusEscrita`, `ResultadoEscritaCSV` e `salvar_csv_github()`.
+- `carregar_github()` e `salvar_github()` permanecem como adaptadores legados para consumidores ainda não migrados.
+- Foram criadas as suítes `tests/test_github_leitura.py` e `tests/test_github_escrita.py`.
+- A suíte completa foi executada localmente com as dependências do projeto: 20 testes passaram, sem falhas ou erros.
+- Administração foi migrada como primeiro consumidor do contrato explícito.
+- `pages/administracao.py` bloqueia inclusão, desativação e exclusão quando a leitura não autoriza sobrescrita.
+- As gravações administrativas usam o SHA obtido na leitura confirmada.
+- A migração de Administração foi validada por testes, compilação sintática e inspeção estática, sem alterações rastreadas no workspace de validação.
+- Nenhum schema ou regra de permissão foi alterado nessa migração.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -75,8 +78,10 @@ Princípios centrais:
 
 ## Próximo passo
 
-Definir se a escrita estruturada com SHA esperado é indispensável ao piloto de Administração:
+Preparar a migração isolada de logs para o contrato explícito de leitura e escrita:
 
-1. se indispensável, implementá-la em Kid Step isolado, sem migrar chamadores;
-2. migrar somente Administração em alteração isolada após a escrita segura estar disponível;
-3. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
+1. auditar novamente o fluxo atual em `services/log.py` e os chamadores diretos;
+2. definir como bloquear regravação quando a leitura de `data/log_acessos.csv` não for confirmada;
+3. preservar o schema e o comportamento funcional atual do log;
+4. implementar a migração em Kid Step isolado;
+5. validar com testes antes de avançar para Dados.
