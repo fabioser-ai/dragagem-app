@@ -22,7 +22,7 @@ Princípios centrais:
 
 ## Estado atual
 
-- Arquitetura auditada.
+- Arquitetura auditada no ciclo priorizado e documentado.
 - Fluxo legado de lançamento identificado e documentado.
 - Dependências básicas declaradas em `requirements.txt`.
 - Auditorias incrementais preservadas em `docs/audit/`.
@@ -38,6 +38,9 @@ Princípios centrais:
 - AUDIT_040 — Auditoria do Conhecimento Registrado concluída em `docs/audit/AUDIT_040_CONHECIMENTO_REGISTRADO.md` e consolidada em `docs/architecture/14_CONHECIMENTO_REGISTRADO.md`.
 - AUDIT_041 — Migração documental de Medições concluída em `docs/audit/AUDIT_041_MIGRACAO_MEDICOES_LEGADO.md` e consolidada em `docs/architecture/01_MEDICOES_FUNDACAO.md` a `04_MEDICOES_GESTAO.md`.
 - O conhecimento específico de Medições possui agora fontes modulares; `docs/ARCHITECTURE_CURRENT.md` permanece legado até reconciliação completa.
+- AUDIT_042 — Matriz de Cobertura Documental concluída em `docs/audit/AUDIT_042_MATRIZ_COBERTURA_DOCUMENTAL.md` e consolidada em `docs/architecture/15_MATRIZ_COBERTURA_DOCUMENTAL.md`.
+- A matriz demonstra cobertura forte para Medições, Orçamentos, Prestação de Contas, CRM, Administração e Serviços Compartilhados.
+- `Dados`, `Férias` e `Obras` permanecem sem auditoria modular dedicada; portanto, cobertura arquitetural integral do aplicativo ainda não está demonstrada.
 
 ## Workflow oficial de auditoria
 
@@ -60,4 +63,9 @@ Princípios centrais:
 
 ## Próximo passo
 
-Executar o baby step documental identificado na AUDIT_040: criar uma matriz de cobertura por módulo ou fluxo roteado, com fonte arquitetural vigente, auditoria de origem, nível de atualização e lacunas conhecidas. A matriz deve apontar as novas fontes modulares de Medições. Só depois reavaliar o início da implementação do contrato de leitura em `services/github.py`.
+Concluir a cobertura funcional antes da primeira implementação arquitetural transversal:
+
+1. auditar o módulo `Dados`, por concentrar cadastros técnicos consumidos por outros fluxos;
+2. auditar o módulo `Férias`, incluindo sua função como fonte de dados organizacionais para Prestação de Contas;
+3. auditar a rota/módulo `Obras`, incluindo sua relação com `data/orcamentos.csv`;
+4. somente depois reavaliar a implementação do contrato explícito de leitura em `services/github.py`.
