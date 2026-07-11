@@ -97,7 +97,7 @@ Foi criado `.github/workflows/tests.yml` para executar:
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-O ambiente desta sessão não conseguiu executar o repositório localmente e as ações disponíveis do conector não retornaram uma execução ou status de CI para o commit do workflow. Portanto, a existência dos testes e do workflow foi confirmada por leitura, mas o resultado da execução automatizada permanece pendente de confirmação.
+Em 2026-07-11, a suíte foi executada localmente no commit `14dd73d23b12f15607c4ebaffa15a3e18b1b8101`, após instalar as dependências declaradas em `requirements.txt`. Os 10 testes passaram. As ações disponíveis do conector ainda não retornaram uma execução ou status de CI para esse commit; a confirmação registrada é, portanto, local e reproduz o comando definido pelo workflow.
 
 ## Ordem de migração
 
@@ -131,8 +131,7 @@ Não deve incluir no mesmo passo validação de usuários, duplicidades, trilha 
 
 ## Próximo passo seguro
 
-1. confirmar uma execução bem-sucedida de `tests/test_github_leitura.py`;
-2. corrigir somente a infraestrutura caso algum teste falhe;
-3. definir e implementar a escrita estruturada que receba o SHA esperado, se indispensável ao piloto;
-4. migrar Administração em alteração isolada;
-5. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
+1. definir se a escrita estruturada que receba o SHA esperado é indispensável ao piloto de Administração;
+2. se for indispensável, implementá-la em Kid Step isolado, sem migrar chamadores;
+3. migrar Administração em alteração isolada;
+4. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
