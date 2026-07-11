@@ -35,6 +35,7 @@ Princípios centrais:
 - `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado durante a migração gradual.
 - A filosofia de desenvolvimento foi formalizada em `docs/DEVELOPMENT_PHILOSOPHY.md`.
 - AUDIT_039 — Auditoria Transversal de Consistência concluída em `docs/audit/AUDIT_039_AUDITORIA_TRANSVERSAL.md` e consolidada em `docs/architecture/13_AUDITORIA_TRANSVERSAL.md`.
+- AUDIT_040 — Auditoria do Conhecimento Registrado concluída em `docs/audit/AUDIT_040_CONHECIMENTO_REGISTRADO.md` e consolidada em `docs/architecture/14_CONHECIMENTO_REGISTRADO.md`.
 
 ## Workflow oficial de auditoria
 
@@ -57,4 +58,4 @@ Princípios centrais:
 
 ## Próximo passo
 
-Definir o próximo baby step de evolução a partir da AUDIT_039. A direção registrada é começar por um resultado explícito de leitura em `services/github.py`, distinguindo leitura válida, arquivo vazio válido, arquivo inexistente, falha de autenticação, falha de rede/API e conteúdo inválido; nenhuma implementação deve iniciar antes de confirmar esse escopo.
+Executar o baby step documental identificado na AUDIT_040: criar uma matriz de cobertura por módulo ou fluxo roteado, com fonte arquitetural vigente, auditoria de origem, nível de atualização e lacunas conhecidas. Só depois reavaliar o início da implementação do contrato de leitura em `services/github.py`.
