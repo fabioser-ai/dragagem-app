@@ -3,7 +3,14 @@ from io import StringIO
 import pandas as pd
 import streamlit as st
 
-from services.github import carregar_github, salvar_github
+from services.github import (
+    ResultadoLeituraCSV,
+    StatusLeitura,
+    carregar_github,
+    ler_csv_github,
+    salvar_csv_github,
+    salvar_github,
+)
 
 
 ARQ_PERMISSOES = "data/permissoes_usuarios.csv"
@@ -24,22 +31,14 @@ def _normalizar(valor):
     return str(valor).strip().lower()
 
 
-def carregar_permissoes():
-    try:
-        df = carregar_github(
-            ARQ_PERMISSOES,
-            st.secrets["GITHUB_TOKEN"],
-            st.secrets["REPO"],
-        )
-
-        if isinstance(df, str):
-            df = pd.read_csv(StringIO(df))
-
-        if df is None:
-            df = pd.DataFrame(columns=COL_PERMISSOES)
-
-    except Exception:
+def _normalizar_dataframe_permissoes(df):
+    if df is None:
         df = pd.DataFrame(columns=COL_PERMISSOES)
+
+    if isinstance(df, str):
+        df = pd.read_csv(StringIO(df))
+
+    df = df.copy()
 
     for coluna in COL_PERMISSOES:
         if coluna not in df.columns:
@@ -48,9 +47,57 @@ def carregar_permissoes():
     return df[COL_PERMISSOES]
 
 
+def carregar_permissoes_resultado():
+    resultado = ler_csv_github(
+        ARQ_PERMISSOES,
+        st.secrets["GITHUB_TOKEN"],
+        st.secrets["REPO"],
+    )
+
+    dados = (
+        _normalizar_dataframe_permissoes(resultado.dados)
+        if resultado.leitura_confirmada
+        else pd.DataFrame(columns=COL_PERMISSOES)
+    )
+
+    return ResultadoLeituraCSV(
+        status=resultado.status,
+        dados=dados,
+        arquivo=resultado.arquivo,
+        http_status=resultado.http_status,
+        sha=resultado.sha,
+        erro=resultado.erro,
+    )
+
+
+def salvar_permissoes_seguro(df, *, sha_esperado):
+    return salvar_csv_github(
+        _normalizar_dataframe_permissoes(df),
+        ARQ_PERMISSOES,
+        st.secrets["GITHUB_TOKEN"],
+        st.secrets["REPO"],
+        sha_esperado=sha_esperado,
+    )
+
+
+def carregar_permissoes():
+    """Adaptador legado para consumidores que ainda esperam apenas DataFrame."""
+    try:
+        df = carregar_github(
+            ARQ_PERMISSOES,
+            st.secrets["GITHUB_TOKEN"],
+            st.secrets["REPO"],
+        )
+
+        return _normalizar_dataframe_permissoes(df)
+    except Exception:
+        return pd.DataFrame(columns=COL_PERMISSOES)
+
+
 def salvar_permissoes(df):
+    """Adaptador legado; novos fluxos devem usar salvar_permissoes_seguro()."""
     return salvar_github(
-        df[COL_PERMISSOES],
+        _normalizar_dataframe_permissoes(df),
         ARQ_PERMISSOES,
         st.secrets["GITHUB_TOKEN"],
         st.secrets["REPO"],
