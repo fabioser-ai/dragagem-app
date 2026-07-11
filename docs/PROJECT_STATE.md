@@ -34,6 +34,7 @@ Princípios centrais:
 - Auditoria de Serviços Compartilhados concluída em `docs/audit/AUDIT_038_SERVICOS_COMPARTILHADOS.md` e consolidada em `docs/architecture/12_SERVICOS_COMPARTILHADOS.md`.
 - `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado durante a migração gradual.
 - A filosofia de desenvolvimento foi formalizada em `docs/DEVELOPMENT_PHILOSOPHY.md`.
+- AUDIT_039 — Auditoria Transversal de Consistência concluída em `docs/audit/AUDIT_039_AUDITORIA_TRANSVERSAL.md` e consolidada em `docs/architecture/13_AUDITORIA_TRANSVERSAL.md`.
 
 ## Workflow oficial de auditoria
 
@@ -56,4 +57,4 @@ Princípios centrais:
 
 ## Próximo passo
 
-Executar `AUDIT_039 — Auditoria Transversal de Consistência`, cruzando os módulos e serviços já auditados para identificar padrões arquiteturais, inconsistências, duplicações, acoplamentos, estados, autorização, persistência, identidade dos dados, riscos sistêmicos, oportunidades de simplificação e uma sequência segura de evolução. Registrar apenas fatos observados; hipóteses devem ser explicitamente identificadas.
+Definir o próximo baby step de evolução a partir da AUDIT_039. A direção registrada é começar por um resultado explícito de leitura em `services/github.py`, distinguindo leitura válida, arquivo vazio válido, arquivo inexistente, falha de autenticação, falha de rede/API e conteúdo inválido; nenhuma implementação deve iniciar antes de confirmar esse escopo.
