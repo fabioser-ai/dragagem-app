@@ -2,9 +2,9 @@ import pandas as pd
 import streamlit as st
 
 from services.permissoes import (
+    carregar_permissoes_resultado,
     eh_superadmin,
-    carregar_permissoes,
-    salvar_permissoes,
+    salvar_permissoes_seguro,
 )
 
 
@@ -60,6 +60,36 @@ PERMISSOES_DISPONIVEIS = [
 ]
 
 
+def _mostrar_erro_leitura(resultado):
+    detalhes = resultado.erro or "Não foi possível confirmar a leitura do arquivo de permissões."
+
+    if resultado.http_status:
+        detalhes = f"{detalhes} (HTTP {resultado.http_status})"
+
+    st.error(
+        "As alterações estão bloqueadas para preservar os dados. "
+        f"{detalhes}"
+    )
+
+
+def _salvar_alteracao(df, sha_esperado, mensagem_sucesso):
+    resultado = salvar_permissoes_seguro(
+        df,
+        sha_esperado=sha_esperado,
+    )
+
+    if resultado.sucesso:
+        st.success(mensagem_sucesso)
+        st.rerun()
+
+    detalhes = resultado.erro or "O GitHub não confirmou a gravação."
+
+    if resultado.http_status:
+        detalhes = f"{detalhes} (HTTP {resultado.http_status})"
+
+    st.error(f"Alteração não salva. {detalhes}")
+
+
 def render():
     st.title("Administração")
     st.caption("Gestão de permissões de usuários do sistema FOS.")
@@ -68,12 +98,20 @@ def render():
         st.error("Acesso restrito ao SuperAdmin.")
         st.stop()
 
-    df = carregar_permissoes()
+    resultado_leitura = carregar_permissoes_resultado()
+    df = resultado_leitura.dados
+    escrita_liberada = resultado_leitura.pode_sobrescrever
+
+    if not escrita_liberada:
+        _mostrar_erro_leitura(resultado_leitura)
 
     st.subheader("Permissões cadastradas")
 
     if df.empty:
-        st.info("Nenhuma permissão cadastrada ainda.")
+        if escrita_liberada:
+            st.info("Nenhuma permissão cadastrada ainda.")
+        else:
+            st.info("A lista não está disponível porque a leitura não foi confirmada.")
     else:
         st.dataframe(df, use_container_width=True)
 
@@ -110,7 +148,10 @@ def render():
             ["sim", "nao"],
         )
 
-        salvar = st.form_submit_button("Salvar permissão")
+        salvar = st.form_submit_button(
+            "Salvar permissão",
+            disabled=not escrita_liberada,
+        )
 
     if salvar:
         if not usuario.strip():
@@ -126,7 +167,7 @@ def render():
             "ativo": ativo,
         }
 
-        df = pd.concat(
+        df_atualizado = pd.concat(
             [
                 df,
                 pd.DataFrame([nova_linha]),
@@ -134,12 +175,11 @@ def render():
             ignore_index=True,
         )
 
-        try:
-            salvar_permissoes(df)
-            st.success("Permissão salva com sucesso.")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Erro ao salvar permissão: {e}")
+        _salvar_alteracao(
+            df_atualizado,
+            resultado_leitura.sha,
+            "Permissão salva com sucesso.",
+        )
 
     st.divider()
 
@@ -161,15 +201,32 @@ def render():
         col1, col2 = st.columns(2)
 
         with col1:
-            if st.button("Desativar permissão", use_container_width=True):
-                df.loc[indice, "ativo"] = "nao"
-                salvar_permissoes(df)
-                st.success("Permissão desativada.")
-                st.rerun()
+            desativar = st.button(
+                "Desativar permissão",
+                use_container_width=True,
+                disabled=not escrita_liberada,
+            )
+
+            if desativar:
+                df_atualizado = df.copy()
+                df_atualizado.loc[indice, "ativo"] = "nao"
+                _salvar_alteracao(
+                    df_atualizado,
+                    resultado_leitura.sha,
+                    "Permissão desativada.",
+                )
 
         with col2:
-            if st.button("Excluir linha", use_container_width=True):
-                df = df.drop(index=indice).reset_index(drop=True)
-                salvar_permissoes(df)
-                st.success("Permissão excluída.")
-                st.rerun()
+            excluir = st.button(
+                "Excluir linha",
+                use_container_width=True,
+                disabled=not escrita_liberada,
+            )
+
+            if excluir:
+                df_atualizado = df.drop(index=indice).reset_index(drop=True)
+                _salvar_alteracao(
+                    df_atualizado,
+                    resultado_leitura.sha,
+                    "Permissão excluída.",
+                )
