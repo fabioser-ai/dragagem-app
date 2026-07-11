@@ -18,7 +18,7 @@ Adicionar uma nova API explícita, preservando temporariamente a função legada
 ler_csv_github(arquivo, token, repo) -> ResultadoLeituraCSV
 ```
 
-O resultado deve transportar:
+O resultado transporta:
 
 - status classificado;
 - DataFrame;
@@ -27,7 +27,7 @@ O resultado deve transportar:
 - SHA observado;
 - descrição segura do erro.
 
-## Estados previstos
+## Estados implementados
 
 - `SUCESSO_COM_DADOS`;
 - `SUCESSO_VAZIO`;
@@ -43,14 +43,61 @@ O resultado deve transportar:
 - atualização de arquivo existente somente após `SUCESSO_COM_DADOS` ou `SUCESSO_VAZIO`;
 - criação somente após `ARQUIVO_INEXISTENTE` e autorização explícita do chamador;
 - qualquer falha bloqueia a escrita derivada;
-- o SHA da leitura confirmada deve acompanhar a atualização;
+- o SHA da leitura confirmada deve acompanhar a futura atualização;
 - a escrita não deve buscar um SHA novo e sobrescrever silenciosamente alterações concorrentes.
+
+A função estruturada de escrita com SHA esperado ainda não foi implementada. `salvar_github()` permanece legado.
 
 ## Compatibilidade
 
 `carregar_github()` permanece temporariamente como adaptador legado porque muitos chamadores esperam um DataFrame.
 
 A migração será feita um fluxo por vez. O adaptador legado não deve ser considerado seguro em rotinas que regravam arquivos após uma leitura possivelmente vazia.
+
+Nenhum chamador foi migrado durante a implementação inicial da infraestrutura.
+
+## Implementação realizada
+
+`services/github.py` contém agora:
+
+- `DEFAULT_REQUEST_TIMEOUT`;
+- enum `StatusLeitura`;
+- dataclass imutável `ResultadoLeituraCSV`;
+- propriedades `leitura_confirmada` e `pode_sobrescrever`;
+- função `ler_csv_github()`;
+- classificação de HTTP 401, 403, 404, 409, 422, 429 e 5xx;
+- classificação de timeout e falha de conexão;
+- validação de JSON, conteúdo base64, UTF-8 e CSV;
+- normalização das quebras de linha do base64 retornado pela API do GitHub;
+- preservação do SHA observado.
+
+As funções legadas de leitura e escrita de CSV e arquivos binários permanecem disponíveis.
+
+## Validação automatizada
+
+Foi criado `tests/test_github_leitura.py` usando `unittest` da biblioteca padrão, sem adicionar dependência de teste ao projeto.
+
+Cenários cobertos:
+
+1. sucesso com dados e SHA;
+2. base64 com quebras de linha;
+3. CSV somente com cabeçalho;
+4. arquivo fisicamente vazio;
+5. arquivo inexistente — HTTP 404;
+6. não autorizado — HTTP 401;
+7. limite ou conflito — HTTP 429;
+8. falha temporária — HTTP 500;
+9. timeout de rede;
+10. JSON inválido;
+11. base64 inválido.
+
+Foi criado `.github/workflows/tests.yml` para executar:
+
+```text
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+O ambiente desta sessão não conseguiu executar o repositório localmente e as ações disponíveis do conector não retornaram uma execução ou status de CI para o commit do workflow. Portanto, a existência dos testes e do workflow foi confirmada por leitura, mas o resultado da execução automatizada permanece pendente de confirmação.
 
 ## Ordem de migração
 
@@ -71,7 +118,7 @@ Depois dos fluxos de escrita, migrar consultas como Obras e demais telas que apr
 
 ## Piloto recomendado
 
-Administração será o primeiro chamador migrado após a implementação e validação da infraestrutura.
+Administração será o primeiro chamador migrado depois que a execução dos testes da infraestrutura estiver confirmada.
 
 O piloto deve apenas:
 
@@ -82,15 +129,10 @@ O piloto deve apenas:
 
 Não deve incluir no mesmo passo validação de usuários, duplicidades, trilha de auditoria ou alteração de schema.
 
-## Primeiro baby step de implementação
+## Próximo passo seguro
 
-Alterar somente `services/github.py` para adicionar:
-
-1. enum de estados;
-2. estrutura imutável do resultado;
-3. função `ler_csv_github()`;
-4. timeout explícito;
-5. classificação de HTTP, rede, conteúdo e CSV;
-6. testes ou validações focadas.
-
-Nenhum chamador será migrado no mesmo commit.
+1. confirmar uma execução bem-sucedida de `tests/test_github_leitura.py`;
+2. corrigir somente a infraestrutura caso algum teste falhe;
+3. definir e implementar a escrita estruturada que receba o SHA esperado, se indispensável ao piloto;
+4. migrar Administração em alteração isolada;
+5. não combinar essa migração com mudanças de schema, permissões ou regras de negócio.
