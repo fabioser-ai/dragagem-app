@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 import uuid
 from datetime import date
-from services.github import carregar_github, salvar_github
+from services.github import StatusLeitura, carregar_github, salvar_github
+from services.dados_persistencia import (
+    carregar_cadastro_resultado,
+    salvar_cadastro_seguro,
+)
 from pages.dados_detalhados.locais_trabalho import render_locais_trabalho
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
@@ -67,13 +71,57 @@ def converter_valores(colunas, valores):
     return valores_convertidos
 
 
+def _detalhes_resultado(resultado, mensagem_padrao):
+    detalhes = resultado.erro or mensagem_padrao
+
+    if resultado.http_status:
+        detalhes = f"{detalhes} (HTTP {resultado.http_status})"
+
+    return detalhes
+
+
+def _salvar_cadastro(
+    df,
+    arquivo,
+    colunas,
+    resultado_leitura,
+    mensagem_sucesso,
+    mensagem_falha,
+):
+    resultado = salvar_cadastro_seguro(
+        df,
+        arquivo,
+        colunas,
+        TOKEN,
+        REPO,
+        resultado_leitura=resultado_leitura,
+    )
+
+    if resultado.sucesso:
+        st.success(mensagem_sucesso)
+        st.rerun()
+
+    st.error(_detalhes_resultado(resultado, mensagem_falha))
+
+
 def crud(arquivo, colunas, titulo, chave):
     st.subheader(titulo)
 
-    df = carregar_github(arquivo, TOKEN, REPO)
+    resultado_leitura = carregar_cadastro_resultado(arquivo, colunas, TOKEN, REPO)
+    df = resultado_leitura.dados
+    escrita_liberada = (
+        resultado_leitura.pode_sobrescrever
+        or resultado_leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE
+    )
 
-    if df.empty:
-        df = pd.DataFrame(columns=colunas)
+    if not escrita_liberada:
+        st.error(
+            "As alterações estão bloqueadas para preservar os dados. "
+            + _detalhes_resultado(
+                resultado_leitura,
+                "Não foi possível confirmar a leitura do cadastro.",
+            )
+        )
 
     for col in df.columns:
         if col.lower() in ["valor", "valor_hora", "vazao", "consumo"]:
@@ -106,7 +154,7 @@ def crud(arquivo, colunas, titulo, chave):
 
         col1, col2 = st.columns(2)
 
-        if col1.button("Salvar", key=f"save_{chave}", use_container_width=True):
+        if col1.button("Salvar", key=f"save_{chave}", use_container_width=True, disabled=not escrita_liberada):
             novos_convertidos = converter_valores(colunas, novos)
 
             if novos_convertidos is None:
@@ -115,16 +163,25 @@ def crud(arquivo, colunas, titulo, chave):
             for i, c in enumerate(colunas):
                 df.at[idx, c] = novos_convertidos[i]
 
-            salvar_github(df, arquivo, TOKEN, REPO)
-            st.success("Atualizado com sucesso!")
-            st.rerun()
+            _salvar_cadastro(
+                df,
+                arquivo,
+                colunas,
+                resultado_leitura,
+                "Atualizado com sucesso!",
+                "Erro ao atualizar cadastro.",
+            )
 
-        if col2.button("Excluir", key=f"del_{chave}", use_container_width=True):
+        if col2.button("Excluir", key=f"del_{chave}", use_container_width=True, disabled=not escrita_liberada):
             df = df.drop(idx).reset_index(drop=True)
-            salvar_github(df, arquivo, TOKEN, REPO)
-
-            st.warning("Removido!")
-            st.rerun()
+            _salvar_cadastro(
+                df,
+                arquivo,
+                colunas,
+                resultado_leitura,
+                "Removido!",
+                "Erro ao remover cadastro.",
+            )
 
     st.divider()
     st.write("Adicionar novo")
@@ -134,7 +191,7 @@ def crud(arquivo, colunas, titulo, chave):
     for c in colunas:
         valores.append(st.text_input(c, key=f"new_{chave}_{c}"))
 
-    if st.button("Adicionar", key=f"add_{chave}", use_container_width=True):
+    if st.button("Adicionar", key=f"add_{chave}", use_container_width=True, disabled=not escrita_liberada):
         valores_convertidos = converter_valores(colunas, valores)
 
         if valores_convertidos is None:
@@ -142,10 +199,14 @@ def crud(arquivo, colunas, titulo, chave):
 
         df.loc[len(df)] = valores_convertidos
 
-        salvar_github(df, arquivo, TOKEN, REPO)
-
-        st.success("Adicionado com sucesso!")
-        st.rerun()
+        _salvar_cadastro(
+            df,
+            arquivo,
+            colunas,
+            resultado_leitura,
+            "Adicionado com sucesso!",
+            "Erro ao adicionar cadastro.",
+        )
 
 
 def garantir_estrutura_atestados():
@@ -598,3 +659,4 @@ def render():
     if st.button("⬅ Voltar", use_container_width=True):
         st.session_state.tela = "menu"
         st.rerun()
+
