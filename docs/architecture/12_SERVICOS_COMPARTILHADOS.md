@@ -49,69 +49,96 @@ Funções principais:
 
 O perfil global `superadmin` recebe acesso direto. Os demais usuários dependem de permissões ativas no CSV.
 
-A leitura de permissões captura exceções e retorna DataFrame vazio. O chamador não consegue distinguir, apenas pelo retorno, um arquivo realmente vazio de falhas de rede, autenticação, inexistência ou leitura.
+A tela Administração já usa o contrato explícito de leitura e escrita. Os adaptadores legados permanecem disponíveis para consumidores ainda não migrados.
 
 ## Persistência no GitHub
 
-`services/github.py` implementa:
+`services/github.py` implementa contratos explícitos e adaptadores legados.
+
+### Contrato explícito de leitura
+
+- `StatusLeitura`;
+- `ResultadoLeituraCSV`;
+- `ler_csv_github()`.
+
+A leitura distingue sucesso com dados, sucesso vazio, arquivo inexistente, autorização, conflito ou limite, falha temporária, conteúdo inválido e erro desconhecido.
+
+### Contrato explícito de escrita
+
+- `StatusEscrita`;
+- `ResultadoEscritaCSV`;
+- `salvar_csv_github()`.
+
+Atualizações exigem o SHA observado na leitura confirmada. Criações exigem autorização explícita do chamador. A escrita estruturada não executa GET para descobrir uma versão mais recente antes do PUT.
+
+### Adaptadores legados
 
 - `salvar_github()`;
 - `carregar_github()`;
 - `salvar_arquivo_github()`;
 - `carregar_arquivo_github()`.
 
-As operações usam a GitHub Contents API com chamadas HTTP síncronas.
-
-### Leitura CSV
-
-- Executa `GET` autenticado.
-- Retorna DataFrame vazio quando o status não é 200.
-- Retorna DataFrame vazio quando o campo `content` não existe.
-- Decodifica base64 e usa `pandas.read_csv()` quando o conteúdo está presente.
-
-### Gravação CSV
-
-- Executa `GET` para obter o SHA atual.
-- Serializa o DataFrame inteiro.
-- Executa `PUT` substituindo o arquivo completo.
-- Lança exceção quando o status não é 200 ou 201.
+Os adaptadores legados continuam disponíveis durante a migração gradual, mas não devem ser adotados por novos fluxos que regravam CSV após leitura possivelmente ambígua.
 
 ### Arquivos binários
 
-A gravação segue o mesmo padrão de obtenção de SHA e substituição integral.
+A gravação binária ainda segue o padrão legado de obtenção de SHA e substituição integral.
 
 A leitura tenta primeiro `download_url` e, se necessário, usa o conteúdo base64 retornado pela API.
 
-### Limitações observadas
+### Limitações ainda observadas
 
-- não existe locking;
-- não existe transação;
+- não existe transação entre múltiplos arquivos;
 - não existe retry central;
-- não existe timeout HTTP explícito;
-- não existe classificação estruturada de erros;
-- gravações concorrentes podem conflitar;
-- uma leitura mascarada como vazia pode preceder uma sobrescrita destrutiva.
+- os adaptadores legados ainda não classificam erros;
+- arquivos binários ainda usam a política legada;
+- parte dos consumidores de CSV ainda não foi migrada;
+- gravações concorrentes nos consumidores legados ainda podem sobrescrever alterações.
 
 ## Logging
 
 `services/log.py` registra eventos em `data/log_acessos.csv`.
 
-Schema observado:
+Schema preservado:
 
 - `data_hora`;
 - `usuario`;
 - `perfil`;
 - `acao`.
 
-Cada evento:
+Eventos observados nos chamadores diretos:
 
-1. relê o arquivo inteiro;
-2. concatena uma linha;
-3. regrava o arquivo completo.
+- login;
+- logout;
+- sessão expirada.
 
-Uma falha de leitura pode ser interpretada como log vazio. A gravação posterior pode substituir o histórico existente pelo novo evento.
+O fluxo foi migrado para o contrato explícito:
 
-Não existe identificador do evento, severidade, detalhes técnicos ou política de retenção.
+1. lê o log com `ler_csv_github()`;
+2. em sucesso com dados ou vazio, concatena o evento;
+3. atualiza com `salvar_csv_github()` usando o SHA da leitura;
+4. em `ARQUIVO_INEXISTENTE`, cria explicitamente o arquivo com `criar=True`;
+5. em qualquer outra falha de leitura, não executa escrita.
+
+Os chamadores em `services/auth.py` continuam envolvendo o registro em `try/except`, portanto falhas do log não bloqueiam login, logout ou expiração da sessão.
+
+A migração não alterou:
+
+- schema;
+- formato de data e hora;
+- ações registradas;
+- autenticação;
+- política de retenção;
+- ausência de identificador próprio do evento.
+
+A validação local confirmou:
+
+- 25 testes unitários aprovados;
+- compilação sintática de `services/log.py` e `services/auth.py`;
+- inspeção dos três chamadores diretos;
+- nenhum arquivo rastreado relacionado à migração alterado durante os testes.
+
+O workspace do Work apresentou um comprovante binário já modificado e não relacionado à migração. Esse arquivo não pertence aos commits de logs e não foi alterado nem publicado por esta etapa.
 
 ## Interface global
 
@@ -136,7 +163,7 @@ Parte do CSS depende de `data-testid` e atributos internos do Streamlit/BaseWeb.
 
 Os serviços acessam diretamente `st.secrets` e `st.session_state`.
 
-Esse desenho simplifica o uso dentro da aplicação Streamlit, mas acopla infraestrutura ao runtime da interface e dificulta testes unitários isolados.
+Esse desenho simplifica o uso dentro da aplicação Streamlit, mas acopla infraestrutura ao runtime da interface.
 
 A cadeia observada inclui:
 
@@ -152,22 +179,21 @@ Módulos adicionais criam wrappers próprios sobre `services/github.py`, com sch
 
 ## Risco transversal principal
 
-O principal risco compartilhado é a combinação de:
+O principal risco compartilhado era a combinação de leitura ambígua e substituição integral do arquivo. Administração e logs já foram migrados para bloquear escrita após leitura não confirmada e usar o SHA observado.
 
-1. leitura que converte falhas em vazio;
-2. gravação que substitui o arquivo inteiro.
-
-Essa combinação pode transformar uma falha transitória de leitura em perda de dados na escrita seguinte.
+O risco permanece nos consumidores ainda legados.
 
 ## Direção segura de evolução
 
-O primeiro passo recomendado é fazer a camada de persistência devolver estados explícitos de leitura, distinguindo:
+Prosseguir um consumidor por vez, preservando schema e comportamento funcional:
 
-- sucesso com dados;
-- sucesso com arquivo vazio;
-- arquivo inexistente;
-- falha de autenticação;
-- falha temporária de rede/API;
-- conteúdo inválido.
+1. Administração — concluída;
+2. logs — concluída;
+3. Dados;
+4. Férias;
+5. CRM;
+6. Prestação de Contas;
+7. Orçamentos;
+8. Medições.
 
-Operações de escrita devem ser bloqueadas quando a leitura anterior não tiver sido confirmada como válida.
+Consultas somente leitura devem ser migradas depois dos fluxos de escrita para deixarem de apresentar falha como ausência legítima de dados.
