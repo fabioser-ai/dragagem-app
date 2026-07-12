@@ -3,9 +3,10 @@ import streamlit as st
 from datetime import datetime
 from uuid import uuid4
 
-from services.github import (
-    carregar_github,
-    salvar_github,
+from services.github import StatusLeitura
+from services.dados_persistencia import (
+    carregar_cadastro_resultado,
+    salvar_cadastro_seguro,
 )
 
 from modulos.medicoes.repositorio import carregar_bases
@@ -36,36 +37,36 @@ def gerar_local_id():
     return f"LOC_{uuid4().hex[:8]}"
 
 
-def carregar_locais():
+def detalhes_resultado(resultado, mensagem_padrao):
+    detalhes = resultado.erro or mensagem_padrao
 
-    df = carregar_github(
+    if resultado.http_status:
+        detalhes = f"{detalhes} (HTTP {resultado.http_status})"
+
+    return detalhes
+
+
+def carregar_locais_resultado():
+    return carregar_cadastro_resultado(
         ARQUIVO,
+        COLUNAS,
         TOKEN,
         REPO,
     )
 
-    if df.empty:
-        df = pd.DataFrame(columns=COLUNAS)
 
-    for coluna in COLUNAS:
-        if coluna not in df.columns:
-            df[coluna] = ""
-
-    return df[COLUNAS].fillna("")
-
-
-def salvar_locais(df):
-
-    salvar_github(
+def salvar_locais_seguro(df, resultado_leitura):
+    return salvar_cadastro_seguro(
         df,
         ARQUIVO,
+        COLUNAS,
         TOKEN,
         REPO,
+        resultado_leitura=resultado_leitura,
     )
 
 
 def render_locais_trabalho():
-
     st.subheader("Locais de Trabalho")
 
     (
@@ -101,7 +102,21 @@ def render_locais_trabalho():
 
     obra_id = obra["obra_id"]
 
-    locais = carregar_locais()
+    resultado_leitura = carregar_locais_resultado()
+    locais = resultado_leitura.dados
+    escrita_liberada = (
+        resultado_leitura.pode_sobrescrever
+        or resultado_leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE
+    )
+
+    if not escrita_liberada:
+        st.error(
+            "As alterações estão bloqueadas para preservar os dados. "
+            + detalhes_resultado(
+                resultado_leitura,
+                "Não foi possível confirmar a leitura dos locais de trabalho.",
+            )
+        )
 
     locais_obra = locais[
         locais["obra_id"].astype(str)
@@ -113,13 +128,10 @@ def render_locais_trabalho():
     st.write("Locais cadastrados")
 
     if locais_obra.empty:
-
         st.info(
             "Nenhum local cadastrado para esta obra."
         )
-
     else:
-
         st.dataframe(
             locais_obra[
                 [
@@ -147,8 +159,8 @@ def render_locais_trabalho():
     if st.button(
         "Adicionar Local",
         use_container_width=True,
+        disabled=not escrita_liberada,
     ):
-
         if not nome_local.strip():
             st.error(
                 "Informe o nome do local."
@@ -169,11 +181,9 @@ def render_locais_trabalho():
         ]
 
         if not duplicado.empty:
-
             st.error(
                 "Já existe um local com esse nome nesta obra."
             )
-
             return
 
         novo = {
@@ -194,10 +204,20 @@ def render_locais_trabalho():
             ignore_index=True,
         )
 
-        salvar_locais(locais)
-
-        st.success(
-            "Local cadastrado com sucesso."
+        resultado_escrita = salvar_locais_seguro(
+            locais,
+            resultado_leitura,
         )
 
-        st.rerun()
+        if resultado_escrita.sucesso:
+            st.success(
+                "Local cadastrado com sucesso."
+            )
+            st.rerun()
+
+        st.error(
+            detalhes_resultado(
+                resultado_escrita,
+                "Não foi possível cadastrar o local.",
+            )
+        )
