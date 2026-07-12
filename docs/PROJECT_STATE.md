@@ -48,16 +48,14 @@ Princípios centrais:
 - O contrato explícito de leitura foi implementado em `services/github.py` com `StatusLeitura`, `ResultadoLeituraCSV` e `ler_csv_github()`.
 - O contrato explícito de escrita foi implementado em `services/github.py` com `StatusEscrita`, `ResultadoEscritaCSV` e `salvar_csv_github()`.
 - `carregar_github()` e `salvar_github()` permanecem como adaptadores legados para consumidores ainda não migrados.
-- Foram criadas as suítes `tests/test_github_leitura.py`, `tests/test_github_escrita.py` e `tests/test_log.py`.
-- A suíte completa mais recente foi executada localmente com as dependências do projeto: 25 testes passaram, sem falhas ou erros.
 - Administração foi migrada como primeiro consumidor do contrato explícito.
-- `pages/administracao.py` bloqueia inclusão, desativação e exclusão quando a leitura não autoriza sobrescrita.
-- As gravações administrativas usam o SHA obtido na leitura confirmada.
-- A migração de Administração foi validada por testes, compilação sintática e inspeção estática.
 - Logs foram migrados como segundo consumidor do contrato explícito.
-- `services/log.py` atualiza o arquivo com o SHA da leitura, cria explicitamente após 404 e bloqueia escrita após falha de leitura.
-- A migração de logs preservou schema, autenticação e comportamento dos chamadores e foi validada por testes, compilação sintática e inspeção estática.
-- Nenhum schema ou regra de permissão foi alterado nessas migrações.
+- O CRUD dos seis cadastros simples de Dados foi migrado para `services/dados_persistencia.py`.
+- A administração de Locais de Trabalho foi migrada para persistência segura; o consumidor interno de Medições permanece em camada legada separada.
+- AUDIT_047 — Locais de Trabalho concluída em `docs/audit/AUDIT_047_LOCAIS_TRABALHO.md` e consolidada em `docs/architecture/16_DADOS.md`.
+- AUDIT_048 — Atestados e Serviços Vinculados concluída em `docs/audit/AUDIT_048_ATESTADOS_SERVICOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
+- Atestados e serviços formam agregado lógico em dois CSVs; operações simples alteram um arquivo e a exclusão de atestado altera dois arquivos sequencialmente sem transação.
+- Persistência segura por arquivo não fornece atomicidade multi-arquivo; a exclusão composta permanece fora do próximo Kid Step.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -81,11 +79,13 @@ Princípios centrais:
 
 ## Próximo passo
 
-Preparar a migração isolada do módulo Dados para o contrato explícito de leitura e escrita:
+Migrar somente as operações de Atestados que alteram um único arquivo:
 
-1. auditar novamente todos os caminhos de escrita de `pages/dados.py` e serviços relacionados;
-2. separar cadastros simples, locais de trabalho e o conjunto atestados/serviços;
-3. definir como bloquear regravações quando a leitura dos CSVs envolvidos não for confirmada;
-4. preservar schemas e comportamento funcional atual;
-5. não corrigir a conversão numérica identificada na AUDIT_043 no mesmo Kid Step;
-6. implementar e validar uma etapa por vez antes de avançar para Férias.
+1. criar leitura estruturada separada para `data/atestados.csv` e `data/atestados_servicos.csv`, preservando status e SHA próprios;
+2. migrar criação e edição de atestado para escrita segura no arquivo principal;
+3. migrar criação e exclusão de serviço para escrita segura no arquivo de serviços;
+4. bloquear cada ação quando a leitura do arquivo correspondente não autorizar escrita;
+5. apresentar sucesso e executar `st.rerun()` somente após escrita confirmada;
+6. preservar schemas, dados históricos, UUIDs, busca, filtros e comportamento atual;
+7. não alterar datas, rótulos, permissões, unicidade, UI ou dados históricos no mesmo Kid Step;
+8. manter a exclusão composta de atestado e serviços fora desta etapa até existir decisão explícita de consistência multi-arquivo.
