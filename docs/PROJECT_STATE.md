@@ -48,13 +48,16 @@ Princípios centrais:
 - O contrato explícito de leitura foi implementado em `services/github.py` com `StatusLeitura`, `ResultadoLeituraCSV` e `ler_csv_github()`.
 - O contrato explícito de escrita foi implementado em `services/github.py` com `StatusEscrita`, `ResultadoEscritaCSV` e `salvar_csv_github()`.
 - `carregar_github()` e `salvar_github()` permanecem como adaptadores legados para consumidores ainda não migrados.
-- Foram criadas as suítes `tests/test_github_leitura.py` e `tests/test_github_escrita.py`.
-- A suíte completa foi executada localmente com as dependências do projeto: 20 testes passaram, sem falhas ou erros.
+- Foram criadas as suítes `tests/test_github_leitura.py`, `tests/test_github_escrita.py` e `tests/test_log.py`.
+- A suíte completa mais recente foi executada localmente com as dependências do projeto: 25 testes passaram, sem falhas ou erros.
 - Administração foi migrada como primeiro consumidor do contrato explícito.
 - `pages/administracao.py` bloqueia inclusão, desativação e exclusão quando a leitura não autoriza sobrescrita.
 - As gravações administrativas usam o SHA obtido na leitura confirmada.
-- A migração de Administração foi validada por testes, compilação sintática e inspeção estática, sem alterações rastreadas no workspace de validação.
-- Nenhum schema ou regra de permissão foi alterado nessa migração.
+- A migração de Administração foi validada por testes, compilação sintática e inspeção estática.
+- Logs foram migrados como segundo consumidor do contrato explícito.
+- `services/log.py` atualiza o arquivo com o SHA da leitura, cria explicitamente após 404 e bloqueia escrita após falha de leitura.
+- A migração de logs preservou schema, autenticação e comportamento dos chamadores e foi validada por testes, compilação sintática e inspeção estática.
+- Nenhum schema ou regra de permissão foi alterado nessas migrações.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -78,10 +81,11 @@ Princípios centrais:
 
 ## Próximo passo
 
-Preparar a migração isolada de logs para o contrato explícito de leitura e escrita:
+Preparar a migração isolada do módulo Dados para o contrato explícito de leitura e escrita:
 
-1. auditar novamente o fluxo atual em `services/log.py` e os chamadores diretos;
-2. definir como bloquear regravação quando a leitura de `data/log_acessos.csv` não for confirmada;
-3. preservar o schema e o comportamento funcional atual do log;
-4. implementar a migração em Kid Step isolado;
-5. validar com testes antes de avançar para Dados.
+1. auditar novamente todos os caminhos de escrita de `pages/dados.py` e serviços relacionados;
+2. separar cadastros simples, locais de trabalho e o conjunto atestados/serviços;
+3. definir como bloquear regravações quando a leitura dos CSVs envolvidos não for confirmada;
+4. preservar schemas e comportamento funcional atual;
+5. não corrigir a conversão numérica identificada na AUDIT_043 no mesmo Kid Step;
+6. implementar e validar uma etapa por vez antes de avançar para Férias.
