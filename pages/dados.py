@@ -22,6 +22,9 @@ ARQ_SAL = "data/salarios.csv"
 ARQ_ATESTADOS = "data/atestados.csv"
 ARQ_ATESTADOS_SERVICOS = "data/atestados_servicos.csv"
 
+COLUNAS_ATESTADOS = ["id_atestado", "cliente", "contrato", "obra", "local", "ano", "data_inicio", "data_fim", "descricao", "observacoes"]
+COLUNAS_ATESTADOS_SERVICOS = ["id_servico", "id_atestado", "servico", "unidade", "quantidade", "observacoes"]
+
 
 def formatar_real(valor):
     try:
@@ -100,8 +103,10 @@ def _salvar_cadastro(
     if resultado.sucesso:
         st.success(mensagem_sucesso)
         st.rerun()
+        return resultado
 
     st.error(_detalhes_resultado(resultado, mensagem_falha))
+    return resultado
 
 
 def crud(arquivo, colunas, titulo, chave):
@@ -210,49 +215,21 @@ def crud(arquivo, colunas, titulo, chave):
 
 
 def garantir_estrutura_atestados():
-    col_atestados = [
-        "id_atestado",
-        "cliente",
-        "contrato",
-        "obra",
-        "local",
-        "ano",
-        "data_inicio",
-        "data_fim",
-        "descricao",
-        "observacoes"
-    ]
+    resultado_atestados = carregar_cadastro_resultado(ARQ_ATESTADOS, COLUNAS_ATESTADOS, TOKEN, REPO)
+    resultado_servicos = carregar_cadastro_resultado(ARQ_ATESTADOS_SERVICOS, COLUNAS_ATESTADOS_SERVICOS, TOKEN, REPO)
+    return (resultado_atestados.dados[COLUNAS_ATESTADOS].fillna(""), resultado_servicos.dados[COLUNAS_ATESTADOS_SERVICOS].fillna(""), resultado_atestados, resultado_servicos)
 
-    col_servicos = [
-        "id_servico",
-        "id_atestado",
-        "servico",
-        "unidade",
-        "quantidade",
-        "observacoes"
-    ]
 
-    df_atestados = carregar_github(ARQ_ATESTADOS, TOKEN, REPO)
-    df_servicos = carregar_github(ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+def escrita_liberada(resultado_leitura):
+    return resultado_leitura.pode_sobrescrever or resultado_leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE
 
-    if df_atestados.empty:
-        df_atestados = pd.DataFrame(columns=col_atestados)
 
-    if df_servicos.empty:
-        df_servicos = pd.DataFrame(columns=col_servicos)
+def _salvar_atestados_seguro(df, resultado_leitura, sucesso, falha):
+    return _salvar_cadastro(df, ARQ_ATESTADOS, COLUNAS_ATESTADOS, resultado_leitura, sucesso, falha)
 
-    for col in col_atestados:
-        if col not in df_atestados.columns:
-            df_atestados[col] = ""
 
-    for col in col_servicos:
-        if col not in df_servicos.columns:
-            df_servicos[col] = ""
-
-    df_atestados = df_atestados[col_atestados].fillna("")
-    df_servicos = df_servicos[col_servicos].fillna("")
-
-    return df_atestados, df_servicos
+def _salvar_servicos_seguro(df, resultado_leitura, sucesso, falha):
+    return _salvar_cadastro(df, ARQ_ATESTADOS_SERVICOS, COLUNAS_ATESTADOS_SERVICOS, resultado_leitura, sucesso, falha)
 
 
 def filtrar_atestados_por_busca(df_atestados, df_servicos, busca):
@@ -286,7 +263,14 @@ def filtrar_atestados_por_busca(df_atestados, df_servicos, busca):
 def render_atestados():
     st.subheader("Atestados")
 
-    df_atestados, df_servicos = garantir_estrutura_atestados()
+    df_atestados, df_servicos, resultado_atestados, resultado_servicos = garantir_estrutura_atestados()
+    escrita_atestados_liberada = escrita_liberada(resultado_atestados)
+    escrita_servicos_liberada = escrita_liberada(resultado_servicos)
+
+    if not escrita_atestados_liberada:
+        st.error("A criação e edição de atestados estão bloqueadas para preservar os dados. " + _detalhes_resultado(resultado_atestados, "Leitura não confirmada."))
+    if not escrita_servicos_liberada:
+        st.error("A inclusão e exclusão de serviços estão bloqueadas para preservar os dados. " + _detalhes_resultado(resultado_servicos, "Leitura não confirmada."))
 
     aba1, aba2, aba3 = st.tabs([
         "Listar Atestados",
@@ -444,7 +428,7 @@ def render_atestados():
                         descricao = st.text_area("Descrição", value=linha["descricao"])
                         observacoes = st.text_area("Observações", value=linha["observacoes"])
 
-                        salvar_edicao = st.form_submit_button("Salvar alterações")
+                        salvar_edicao = st.form_submit_button("Salvar alterações", disabled=not escrita_atestados_liberada)
 
                         if salvar_edicao:
                             df_atestados.at[idx, "cliente"] = cliente
@@ -457,12 +441,9 @@ def render_atestados():
                             df_atestados.at[idx, "descricao"] = descricao
                             df_atestados.at[idx, "observacoes"] = observacoes
 
-                            salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
-
-                            del st.session_state.atestado_em_edicao
-
-                            st.success("Atestado atualizado com sucesso!")
-                            st.rerun()
+                            resultado = _salvar_atestados_seguro(df_atestados, resultado_atestados, "Atestado atualizado com sucesso!", "Erro ao atualizar atestado.")
+                            if resultado.sucesso:
+                                del st.session_state.atestado_em_edicao
 
     with aba2:
         st.write("Cadastrar novo atestado")
@@ -478,7 +459,7 @@ def render_atestados():
             descricao = st.text_area("Descrição")
             observacoes = st.text_area("Observações")
 
-            salvar = st.form_submit_button("Salvar atestado")
+            salvar = st.form_submit_button("Salvar atestado", disabled=not escrita_atestados_liberada)
 
             if salvar:
                 if not cliente or not obra:
@@ -503,10 +484,7 @@ def render_atestados():
                     ignore_index=True
                 )
 
-                salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
-
-                st.success("Atestado cadastrado com sucesso!")
-                st.rerun()
+                _salvar_atestados_seguro(df_atestados, resultado_atestados, "Atestado cadastrado com sucesso!", "Erro ao cadastrar atestado.")
 
     with aba3:
         st.write("Adicionar serviços vinculados")
@@ -535,7 +513,7 @@ def render_atestados():
                 quantidade = st.number_input("Quantidade", min_value=0.0, step=0.01)
                 observacoes = st.text_area("Observações")
 
-                salvar_servico = st.form_submit_button("Adicionar serviço")
+                salvar_servico = st.form_submit_button("Adicionar serviço", disabled=not escrita_servicos_liberada)
 
                 if salvar_servico:
                     if not servico:
@@ -556,10 +534,7 @@ def render_atestados():
                         ignore_index=True
                     )
 
-                    salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
-
-                    st.success("Serviço vinculado com sucesso!")
-                    st.rerun()
+                    _salvar_servicos_seguro(df_servicos, resultado_servicos, "Serviço vinculado com sucesso!", "Erro ao cadastrar serviço.")
 
             st.divider()
             st.write("Serviços já vinculados")
@@ -585,17 +560,14 @@ def render_atestados():
                     key="sel_excluir_servico_atestado"
                 )
 
-                if st.button("Excluir serviço selecionado", key="btn_excluir_servico_atestado", use_container_width=True):
+                if st.button("Excluir serviço selecionado", key="btn_excluir_servico_atestado", use_container_width=True, disabled=not escrita_servicos_liberada):
                     id_servico = servicos_atestado.loc[idx_servico, "id_servico"]
 
                     df_servicos = df_servicos[
                         df_servicos["id_servico"] != id_servico
                     ].reset_index(drop=True)
 
-                    salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
-
-                    st.warning("Serviço excluído.")
-                    st.rerun()
+                    _salvar_servicos_seguro(df_servicos, resultado_servicos, "Serviço excluído.", "Erro ao excluir serviço.")
 
 
 def render():
@@ -659,4 +631,3 @@ def render():
     if st.button("⬅ Voltar", use_container_width=True):
         st.session_state.tela = "menu"
         st.rerun()
-
