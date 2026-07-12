@@ -115,6 +115,7 @@ Foram criados:
 
 - `tests/test_github_leitura.py`;
 - `tests/test_github_escrita.py`;
+- `tests/test_log.py`;
 - `.github/workflows/tests.yml`.
 
 A suíte completa foi executada localmente com as dependências instaladas:
@@ -123,20 +124,20 @@ A suíte completa foi executada localmente com as dependências instaladas:
 PYTHONPATH="$PWD/.venv/lib/python3.12/site-packages" python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-Resultado confirmado:
+Resultado mais recente confirmado:
 
-- 20 testes executados;
-- 20 aprovados;
+- 25 testes executados;
+- 25 aprovados;
 - 0 falhas;
 - 0 erros.
 
 A execução direta com o Python padrão falhou antes de carregar os testes porque aquele interpretador não possuía `requests`. A execução com as dependências declaradas do projeto foi bem-sucedida.
 
-## Primeiro consumidor migrado
+## Consumidores migrados
 
-Administração foi migrada como piloto.
+### Administração — concluída
 
-`services/permissoes.py` oferece agora:
+`services/permissoes.py` oferece:
 
 - `carregar_permissoes_resultado()`;
 - `salvar_permissoes_seguro()`.
@@ -149,28 +150,35 @@ Administração foi migrada como piloto.
 - apresenta mensagens coerentes de falha e conflito;
 - não cria automaticamente o arquivo quando ele está ausente.
 
-A migração foi validada com:
+A migração não alterou schema, regras de autorização, validação de usuários, duplicidades, trilha de auditoria ou exclusão física.
 
-- 20 testes unitários aprovados;
-- `py_compile` bem-sucedido para `services/permissoes.py` e `pages/administracao.py`;
-- inspeção estática dos caminhos de inclusão, desativação e exclusão;
-- nenhum arquivo rastreado modificado durante a validação.
+### Logs — concluída
 
-Não foram alterados no piloto:
+`services/log.py`:
 
-- schema de permissões;
-- regras de autorização;
-- validação de usuários;
-- duplicidades;
-- trilha de auditoria;
-- exclusão física.
+- usa `ler_csv_github()`;
+- atualiza `data/log_acessos.csv` com o SHA da leitura;
+- cria explicitamente o arquivo após `ARQUIVO_INEXISTENTE`;
+- não grava quando a leitura falha;
+- preserva as colunas `data_hora`, `usuario`, `perfil` e `acao`.
+
+Os chamadores de login, logout e sessão expirada permanecem em `services/auth.py`. As chamadas continuam protegidas por `try/except`, portanto falhas no log não bloqueiam autenticação ou encerramento de sessão.
+
+A validação confirmou:
+
+- 25 testes unitários aprovados;
+- `py_compile` bem-sucedido para `services/log.py` e `services/auth.py`;
+- inspeção estática dos três chamadores;
+- nenhum arquivo rastreado relacionado à migração alterado durante a validação.
+
+O workspace de validação possuía um comprovante binário modificado e não relacionado. Ele não pertence aos commits da migração e não foi publicado por esta etapa.
 
 ## Ordem de migração
 
 A ordem transversal vigente é:
 
 1. Administração — concluída;
-2. logs;
+2. logs — concluída;
 3. Dados;
 4. Férias;
 5. CRM;
@@ -182,6 +190,6 @@ Depois dos fluxos de escrita, migrar consultas somente leitura, como Obras, para
 
 ## Próximo passo seguro
 
-Auditar e preparar a migração isolada de `services/log.py` para o contrato explícito, porque cada evento relê e regrava integralmente `data/log_acessos.csv`.
+Auditar novamente os caminhos de escrita do módulo Dados e preparar sua migração isolada para o contrato explícito.
 
-A próxima alteração não deve ser combinada com mudanças de formato de log, retenção, schema ou regras de autenticação.
+A próxima alteração deve preservar schemas e regras funcionais. O problema de conversão numérica identificado na AUDIT_043 não deve ser corrigido no mesmo Kid Step da migração de persistência.
