@@ -59,6 +59,8 @@ Princípios centrais:
 - Criação e edição de atestado usam leitura estruturada e escrita segura de `data/atestados.csv`; criação e exclusão de serviço usam o mesmo contrato em `data/atestados_servicos.csv`.
 - A cobertura específica de Atestados possui 8 testes; a suíte completa foi homologada com 60 testes, 0 falhas e 0 erros.
 - Persistência segura por arquivo não fornece atomicidade multi-arquivo; a exclusão composta permanece deliberadamente no fluxo legado.
+- AUDIT_049 — Consistência da Exclusão Composta de Atestados concluída em `docs/audit/AUDIT_049_CONSISTENCIA_EXCLUSAO_ATESTADOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
+- A decisão arquitetural preserva a exclusão física e exige um único commit Git contendo os dois CSVs, condicionado a um snapshot comum da branch; duas escritas independentes, compensação e desativação lógica não foram adotadas como garantia transacional.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -82,11 +84,12 @@ Princípios centrais:
 
 ## Próximo passo
 
-Definir, antes de qualquer implementação, a política de consistência para a exclusão composta de atestado e serviços:
+Criar somente a fundação do contrato de persistência multi-arquivo, sem conectar ainda a exclusão em `pages/dados.py`:
 
-1. auditar alternativas de exclusão física, desativação lógica, compensação e recuperação após falha parcial;
-2. definir o estado canônico quando apenas uma das duas gravações for concluída;
-3. definir requisitos de observabilidade, confirmação e reconciliação;
-4. registrar a decisão arquitetural e seus limites;
-5. não alterar código funcional durante essa definição;
-6. somente depois decompor a implementação em Kid Steps verificáveis.
+1. definir estados e resultado explícito da operação composta;
+2. obter um snapshot comum da branch;
+3. preparar um único commit com `data/atestados.csv` e `data/atestados_servicos.csv`;
+4. recusar publicação quando a branch tiver avançado;
+5. testar sucesso, conflito, falha anterior à atualização da branch e ausência de estado parcial visível;
+6. preservar o fluxo funcional atual até a fundação ser homologada;
+7. migrar o consumidor somente em Kid Step posterior e separado.
