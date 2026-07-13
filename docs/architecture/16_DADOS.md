@@ -1,6 +1,6 @@
 # Arquitetura Atual — Dados
 
-Última atualização: 2026-07-12
+Última atualização: 2026-07-13
 
 Fontes de auditoria:
 
@@ -144,15 +144,16 @@ Atestados formam um agregado lógico distribuído em dois CSVs:
 
 ### Leitura e schema
 
-`garantir_estrutura_atestados()` lê os dois arquivos separadamente pelo contrato legado, cria colunas ausentes, preenche valores nulos e reduz cada DataFrame ao schema declarado.
+`garantir_estrutura_atestados()` lê os dois arquivos separadamente pelo contrato explícito, preservando para cada arquivo o status, os dados e o SHA observados.
 
-Consequências:
+A tela reduz cada DataFrame ao schema declarado e preenche valores nulos. Assim:
 
-- arquivo vazio, arquivo inexistente e falha de leitura são indistinguíveis para a tela;
-- colunas extras podem ser descartadas em gravação posterior;
-- as duas leituras não constituem snapshot atômico.
+- arquivo vazio, arquivo inexistente e falha de leitura são estados distinguíveis;
+- cada ação de arquivo único é bloqueada quando a leitura correspondente não autoriza escrita;
+- as duas leituras continuam independentes e não constituem snapshot atômico;
+- colunas extras continuam fora do schema administrado e podem ser descartadas em gravação posterior.
 
-Os dados reais possuem formatos históricos heterogêneos, incluindo identificadores abreviados, campos vazios e datas ou períodos em diferentes representações. A migração de persistência não deve normalizar esses dados incidentalmente.
+Os dados reais possuem formatos históricos heterogêneos, incluindo identificadores abreviados, campos vazios e datas ou períodos em diferentes representações. A migração preservou esses dados sem normalização retroativa.
 
 ### Busca e seleção
 
@@ -164,28 +165,40 @@ Os seletores usam `cliente | obra | contrato` como chave visual de dicionário. 
 
 A criação exige cliente e obra, gera UUID e usa entradas de data estruturadas. A edição localiza o registro por `id_atestado`, mas recebe datas como texto livre.
 
-Ambas as operações regravam integralmente `atestados.csv` pelo contrato legado e apresentam sucesso sem verificar resultado estruturado.
+Ambas as operações regravam integralmente `atestados.csv` por escrita segura, usando o SHA da leitura correspondente. A interface apresenta sucesso e executa `st.rerun()` somente após resultado confirmado; conflito ou falha mantém a tela sem falso sucesso.
 
 ### Serviços vinculados
 
 Serviços possuem `id_servico` estável e referência textual por `id_atestado`. A interface permite inclusão e exclusão, mas não edição.
 
-A criação exige apenas o nome do serviço e aceita quantidade não negativa. A integridade referencial é mantida pela seleção em memória da tela; a camada de persistência não confirma a existência atual do atestado referenciado.
+A criação exige apenas o nome do serviço e aceita quantidade não negativa. Criação e exclusão regravam integralmente `atestados_servicos.csv` por escrita segura, usando o SHA da leitura correspondente e bloqueando a ação após leitura não confirmada.
+
+A integridade referencial continua mantida pela seleção em memória da tela; a camada de persistência não confirma a existência atual do atestado referenciado.
 
 ### Exclusão composta
 
-Excluir um atestado remove o registro principal e seus serviços em memória, depois executa duas gravações sequenciais:
+Excluir um atestado remove o registro principal e seus serviços em memória, depois executa duas gravações sequenciais pelo fluxo legado:
 
 1. `atestados.csv`;
 2. `atestados_servicos.csv`.
 
 Não existe transação, rollback ou compensação. Falha parcial pode deixar serviços órfãos ou manter o atestado sem seus serviços.
 
-Usar SHA esperado em cada arquivo evita conflito concorrente silencioso, mas não transforma as duas gravações em operação atômica.
+A migração das operações de arquivo único não alterou esse caminho. Usar escrita segura em cada arquivo evitaria conflito concorrente silencioso, mas não transformaria as duas gravações em operação atômica.
+
+### Cobertura e homologação
+
+A migração foi publicada nos commits:
+
+- `06c210207988d1e66d196e7a5e7dd96ea2ef47a2` — implementação em `pages/dados.py`;
+- `acba093eeb0f095875bbe31ccc62fbb68f0ea7ea` — cobertura inicial;
+- `297425a178dcde8d003f5aff1851ee6794faab0c` — cobertura ampliada.
+
+A suíte específica possui 8 testes. A suíte completa foi homologada com 60 testes, 0 falhas e 0 erros.
 
 ## Schemas
 
-A estrutura de atestados cria colunas ausentes e reduz os DataFrames às colunas declaradas. Colunas extras podem desaparecer em gravações posteriores.
+A estrutura de atestados reduz os DataFrames às colunas declaradas. Colunas extras podem desaparecer em gravações posteriores.
 
 O CRUD genérico depende de os arquivos manterem as colunas esperadas. Divergências de schema podem causar falhas de acesso ou de inclusão.
 
@@ -209,7 +222,8 @@ O CRUD genérico depende de os arquivos manterem as colunas esperadas. Divergên
 - Administração e consumo de Locais usam camadas de persistência diferentes.
 - Locais não filtram obras permitidas.
 - Atestados formam agregado lógico em dois CSVs.
-- A exclusão composta de atestado e serviços não é atômica.
+- Operações de Atestados que alteram um único arquivo usam persistência segura com status e SHA próprios.
+- A exclusão composta de atestado e serviços não é atômica e permanece legada.
 - Persistência segura por arquivo não equivale a transação multi-arquivo.
 - Dados históricos de atestados possuem formatos heterogêneos.
 - Rótulos de atestado podem ser ambíguos.
@@ -237,23 +251,11 @@ O CRUD genérico depende de os arquivos manterem as colunas esperadas. Divergên
 
 ## Próximo Kid Step seguro
 
-Migrar primeiro somente as operações de Atestados que alteram um único arquivo:
+Definir a política de consistência para a exclusão composta de atestado e serviços antes de qualquer migração desse caminho:
 
-1. leitura estruturada separada para `atestados.csv` e `atestados_servicos.csv`, preservando status e SHA próprios;
-2. criação e edição de atestado com escrita segura no arquivo principal;
-3. criação e exclusão de serviço com escrita segura no arquivo de serviços;
-4. bloqueio de cada ação quando a leitura do arquivo correspondente não autorizar escrita;
-5. sucesso e `st.rerun()` somente após resultado confirmado;
-6. preservação integral de schemas, dados históricos, UUIDs, busca, filtros e regras atuais.
-
-Não incluir no mesmo Kid Step:
-
-- exclusão composta de atestado e serviços;
-- mudança de datas;
-- mudança de rótulos;
-- nova regra de unicidade;
-- permissões granulares;
-- edição de serviços;
-- normalização retroativa de dados.
-
-A exclusão composta exige decisão específica de consistência multi-arquivo antes da implementação.
+1. comparar exclusão física, desativação lógica e mecanismos de compensação;
+2. definir o estado canônico após falha parcial entre os dois arquivos;
+3. definir confirmação, observabilidade e reconciliação;
+4. registrar a decisão arquitetural e seus limites;
+5. não alterar código funcional nesse Kid Step;
+6. somente depois decompor eventual implementação em mudanças pequenas e verificáveis.
