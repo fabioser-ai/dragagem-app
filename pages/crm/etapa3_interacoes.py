@@ -2,10 +2,10 @@ import streamlit as st
 
 from pages.crm.config import TIPOS_CONTATO, RESULTADOS_INTERACAO
 from pages.crm.repositorio import (
-    carregar_clientes,
+    cadastro_interacao_liberado,
+    cadastrar_interacao_composta,
+    carregar_contexto_interacao_resultado,
     carregar_contatos,
-    carregar_interacoes,
-    cadastrar_interacao,
 )
 from pages.crm.utils import preparar_dataframe_para_exibicao
 
@@ -13,9 +13,12 @@ from pages.crm.utils import preparar_dataframe_para_exibicao
 def tela_interacoes():
     st.subheader("Histórico de Interações")
 
-    clientes = carregar_clientes()
+    resultado_clientes, resultado_interacoes, snapshot_comum = (
+        carregar_contexto_interacao_resultado()
+    )
+    clientes = resultado_clientes.dados
     contatos = carregar_contatos()
-    interacoes = carregar_interacoes()
+    interacoes = resultado_interacoes.dados
 
     if clientes.empty:
         st.warning("Cadastre pelo menos um cliente antes de registrar interações.")
@@ -25,6 +28,29 @@ def tela_interacoes():
         row["nome_empresa"]: row["id_cliente"]
         for _, row in clientes.sort_values("nome_empresa").iterrows()
     }
+    cadastro_liberado = cadastro_interacao_liberado(
+        resultado_clientes,
+        resultado_interacoes,
+        snapshot_comum,
+    )
+
+    if not cadastro_liberado:
+        resultado_bloqueio = (
+            resultado_clientes
+            if not resultado_clientes.pode_sobrescrever
+            else resultado_interacoes
+            if not resultado_interacoes.pode_sobrescrever
+            else snapshot_comum
+        )
+        detalhes = resultado_bloqueio.erro or (
+            "Não foi possível confirmar o snapshot comum da branch."
+        )
+        if resultado_bloqueio.http_status:
+            detalhes = f"{detalhes} (HTTP {resultado_bloqueio.http_status})"
+        st.error(
+            "O cadastro de interação está bloqueado para preservar os dados. "
+            + detalhes
+        )
 
     with st.expander("Nova interação", expanded=False):
         with st.form("form_nova_interacao"):
@@ -55,7 +81,10 @@ def tela_interacoes():
 
             descricao = st.text_area("Descrição da interação *")
 
-            salvar = st.form_submit_button("Salvar interação")
+            salvar = st.form_submit_button(
+                "Salvar interação",
+                disabled=not cadastro_liberado,
+            )
 
             if salvar:
                 if not descricao.strip():
@@ -73,9 +102,23 @@ def tela_interacoes():
                         "data_proxima_acao": str(data_proxima_acao) if data_proxima_acao else "",
                     }
 
-                    cadastrar_interacao(dados)
-                    st.success("Interação registrada com sucesso.")
-                    st.rerun()
+                    resultado = cadastrar_interacao_composta(
+                        dados,
+                        resultado_clientes,
+                        resultado_interacoes,
+                        snapshot_comum,
+                    )
+
+                    if resultado.sucesso:
+                        st.success("Interação registrada com sucesso.")
+                        st.rerun()
+                    else:
+                        detalhes = resultado.erro or (
+                            "Não foi possível registrar a interação."
+                        )
+                        if resultado.http_status:
+                            detalhes = f"{detalhes} (HTTP {resultado.http_status})"
+                        st.error(detalhes)
 
     st.markdown("---")
     st.subheader("Histórico registrado")
