@@ -41,17 +41,18 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `17_FERIAS.md`
 - `18_OBRAS.md`
 - `19_CONTRATO_LEITURA.md`
+- `20_ENCERRAMENTO_FASE_1.md`
 
 ## Cobertura
 
 A matriz em `15_MATRIZ_COBERTURA_DOCUMENTAL.md` relaciona as rotas observadas em `app.py` às fontes arquiteturais vigentes e registra o nível de cobertura e as lacunas conhecidas.
 
-A documentação modular possui agora cobertura forte para os domínios funcionais explicitamente roteados no ciclo auditado: Medições, Orçamentos, Prestação de Contas, CRM, Administração, Serviços Compartilhados, Dados, Férias e Obras.
+A documentação modular possui cobertura forte para os domínios funcionais explicitamente roteados no ciclo auditado: Medições, Orçamentos, Prestação de Contas, CRM, Administração, Serviços Compartilhados, Dados, Férias e Obras.
 
-O contrato arquitetural para leitura explícita e bloqueio de escrita está definido em `19_CONTRATO_LEITURA.md`. Nenhuma implementação funcional foi realizada por essa definição.
+O contrato arquitetural para leitura explícita e bloqueio de escrita está definido em `19_CONTRATO_LEITURA.md`. A fundação de escrita segura por arquivo e a persistência multi-arquivo foram implementadas e homologadas posteriormente, conforme `PROJECT_STATE.md`, `16_DADOS.md` e `20_ENCERRAMENTO_FASE_1.md`.
 
-Permanecem lacunas secundárias já registradas para menu, bootstrap, fallback de rota e reconciliação final do documento legado.
+A auditoria de encerramento identificou um único bloqueador crítico conhecido para concluir a Fase 1: a gravação composta do cadastro de interação do CRM. Prestação de Contas e as demais lacunas registradas permanecem como riscos funcionais ou manutenção estruturada, sem impedir a expansão após a correção do CRM.
 
 ## Migração
 
-Os demais recortes serão migrados gradualmente a partir do documento legado e de novas auditorias. Nenhum conteúdo do arquivo legado deve ser removido até a migração correspondente ser confirmada.
+`docs/ARCHITECTURE_CURRENT.md` permanece como documento legado de transição e contém trechos anteriores aos contratos atuais. A documentação modular prevalece. Nenhum conteúdo do arquivo legado deve ser removido ou reescrito em massa sem reconciliação deliberada.
