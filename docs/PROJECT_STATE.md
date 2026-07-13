@@ -46,6 +46,10 @@ A Fase 1 — Consolidação da Plataforma foi oficialmente encerrada em 2026-07-
 - AUDIT_050 definiu os critérios de encerramento da plataforma.
 - AUDIT_051 confirmou o atendimento dos critérios e encerrou oficialmente a Fase 1.
 - `docs/ARCHITECTURE_CURRENT.md` permanece como legado de transição; a documentação modular prevalece.
+- A primeira prioridade funcional da Fase 2 foi definida: sistema orçamentário da FOS.
+- A estratégia oficial está registrada em `docs/architecture/21_ESTRATEGIA_FASE_2_ORCAMENTOS.md`.
+- A camada permanente de conhecimento operacional está registrada em `docs/knowledge/`.
+- A engenharia reversa vertical do primeiro modelo, dragagem com desaguamento em bags, foi concluída e registrada em `docs/knowledge/orcamentos/001_DESAGUAMENTO_BAGS_SABESP.md`.
 
 ## Fundação homologada
 
@@ -113,26 +117,27 @@ Responsável por:
 - `docs/PROJECT_STATE.md`: estado oficial e workflow do projeto.
 - `docs/DEVELOPMENT_PHILOSOPHY.md`: princípios e regras permanentes.
 - `docs/architecture/`: fonte consolidada da arquitetura atual por domínio.
-- `docs/audit/`: histórico incremental e detalhado das auditorias.
+- `docs/audit/`: histórico incremental e detalhado das auditorias técnicas e arquiteturais.
+- `docs/knowledge/`: memória técnica e conhecimento operacional independente da implementação.
 - `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; a documentação modular prevalece.
 
 ## Próximo passo
 
-Priorizar a primeira entrega da Fase 2 — Expansão Funcional.
+Continuar a engenharia reversa vertical do sistema orçamentário.
 
-A escolha deve comparar candidatos por:
+Para cada novo modelo fornecido:
 
-1. valor operacional e financeiro;
-2. frequência do uso ou da dor;
-3. número de usuários beneficiados;
-4. redução de trabalho manual ou risco;
-5. prontidão arquitetural e dependências;
-6. tamanho apropriado para entrega incremental.
+1. analisar o arquivo integralmente;
+2. registrar abas, fórmulas, dependências, regras, exceções e inconsistências;
+3. separar fatos observados, informações do especialista, interpretações e hipóteses;
+4. criar documento próprio em `docs/knowledge/orcamentos/`;
+5. não implementar.
 
-Após a escolha:
+Após quantidade suficiente de modelos completos:
 
-1. auditar somente o fluxo diretamente afetado;
-2. definir o primeiro Kid Step funcional;
-3. implementar e testar em commits separados;
-4. homologar pelo GitHub Actions;
-5. medir o valor entregue antes de expandir o escopo.
+1. executar crosscheck horizontal;
+2. identificar núcleo comum, famílias de obra, componentes opcionais e exceções;
+3. consolidar o Método de Orçamento FOS;
+4. definir a arquitetura do sistema orçamentário;
+5. decompor a implementação em Kid Steps;
+6. validar equivalência com as planilhas originais antes de otimizar.
