@@ -54,17 +54,20 @@ Princípios centrais:
 - A administração de Locais de Trabalho foi migrada para persistência segura; o consumidor interno de Medições permanece em camada legada separada.
 - AUDIT_047 — Locais de Trabalho concluída em `docs/audit/AUDIT_047_LOCAIS_TRABALHO.md` e consolidada em `docs/architecture/16_DADOS.md`.
 - AUDIT_048 — Atestados e Serviços Vinculados concluída em `docs/audit/AUDIT_048_ATESTADOS_SERVICOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
-- Atestados e serviços formam agregado lógico em dois CSVs; operações simples alteram um arquivo e a exclusão de atestado altera dois arquivos sequencialmente sem transação.
+- Atestados e serviços formam agregado lógico em dois CSVs.
 - As operações de Atestados que alteram um único arquivo foram migradas para persistência segura nos commits `06c210207988d1e66d196e7a5e7dd96ea2ef47a2`, `acba093eeb0f095875bbe31ccc62fbb68f0ea7ea` e `297425a178dcde8d003f5aff1851ee6794faab0c`.
 - Criação e edição de atestado usam leitura estruturada e escrita segura de `data/atestados.csv`; criação e exclusão de serviço usam o mesmo contrato em `data/atestados_servicos.csv`.
-- A cobertura específica de Atestados possui 8 testes; a suíte completa foi homologada com 60 testes, 0 falhas e 0 erros.
-- Persistência segura por arquivo não fornece atomicidade multi-arquivo; a exclusão composta permanece deliberadamente no fluxo legado.
+- A cobertura específica das operações de arquivo único de Atestados possui 8 testes; a suíte completa dessa etapa foi homologada com 60 testes, 0 falhas e 0 erros.
 - AUDIT_049 — Consistência da Exclusão Composta de Atestados concluída em `docs/audit/AUDIT_049_CONSISTENCIA_EXCLUSAO_ATESTADOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
-- A decisão arquitetural preserva a exclusão física e exige um único commit Git contendo os dois CSVs, condicionado a um snapshot comum da branch; duas escritas independentes, compensação e desativação lógica não foram adotadas como garantia transacional.
+- A decisão arquitetural preserva a exclusão física e exige um único commit Git contendo os dois CSVs, condicionado a um snapshot comum da branch.
 - A fundação de persistência multi-arquivo foi implementada em `services/persistencia_multi_arquivo.py` no commit `3dbed44` e coberta em `tests/test_persistencia_multi_arquivo.py` no commit `571f692`.
 - O workflow `.github/workflows/testes.yml` foi criado no commit `1ad6d1e` para homologação automática em Ubuntu com Python 3.12.
-- O workflow do commit `571f692` concluiu com sucesso em 31 segundos; a fundação multi-arquivo está homologada e ainda não está conectada à interface.
-- O aviso de depreciação do runtime Node.js usado por `actions/checkout@v4` e `actions/setup-python@v5` permanece no parking lot de manutenção do CI; não afetou a homologação.
+- O workflow do commit `571f692` concluiu com sucesso em 31 segundos; a fundação multi-arquivo foi homologada antes da migração do consumidor.
+- A exclusão composta de atestado e serviços foi migrada para persistência atômica no commit `b41d0207192cf91cd03fa7486e4a39a72c95d357` e coberta no commit `07ea0dce151545d026fc74b87810103f29491719`.
+- A exclusão exige confirmação explícita, leituras autorizadas e snapshot comum; os dois CSVs são publicados em um único commit, sem falso sucesso em conflito ou falha.
+- O GitHub Actions do commit `07ea0dce151545d026fc74b87810103f29491719` concluiu com sucesso em 27 segundos em Ubuntu com Python 3.12.
+- A exclusão composta deixou de usar duas gravações legadas independentes; criação, edição e exclusão individual permanecem nos contratos já definidos para cada arquivo.
+- O aviso de depreciação do runtime Node.js usado por `actions/checkout@v4` e `actions/setup-python@v5` permanece no parking lot de manutenção do CI; não afetou as homologações.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -88,14 +91,11 @@ Princípios centrais:
 
 ## Próximo passo
 
-Migrar somente o consumidor da exclusão composta em `pages/dados.py` para a fundação multi-arquivo já homologada:
+Executar uma auditoria curta de encerramento da Fase 1 — Consolidação da Plataforma:
 
-1. preservar a exclusão física e os schemas atuais;
-2. exigir leitura confirmada dos dois arquivos antes de habilitar a ação;
-3. preparar as duas versões em memória sem alterar dados históricos além do agregado selecionado;
-4. publicar os dois CSVs por um único commit Git usando o snapshot comum;
-5. apresentar sucesso e executar `st.rerun()` somente após confirmação da atualização da branch;
-6. em conflito ou falha, manter a interface sem falso sucesso e exigir nova leitura antes de nova confirmação;
-7. adicionar confirmação explícita da operação destrutiva sem alterar outras regras da tela;
-8. criar cobertura específica e executar a suíte completa pelo GitHub Actions;
-9. não incluir desativação lógica, restauração, permissões granulares, mudanças de datas, rótulos ou normalização de dados no mesmo Kid Step.
+1. confirmar que não permanece outro consumidor crítico com risco equivalente de sobrescrita ambígua ou publicação parcial;
+2. separar lacunas críticas de manutenção secundária e parking lot;
+3. verificar o estado da reconciliação de `docs/ARCHITECTURE_CURRENT.md` sem remover conteúdo automaticamente;
+4. registrar critérios objetivos para considerar a fundação encerrada;
+5. não alterar comportamento funcional nessa auditoria;
+6. após o encerramento, iniciar a priorização da primeira entrega da Fase 2 — Expansão Funcional.
