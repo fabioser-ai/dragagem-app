@@ -67,8 +67,12 @@ Princípios centrais:
 - A exclusão exige confirmação explícita, leituras autorizadas e snapshot comum; os dois CSVs são publicados em um único commit, sem falso sucesso em conflito ou falha.
 - O GitHub Actions do commit `07ea0dce151545d026fc74b87810103f29491719` concluiu com sucesso em 27 segundos em Ubuntu com Python 3.12.
 - A exclusão composta deixou de usar duas gravações legadas independentes; criação, edição e exclusão individual permanecem nos contratos já definidos para cada arquivo.
+- AUDIT_050 — Encerramento da Fase 1 concluída em `docs/audit/AUDIT_050_ENCERRAMENTO_FASE_1.md` e consolidada em `docs/architecture/20_ENCERRAMENTO_FASE_1.md`.
+- A auditoria confirmou que a plataforma está tecnicamente madura, mas identificou um único bloqueador crítico conhecido: o cadastro de interação do CRM ainda grava `interacoes.csv` e `clientes.csv` em operações independentes.
+- Prestação de Contas mantém risco de comprovante órfão, mas esse caso combina binário e CSV e foi classificado como risco funcional prioritário, não como bloqueador da fundação multi-CSV.
+- `docs/ARCHITECTURE_CURRENT.md` permanece como legado de transição e contém descrições anteriores aos contratos atuais; a documentação modular prevalece e sua reconciliação não bloqueia a Fase 2.
 - O aviso de depreciação do runtime Node.js usado por `actions/checkout@v4` e `actions/setup-python@v5` permanece no parking lot de manutenção do CI; não afetou as homologações.
-- Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
+- Permanecem lacunas secundárias de menu, bootstrap, fallback, seletores, permissões granulares e normalização de dados históricos.
 
 ## Workflow oficial de auditoria
 
@@ -87,15 +91,17 @@ Princípios centrais:
 - `docs/DEVELOPMENT_PHILOSOPHY.md`: princípios e regras permanentes de desenvolvimento e auditoria.
 - `docs/architecture/`: fonte modular e consolidada da arquitetura atual por domínio.
 - `docs/audit/`: histórico incremental e detalhado das auditorias realizadas.
-- `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; não remover conteúdo até a migração correspondente ser confirmada.
+- `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; a documentação modular prevalece.
 
 ## Próximo passo
 
-Executar uma auditoria curta de encerramento da Fase 1 — Consolidação da Plataforma:
+Executar o último Kid Step bloqueador da Fase 1:
 
-1. confirmar que não permanece outro consumidor crítico com risco equivalente de sobrescrita ambígua ou publicação parcial;
-2. separar lacunas críticas de manutenção secundária e parking lot;
-3. verificar o estado da reconciliação de `docs/ARCHITECTURE_CURRENT.md` sem remover conteúdo automaticamente;
-4. registrar critérios objetivos para considerar a fundação encerrada;
-5. não alterar comportamento funcional nessa auditoria;
-6. após o encerramento, iniciar a priorização da primeira entrega da Fase 2 — Expansão Funcional.
+1. migrar somente o cadastro de interação do CRM e a atualização correspondente do cliente para persistência multi-arquivo atômica;
+2. preservar schemas, campos, seletores, datas, permissões e demais comportamentos do CRM;
+3. preparar `data/crm/interacoes.csv` e `data/crm/clientes.csv` em memória;
+4. publicar ambos em um único commit Git condicionado a snapshot comum;
+5. bloquear falso sucesso e nova tentativa automática em conflito ou falha;
+6. criar cobertura específica do consumidor;
+7. homologar a suíte completa no GitHub Actions;
+8. após sucesso, registrar oficialmente o encerramento da Fase 1 e iniciar a priorização da primeira entrega da Fase 2 — Expansão Funcional.
