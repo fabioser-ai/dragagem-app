@@ -61,6 +61,10 @@ Princípios centrais:
 - Persistência segura por arquivo não fornece atomicidade multi-arquivo; a exclusão composta permanece deliberadamente no fluxo legado.
 - AUDIT_049 — Consistência da Exclusão Composta de Atestados concluída em `docs/audit/AUDIT_049_CONSISTENCIA_EXCLUSAO_ATESTADOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
 - A decisão arquitetural preserva a exclusão física e exige um único commit Git contendo os dois CSVs, condicionado a um snapshot comum da branch; duas escritas independentes, compensação e desativação lógica não foram adotadas como garantia transacional.
+- A fundação de persistência multi-arquivo foi implementada em `services/persistencia_multi_arquivo.py` no commit `3dbed44` e coberta em `tests/test_persistencia_multi_arquivo.py` no commit `571f692`.
+- O workflow `.github/workflows/testes.yml` foi criado no commit `1ad6d1e` para homologação automática em Ubuntu com Python 3.12.
+- O workflow do commit `571f692` concluiu com sucesso em 31 segundos; a fundação multi-arquivo está homologada e ainda não está conectada à interface.
+- O aviso de depreciação do runtime Node.js usado por `actions/checkout@v4` e `actions/setup-python@v5` permanece no parking lot de manutenção do CI; não afetou a homologação.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -84,12 +88,14 @@ Princípios centrais:
 
 ## Próximo passo
 
-Criar somente a fundação do contrato de persistência multi-arquivo, sem conectar ainda a exclusão em `pages/dados.py`:
+Migrar somente o consumidor da exclusão composta em `pages/dados.py` para a fundação multi-arquivo já homologada:
 
-1. definir estados e resultado explícito da operação composta;
-2. obter um snapshot comum da branch;
-3. preparar um único commit com `data/atestados.csv` e `data/atestados_servicos.csv`;
-4. recusar publicação quando a branch tiver avançado;
-5. testar sucesso, conflito, falha anterior à atualização da branch e ausência de estado parcial visível;
-6. preservar o fluxo funcional atual até a fundação ser homologada;
-7. migrar o consumidor somente em Kid Step posterior e separado.
+1. preservar a exclusão física e os schemas atuais;
+2. exigir leitura confirmada dos dois arquivos antes de habilitar a ação;
+3. preparar as duas versões em memória sem alterar dados históricos além do agregado selecionado;
+4. publicar os dois CSVs por um único commit Git usando o snapshot comum;
+5. apresentar sucesso e executar `st.rerun()` somente após confirmação da atualização da branch;
+6. em conflito ou falha, manter a interface sem falso sucesso e exigir nova leitura antes de nova confirmação;
+7. adicionar confirmação explícita da operação destrutiva sem alterar outras regras da tela;
+8. criar cobertura específica e executar a suíte completa pelo GitHub Actions;
+9. não incluir desativação lógica, restauração, permissões granulares, mudanças de datas, rótulos ou normalização de dados no mesmo Kid Step.
