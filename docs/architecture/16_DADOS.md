@@ -6,7 +6,8 @@ Fontes de auditoria:
 
 - `docs/audit/AUDIT_043_DADOS.md`;
 - `docs/audit/AUDIT_047_LOCAIS_TRABALHO.md`;
-- `docs/audit/AUDIT_048_ATESTADOS_SERVICOS.md`.
+- `docs/audit/AUDIT_048_ATESTADOS_SERVICOS.md`;
+- `docs/audit/AUDIT_049_CONSISTENCIA_EXCLUSAO_ATESTADOS.md`.
 
 ## Visão geral
 
@@ -186,9 +187,23 @@ Não existe transação, rollback ou compensação. Falha parcial pode deixar se
 
 A migração das operações de arquivo único não alterou esse caminho. Usar escrita segura em cada arquivo evitaria conflito concorrente silencioso, mas não transformaria as duas gravações em operação atômica.
 
+### Decisão de consistência multi-arquivo
+
+A AUDIT_049 concluiu que a exclusão composta deve preservar a exclusão física atual, mas não pode ser migrada como duas chamadas independentes de escrita segura.
+
+A unidade de publicação escolhida é um único commit Git contendo as duas novas versões dos CSVs, condicionado a um snapshot comum da branch. Se a branch tiver avançado, a operação deve terminar em conflito sem tornar apenas um dos arquivos visível.
+
+Não foram adotadas como garantia principal:
+
+- duas escritas sequenciais seguras, porque continuam admitindo sucesso parcial;
+- compensação automática, porque o rollback é outra escrita sujeita a falha e conflito;
+- desativação lógica, porque exige decisão funcional e alteração de schema sem eliminar por si só o problema de consistência.
+
+O contrato multi-arquivo ainda não foi implementado. O botão de exclusão permanece no fluxo legado até que a fundação seja criada, testada e homologada em Kid Step separado.
+
 ### Cobertura e homologação
 
-A migração foi publicada nos commits:
+A migração das operações de arquivo único foi publicada nos commits:
 
 - `06c210207988d1e66d196e7a5e7dd96ea2ef47a2` — implementação em `pages/dados.py`;
 - `acba093eeb0f095875bbe31ccc62fbb68f0ea7ea` — cobertura inicial;
@@ -224,13 +239,14 @@ O CRUD genérico depende de os arquivos manterem as colunas esperadas. Divergên
 - Atestados formam agregado lógico em dois CSVs.
 - Operações de Atestados que alteram um único arquivo usam persistência segura com status e SHA próprios.
 - A exclusão composta de atestado e serviços não é atômica e permanece legada.
+- A política definida exige um commit Git único para publicar os dois CSVs a partir de snapshot comum.
 - Persistência segura por arquivo não equivale a transação multi-arquivo.
 - Dados históricos de atestados possuem formatos heterogêneos.
 - Rótulos de atestado podem ser ambíguos.
 - Datas de atestado usam tipos de entrada diferentes entre criação e edição.
 - A estrutura de atestados descarta colunas desconhecidas.
 - Integridade referencial de serviços é mantida apenas pela tela.
-- A leitura conjunta de atestados e serviços não constitui snapshot atômico.
+- A leitura conjunta atual de atestados e serviços não constitui snapshot atômico.
 
 ## Perguntas em aberto
 
@@ -244,18 +260,18 @@ O CRUD genérico depende de os arquivos manterem as colunas esperadas. Divergên
 - Qual camada deve ser canônica para Locais de Trabalho?
 - Atestados precisam de regra de unicidade?
 - Qual formato oficial deve ser usado para datas e períodos?
-- A exclusão física de atestados deve continuar permitida?
-- Como tratar falha parcial entre gravação do atestado e dos serviços?
+- A exclusão física de atestados deve continuar permitida no longo prazo?
 - A escrita de serviços deve validar a existência atual do atestado?
 - Existe consumidor de atestados fora do módulo Dados ainda não identificado?
 
 ## Próximo Kid Step seguro
 
-Definir a política de consistência para a exclusão composta de atestado e serviços antes de qualquer migração desse caminho:
+Criar somente a fundação do contrato de persistência multi-arquivo, sem conectá-lo ainda à interface:
 
-1. comparar exclusão física, desativação lógica e mecanismos de compensação;
-2. definir o estado canônico após falha parcial entre os dois arquivos;
-3. definir confirmação, observabilidade e reconciliação;
-4. registrar a decisão arquitetural e seus limites;
-5. não alterar código funcional nesse Kid Step;
-6. somente depois decompor eventual implementação em mudanças pequenas e verificáveis.
+1. definir estados e resultado explícito da operação composta;
+2. obter um snapshot comum da branch e preparar as duas versões dos arquivos;
+3. gerar um único commit contendo `atestados.csv` e `atestados_servicos.csv`;
+4. recusar atualização quando a branch tiver avançado;
+5. testar sucesso, conflito, falha anterior à publicação e ausência de estado parcial visível;
+6. não alterar o botão de exclusão em `pages/dados.py` nesse Kid Step;
+7. migrar o consumidor somente depois da homologação da fundação.
