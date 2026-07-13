@@ -55,7 +55,10 @@ Princípios centrais:
 - AUDIT_047 — Locais de Trabalho concluída em `docs/audit/AUDIT_047_LOCAIS_TRABALHO.md` e consolidada em `docs/architecture/16_DADOS.md`.
 - AUDIT_048 — Atestados e Serviços Vinculados concluída em `docs/audit/AUDIT_048_ATESTADOS_SERVICOS.md` e consolidada em `docs/architecture/16_DADOS.md`.
 - Atestados e serviços formam agregado lógico em dois CSVs; operações simples alteram um arquivo e a exclusão de atestado altera dois arquivos sequencialmente sem transação.
-- Persistência segura por arquivo não fornece atomicidade multi-arquivo; a exclusão composta permanece fora do próximo Kid Step.
+- As operações de Atestados que alteram um único arquivo foram migradas para persistência segura nos commits `06c210207988d1e66d196e7a5e7dd96ea2ef47a2`, `acba093eeb0f095875bbe31ccc62fbb68f0ea7ea` e `297425a178dcde8d003f5aff1851ee6794faab0c`.
+- Criação e edição de atestado usam leitura estruturada e escrita segura de `data/atestados.csv`; criação e exclusão de serviço usam o mesmo contrato em `data/atestados_servicos.csv`.
+- A cobertura específica de Atestados possui 8 testes; a suíte completa foi homologada com 60 testes, 0 falhas e 0 erros.
+- Persistência segura por arquivo não fornece atomicidade multi-arquivo; a exclusão composta permanece deliberadamente no fluxo legado.
 - Permanecem lacunas secundárias de menu, bootstrap, fallback e reconciliação final do documento legado.
 
 ## Workflow oficial de auditoria
@@ -79,13 +82,11 @@ Princípios centrais:
 
 ## Próximo passo
 
-Migrar somente as operações de Atestados que alteram um único arquivo:
+Definir, antes de qualquer implementação, a política de consistência para a exclusão composta de atestado e serviços:
 
-1. criar leitura estruturada separada para `data/atestados.csv` e `data/atestados_servicos.csv`, preservando status e SHA próprios;
-2. migrar criação e edição de atestado para escrita segura no arquivo principal;
-3. migrar criação e exclusão de serviço para escrita segura no arquivo de serviços;
-4. bloquear cada ação quando a leitura do arquivo correspondente não autorizar escrita;
-5. apresentar sucesso e executar `st.rerun()` somente após escrita confirmada;
-6. preservar schemas, dados históricos, UUIDs, busca, filtros e comportamento atual;
-7. não alterar datas, rótulos, permissões, unicidade, UI ou dados históricos no mesmo Kid Step;
-8. manter a exclusão composta de atestado e serviços fora desta etapa até existir decisão explícita de consistência multi-arquivo.
+1. auditar alternativas de exclusão física, desativação lógica, compensação e recuperação após falha parcial;
+2. definir o estado canônico quando apenas uma das duas gravações for concluída;
+3. definir requisitos de observabilidade, confirmação e reconciliação;
+4. registrar a decisão arquitetural e seus limites;
+5. não alterar código funcional durante essa definição;
+6. somente depois decompor a implementação em Kid Steps verificáveis.
