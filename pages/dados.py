@@ -7,6 +7,12 @@ from services.dados_persistencia import (
     carregar_cadastro_resultado,
     salvar_cadastro_seguro,
 )
+from services.persistencia_multi_arquivo import (
+    AlteracaoArquivoCSV,
+    SnapshotBranch,
+    publicar_csvs_em_commit,
+    resolver_snapshot_branch,
+)
 from pages.dados_detalhados.locais_trabalho import render_locais_trabalho
 
 TOKEN = st.secrets["GITHUB_TOKEN"]
@@ -232,6 +238,54 @@ def _salvar_servicos_seguro(df, resultado_leitura, sucesso, falha):
     return _salvar_cadastro(df, ARQ_ATESTADOS_SERVICOS, COLUNAS_ATESTADOS_SERVICOS, resultado_leitura, sucesso, falha)
 
 
+def preparar_exclusao_composta(df_atestados, df_servicos, id_atestado):
+    atestados_atualizados = df_atestados[
+        df_atestados["id_atestado"] != id_atestado
+    ].reset_index(drop=True)
+    servicos_atualizados = df_servicos[
+        df_servicos["id_atestado"] != id_atestado
+    ].reset_index(drop=True)
+    return atestados_atualizados, servicos_atualizados
+
+
+def exclusao_composta_liberada(
+    resultado_atestados,
+    resultado_servicos,
+    snapshot_comum,
+):
+    return (
+        escrita_liberada(resultado_atestados)
+        and escrita_liberada(resultado_servicos)
+        and isinstance(snapshot_comum, SnapshotBranch)
+    )
+
+
+def _publicar_exclusao_composta(df_atestados, df_servicos):
+    resultado = publicar_csvs_em_commit(
+        [
+            AlteracaoArquivoCSV(ARQ_ATESTADOS, df_atestados),
+            AlteracaoArquivoCSV(ARQ_ATESTADOS_SERVICOS, df_servicos),
+        ],
+        TOKEN,
+        REPO,
+        "main",
+        "Excluir atestado e serviços vinculados",
+    )
+
+    if resultado.sucesso:
+        st.success("Atestado e serviços vinculados foram excluídos.")
+        st.rerun()
+        return resultado
+
+    st.error(
+        _detalhes_resultado(
+            resultado,
+            "Não foi possível excluir o atestado e os serviços vinculados.",
+        )
+    )
+    return resultado
+
+
 def filtrar_atestados_por_busca(df_atestados, df_servicos, busca):
     if not busca or busca.strip() == "":
         return df_atestados.copy()
@@ -389,20 +443,55 @@ def render_atestados():
                     st.session_state.atestado_em_edicao = id_atestado
 
             with col_excluir:
-                if st.button("Excluir este atestado", key="btn_excluir_atestado", use_container_width=True):
-                    df_atestados = df_atestados[
-                        df_atestados["id_atestado"] != id_atestado
-                    ].reset_index(drop=True)
+                snapshot_comum = (
+                    resolver_snapshot_branch(TOKEN, REPO, "main")
+                    if escrita_atestados_liberada and escrita_servicos_liberada
+                    else None
+                )
+                exclusao_liberada = exclusao_composta_liberada(
+                    resultado_atestados,
+                    resultado_servicos,
+                    snapshot_comum,
+                )
 
-                    df_servicos = df_servicos[
-                        df_servicos["id_atestado"] != id_atestado
-                    ].reset_index(drop=True)
+                if not exclusao_liberada:
+                    resultado_bloqueio = (
+                        snapshot_comum
+                        if snapshot_comum is not None
+                        and not isinstance(snapshot_comum, SnapshotBranch)
+                        else resultado_atestados
+                        if not escrita_atestados_liberada
+                        else resultado_servicos
+                    )
+                    st.error(
+                        "A exclusão do atestado e dos serviços vinculados está bloqueada "
+                        "para preservar os dados. "
+                        + _detalhes_resultado(
+                            resultado_bloqueio,
+                            "Não foi possível confirmar o snapshot comum da branch.",
+                        )
+                    )
 
-                    salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)
-                    salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)
+                confirmar_exclusao = st.checkbox(
+                    "Confirmo a exclusão deste atestado e de todos os serviços vinculados.",
+                    key="confirmar_exclusao_atestado",
+                )
 
-                    st.warning("Atestado e serviços vinculados foram excluídos.")
-                    st.rerun()
+                if st.button(
+                    "Excluir este atestado",
+                    key="btn_excluir_atestado",
+                    use_container_width=True,
+                    disabled=not (exclusao_liberada and confirmar_exclusao),
+                ):
+                    atestados_atualizados, servicos_atualizados = preparar_exclusao_composta(
+                        df_atestados,
+                        df_servicos,
+                        id_atestado,
+                    )
+                    _publicar_exclusao_composta(
+                        atestados_atualizados,
+                        servicos_atualizados,
+                    )
 
             if "atestado_em_edicao" in st.session_state:
                 id_edicao = st.session_state.atestado_em_edicao
