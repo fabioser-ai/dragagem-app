@@ -67,8 +67,9 @@ class TestAtestadosPersistenciaSegura(unittest.TestCase):
 
     def test_fluxos_preservados_por_fonte(self):
         fonte = inspect.getsource(dados)
-        self.assertIn('salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)', fonte)
-        self.assertIn('salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)', fonte)
+        self.assertIn('publicar_csvs_em_commit(', fonte)
+        self.assertNotIn('salvar_github(df_atestados, ARQ_ATESTADOS, TOKEN, REPO)', fonte)
+        self.assertNotIn('salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)', fonte)
         self.assertIn('str(uuid.uuid4())', fonte)
         self.assertIn('disabled=not escrita_atestados_liberada', fonte)
         self.assertIn('disabled=not escrita_servicos_liberada', fonte)
