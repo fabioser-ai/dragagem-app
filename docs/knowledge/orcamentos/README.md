@@ -77,6 +77,20 @@ Antes de consolidar um coeficiente, deve-se identificar se ele é:
 - estimativa empírica;
 - valor histórico reutilizável.
 
+## Registros de descoberta existentes
+
+### `D_004_2026 - SABESP.xlsx`
+
+- Documento: `001_DESAGUAMENTO_BAGS_SABESP.md`
+- Classificação aparente: dragagem com desaguamento e acondicionamento em bags.
+- Status: engenharia reversa vertical concluída; interpretações pendentes de crosscheck.
+
+### `D_001_2025- Nutrilog(1).xlsx`
+
+- Documento: `D_001_2025_NUTRILOG_1.md`
+- Classificação aparente: dragagem de gesso com disposição em bacia de decantação.
+- Status: engenharia reversa vertical concluída; possível nova família de orçamento, ainda provisória.
+
 ## Registros previstos
 
 - um documento por planilha analisada;
