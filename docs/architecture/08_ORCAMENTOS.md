@@ -1,8 +1,11 @@
 # Arquitetura Atual — Orçamentos
 
-Última atualização: 2026-07-11
+Última atualização: 2026-07-14
 
-Fonte de auditoria: `docs/audit/AUDIT_034_ORCAMENTOS.md`
+Fontes de auditoria:
+
+- `docs/audit/AUDIT_034_ORCAMENTOS.md`;
+- `docs/audit/AUDIT_052_PREPARACAO_NOVO_SISTEMA_ORCAMENTO.md`.
 
 ## Visão geral
 
@@ -31,6 +34,12 @@ Bases auxiliares observadas:
 - `data/equipamentos.csv`
 - `data/salarios.csv`
 - `data/insumos.csv`
+
+Dependências externas de fronteira:
+
+- `data/obras.csv`, cadastro operacional de Medições sem vínculo observado com `Codigo`;
+- `data/crm/clientes.csv`, cadastro comercial sem vínculo observado com o cliente textual do legado;
+- `data/medicoes/medicao.csv`, catálogo com o mesmo schema e conteúdo de `data/medicao.csv` no snapshot auditado.
 
 ## Navegação e estado
 
@@ -100,6 +109,36 @@ O módulo não possui repositório ou serviço único. As etapas mantêm impleme
 
 As implementações não são equivalentes: a Etapa 2 possui tratamento adicional para colunas, valores nulos, listas e dicionários.
 
+O módulo ativo usa `carregar_github()` e `salvar_github()`, adaptadores legados que não retornam resultados explícitos ao chamador. Não foram observados testes específicos do fluxo ativo de Orçamentos.
+
+## Inventário e classificação dos dados
+
+- `data/orcamentos.csv`: transação agregada com resultados calculados; identidade `Codigo`; classificado como legado e mantido separado durante a coexistência.
+- `data/clientes.csv`: catálogo textual sem ID; candidato a relacionamento posterior com CRM, não a consolidação direta.
+- materiais, desaguamento, horários, dias, equipamentos e salários: catálogos compartilhados administrados em Dados; reutilizáveis, com lacunas de ID, unidade, vigência e histórico.
+- `data/medicao.csv`: catálogo textual; candidato à consolidação posterior com `data/medicoes/medicao.csv`, pois ambos possuem o mesmo conteúdo no snapshot, sem fonte canônica observada.
+- `data/insumos.csv`: catálogo global exclusivo da Etapa 3 atual; deve permanecer separado da composição transacional.
+
+O schema completo, leitores, escritores, granularidade, riscos e justificativas estão registrados na AUDIT_052.
+
+## Duplicidades e fronteiras confirmadas
+
+Duplicidades reais:
+
+- três implementações locais de atualização de `data/orcamentos.csv`;
+- pares `Custo_Hora_Equipe`/`custo_hora_equipe` e `Leis_Sociais`/`leis_sociais`;
+- `custo_mensal_equipe` recebe o mesmo valor horário;
+- `data/medicao.csv` e `data/medicoes/medicao.csv` possuem schema e conteúdo iguais no snapshot auditado.
+
+Falsos duplicados ou responsabilidades diferentes:
+
+- `data/clientes.csv` e `data/crm/clientes.csv`;
+- `data/orcamentos.csv` e `data/obras.csv`;
+- `Codigo` do orçamento e `obra_id` da obra operacional;
+- insumos, equipamentos e materiais.
+
+Não existe hoje entidade, rota ou persistência do Novo Sistema de Orçamento. A fronteira observada do legado é formada pelas seis rotas, cinco páginas ativas, estado de sessão e `data/orcamentos.csv`. A estratégia oficial exige que a arquitetura futura seja definida apenas após engenharia reversa e crosscheck suficientes.
+
 ## Observações técnicas consolidadas
 
 - Orçamentos não possui repositório ou serviço próprio.
@@ -113,6 +152,12 @@ As implementações não são equivalentes: a Etapa 2 possui tratamento adiciona
 - A finalização não é persistida.
 - As telas internas não revalidam permissão.
 - Os dados da Etapa 3 permanecem apenas na sessão.
+- os valores atuais do catálogo de desaguamento não coincidem exatamente com as chaves do mapa de eficiência; todos usam o padrão `0.85` no snapshot observado;
+- o horário salvo não é restaurado pelo seletor da Etapa 0;
+- o CRUD de Dias declara somente `Descricao`, embora o CSV real também possua `Ativo`;
+- cliente novo e orçamento são gravados em operações independentes;
+- `data/orcamentos.csv` também é lido e integralmente exposto pela rota Obras;
+- não existe vínculo observado com cliente do CRM nem obra operacional de Medições.
 
 ## Perguntas em aberto
 
@@ -128,6 +173,6 @@ As implementações não são equivalentes: a Etapa 2 possui tratamento adiciona
 - O cálculo de dias deve usar calendário real?
 - Deve existir defesa interna de autorização?
 
-## Baby step seguro futuro
+## Próximo passo
 
-Persistir a conclusão da Etapa 3 somente após confirmar que essa etapa representa o encerramento oficial do orçamento e definir o significado econômico do barrilete.
+Aguardar homologação do Merlin. A AUDIT_052 não define nome, rota, componente, persistência, primeiro Kid Step ou arquitetura do Novo Sistema de Orçamento.

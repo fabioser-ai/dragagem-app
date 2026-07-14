@@ -52,6 +52,10 @@ A Fase 1 — Consolidação da Plataforma foi oficialmente encerrada em 2026-07-
 - O workflow oficial do Curador da Base de Conhecimento está registrado em `docs/knowledge/KNOWLEDGE_CURATOR.md`.
 - Toda sessão de curadoria documental deve iniciar pela leitura desse bootstrap e da documentação relacionada ao assunto.
 - A engenharia reversa vertical do primeiro modelo, dragagem com desaguamento em bags, foi concluída e registrada em `docs/knowledge/orcamentos/001_DESAGUAMENTO_BAGS_SABESP.md`.
+- A AUDIT_052 concluiu a descoberta documental do domínio legado de Orçamentos no snapshot `8d2f8463b07fd7a71b28833853522c548af74be2`.
+- Foram inventariados o fluxo ativo, seis rotas, cinco páginas, estado de sessão, dez CSVs diretamente usados e três bases externas de fronteira.
+- A auditoria confirmou catálogos compartilhados reutilizáveis, duplicidades reais de implementação e dados, falsos duplicados entre clientes e obras, e a ausência de vínculo entre orçamento, cliente CRM e obra operacional.
+- Nenhum código funcional, CSV, comportamento ou migração foi alterado pela AUDIT_052.
 
 ## Fundação homologada
 
@@ -141,7 +145,9 @@ Responsável por:
 
 ## Próximo passo
 
-Continuar a engenharia reversa vertical do sistema orçamentário.
+Aguardar a homologação do Merlin sobre a AUDIT_052 antes de qualquer implementação do Novo Sistema de Orçamento.
+
+Em paralelo documental, continuar a engenharia reversa vertical do sistema orçamentário.
 
 Para cada novo modelo fornecido:
 
