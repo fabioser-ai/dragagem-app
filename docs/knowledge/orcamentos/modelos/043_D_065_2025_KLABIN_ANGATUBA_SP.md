@@ -1,0 +1,1428 @@
+# Modelo 043 — D_065_2025 - Klabin - Angatuba - SP.xlsx
+
+## Status
+
+- Análise estrutural automatizada concluída.
+- Documento gerado a partir do arquivo original recebido por Fabio.
+- Interpretações de negócio ainda dependem de validação humana quando não forem evidentes.
+
+## Identificação da fonte
+
+- Arquivo original: `D_065_2025 - Klabin - Angatuba - SP.xlsx`
+- Família provisória: **Dragagem com bags/geotêxteis**
+- SHA-256 do arquivo: `d34855019d011470b280660cea375f01dbb79089cf9a8ca8f97ca556930ec416`
+- Abas analisadas: **13**
+- Fórmulas encontradas: **564**
+
+## Conceitos identificados
+
+- `outros`: 4 aba(s)
+- `bags_geotexteis`: 1 aba(s)
+- `barrilete_linha`: 1 aba(s)
+- `canteiro`: 1 aba(s)
+- `dados_obra`: 1 aba(s)
+- `desmobilizacao`: 1 aba(s)
+- `estrutura_desaguamento`: 1 aba(s)
+- `formacao_preco`: 1 aba(s)
+- `medicao_batimetria`: 1 aba(s)
+- `mobilizacao_draga`: 1 aba(s)
+- `producao_prazo`: 1 aba(s)
+
+## Inventário das abas
+
+| Ordem | Aba | Faixa usada | Fórmulas | Conceitos provisórios |
+|---:|---|---|---:|---|
+| 1 | `Dados Obra` | `A1:H27` | 3 | dados_obra |
+| 2 | `Produção` | `A1:I39` | 13 | producao_prazo |
+| 3 | `1.1. Canteiro` | `A1:P34` | 40 | canteiro |
+| 4 | `1.2. Mob Bomba + Pol.` | `A1:M51` | 66 | outros |
+| 5 | `1.2.1.Barrilete` | `A1:F31` | 39 | barrilete_linha |
+| 6 | `2. Prep Célula` | `A1:Q42` | 64 | estrutura_desaguamento |
+| 7 | `3.1. Bags` | `A1:M50` | 60 | bags_geotexteis |
+| 8 | `3.2 Bomba` | `A1:N207` | 93 | outros |
+| 9 | `3.3 Op.Planta` | `A1:M37` | 39 | outros |
+| 10 | `3.4.Medição` | `A1:K28` | 29 | medicao_batimetria |
+| 11 | `DesMob Draga + Pol.` | `A1:M51` | 65 | mobilizacao_draga, desmobilizacao |
+| 12 | `Plan. BDI` | `A1:M22` | 38 | formacao_preco |
+| 13 | `Plan. Final.` | `A1:H6` | 15 | outros |
+
+## Dependências entre abas observadas
+
+| Aba referenciada | Ocorrências em fórmulas |
+|---|---:|
+| `1.1. Canteiro` | 88 |
+| `Dados Obra` | 9 |
+| `Plan. BDI` | 8 |
+| `3.1. Bags` | 5 |
+| `1.2. Mob Bomba + Pol.` | 4 |
+| `1.2.1.Barrilete` | 2 |
+| `2. Prep Célula` | 2 |
+| `3.2 Bomba` | 1 |
+| `3.3 Op.Planta` | 1 |
+| `3.4.Medição` | 1 |
+| `DesMob Draga + Pol.` | 1 |
+
+## Análise por aba
+
+### 1. Dados Obra
+
+- Faixa usada: `A1:H27`
+- Fórmulas: **3**
+- Conceitos provisórios: dados_obra
+- Células numéricas observadas: **12**
+
+#### Rótulos e textos observados
+
+- Klabin - Angatuba
+- Azul :
+- Dados a serem preenchidos
+- Vermelho :
+- Informações pendentes
+- Preto :
+- resultados automáticos
+- Proposta
+- Proposta D_065_2025
+- Data
+- Cliente
+- Klabin
+- Contato
+- e-mail
+- Dados da obra
+- Objeto
+- Dragagem Decantador
+- Local
+- Angatuba
+- Volume dragagem (m³)
+- Tipo de material
+- Lodo do decantador primário
+- Distância de Recalque (m)
+- Seio da linha =
+- Total
+- Linha Flutuante (m)
+- Linha de terra (m)
+- Profundidade de dragagem (m)
+- Espessura média de dragagem (m)
+- Área de Dragagem (m² ou L x C)
+- X
+- Volume (m³) =
+- Tipo de Bota Fora
+- Bags
+- Sistema de Medição
+- preços unitários de serviços
+- Canteiro de obras
+- FOS
+- Mobilização
+- Horário de Trabalho (das 7 as 17h)
+- h/dia
+- Dias de Trabalho (2ª a 6ª)
+- dias/mês
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `H16` | `=B16+E16` |
+| `H17` | `=B17+E17` |
+| `G21` | `=B21*D21*B20` |
+
+### 2. Produção
+
+- Faixa usada: `A1:I39`
+- Fórmulas: **13**
+- Conceitos provisórios: producao_prazo
+- Células numéricas observadas: **21**
+
+#### Rótulos e textos observados
+
+- PRODUÇÃO DRAGAGEM LODO
+- Horas Trabalhadas por mês
+- Unid.
+- Quant.
+- Vazão
+- m³/h
+- Horas / dia (7 as 17h)
+- Eficiência
+- %
+- Dias / Mês (2ª a sexta)
+- Concentração
+- Total de Horas / mês
+- Produção
+- Horas trabalhadas
+- h/mês
+- Produção mensal (m³/mês)
+- Cálculo do Prazo da obra
+- Produção mensal
+- m³/mês
+- Quantidade total a dragar
+- m³
+- Prazo de Execução
+- mês
+- Mobilizações
+- Operação
+- PRAZO EXECUÇÃO
+- Canteiro
+- Mobiliz. Draga
+- Preparo Célula
+- Dragagem Bags
+- Desmob. Draga
+- Desmobilização
+- TOTAL
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `I3` | `='Dados Obra '!B26` |
+| `I4` | `='Dados Obra '!B27` |
+| `I6` | `=I3*I4` |
+| `D8` | `=D3*(D4/100)*(D5/100)` |
+| `D11` | `=I6` |
+| `D13` | `=D8*D11` |
+| `D17` | `=D13` |
+| `D20` | `='Dados Obra '!B14` |
+| `D23` | `=D20/D17` |
+| `E23` | `=D20/D17` |
+| `D27` | `=D23` |
+| `H35` | `=D27` |
+| `H39` | `=ROUNDUP(SUM(H32:H38),0)` |
+
+### 3. 1.1. Canteiro
+
+- Faixa usada: `A1:P34`
+- Fórmulas: **40**
+- Conceitos provisórios: canteiro
+- Células numéricas observadas: **128**
+
+#### Rótulos e textos observados
+
+- CANTEIRO DE OBRAS : subitem da Dragagem
+- Nº Func.
+- Mão de obra montagem canteiro
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- R$ / mês
+- $/h
+- dissídio 7,5%
+- Transf 25%
+- Engenheiro
+- Aux Técnico
+- Encarregado
+- Operador Draga
+- Operador de Draga
+- Opera bomba sub
+- Op. Polímero
+- Ajudante
+- Refeições
+- Transporte
+- Custo por dia
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- Container almoxarifado
+- mês
+- #NAME?
+- KLABIN
+- Container Sanitário/Vestiário
+- Container Escritório com AR
+- Tenda para Canteiro
+- Loc up - Tenda de 8 x 8 p/Aracruz c/fech. laterais
+- deprec.
+- meses
+- água potável
+- gl
+- material de escritório
+- Banheiro Quimico
+- mes
+- BOSS soluções ambientais - ZAP 14 99183-4303 (locação + 3 limpezas semanais) ou (14) 3222-7761
+- custo da obra de Aracruz
+- material de segurança
+- Gerador de Energia
+- Mão de obra (LIMPEZA CANTEIRO)
+- dia
+- TOTAL
+- Prazo de Operação
+- preço unitário
+- BDI (%)
+- Preço Final
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `C4` | `=M4` |
+| `D4` | `='Dados Obra '!B26*'1.1. Canteiro'!N4` |
+| `F4` | `=(A4*C4*D4)+(A4*C4*D4)*(E4/100)` |
+| `M4` | `=J4+K4+L4` |
+| `D5` | `='Dados Obra '!B26` |
+| `J5` | `=I5/220` |
+| `L5` | `=(J5+K5)*0.25` |
+| `M5` | `=J5+K5+L5` |
+| `D6` | `=D5` |
+| `D7` | `=D6` |
+| `M7` | `=J7+K7+L7` |
+| `D8` | `=D7` |
+| `D9` | `=D8` |
+| `M9` | `=J9+K9+L9` |
+| `D10` | `=D9` |
+| `A11` | `=SUM(A4:A10)` |
+| `F11` | `=A11*C11` |
+| `A12` | `=A11` |
+| `F12` | `=A12*C12` |
+| `M12` | `=J12+K12+L12` |
+| `F13` | `=SUM(F4:F12)` |
+| `D17` | `=Produção!H39` |
+| `F17` | `=D17*E17` |
+| `D20` | `=D17` |
+| `E20` | `=J20/L20` |
+| `F20` | `=D20*E20` |
+| `D22` | `=D17*2` |
+| `D23` | `=D17` |
+| `D24` | `=D23` |
+| `D25` | `=D17` |
+| `F25` | `=D25*E25` |
+| `D26` | `=D17` |
+| `F28` | `=D28*E28` |
+| `D29` | `=D17` |
+| `E29` | `=F13` |
+| `F30` | `=SUM(F17:F29)` |
+| `F31` | `='1.1. Canteiro'!D17` |
+| `F32` | `=F30/F31` |
+| `F33` | `=F32*(E33/100)` |
+| `F34` | `=F32+F33` |
+
+### 4. 1.2. Mob Bomba + Pol.
+
+- Faixa usada: `A1:M51`
+- Fórmulas: **66**
+- Conceitos provisórios: outros
+- Células numéricas observadas: **116**
+
+#### Rótulos e textos observados
+
+- 1 - Mobilização DRAGA + PLANTA DE POLÍMERO
+- Nº Func.
+- Mão de obra p/carga e montagem / dia
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Engenheiro
+- Aux Técnico
+- Encarregado
+- Operador de Draga
+- Op. Polímero
+- Ajudante
+- Refeições
+- Transporte
+- Custo por dia
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- Frete para Containers
+- vb
+- Munck para frete container - Étore 14 99715-4769 cotação pelo zap
+- PGR + PCMSO + LTCAT + PR
+- ART Principal + ARTS co-resp.
+- custo Exames médicos
+- Viagem da equipe
+- un
+- Itens de segurança
+- veículo para transporte do pessoal
+- mês
+- Hospedagem da equipe durante mobilização
+- 4 pessoas por 5 dias a 150 reais
+- Guindaste para carregamento
+- dia
+- Treinamentos (Trabalho em Altura e espaço confinado)
+- Mobiliário Canteiro
+- mobiliário do alojamento
+- Carreta Carga Seca - Bomba + Tubos
+- Fabiano 08/12/25 - R$ 7200+ 02,%
+- Munck p/descarregamento e montagem BOMBA
+- FOS
+- Mob / desmob Guindaste
+- Plano de Rigger
+- Carreta Carga Seca - Eqto Polímero (se necessario)
+- Instalações hidráulicas
+- Instalações elétricas
+- Máquina Wap
+- Barrilete
+- Tenda para Equipto polímero
+- Loc up - Tenda de 8 x 8 p/Aracruz c/fech. laterais
+- deprec.
+- meses
+- munck para montagem da cobertura
+- Brita e concreto para base da planta
+- Mão de obra p/carga e montagem (r$/dia)
+- TOTAL
+- BDI (%)
+- Preço Final
+- DIAS
+- Carreta 1 (draga)
+- Exames médicos
+- Carreta 2 (Tubulação 700 m)
+- viagem
+- Carreta 3 (flutuantes e outros periféricos)
+- integração
+- montagem dos equipamentos
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `A5` | `='1.1. Canteiro'!A4` |
+| `C5` | `='1.1. Canteiro'!C4` |
+| `D5` | `='1.1. Canteiro'!D4` |
+| `E5` | `='1.1. Canteiro'!E4` |
+| `F5` | `=(A5*C5*D5)+(A5*C5*D5)*(E5/100)` |
+| `A6` | `='1.1. Canteiro'!A5` |
+| `C6` | `='1.1. Canteiro'!C5` |
+| `D6` | `='1.1. Canteiro'!D5` |
+| `E6` | `=E5` |
+| `A7` | `='1.1. Canteiro'!A6` |
+| `C7` | `='1.1. Canteiro'!C6` |
+| `D7` | `=D6` |
+| `E7` | `=E6` |
+| `A8` | `='1.1. Canteiro'!A7` |
+| `C8` | `='1.1. Canteiro'!C7` |
+| `D8` | `=D7` |
+| `E8` | `=E7` |
+| `A9` | `='1.1. Canteiro'!A8` |
+| `C9` | `='1.1. Canteiro'!C8` |
+| `D9` | `=D6` |
+| `E9` | `=E8` |
+| `A10` | `='1.1. Canteiro'!A9` |
+| `C10` | `='1.1. Canteiro'!C9` |
+| `D10` | `=D6` |
+| `E10` | `=E9` |
+| `A11` | `=SUM(A5:A10)` |
+| `C11` | `='1.1. Canteiro'!C11` |
+| `F11` | `=A11*C11` |
+| `A12` | `=A11` |
+| `C12` | `='1.1. Canteiro'!C12` |
+| `F12` | `=A12*C12` |
+| `F13` | `=SUM(F5:F12)` |
+| `F16` | `=D16*E16` |
+| `F17` | `=D17*E17` |
+| `F18` | `=D18*E18` |
+| `D19` | `=A11` |
+| `D20` | `=A11` |
+| `F21` | `=D21*E21` |
+| `F22` | `=D22*E22` |
+| `F23` | `=D23*E23` |
+| `F24` | `=D24*E24` |
+| `F25` | `=D25*E25` |
+| `D26` | `=A11` |
+| `F26` | `=D26*E26` |
+| `E28` | `=E27` |
+| `F29` | `=D29*E29` |
+| `F30` | `=D30*E30` |
+| `F31` | `=D31*E31` |
+| `F32` | `=D32*E32` |
+| `E33` | `=E29` |
+| `F33` | `=D33*E33` |
+| `F34` | `=D34*E34` |
+| `F35` | `=D35*E35` |
+| `F36` | `=D36*E36` |
+| `E37` | `='1.2.1.Barrilete'!F29` |
+| `F37` | `=D37*E37` |
+| `E38` | `=J38/L38` |
+| `F38` | `=D38*E38` |
+| `F39` | `=D39*E39` |
+| `F40` | `=D40*E40` |
+| `E41` | `=F13` |
+| `F42` | `=SUM(F24:F41)` |
+| `F43` | `=F42*(E43/100)` |
+| `F44` | `=SUM(F42:F43)` |
+| `C50` | `=SUM(C47:C49)` |
+| `G51` | `=SUM(G47:G50)` |
+
+### 5. 1.2.1.Barrilete
+
+- Faixa usada: `A1:F31`
+- Fórmulas: **39**
+- Conceitos provisórios: barrilete_linha
+- Células numéricas observadas: **82**
+
+#### Rótulos e textos observados
+
+- Composição - BARRILETE - unidade: Global
+- Nº Func.
+- Mão de obra montagem canteiro
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Encarregado
+- Operador de Draga + técnico operação polím.
+- Ajudante Geral
+- Refeições
+- Transporte
+- Custo por dia
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- Tubo de ferro c/6m diametro de 8"
+- pç
+- Toco 0,50m
+- Joelho 90°
+- Tee 6" x 4" flangeado
+- Ponteira flange x escama diam. 4"
+- Cap. 6"
+- Válvula Gaveta 4"
+- Válvula Gaveta 3"
+- Mangueira Conduto d'água
+- m
+- Braçadeiras
+- Curva longa de PVC 4"
+- Válvula esfera 2"
+- Bomba lameira
+- Mão de obra de montagem
+- dia
+- TOTAL
+- 30 % de depreciação
+- BDI (%)
+- Preço Final
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `A4` | `='1.2. Mob Bomba + Pol.'!A7` |
+| `C4` | `='1.1. Canteiro'!C6` |
+| `D4` | `='1.1. Canteiro'!D5` |
+| `E4` | `='1.1. Canteiro'!E4` |
+| `F4` | `=(A4*C4*D4)+(A4*C4*D4)*(E4/100)` |
+| `A5` | `='1.2. Mob Bomba + Pol.'!A9` |
+| `C5` | `='1.1. Canteiro'!C8` |
+| `D5` | `='1.1. Canteiro'!D5` |
+| `E5` | `=E4` |
+| `F5` | `=(A5*C5*D5)+(A5*C5*D5)*(E5/100)` |
+| `A6` | `='1.2. Mob Bomba + Pol.'!A10` |
+| `C6` | `='1.1. Canteiro'!C9` |
+| `D6` | `=D5` |
+| `E6` | `=E5` |
+| `F6` | `=(A6*C6*D6)+(A6*C6*D6)*(E6/100)` |
+| `A7` | `=A4+A6` |
+| `C7` | `='1.1. Canteiro'!C11` |
+| `F7` | `=A7*C7` |
+| `A8` | `=A4+A6` |
+| `C8` | `='1.1. Canteiro'!C12` |
+| `F8` | `=A8*C8` |
+| `F9` | `=SUM(F4:F8)` |
+| `E14` | `=400*1.4` |
+| `F14` | `=D14*E14` |
+| `E15` | `=165*1.4` |
+| `E16` | `=165*1.4` |
+| `E17` | `=220*1.4` |
+| `E18` | `=55*1.4` |
+| `E19` | `=35*1.4` |
+| `E20` | `=2000*1.4` |
+| `E21` | `=1100*1.4` |
+| `E23` | `=14*1.4` |
+| `E24` | `=35*1.4` |
+| `E25` | `=60*1.4` |
+| `E27` | `=F9` |
+| `F28` | `=SUM(F14:F27)` |
+| `F29` | `=F28*0.1` |
+| `F30` | `=F29*(E30/100)` |
+| `F31` | `=F29+F30` |
+
+### 6. 2. Prep Célula
+
+- Faixa usada: `A1:Q42`
+- Fórmulas: **64**
+- Conceitos provisórios: estrutura_desaguamento
+- Células numéricas observadas: **151**
+
+#### Rótulos e textos observados
+
+- PREPARO DE CÉLULA
+- Nº Func.
+- Mão de obra montagem canteiro
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Engenheiro
+- Área da
+- Quant.
+- Aux Técnico
+- Composição Real
+- Célua
+- total
+- Encarregado
+- Manta PEAD
+- m²/m² de Célula
+- m²
+- Operador de Draga
+- Bidim
+- Op. Polímero
+- Brita
+- m³/m² de Célula
+- m³
+- Ajudante
+- Retro escavadeira
+- h/m² de Célula
+- h
+- Mão de Obra
+- Refeições
+- (4 oficiais + 6 ajudantes)
+- dias
+- Transporte
+- Custo por dia
+- CÉLULAS
+- largura
+- Compr.
+- Área M²
+- Nº Vezes
+- Célula 1
+- Célula 2
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- Preparo Terreno - Patrola / tratos de esteira
+- dia
+- Mobilização da Patrol
+- Disposição dos Bags na célula
+- 2 lilnhas com 10 bags cada = 20 bags
+- Preparo Terreno - Aluguel de Retro
+- Mobilização/desmobilização de Retro
+- Largura
+- m
+- Regularização manual - Mão de obra
+- Comprimento
+- PEAD
+- Preço Danlo - Curitiba
+- Mão de obra instal. PEAD
+- taxa Mobilizaçao PEAD Mao de obras
+- vb
+- Bidim RT 07 (4,90 x 100m)
+- Brita 2
+- Frete para entregar Brita
+- viagens
+- R$ / ton
+- dens.
+- R$ / m³
+- Retorno do percolado atrevas de motobomba
+- GEOCOMPOSTO DRENANTE (rolo 2x30m)
+- Frete
+- Frete do Geocomposto Drenante
+- Retro escavadeira para espalhamento Brita
+- Geocomposto Drenante - empresa Geomembrana (Thales gerente comercial)
+- Mão de obra de instal. Bidim e Brita
+- mes
+- Frete FOB (considerei Fabiano em Graneleira levando 72 rolos por viagem)
+- TOTAL
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `C3` | `='1.1. Canteiro'!C4` |
+| `D3` | `='1.1. Canteiro'!D4` |
+| `E3` | `='1.1. Canteiro'!E4` |
+| `F3` | `=(A3*C3*D3)+(A3*C3*D3)*(E3/100)` |
+| `C4` | `='1.1. Canteiro'!C5` |
+| `D4` | `='1.1. Canteiro'!D5` |
+| `E4` | `=E3` |
+| `C5` | `='1.1. Canteiro'!C6` |
+| `D5` | `=D4` |
+| `M5` | `=M15` |
+| `N5` | `=J5*M5` |
+| `C6` | `='1.1. Canteiro'!C7` |
+| `D6` | `=D5` |
+| `M6` | `=M5` |
+| `N6` | `=J6*M6` |
+| `C7` | `='1.1. Canteiro'!C8` |
+| `D7` | `=D6` |
+| `M7` | `=M5` |
+| `N7` | `=J7*M7` |
+| `C8` | `='1.1. Canteiro'!C9` |
+| `D8` | `=D7` |
+| `M8` | `=M7` |
+| `N8` | `=J8*M8` |
+| `D9` | `=D8` |
+| `M9` | `=M8` |
+| `N9` | `=J9*M9` |
+| `A10` | `=SUM(A3:A9)` |
+| `C10` | `='1.1. Canteiro'!C11` |
+| `F10` | `=A10*C10` |
+| `N10` | `=N9/8` |
+| `A11` | `=A10` |
+| `C11` | `='1.1. Canteiro'!C12` |
+| `F11` | `=A11*C11` |
+| `F12` | `=SUM(F3:F11)` |
+| `I13` | `=ROUNDUP(O40,0)` |
+| `J13` | `=ROUNDUP(Q42,0)` |
+| `K13` | `=I13*J13` |
+| `M13` | `=K13*L13` |
+| `M14` | `=K14*L14` |
+| `M15` | `=SUM(M13:M14)` |
+| `F16` | `=D16*E16` |
+| `L19` | `=(J19*K19)+1+1+0.5+0.5` |
+| `E20` | `=F12` |
+| `L20` | `=(J20*K20)+1+1+0.5+0.5` |
+| `D21` | `=N5` |
+| `E21` | `=I21*1.2` |
+| `D22` | `=D21` |
+| `D24` | `=N6` |
+| `D25` | `=N7*1.1` |
+| `F25` | `=D25*E25` |
+| `F26` | `=E26*D26` |
+| `D28` | `=M15*1.1` |
+| `E28` | `=M31` |
+| `L29` | `=SUM(L27:L28)` |
+| `N29` | `=L29*M29` |
+| `E31` | `=E18` |
+| `F31` | `=D31*E31` |
+| `E32` | `=F12` |
+| `F32` | `=D32*E32` |
+| `F33` | `=SUM(F16:F32)` |
+| `F34` | `=M15` |
+| `F35` | `=F33/F34` |
+| `F36` | `=F35*(E36/100)` |
+| `F37` | `=F35+F36` |
+
+### 7. 3.1. Bags
+
+- Faixa usada: `A1:M50`
+- Fórmulas: **60**
+- Conceitos provisórios: bags_geotexteis
+- Células numéricas observadas: **173**
+
+#### Rótulos e textos observados
+
+- FORNECIMENTO E OPERAÇÃO DE BAGS
+- Nº Func.
+- Mão de obra montagem canteiro
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Engenheiro
+- Aux Técnico
+- Encarregado
+- Operador de Draga
+- Op. Polímero
+- Ajudante
+- Refeições
+- Transporte
+- Custo por dia
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- P13 X 20
+- un
+- VOLUME A DRAGAR
+- m³
+- P13 X 25
+- % ST in situ
+- P18 X 25
+- Volume SECO
+- m³ seco
+- P18 X 30
+- P18 X 45
+- % ST desaguado
+- P20 X 25
+- VOLUME DESAGUADO
+- Quant Bags
+- P18 X 40
+- MÃO DE OBRA DE ESPALHAMENTO
+- dia
+- TOTAL
+- Prazo de Operação
+- preço unitário
+- BDI (%)
+- Preço Final
+- CÉLULA - 1
+- Preços praticados em 2025 nas obras Chapecó e Curitiba R$ 55,00/m²
+- Área Seção a 2,30m
+- Comprimento
+- Volume
+- Volume total
+- Perímetro
+- Compr.
+- R$ / m²
+- Data
+- R$ do Bag
+- 2º nível
+- 1º Nível
+- P18 X 20
+- CAPACIDADE DA CÉLULA - 1
+- CÉLULA - 2
+- P20 X 20
+- CAPACIDADE DA CÉLULA - 2
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `C3` | `='1.1. Canteiro'!C4` |
+| `D3` | `='1.1. Canteiro'!D4` |
+| `E3` | `='1.1. Canteiro'!E4` |
+| `F3` | `=(A3*C3*D3)+(A3*C3*D3)*(E3/100)` |
+| `C4` | `='1.1. Canteiro'!C5` |
+| `D4` | `='1.1. Canteiro'!D5` |
+| `E4` | `=E3` |
+| `C5` | `='1.1. Canteiro'!C6` |
+| `D5` | `=D4` |
+| `C6` | `='1.1. Canteiro'!C7` |
+| `D6` | `=D5` |
+| `C7` | `='1.1. Canteiro'!C8` |
+| `D7` | `=D6` |
+| `C8` | `='1.1. Canteiro'!C9` |
+| `D8` | `=D7` |
+| `A9` | `=SUM(A3:A8)` |
+| `C9` | `='1.1. Canteiro'!C11` |
+| `F9` | `=A9*C9` |
+| `A10` | `=A9` |
+| `C10` | `='1.1. Canteiro'!C12` |
+| `F10` | `=A10*C10` |
+| `F11` | `=SUM(F3:F10)` |
+| `E14` | `=M34` |
+| `F14` | `=D14*E14` |
+| `I14` | `='Dados Obra '!B14` |
+| `D16` | `=E45` |
+| `E16` | `=M45` |
+| `I16` | `=I14*I15` |
+| `D17` | `=E37` |
+| `E17` | `=M37` |
+| `D18` | `=E38` |
+| `I19` | `=I16/I18` |
+| `E20` | `=M44` |
+| `I20` | `=I19/D37` |
+| `E21` | `=M45` |
+| `E22` | `=M46` |
+| `E24` | `=F11` |
+| `F25` | `=SUM(F14:F24)` |
+| `F27` | `=F25/F26` |
+| `F28` | `=F27*(E28/100)` |
+| `F29` | `=F27+F28` |
+| `D34` | `=B34*C34` |
+| `F34` | `=D34*E34` |
+| `M34` | `=(I34*J34)*K34` |
+| `K36` | `=K35` |
+| `D37` | `=B37*C37` |
+| `K37` | `=K36` |
+| `K38` | `=K37` |
+| `K39` | `=K38` |
+| `F40` | `=SUM(F34:F39)` |
+| `D43` | `=B43*C43` |
+| `F43` | `=D43*E43` |
+| `M44` | `=(I44*J44)*K44` |
+| `K45` | `=K44` |
+| `M45` | `=(I45*J45)*K45` |
+| `K46` | `=K45` |
+| `M46` | `=(I46*J46)*K46` |
+| `F49` | `=SUM(F43:F48)` |
+| `F50` | `=F40+F49` |
+| `G50` | `=G49` |
+
+### 8. 3.2 Bomba
+
+- Faixa usada: `A1:N207`
+- Fórmulas: **93**
+- Conceitos provisórios: outros
+- Células numéricas observadas: **0**
+
+#### Rótulos e textos observados
+
+- 5.
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `F10` | `=C9*D9*E9*F9` |
+| `F11` | `=(C9*D9*E9*I9)*0.1` |
+| `E15` | `=F10+F11+F12+F13` |
+| `A20` | `=L24*0.5` |
+| `D20` | `='1.1. Canteiro'!C4` |
+| `E20` | `=D20*B20*A20` |
+| `K20` | `='Dados Obra '!B27` |
+| `L20` | `=J20*K20` |
+| `A21` | `=L24` |
+| `D21` | `='1.1. Canteiro'!C5` |
+| `L21` | `=J21*K21` |
+| `A22` | `=L24` |
+| `B22` | `='1.1. Canteiro'!A6` |
+| `D22` | `='1.1. Canteiro'!C6` |
+| `A23` | `=L24` |
+| `B23` | `='1.1. Canteiro'!A7` |
+| `D23` | `='1.1. Canteiro'!C7` |
+| `L23` | `=J23*K23` |
+| `A24` | `=L24` |
+| `D24` | `='1.1. Canteiro'!C8` |
+| `L24` | `=(L20*1.7)+(L21*2)+L23` |
+| `A25` | `=L24` |
+| `D25` | `='1.1. Canteiro'!C9` |
+| `A26` | `=L24` |
+| `A27` | `=L24` |
+| `E27` | `=D27*B27*A27` |
+| `E31` | `=E20+E21+E22+E23+E24+E25+E26+E27+E28` |
+| `A37` | `='1.1. Canteiro'!E4` |
+| `C37` | `=E31` |
+| `E37` | `=(C37*A37)/100` |
+| `E46` | `=G52+G53` |
+| `B52` | `=B20+B21+B22+B23` |
+| `G52` | `=B52*(C52+D52+E52)*F52` |
+| `B53` | `=B25` |
+| `G53` | `=B53*(C53+D53+E53)*F53` |
+| `E62` | `=C59+C60+C61+C62` |
+| `E69` | `=D69*B69` |
+| `E71` | `=SUM(E67:E69)` |
+| `G87` | `=E71+E62+E46+E37+E31` |
+| `E93` | `=(0.6/100)*F7` |
+| `E94` | `=(1/100)*F7` |
+| `E98` | `=E93+E94+E95+E96` |
+| `H100` | `=E98` |
+| `E104` | `=K121` |
+| `I105` | `='Dados Obra '!B16` |
+| `K105` | `=I105*J105` |
+| `J106` | `=K105/I106` |
+| `J107` | `=K105*(1/100)` |
+| `E108` | `=D108*B108` |
+| `J108` | `=SUM(J106:J107)` |
+| `E109` | `=D109*B109` |
+| `E110` | `=(D110*B110)` |
+| `I110` | `=('Dados Obra '!B17/12)*3` |
+| `K110` | `=I110*J110` |
+| `J111` | `=K110/I111` |
+| `J112` | `=K110*(1/100)` |
+| `B113` | `='1.1. Canteiro'!A11` |
+| `E113` | `=D113*B113` |
+| `J113` | `=SUM(J111:J112)` |
+| `D115` | `=E104+E105+E106+E109+E110+E111+E112+E113+E107+E108` |
+| `I115` | `=(I105/12)+2` |
+| `K115` | `=I115*J115` |
+| `J116` | `=K115/I116` |
+| `J117` | `=K115*(1/100)` |
+| `J118` | `=SUM(J116:J117)` |
+| `H121` | `=J108` |
+| `I121` | `=J113` |
+| `J121` | `=J118` |
+| `K121` | `=SUM(H121:J121)` |
+| `E132` | `=E127+E128+E129+E130+E131` |
+| `G135` | `=E132+D115+H100+G87+E15` |
+| `E139` | `=G135*(5/100)` |
+| `E140` | `=G135*(5/100)` |
+| `E143` | `=E139+E140` |
+| `E146` | `=F7/60` |
+| `E147` | `=F7*0.01` |
+| `E150` | `=E146+E147+E148` |
+| `D169` | `=G135` |
+| `D172` | `=E143` |
+| `D174` | `=E150` |
+| `D176` | `=D169+D172+D174` |
+| `D185` | `=D181+D183` |
+| `D188` | `=J207*0.6*0.62` |
+| `J189` | `=H189*I189` |
+| `D198` | `=D176` |
+| `D200` | `=SUM(D198:D199)` |
+| `J201` | `=D200` |
+| `D202` | `=D200*D201` |
+| `J203` | `=J201*J202` |
+| `L203` | `=J203/J204` |
+| `L205` | `=L203*L204` |
+| `J206` | `=J204*J205` |
+| `J207` | `=J203/J206` |
+
+### 9. 3.3 Op.Planta
+
+- Faixa usada: `A1:M37`
+- Fórmulas: **39**
+- Conceitos provisórios: outros
+- Células numéricas observadas: **81**
+
+#### Rótulos e textos observados
+
+- Op. Planta
+- Nº Func.
+- Mão de obra montagem canteiro
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Engenheiro
+- Aux Técnico
+- Encarregado
+- Operador de Draga
+- Op. Polímero
+- Ajudante
+- Equipamento de Polímero - cotado com Gratt em 07/01/22
+- JONAS - ZAP AGUINALDO 5/5/25
+- Refeições
+- UAP de 10 m³ + bombas de 10m³/h
+- Transporte
+- UAP de 20 m³ + bombas de 20m³/h
+- Gratt 07/jan/22
+- Custo por dia
+- Tanques de 5 m³ + bombas de 10m³/h
+- chute
+- Tanques de 10 m³ + bombas de 20m³/h
+- Valor orçado com 30% adicional - estimativa 2023
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- Depreciação - Equitº Preparo Polímero
+- mês
+- #NAME?
+- Depreciação em
+- meses
+- manutenção - Equitº Preparo Polímero
+- Polimero (calculado sobre base seca)
+- kg
+- Frete Polimero
+- un
+- (Caminhao Pipa) fornecimento de água para operação
+- mes
+- Locação do Caminhão Pipa com motorista
+- (Gerador) fornecimento de energia para operação
+- Instalações hidráulicas
+- vb
+- Instalações eletrica
+- Máquina Wap
+- Mão de obra para operação do sistema
+- TOTAL
+- Prazo de Operação
+- preço unitário
+- #DIV/0!
+- BDI (%)
+- Preço Final
+- Quantidade de lodo em tonelada seca
+- TS
+- Consumo de polímero
+- kg/TS
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `C5` | `='1.1. Canteiro'!C4` |
+| `D5` | `='1.1. Canteiro'!D4` |
+| `E5` | `='1.1. Canteiro'!E4` |
+| `F5` | `=(A5*C5*D5)+(A5*C5*D5)*(E5/100)` |
+| `C6` | `='1.1. Canteiro'!C5` |
+| `D6` | `='1.1. Canteiro'!D5` |
+| `E6` | `=E5` |
+| `C7` | `='1.1. Canteiro'!C6` |
+| `D7` | `=D6` |
+| `C8` | `='1.1. Canteiro'!C7` |
+| `D8` | `=D7` |
+| `C9` | `='1.1. Canteiro'!C8` |
+| `D9` | `=D8` |
+| `C10` | `='1.1. Canteiro'!C9` |
+| `D10` | `=D9` |
+| `D11` | `=D10` |
+| `A12` | `=SUM(A5:A11)` |
+| `C12` | `='1.1. Canteiro'!C11` |
+| `F12` | `=A12*C12` |
+| `A13` | `=A12` |
+| `C13` | `='1.1. Canteiro'!C12` |
+| `F13` | `=A13*C13` |
+| `F14` | `=SUM(F5:F13)` |
+| `L15` | `=257000*1.3` |
+| `D18` | `=Produção!H35` |
+| `E18` | `=L12/J18` |
+| `F18` | `=D18*E18` |
+| `D19` | `=D18` |
+| `E19` | `=E18*0.1` |
+| `D20` | `=D37` |
+| `D23` | `=D22` |
+| `E24` | `=3500+(7*5*22*7)` |
+| `E28` | `=F14` |
+| `F29` | `=SUM(F18:F28)` |
+| `F31` | `=F29/F30` |
+| `F32` | `=F31*(E32/100)` |
+| `F33` | `=F31+F32` |
+| `D35` | `='3.1. Bags'!I16` |
+| `D37` | `=D35*D36` |
+
+### 10. 3.4.Medição
+
+- Faixa usada: `A1:K28`
+- Fórmulas: **29**
+- Conceitos provisórios: medicao_batimetria
+- Células numéricas observadas: **51**
+
+#### Rótulos e textos observados
+
+- 8 - Medição
+- Nº Func.
+- Mão de obra p/carga e montagem / dia
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Operador Líder
+- Operador de Draga
+- Operador de preparo de polímero
+- Ajudante Geral
+- Refeições
+- Transporte
+- Custo por dia
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- m2
+- COLETA BAG
+- un
+- Amostras por Bags
+- dias
+- Quant Bags
+- Acompanhamento FOS
+- dia
+- #NAME?
+- prazo
+- TOTAL
+- BDI (%)
+- Preço Final
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `F5` | `=(A5*C5*D5)+(A5*C5*D5)*(E5/100)` |
+| `D6` | `=D5` |
+| `E6` | `=E5` |
+| `F6` | `=(A6*C6*D6)+(A6*C6*D6)*(E6/100)` |
+| `D7` | `=D6` |
+| `E7` | `=E6` |
+| `F7` | `=(A7*C7*D7)+(A7*C7*D7)*(E7/100)` |
+| `E8` | `=E7` |
+| `F8` | `=(A8*C8*D8)+(A8*C8*D8)*(E8/100)` |
+| `A9` | `=SUM(A5:A8)` |
+| `F9` | `=A9*C9` |
+| `A10` | `=A9` |
+| `F10` | `=A10*C10` |
+| `F11` | `=SUM(F5:F10)` |
+| `F16` | `=D16*E16` |
+| `E17` | `=E16` |
+| `F17` | `=D17*E17` |
+| `E18` | `=E16` |
+| `E19` | `=E16` |
+| `D20` | `=K23` |
+| `K21` | `='3.1. Bags'!D17+'3.1. Bags'!D18` |
+| `D22` | `=Produção!H35` |
+| `E22` | `=F11` |
+| `F23` | `=SUM(F16:F22)` |
+| `K23` | `=K20*K21*K22` |
+| `F24` | `=F23*(E24/100)` |
+| `F25` | `=SUM(F23:F24)` |
+| `F27` | `=F26*(E27/100)` |
+| `F28` | `=SUM(F26:F27)` |
+
+### 11. DesMob Draga + Pol.
+
+- Faixa usada: `A1:M51`
+- Fórmulas: **65**
+- Conceitos provisórios: mobilizacao_draga, desmobilizacao
+- Células numéricas observadas: **107**
+
+#### Rótulos e textos observados
+
+- 1 - Mobilização DRAGA + PLANTA DE POLÍMERO
+- Nº Func.
+- Mão de obra p/carga e montagem / dia
+- R$/h
+- Hrs/dia
+- L.Sociais (%)
+- Total
+- Engenheiro
+- Aux Técnico
+- Encarregado
+- Operador de Draga
+- Op. Polímero
+- Ajudante
+- Refeições
+- Transporte
+- Custo por dia
+- Item
+- Descrição dos serviços
+- Unid.
+- Quantidade
+- Preço Unit.
+- Preço Total
+- Frete para Containers
+- vb
+- Munck para frete container - Étore 14 99715-4769 cotação pelo zap
+- PGR + PCMSO + LTCAT + PR
+- ART Principal + ARTS co-resp.
+- custo Exames médicos
+- Viagem da equipe
+- un
+- Itens de segurança
+- veículo para transporte do pessoal
+- mês
+- Hospedagem da equipe durante desmobilização
+- Guindaste para carregamento
+- dia
+- Treinamentos (Trabalho em Altura e espaço confinado)
+- Mobiliário Canteiro
+- mobiliário do alojamento
+- Carreta Carga Seca - Draga + tubos
+- Fabiano 08/12/25 - R$ 7200+ 02,%
+- Guindaste p/descarregamento e montagem DRAGA
+- FOS
+- Mob / desmob Guindaste
+- Plano de Rigger
+- Carreta Carga Seca - Eqto Polímero
+- Instalações hidráulicas
+- Instalações elétricas
+- Máquina Wap
+- Barrilete
+- Tenda para Equipto polímero
+- Loc up - Tenda de 8 x 8 p/Aracruz c/fech. laterais
+- deprec.
+- meses
+- munck para montagem da cobertura
+- Brita e concreto para base da planta
+- Mão de obra p/carga e montagem (r$/dia)
+- TOTAL
+- BDI (%)
+- Preço Final
+- DIAS
+- Carreta 1 (draga)
+- Exames médicos
+- Carreta 2 (Tubulação 700 m)
+- viagem
+- Carreta 3 (flutuantes e outros periféricos)
+- integração
+- desmontagem dos equipamentos
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `A5` | `='1.1. Canteiro'!A4` |
+| `C5` | `='1.1. Canteiro'!C4` |
+| `D5` | `='1.1. Canteiro'!D4` |
+| `E5` | `='1.1. Canteiro'!E4` |
+| `F5` | `=(A5*C5*D5)+(A5*C5*D5)*(E5/100)` |
+| `A6` | `='1.1. Canteiro'!A5` |
+| `C6` | `='1.1. Canteiro'!C5` |
+| `D6` | `='1.1. Canteiro'!D5` |
+| `E6` | `=E5` |
+| `A7` | `='1.1. Canteiro'!A6` |
+| `C7` | `='1.1. Canteiro'!C6` |
+| `D7` | `=D6` |
+| `E7` | `=E6` |
+| `A8` | `='1.1. Canteiro'!A7` |
+| `C8` | `='1.1. Canteiro'!C7` |
+| `D8` | `=D7` |
+| `E8` | `=E7` |
+| `A9` | `='1.1. Canteiro'!A8` |
+| `C9` | `='1.1. Canteiro'!C8` |
+| `D9` | `=D6` |
+| `E9` | `=E8` |
+| `A10` | `='1.1. Canteiro'!A9` |
+| `C10` | `='1.1. Canteiro'!C9` |
+| `D10` | `=D6` |
+| `E10` | `=E9` |
+| `A11` | `=SUM(A5:A10)` |
+| `C11` | `='1.1. Canteiro'!C11` |
+| `F11` | `=A11*C11` |
+| `A12` | `=A11` |
+| `C12` | `='1.1. Canteiro'!C12` |
+| `F12` | `=A12*C12` |
+| `F13` | `=SUM(F5:F12)` |
+| `F16` | `=D16*E16` |
+| `F17` | `=D17*E17` |
+| `F18` | `=D18*E18` |
+| `D19` | `=A11` |
+| `D20` | `=A11` |
+| `F21` | `=D21*E21` |
+| `F22` | `=D22*E22` |
+| `F23` | `=D23*E23` |
+| `F24` | `=D24*E24` |
+| `F25` | `=D25*E25` |
+| `F26` | `=D26*E26` |
+| `E28` | `=E27` |
+| `F29` | `=D29*E29` |
+| `F30` | `=D30*E30` |
+| `F31` | `=D31*E31` |
+| `F32` | `=D32*E32` |
+| `E33` | `=E29` |
+| `F33` | `=D33*E33` |
+| `F34` | `=D34*E34` |
+| `F35` | `=D35*E35` |
+| `F36` | `=D36*E36` |
+| `E37` | `='1.2.1.Barrilete'!F29` |
+| `F37` | `=D37*E37` |
+| `E38` | `=J38/L38` |
+| `F38` | `=D38*E38` |
+| `F39` | `=D39*E39` |
+| `F40` | `=D40*E40` |
+| `E41` | `=F13` |
+| `F42` | `=SUM(F24:F41)` |
+| `F43` | `=F42*(E43/100)` |
+| `F44` | `=SUM(F42:F43)` |
+| `C50` | `=SUM(C47:C49)` |
+| `G51` | `=SUM(G47:G50)` |
+
+### 12. Plan. BDI
+
+- Faixa usada: `A1:M22`
+- Fórmulas: **38**
+- Conceitos provisórios: formacao_preco
+- Células numéricas observadas: **62**
+
+#### Rótulos e textos observados
+
+- PLANILHA DETALHADA PREÇOS DE CUSTO E VENDA
+- Preços com BDI
+- Item
+- Descrição dos Serviços
+- Custo Total
+- Quant
+- UN
+- Custo Unit
+- BDI (%)
+- Preço Unit
+- Preço Total
+- UNITÁRIO
+- CANTEIRO DE OBRAS
+- #NAME?
+- mÊs
+- Mobilização Draga
+- vb
+- Preparo de Célula de desaguamento
+- m²
+- DRAGAGEM E DESAGUAMENTO
+- Fornecimento de Bags
+- m³
+- Dragagem
+- Operação do sistema de polímero
+- Mediçao
+- Desmobilização FINAL
+- Preço de Venda
+- Resultado Final previsto
+- Resultado mensal previsto
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `C4` | `='1.1. Canteiro'!F30` |
+| `E4` | `=Produção!H39` |
+| `G4` | `=C4/E4` |
+| `I4` | `=((H4/100)+1)*G4` |
+| `J4` | `=E4*I4` |
+| `K4` | `=I4` |
+| `C6` | `='1.2. Mob Bomba + Pol.'!F42` |
+| `K6` | `=I6` |
+| `C8` | `='2. Prep Célula'!F33` |
+| `E8` | `='2. Prep Célula'!M15` |
+| `I8` | `=((H8/100)+1)*G8` |
+| `J8` | `=E8*I8` |
+| `K8` | `=I8` |
+| `C11` | `='3.1. Bags'!F25` |
+| `E11` | `='3.1. Bags'!I14` |
+| `G11` | `=C11/E11` |
+| `I11` | `=((H11/100)+1)*G11` |
+| `J11` | `=E11*I11` |
+| `K11` | `=I11+I12+I13+I14` |
+| `M11` | `=(J8+J11+J12+J13+J14)/E11` |
+| `C12` | `='3.2 Bomba'!D202` |
+| `E12` | `=E11` |
+| `C13` | `='3.3 Op.Planta'!F29` |
+| `E13` | `=E12` |
+| `G13` | `=C13/E13` |
+| `I13` | `=((H13/100)+1)*G13` |
+| `J13` | `=E13*I13` |
+| `C14` | `='3.4.Medição'!F25` |
+| `E14` | `=E13` |
+| `C17` | `='DesMob Draga + Pol. '!F42` |
+| `G17` | `=C17/E17` |
+| `I17` | `=((H17/100)+1)*G17` |
+| `J17` | `=E17*I17` |
+| `K17` | `=I17` |
+| `C19` | `=SUM(C4:C18)` |
+| `J19` | `=SUM(J4:J18)` |
+| `C21` | `=J19-C19` |
+| `C22` | `=C21/E4` |
+
+### 13. Plan. Final.
+
+- Faixa usada: `A1:H6`
+- Fórmulas: **15**
+- Conceitos provisórios: outros
+- Células numéricas observadas: **21**
+
+#### Rótulos e textos observados
+
+- ITEM
+- DESCRIÇÃO DOS SERVIÇOS
+- UNID
+- QUANT
+- PREÇO UNITÁRIO
+- PREÇO TOTAL
+- Pr. Unit.
+- Mobilização e Montagem dos equipamentos
+- vb
+- Preparo da Célula de desaguamento dos Bags, incluindo impermeabilização com manta PEAD, bidim e Camada Drenante
+- m²
+- Dragagem e desaguamento de sedimentos através do processo de acondicionamento em Geobags de alta resistência, incluindo fornecimento e operação dos Geobags
+- Desmobilização dos equipamentos
+- TOTAL GERAL
+
+#### Fórmulas observadas
+
+| Célula | Fórmula |
+|---|---|
+| `E2` | `=SUM('Plan. BDI'!J4:J6)` |
+| `F2` | `=D2*E2` |
+| `H2` | `='Plan. BDI'!K4` |
+| `D3` | `='Plan. BDI'!E8` |
+| `E3` | `=H3` |
+| `F3` | `=D3*E3` |
+| `H3` | `='Plan. BDI'!K8` |
+| `E4` | `=SUM('Plan. BDI'!J11:J14)` |
+| `F4` | `=D4*E4` |
+| `H4` | `='Plan. BDI'!K11` |
+| `D5` | `='Plan. BDI'!E17` |
+| `E5` | `=H5` |
+| `F5` | `=D5*E5` |
+| `H5` | `='Plan. BDI'!K17` |
+| `F6` | `=SUM(F2:F5)` |
+
+## Limites desta análise
+
+- A classificação de família e conceitos é provisória e poderá ser refinada pelo crosscheck horizontal.
+- Valores calculados, formatação visual, comentários, objetos incorporados e regras implícitas exigem validação adicional quando relevantes.
+- Nenhuma fórmula deste arquivo deve ser tratada isoladamente como regra universal da FOS.
+
+## Uso no Método FOS
+
+Este modelo deve ser comparado com os demais para classificar:
+
+- núcleo comum;
+- lógica própria da família;
+- pacote opcional;
+- parâmetro histórico;
+- exceção;
+- possível inconsistência.
