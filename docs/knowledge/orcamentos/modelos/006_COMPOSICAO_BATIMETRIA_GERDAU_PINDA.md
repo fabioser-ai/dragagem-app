@@ -546,3 +546,76 @@ Este modelo deve ser comparado com os demais para classificar:
 - parâmetro histórico;
 - exceção;
 - possível inconsistência.
+
+## ANÁLISE SEMÂNTICA APROFUNDADA
+
+### Escopo, objetivo e identificação
+
+- **Fonte:** `Composição - Batimetria - Gerdau Pinda.xlsx`.
+- **SHA-256 confirmado:** `fff05b65ee231c9875671cd6ce61339e599d09d8bfe32167b46a52ce5319c32c`.
+- **Família provisória:** batimetria/levantamento com coleta de amostras, análises e projeto.
+- **Cliente:** Gerdau; proposta `D_034/2025`, datada de 21/05/2025.
+- **Entrega observável:** mobilização, coleta e caracterização de amostras, batimetria terceirizada e elaboração de projeto/escopo de dragagem para lagoas de estabilização.
+- **Unidade econômica:** itens globais no resumo; existe cálculo auxiliar de R$/m² para batimetria e preço final apresentado.
+
+### Fluxo técnico e econômico
+
+`Dados Obra` dimensiona área e amostragem → `Produção` contém template de produção, mas está zerada → `1. Mobilização` forma equipe/logística → `2.Amostras`, `3. Batimetria` e `4. Projeto` formam pacotes → `RESUMO` aplica BDI e consolida.
+
+O objeto não é dragagem executada. A aba `Produção` é residual ou auxiliar: com vazão, eficiência, concentração e volume iguais a zero, seus resultados geram divisões por zero e não alimentam o preço final. Isso é evidência de reutilização de template, não prova automática de defeito comercial.
+
+### Leitura das sete abas
+
+| Aba | Finalidade e entradas | Resultados, consumidores e riscos |
+|---|---|---|
+| `Dados Obra` | Identificação e geometria de duas lagoas anaeróbias e uma facultativa. Calcula áreas por largura × comprimento × quantidade e amostras por quantidade de lagoas. | Área total de 13.440 m², 18 amostras e preço auxiliar de R$ 1,3392857/m² derivado de R$ 18.000. |
+| `Produção` | Template de draga com jornada e dias. | Produção e prazo ficam zerados/indefinidos; não é consumida pelo resumo. |
+| `1. Mobilização` | Equipe FOS, terceirizados SubGeo, refeições, transporte, documentação, treinamentos, hospedagem e integração. | Custo total R$ 20.638,39. Campos de prazo/BDI zerados provocam `#DIV/0!` apenas no bloco de preço unitário. |
+| `2.Amostras` | Quantidade de amostras, análises laboratoriais, caracterização NBR 10004, viagem e mão de obra. | Custo total R$ 15.994,46; BioAgri aparece como origem observável de cotação. |
+| `3. Batimetria` | Subcontratação SubGeo por m², mobilização e acompanhamento FOS. | Custo total R$ 23.758,93; área × R$/m² é o principal direcionador. |
+| `4. Projeto` | Mão de obra de engenharia por dia. | Custo total R$ 8.755; prazo zerado impede cálculo do preço unitário interno. |
+| `RESUMO` | Consolida quatro pacotes e aplica BDI de 70% por linha. | Custo R$ 69.146,78; preço R$ 117.549,53; preço médio R$ 8,7462/m²; preço final apresentado deve ser validado no arquivo visual. |
+
+### Fórmulas e parâmetros principais
+
+| Regra | Evidência | Classificação |
+|---|---|---|
+| Área por grupo = largura × comprimento × quantidade de lagoas | `K13`, `K14` | específica da família, reutilizável. |
+| Amostras = amostras por lagoa × quantidade de lagoas | `L13 = 5 × P13`; `L14 = 8 × P14` | específica do plano de amostragem; parâmetros precisam de justificativa técnica. |
+| Área total/amostras totais = soma dos grupos | `K19 = 13.440`; `L19 = 18` | recorrente. |
+| Custo de serviço = quantidade × preço unitário | pacotes 2–4 | recorrente. |
+| Custo de equipe = quantidade × R$/h × horas × (1 + encargos) | pacotes | recorrente. |
+| Preço do pacote = custo × (1 + BDI) | `RESUMO!I4:I7` | recorrente; BDI de 70% é específico. |
+| Preço médio por área = preço total ÷ área total | `RESUMO!J12 = 8,7462448` | específica desta apresentação. |
+
+Parâmetros observados: adicional de 25% em salários selecionados; 9 h/dia; 22 dias/mês; 5 amostras por lagoa anaeróbia; 8 por lagoa facultativa; cotação SubGeo de R$ 18.000 para 13.440 m²; BDI de 70%. Nenhum deve ser generalizado sem origem, data e aplicabilidade.
+
+### Pacotes, dependências e tratamento comercial
+
+- Geometria altera área, quantidade de amostras, custo da batimetria e preço médio por m².
+- Plano de amostragem altera laboratório, logística e mão de obra sem alterar batimetria.
+- Equipe base é reutilizada nos três pacotes técnicos; mudança salarial afeta todos.
+- O BDI é aplicado no resumo sobre cada pacote; os blocos internos de preço unitário estão quebrados por prazo zero e não devem ser somados novamente.
+- A apresentação comercial simplifica quatro custos técnicos em quatro itens globais; o cliente não recebe a memória completa de salários/cotações.
+
+### Candidatos para o novo sistema
+
+- **Campos:** grupos de lagoas, dimensões, quantidade, plano de amostragem, dias de campo, responsabilidade e escopo do projeto.
+- **Catálogos:** laboratórios, ensaios, subcontratadas de batimetria, funções/salários e despesas de viagem.
+- **Parâmetros sugeridos:** amostras por tipo de lagoa, preço/m², dias de acompanhamento e BDI, sempre datados.
+- **Fórmulas:** área, amostras, custos de pacote, preço e indicador R$/m².
+- **Pacotes ativáveis:** mobilização, amostragem, laboratório, batimetria, acompanhamento e projeto.
+- **Validações:** área zero, quantidade de amostras incompatível, prazo zero quando usado como divisor, cotação sem data e BDI aplicado duas vezes.
+- **Exceção:** orçamento de diagnóstico pode não possuir volume de dragagem ou produção de draga.
+
+### Inconsistências e perguntas ao Fabio
+
+- Há 12 fórmulas com `#DIV/0!` distribuídas em `Produção` e nos preços unitários dos quatro pacotes, causadas por entradas zeradas; o resumo final, contudo, possui valores calculados.
+- O texto `CANTEIRO DE OBRAS : subitem da Dragagem` foi herdado em pacotes de amostragem/batimetria/projeto e não descreve corretamente a finalidade.
+- Confirmar se 5 amostras por lagoa anaeróbia e 8 por facultativa decorrem de norma, proposta da SubGeo ou decisão específica deste serviço.
+- Confirmar se o BDI de 70% deve incidir uniformemente em mobilização, laboratório, terceirização e engenharia.
+- O preço final ao cliente deve ser apresentado por item global, por m², ou ambos?
+
+### Limite interpretativo
+
+Todas as sete abas foram examinadas. Fórmulas quebradas foram registradas como estado do arquivo, sem correção e sem concluir que o preço comercial final esteja errado.

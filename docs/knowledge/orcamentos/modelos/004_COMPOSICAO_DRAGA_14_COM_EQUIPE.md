@@ -848,3 +848,99 @@ Este modelo deve ser comparado com os demais para classificar:
 - parâmetro histórico;
 - exceção;
 - possível inconsistência.
+
+## ANÁLISE SEMÂNTICA APROFUNDADA
+
+### Escopo e identificação
+
+- **Fonte efetivamente lida:** `Composiçao - Draga 14 - com equipe.xlsx`.
+- **Diferença nominal registrada:** o pacote usa `Composiçao` sem til no `a`; o documento e o prompt usam `Composição`. A normalização Unicode também difere na codificação dos acentos. Trata-se do mesmo arquivo, confirmado pelo restante do nome e pelo SHA-256.
+- **SHA-256 confirmado:** `c84bafdbf725be88e7ef440f61e2fe3b8bbd03bf491ed2de3480a170f2df2ce3`.
+- **Família provisória:** composição padrão de draga de grande porte com equipe própria.
+- **Cliente/finalidade observável:** SBV; locação e execução com draga de 14 polegadas em Parnaíba–PI.
+- **Unidade econômica:** combinação de verbas de mobilização/desmobilização, preço de dragagem por m³ e visão mensal da operação.
+- **Revisão aparente:** proposta `D_020_2025`; a planilha contém datas e cotações de 2024, 2025 e uma anotação de 2026, o que exige data-base explícita antes de reutilizar preços.
+
+### Objetivo e entrega
+
+O arquivo forma preço para disponibilizar, mobilizar, operar e desmobilizar uma draga 14\" com equipe. A entrega econômica é o volume dragado, mas o modelo também produz custo e faturamento mensais. Itens marcados como responsabilidade da SBV — containers, guindaste de descarga/montagem, rigging e alguns apoios — permanecem visíveis e frequentemente zerados; zero, portanto, pode significar exclusão contratual e não ausência de necessidade técnica.
+
+### Fluxo técnico e econômico
+
+`Dados Obra` → `Produção` → `MDO x Turno` → `Canteiro` → `1. Mobilização` → `2. Dragagem` → `3. Desmobilização` → `Final`.
+
+1. Volume, distância de recalque, jornada e dias mensais definem o cenário.
+2. Vazão, eficiência e concentração formam a produção horária; horas mensais formam produção mensal e prazo.
+3. A matriz de turnos determina quantidades por função.
+4. Salário mensal é convertido para custo horário, recebe dissídio, transferência quando aplicável e encargos sociais.
+5. Mobilização e desmobilização combinam equipe, exames, viagens, segurança, logística e equipamentos.
+6. A composição da dragagem agrega operação, pessoal, manutenção, apoios, despesas administrativas e financeiras.
+7. O consolidado aplica BDI por item e apresenta volume, preço unitário, total e resultado mensal.
+
+### Leitura semântica das oito abas
+
+| Aba | Função, entradas e resultados | Direcionadores, aplicabilidade e riscos |
+|---|---|---|
+| `Dados Obra` | Identifica proposta, cliente, objeto, local e recebe volume, material, recalque, jornada e dias. | Base comum; campos físicos vazios não são necessariamente aplicáveis a uma proposta mensal. |
+| `Produção` | Calcula horas mensais, produção horária/mensal e prazo. Também explicita 2h15 de paradas e 1h30 de manobras/abastecimento. | Vazão, eficiência, concentração, jornada, dias e volume. O uso das paradas é informativo no bloco lateral e deve ser validado quanto à incidência efetiva na produção. |
+| `MDO x Turno` | Matriz manual de funções por jornada/turno. | Escolha do engenheiro; deve virar configuração de equipe, não fórmula universal. |
+| `Canteiro` | Converte salários em R$/h, aplica dissídio de 7,5%, adicional de transferência de 25% em funções selecionadas e encargos de 110%; compõe custos mensais de apoio. | Quantidade por função, participação mensal, prazo e responsabilidades do cliente. |
+| `1. Mobilização` | Reusa equipe/custos do canteiro e soma treinamentos, exames, viagem, documentação, guindastes, carretas, seguro, frete e mão de obra. Calcula também capacidade logística da carga seca. | Distância, quantidade de carretas, dias de equipe e responsabilidade contratual. Cotações possuem datas heterogêneas. |
+| `2. Dragagem` | Memória principal: combustível, filtros, pessoal, refeições, alojamento, manutenção, linha de recalque, equipamentos de apoio, administração, BDI e financeiras; produz custo mensal, unitário e total. | Horas, produção, valor do equipamento, extensão da linha, prazo e BDI. Mistura custo técnico, markups internos e preço de venda. |
+| `3. Desmobilização` | Espelha a mobilização com viagem de volta, desmontagem e retorno de equipamentos. | Reutilizável como pacote próprio; não deve ser assumido idêntico à mobilização. |
+| `Final` | Consolida mobilização, dragagem e desmobilização; apresenta preço por m³, total, custo/faturamento mensal e resultado. | Quantidade principal de 93.000 m³ e prazo arredondado de quatro meses. |
+
+### Fórmulas principais traduzidas
+
+| Regra conceitual | Evidência | Unidade e classificação |
+|---|---|---|
+| Horas mensais = horas/dia × dias/mês | `Produção!H6 = H3 × H4 = 264` | h/mês; recorrente. |
+| Produção horária = vazão × eficiência × concentração | `Produção!D8 = 95,625` | m³/h; recorrente, dependente da definição de concentração. |
+| Produção mensal = produção horária × horas mensais | `Produção!D13 = 25.245` | m³/mês; recorrente. |
+| Prazo = volume ÷ produção mensal; prazo comercial = arredondamento para cima | `D24 = 3,6839`; `E24 = 4` | meses; recorrente com política de arredondamento explícita. |
+| Custo-hora = salário ÷ 220 + dissídio + transferência aplicável | bloco `Canteiro!I:M` | R$/h; específica da política trabalhista do arquivo. |
+| Custo de mão de obra = quantidade × R$/h × horas × (1 + encargos/100) | linhas de equipe | R$/período; recorrente. |
+| Combustível = horas × eficiência × consumo/h × preço | `2. Dragagem!F10` | R$/mês; específica do equipamento/cenário. |
+| Manutenção mensal = 0,6% + 1,0% do valor do equipamento, com adicionais | `E139:E144` | R$/mês; parâmetro histórico, não universal. |
+| Financeiras = depreciação em 60 meses + juros de 1% + atraso quando usado | `E192:E196` | R$/mês; específica do modelo. |
+| Preço unitário = custo unitário × (1 + BDI) | `Final!I4:I6` | R$/unidade; recorrente, BDI por pacote. |
+
+### Entradas, parâmetros e resultados
+
+- **Identificação:** proposta, cliente, contato, local e objeto.
+- **Físicas:** 93.000 m³, areia fina, 600 m de recalque e configuração da linha.
+- **Operacionais:** 12 h/dia, 22 dias/mês, turnos, equipe, vazão, eficiência e concentração.
+- **Comerciais:** responsabilidades SBV/FOS, BDI de cada pacote, data-base e exclusões.
+- **Constantes embutidas observadas:** divisor salarial 220 h; dissídio 7,5%; transferência 25%; encargos 110%; combustível rotulado como `0,15 × HP × hora`; filtros de 10% do combustível; manutenção 0,6% e docagem 1% ao mês; oficina 5%; administração 5%; depreciação 60 meses; juros 1%.
+- **Resultados armazenados:** produção mensal 25.245 m³; prazo 3,6839, arredondado para 4 meses; custo mensal de dragagem aproximado de R$ 539.494,46; custo total da dragagem R$ 2.157.977,85; preço total consolidado R$ 3.964.922,16; resultado mensal aproximado R$ 408.153,75. Valores apenas documentam o arquivo, não são parâmetros sugeridos.
+
+### Pacotes, dependências e recálculo
+
+- Alterar vazão, eficiência, concentração, jornada ou dias recalcula produção, prazo, canteiro mensal, dragagem total e consolidado.
+- Alterar equipe/turno recalcula canteiro, mobilização, operação e desmobilização.
+- Alterar valor do equipamento ou linha de recalque afeta manutenção, financeiras e custo mensal, mas não mobilização.
+- Alterar uma responsabilidade do cliente ativa ou remove itens sem necessariamente mudar a necessidade técnica.
+- Alterar BDI de um pacote afeta somente seu preço e o consolidado, não seu custo técnico.
+
+### Candidatos para o novo sistema
+
+- **Campos:** volume, jornada, dias, vazão, eficiência, concentração, turnos, responsabilidades, prazo e data-base.
+- **Catálogos:** funções/salários, equipamentos, carretas, guindastes, linha de recalque, fornecedores e cotações.
+- **Parâmetros sugeridos:** dissídio, transferência, encargos, consumos, manutenção, docagem, vida útil, juros e BDI — sempre com origem e vigência.
+- **Fórmulas:** produção, prazo, custo de equipe, consumo, depreciação, custo unitário e preço.
+- **Pacotes:** canteiro, mobilização, operação da draga, medição/topografia, apoio, manutenção e desmobilização.
+- **Validações:** data de cotação vencida, responsabilidade sem justificativa, prazo zero, BDI duplicado e zero ambíguo.
+- **Exceção:** proposta mensal pode prescindir de volume final fechado; o sistema deve suportar preço mensal sem fabricar um volume.
+
+### Inconsistências, riscos e perguntas ao Fabio
+
+- A anotação de cotação de carreta extensível menciona `14/04/26` em arquivo de proposta 2025; confirmar se é correção posterior ou erro de data.
+- O rótulo geral da composição de dragagem ainda menciona sistema de desidratação, embora o modelo seja de dragagem direta; provável herança de template.
+- Encargos de 110%, BDI de 70% no consolidado e adicional de transferência não podem ser universalizados.
+- Confirmar se as 2h15 de paralisações e 1h30 de manobras reduzem efetivamente as horas produtivas ou são apenas controles de cenário.
+- Quando o cliente fornece item necessário, o novo sistema deve exibi-lo como `fornecido pelo cliente`, excluí-lo do preço e mantê-lo no escopo técnico?
+- A base correta do BDI comercial é custo mensal, custo total por prazo ou custo unitário por volume em cada tipo de contratação?
+
+### Limite interpretativo
+
+Os fatos acima foram lidos diretamente das oito abas. As interpretações sobre intenção comercial e herança de template são hipóteses explícitas e precisam de validação do Fabio; nenhuma constante foi promovida a regra geral.

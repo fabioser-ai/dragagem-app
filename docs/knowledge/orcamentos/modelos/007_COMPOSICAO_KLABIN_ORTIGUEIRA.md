@@ -2413,3 +2413,101 @@ Este modelo deve ser comparado com os demais para classificar:
 - parâmetro histórico;
 - exceção;
 - possível inconsistência.
+
+## ANÁLISE SEMÂNTICA APROFUNDADA
+
+### Escopo e identificação
+
+- **Fonte:** `Composição - Klabin Ortigueira.xlsx`.
+- **SHA-256 confirmado:** `c8554a40b0c25089f08dd3eacd88f91d1258838f472ba020100a32e4ffa173ff`.
+- **Família provisória:** dragagem com desaguamento por centrífugas.
+- **Finalidade observável:** formar e comparar cenários de dragagem, operação de duas ou três centrífugas, estruturas/base, manutenção, movimentação de lodo desaguado e contratos de longa duração.
+- **Cliente/local:** Klabin, Ortigueira; o arquivo também usa referências históricas da Suzano Aracruz para produtividade e BDI.
+- **Unidades econômicas:** tonelada seca, mês e verbas de mobilização/desmobilização; o resumo avalia faturamento mínimo e resultado ao longo de 58 meses.
+
+### Objetivo e lógica geral
+
+Este é o modelo mais orientado a cenários do lote. Ele não apenas calcula um preço: compara quantidade mínima, duas ou três centrífugas, turnos, base/estrutura metálica, produção do cliente e produção recalculada. O fluxo lógico é:
+
+`Dados Obra` + `Produção (cliente)` + `Produção (NOVO CALCULO)` → dimensionamento de draga/centrífugas → `1. Canteiro` → mobilizações → pacotes opcionais → composições mensais `4.1 Draga Dec` e `4.2 Centrífuga` → `Plan. Final` → `Final` e `RESUMO` de cenários.
+
+### Leitura das 21 abas
+
+| Aba | Função semântica | Entradas/resultados e aplicabilidade |
+|---|---|---|
+| `RESUMO` | Simulador econômico de cenários. | Quantidade mínima, preço proposto, faturamento mínimo, resultado nos primeiros 15 e últimos 43 meses e resultado total/mensal em 58 meses. Usa retenção implícita de 15% (`faturamento × 0,85`). |
+| `Dados Obra` | Identificação, volume/toneladas, material, jornada, linha e premissas de desaguamento. | Fonte central para produção e composições. |
+| `Fornecedores` | Lista de referências comerciais. | Catálogo informal; não participa diretamente das fórmulas. |
+| `Produção (NOVO CALCULO)` | Matriz de cenários para 2/3 centrífugas, turnos e concentrações. | Converte massa/volume, vazão, horas e dias em produção mensal; subsidia cenários finais. |
+| `Produção (cliente)` | Reproduz premissas/resultados informados pelo cliente. | Deve permanecer separado de valores adotados pela FOS. |
+| `Produção` | Modelo de produção operacional e prazo, com cálculo auxiliar de dimensionamentos. | Produção mensal de sólidos/volume e prazo; combina parâmetros específicos de draga e centrífuga. |
+| `1. Canteiro` | Equipe, salários, apoio e custo mensal. | Consumido por mobilizações e composições. |
+| `2.1 Mob Draga` | Mobilização da draga e equipe associada. | Pacote fixo ativável. |
+| `2.2 Mob Centr` | Mobilização das centrífugas. | Depende da quantidade de centrífugas e equipe. |
+| `3.1 - Aluguel 3 meses Centrif` | Custo de aluguel/compromisso inicial das centrífugas. | Aplicável somente quando essa condição comercial existir. |
+| `3.3 - Manutenção` | Pacote de manutenção específico. | Quantidade/prazo e preços próprios. |
+| `3.4. BASE DE CONCRETO` | Estrutura civil para instalação. | Pacote opcional conforme base/estrutura adotada. |
+| `3.5. Remoção Ensecadeira` | Remoção de estrutura temporária. | Exceção/pacote opcional. |
+| `3.5. Mov. Lodo desag` | Movimentação do lodo após desaguamento. | Direcionada por massa/volume desaguado e logística. |
+| `4.1 Draga Dec` | Custo mensal e total da dragagem. | Operação, pessoal, manutenção, apoios, administrativas, BDI interno e financeiras. |
+| `4.2 Centrífuga` | Custo mensal e total do desaguamento. | Quantidade de centrífugas, equipe, energia/consumos, manutenção e capital. |
+| `5. Desmob Canteiro` | Encerramento do canteiro. | Fixo, mas diferente da mobilização. |
+| `Desmob Draga` | Retorno da draga. | Pacote próprio. |
+| `Desmob Centr` | Retorno das centrífugas. | Pacote próprio. |
+| `Plan. Final` | Consolida custos e aplica BDI por pacote; calcula custos/preços por tonelada e cenários. | Principal ponte entre memória técnica e proposta. |
+| `Final` | Resumo comercial de itens e totais. | Simplifica o detalhamento técnico para apresentação. |
+
+### Fórmulas e parâmetros relevantes
+
+| Regra conceitual | Evidência | Classificação |
+|---|---|---|
+| Produção de cenário = quantidade de equipamento × capacidade × horas/dia × dias/mês | matriz `Produção (NOVO CALCULO)` | específica da família; estrutura reutilizável. |
+| Prazo = quantidade total ÷ produção mensal | `Produção!D21/E21` | recorrente. |
+| Horas remuneradas = 1,7 × HE70 + 2 × HE100 + normais | composições 4.1/4.2 | recorrente na família de mão de obra. |
+| Manutenção da draga = 0,6% + 1% ao mês do valor do equipamento | `4.1!E92:E97` | parâmetro histórico. |
+| Depreciação draga = valor ÷ 60; centrífuga = valor ÷ 12 | `4.1!E145`; `4.2!E145` | específica do ativo/contrato; divergência que exige validação. |
+| Custos totais = custo mensal × meses/quantidade contratada | blocos finais 4.1/4.2 | recorrente. |
+| Preço do pacote = custo × (1 + BDI) | `Plan. Final!I4:I16` | recorrente; no arquivo o BDI observado é 100% em vários itens. |
+| Resultado do cenário inicial = `(faturamento × 0,85 − custo mínimo − custo inicial) × 15` | `RESUMO!G` | específica do contrato. |
+| Resultado do período restante = `(faturamento × 0,85 − custo mínimo) × 43` | `RESUMO!H` | específica do horizonte de 58 meses. |
+
+Parâmetros/constantes observados: horizonte de 58 meses dividido em 15 + 43; fator líquido de 85%; custo mínimo mensal de R$ 220.000; BDI de referência de 90% anotado e BDI de 100% usado no consolidado; valores de equipamento de R$ 1,02 milhão para draga e R$ 3 milhões para centrífugas; manutenção, depreciação e juros embutidos nas composições. Esses valores não são generalizáveis.
+
+### Resultados observáveis e tratamento comercial
+
+- A `Plan. Final` consolida custo de aproximadamente R$ 4,625 milhões e preço de R$ 9,250 milhões no cenário armazenado.
+- A `Final` apresenta mobilização, operação por tonelada, itens complementares e desmobilização; o total armazenado é aproximadamente R$ 9,468 milhões.
+- O arquivo diferencia proposta técnica detalhada de comparação econômica de longo prazo. A retenção de 15% no resumo pode representar tributos, descontos ou margem de segurança, mas a origem não está rotulada.
+- Custos dos primeiros 15 meses incluem parcela adicional de estrutura/implantação; os 43 meses restantes usam base recorrente menor.
+
+### Dependências e recálculo seletivo
+
+- Alterar quantidade de centrífugas/turnos recalcula produção, equipe, mobilização, operação, custo mínimo e cenários, mas não necessariamente mobilização da draga.
+- Alterar produção do cliente não deve sobrescrever o cenário FOS; deve recalcular apenas comparações.
+- Alterar base de concreto, remoção de ensecadeira ou movimentação de lodo ativa pacotes independentes e o consolidado.
+- Alterar preço/vida útil de centrífuga afeta 4.2 e cenários, não 4.1.
+- Alterar BDI afeta `Plan. Final`, `Final` e resultado comercial, sem modificar produção.
+
+### Candidatos para o novo sistema
+
+- **Campos:** massa/volume, sólidos, equipamentos, turnos, horizonte contratual, quantidade mínima, estrutura, responsabilidades e cenário selecionado.
+- **Catálogos:** centrífugas, draga, equipe, salários, consumos, fornecedores, estruturas e serviços civis.
+- **Parâmetros sugeridos:** capacidade, eficiência, concentração, vida útil, manutenção, custo mínimo, retenções, BDI e fases contratuais.
+- **Fórmulas:** produção por cenário, prazo, custo mensal, custo por tonelada, faturamento mínimo e resultado por fase.
+- **Pacotes ativáveis:** canteiro, mobilização draga, mobilização centrífuga, aluguel inicial, manutenção, base, remoção, movimentação, operação e desmobilizações.
+- **Validações:** cenário sem produção, divisor zero, referência quebrada, BDI/retensão sem origem, vida útil incompatível e dupla incidência de custo inicial.
+- **Exceção:** contratos de longo prazo podem ter economia em fases; uma única margem média não representa adequadamente o negócio.
+
+### Inconsistências, riscos e perguntas ao Fabio
+
+- `4.1 Draga Dec!D205` e `D206` resultam em `#DIV/0!` porque `D203` está zerado.
+- `4.2 Centrífuga!D187` contém `=#REF!*0.6*0.62`, uma referência quebrada explícita.
+- A vida de depreciação muda de 60 meses na draga para 12 meses na centrífuga; confirmar se 12 representa vida útil, prazo de recuperação ou condição de aluguel.
+- Confirmar o significado do fator 0,85 no resumo e se deve ser modelado como tributos, retenção, desconto ou margem líquida.
+- Confirmar por que os cenários são divididos em 15 e 43 meses e quais custos cessam após o mês 15.
+- Produção do cliente e produção FOS: qual delas é contratual, qual é garantia e qual é apenas cenário?
+- O BDI deve ser aplicado individualmente a todos os pacotes ou o preço final é definido pelo cenário de resultado mínimo?
+
+### Limite interpretativo
+
+As 21 abas foram examinadas. Os três erros armazenados foram preservados como evidência; nenhum foi recalculado ou corrigido. A leitura de intenção contratual é explicitamente provisória.
