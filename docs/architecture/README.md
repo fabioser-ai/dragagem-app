@@ -64,3 +64,13 @@ A auditoria de encerramento identificou um único bloqueador crítico conhecido 
 `21_ESTRATEGIA_FASE_2_ORCAMENTOS.md` define a engenharia reversa dos modelos reais. `22_NOVO_SISTEMA_ORCAMENTOS.md` registra a fundação arquitetural provisória, a homologação da AUDIT_052, a estratégia de substituição do fluxo legado e o primeiro Kid Step proposto.
 
 A fundação do novo sistema preserva dados e conhecimento úteis, mas não exige compatibilidade com funcionalidades legadas sem benefício comprovado. Quebras devem ser deliberadas, documentadas, testadas e homologadas.
+
+## Fases 4 e 5 — Domínio e modelo lógico de Orçamentos
+
+`22_DOMINIO_ORCAMENTOS.md` encerra a descoberta e estabelece o modelo conceitual oficial do domínio com base nos 49 modelos, famílias, vocabulário, crosschecks e auditorias homologadas. A Fase 4 está homologada como fonte para a modelagem lógica.
+
+`23_MODELO_LOGICO_DADOS_ORCAMENTOS.md` transforma esse domínio em estruturas lógicas de informação, identidades, propriedade, relacionamentos, cardinalidades, invariantes, ciclos de vida, versionamento, fotografias, cálculos e rastreabilidade.
+
+O modelo lógico é tecnológico-neutro. Nenhum código funcional, tela, arquivo de dados ou tecnologia de persistência foi criado/alterado por sua publicação.
+
+Próximo passo recomendado, após homologação do Merlin: modelar o motor de cálculo e dependências, sem antecipar arquitetura física ou implementação.

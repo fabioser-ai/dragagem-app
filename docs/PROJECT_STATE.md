@@ -173,3 +173,44 @@ Após quantidade suficiente de modelos completos:
 4. definir a arquitetura do sistema orçamentário;
 5. decompor a implementação em Kid Steps;
 6. validar equivalência com as planilhas originais antes de otimizar.
+
+## Fases 4 e 5 — Orçamentos
+
+### Fase 4 homologada
+
+A modelagem conceitual oficial do domínio de Orçamentos está registrada em `docs/architecture/22_DOMINIO_ORCAMENTOS.md`.
+
+A Fase 4 encerrou a descoberta inicial baseada nos 49 modelos e consolidou:
+
+- fronteiras do domínio;
+- fluxo conceitual;
+- entidades e relacionamentos principais;
+- versões, cenários, pacotes, composições e memórias de cálculo;
+- regras universais e por família;
+- desempenho, UX e rastreabilidade;
+- proposta futura e decisões adiadas.
+
+Nenhuma implementação foi realizada.
+
+### Fase 5 — modelo lógico
+
+O modelo lógico oficial está registrado em `docs/architecture/23_MODELO_LOGICO_DADOS_ORCAMENTOS.md`.
+
+Foram definidos, de forma tecnológica-neutra:
+
+- identidades lógicas;
+- propriedade das informações;
+- cardinalidades e relacionamentos;
+- ciclos de vida e imutabilidade;
+- distinção entre cadastro mestre e fotografia da versão;
+- estados semânticos dos valores;
+- fórmulas, dependências, memórias e resultados;
+- validações, decisões, aprovações e histórico;
+- vínculos futuros com proposta e obra;
+- estruturas que permitem carregamento e recálculo seletivos.
+
+Nenhum código funcional, tela, CSV, formato físico de dados ou tecnologia de persistência foi criado ou alterado.
+
+### Próximo passo recomendado
+
+Após homologação do Merlin sobre a Fase 5, modelar o motor de cálculo e dependências. Essa etapa deverá partir das entidades `Fórmula`, `Dependência de Cálculo`, `Memória de Cálculo`, `Resultado` e `Validação`, mantendo tecnologia física e implementação fora do escopo até autorização própria.
