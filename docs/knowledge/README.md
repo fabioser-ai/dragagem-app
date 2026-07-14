@@ -6,6 +6,14 @@ Preservar o conhecimento operacional da FOS independentemente da implementação
 
 Esta camada registra como a empresa trabalha, como o conhecimento foi descoberto e como decisões operacionais evoluem ao longo do tempo.
 
+## Bootstrap oficial do Curador
+
+Toda sessão dedicada à curadoria documental deve iniciar pela leitura de:
+
+- `docs/knowledge/KNOWLEDGE_CURATOR.md`.
+
+Esse documento define o papel, o fluxo, a estrutura canônica, os graus de confiança, os critérios de consolidação e o checklist obrigatório do Curador da Base de Conhecimento.
+
 ## Princípios
 
 - Conhecimento operacional é ativo permanente do projeto.
