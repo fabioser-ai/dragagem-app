@@ -1,34 +1,40 @@
-# Metodologia de Extração de Conhecimento
+# Metodologia Oficial de Extração de Conhecimento
 
-Esta documentação estabelece a metodologia oficial para análise de planilhas de orçamento da FOS.
+## Missão
+Extrair conhecimento permanente do domínio de orçamentos da FOS Engenharia por engenharia reversa das planilhas históricas.
 
-## Objetivo
-Extrair conhecimento do domínio. Não projetar arquitetura, banco de dados, APIs ou interface.
+## Princípios
+- Cada planilha representa conhecimento operacional acumulado.
+- Compreender antes de concluir.
+- Separar fatos observados de hipóteses.
+- Não inferir regras sem evidência.
+- Não tomar decisões arquiteturais nesta etapa.
 
 ## Identificação
-Cada análise será identificada exclusivamente pelo nome completo do arquivo Excel.
+Cada análise será identificada exclusivamente pelo nome completo do arquivo Excel e gerará um documento em docs/orcamentos/analises/<NOME_DO_ARQUIVO>.md.
 
-## Para cada aba
-- Objetivo
-- Papel no orçamento
-- Entradas
-- Saídas
-- Dependências
-- Entidades
-- Regras de negócio
-- Lógica das fórmulas
-- Variáveis importantes
-- Observações
+## Estrutura obrigatória por aba
+1. Objetivo.
+2. Papel no orçamento.
+3. Entradas.
+4. Saídas.
+5. Dependências.
+6. Entidades encontradas.
+7. Regras de negócio.
+8. Lógica dos cálculos e fórmulas.
+9. Variáveis importantes.
+10. Observações operacionais.
 
-## Ao final
-- Objetivo geral
-- Fluxo do orçamento
-- Conhecimentos específicos
-- Conhecimentos reutilizáveis
-- Dúvidas
-
-## Saída
-Cada análise deverá gerar um documento em docs/orcamentos/analises/<NOME_DO_ARQUIVO>.md.
+## Estrutura obrigatória da planilha
+- Objetivo geral.
+- Fluxo completo do orçamento.
+- Conhecimentos específicos desta obra.
+- Conhecimentos reutilizáveis.
+- Conceitos inéditos.
+- Dúvidas em aberto.
 
 ## Restrições
-Não propor arquitetura, classes, tabelas, APIs ou implementação durante esta etapa.
+É proibido propor banco de dados, arquitetura, classes, APIs, interface ou implementação.
+
+## Consolidação futura
+As análises são independentes. Somente após um conjunto representativo de planilhas será produzida uma síntese arquitetural baseada nas evidências acumuladas, nunca em uma única planilha.
