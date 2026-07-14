@@ -192,7 +192,7 @@ A Fase 4 encerrou a descoberta inicial baseada nos 49 modelos e consolidou:
 
 Nenhuma implementação foi realizada.
 
-### Fase 5 — modelo lógico
+### Fase 5 homologada — modelo lógico
 
 O modelo lógico oficial está registrado em `docs/architecture/23_MODELO_LOGICO_DADOS_ORCAMENTOS.md`.
 
@@ -211,6 +211,25 @@ Foram definidos, de forma tecnológica-neutra:
 
 Nenhum código funcional, tela, CSV, formato físico de dados ou tecnologia de persistência foi criado ou alterado.
 
+### Fase 6 — motor lógico de cálculo e dependências
+
+O motor lógico oficial está registrado em `docs/architecture/24_MOTOR_CALCULO_ORCAMENTOS.md`.
+
+Foram definidos, sem implementação:
+
+- contrato lógico de fórmulas identificadas e versionadas;
+- grafo conceitual de dependências por cenário;
+- invalidação seletiva e recálculo incremental em ordem topológica;
+- compatibilidade de unidades e bases físicas/econômicas;
+- separação entre valores brutos, arredondados, custeados e comerciais;
+- comportamento dos estados semânticos;
+- conversão de erros de planilha em validações compreensíveis;
+- memória de cálculo reproduzível e controle de overrides;
+- contratos provisórios dos submodelos;
+- protocolo de equivalência com os Excel, iniciado obrigatoriamente pela SABESP.
+
+Nenhum código funcional, tela, CSV, formato físico de dados, biblioteca de cálculo ou tecnologia de persistência foi criado ou alterado.
+
 ### Próximo passo recomendado
 
-Após homologação do Merlin sobre a Fase 5, modelar o motor de cálculo e dependências. Essa etapa deverá partir das entidades `Fórmula`, `Dependência de Cálculo`, `Memória de Cálculo`, `Resultado` e `Validação`, mantendo tecnologia física e implementação fora do escopo até autorização própria.
+Após homologação do Merlin sobre a Fase 6, modelar o fluxo do usuário e a arquitetura física mínima. Persistência física, telas e implementação permanecem bloqueadas até autorização própria.

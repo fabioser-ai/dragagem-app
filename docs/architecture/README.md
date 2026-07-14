@@ -44,6 +44,9 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `20_ENCERRAMENTO_FASE_1.md`
 - `21_ESTRATEGIA_FASE_2_ORCAMENTOS.md`
 - `22_NOVO_SISTEMA_ORCAMENTOS.md`
+- `22_DOMINIO_ORCAMENTOS.md`
+- `23_MODELO_LOGICO_DADOS_ORCAMENTOS.md`
+- `24_MOTOR_CALCULO_ORCAMENTOS.md`
 
 ## Cobertura
 
@@ -73,4 +76,12 @@ A fundação do novo sistema preserva dados e conhecimento úteis, mas não exig
 
 O modelo lógico é tecnológico-neutro. Nenhum código funcional, tela, arquivo de dados ou tecnologia de persistência foi criado/alterado por sua publicação.
 
-Próximo passo recomendado, após homologação do Merlin: modelar o motor de cálculo e dependências, sem antecipar arquitetura física ou implementação.
+## Fase 6 — Motor lógico de cálculo e dependências
+
+A Fase 5 foi homologada como base do motor lógico.
+
+`24_MOTOR_CALCULO_ORCAMENTOS.md` define, de forma tecnológica-neutra, o contrato das fórmulas versionadas, o grafo conceitual de dependências, a invalidação seletiva, a ordem de recálculo, unidades, arredondamentos, estados semânticos, tratamento de erros, memórias reproduzíveis, overrides e o protocolo de equivalência com os Excel.
+
+Nenhum código funcional, tela, CSV, mecanismo físico de persistência ou tecnologia de cálculo foi criado ou alterado.
+
+Próximo passo recomendado, após homologação do Merlin: modelar o fluxo do usuário e a arquitetura física mínima, sem iniciar implementação antes da autorização própria.
