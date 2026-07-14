@@ -49,6 +49,8 @@ A Fase 1 — Consolidação da Plataforma foi oficialmente encerrada em 2026-07-
 - A primeira prioridade funcional da Fase 2 foi definida: sistema orçamentário da FOS.
 - A estratégia oficial está registrada em `docs/architecture/21_ESTRATEGIA_FASE_2_ORCAMENTOS.md`.
 - A camada permanente de conhecimento operacional está registrada em `docs/knowledge/`.
+- O workflow oficial do Curador da Base de Conhecimento está registrado em `docs/knowledge/KNOWLEDGE_CURATOR.md`.
+- Toda sessão de curadoria documental deve iniciar pela leitura desse bootstrap e da documentação relacionada ao assunto.
 - A engenharia reversa vertical do primeiro modelo, dragagem com desaguamento em bags, foi concluída e registrada em `docs/knowledge/orcamentos/001_DESAGUAMENTO_BAGS_SABESP.md`.
 
 ## Fundação homologada
@@ -93,6 +95,20 @@ Responsável por:
 - homologação;
 - documentação oficial.
 
+### Knowledge Curator
+
+Responsável por:
+
+- curadoria da base de conhecimento;
+- auditoria documental;
+- organização da arquitetura documental;
+- revisão de consistência;
+- classificação das evidências;
+- preservação da rastreabilidade;
+- consolidação do conhecimento somente após evidência suficiente.
+
+O Curador não implementa software e não define arquitetura por opinião.
+
 ### Work
 
 Responsável por:
@@ -110,6 +126,7 @@ Responsável por:
 
 - decisões de produto e prioridade;
 - aprovação estratégica;
+- validação do conhecimento operacional;
 - intervenção de infraestrutura somente quando os ambientes não puderem prosseguir.
 
 ## Hierarquia documental
@@ -119,6 +136,7 @@ Responsável por:
 - `docs/architecture/`: fonte consolidada da arquitetura atual por domínio.
 - `docs/audit/`: histórico incremental e detalhado das auditorias técnicas e arquiteturais.
 - `docs/knowledge/`: memória técnica e conhecimento operacional independente da implementação.
+- `docs/knowledge/KNOWLEDGE_CURATOR.md`: bootstrap oficial de toda sessão de curadoria documental.
 - `docs/ARCHITECTURE_CURRENT.md`: documento legado de transição; a documentação modular prevalece.
 
 ## Próximo passo
