@@ -42,6 +42,8 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `18_OBRAS.md`
 - `19_CONTRATO_LEITURA.md`
 - `20_ENCERRAMENTO_FASE_1.md`
+- `21_ESTRATEGIA_FASE_2_ORCAMENTOS.md`
+- `22_NOVO_SISTEMA_ORCAMENTOS.md`
 
 ## Cobertura
 
@@ -56,3 +58,9 @@ A auditoria de encerramento identificou um único bloqueador crítico conhecido 
 ## Migração
 
 `docs/ARCHITECTURE_CURRENT.md` permanece como documento legado de transição e contém trechos anteriores aos contratos atuais. A documentação modular prevalece. Nenhum conteúdo do arquivo legado deve ser removido ou reescrito em massa sem reconciliação deliberada.
+
+## Fase 2 — Orçamentos
+
+`21_ESTRATEGIA_FASE_2_ORCAMENTOS.md` define a engenharia reversa dos modelos reais. `22_NOVO_SISTEMA_ORCAMENTOS.md` registra a fundação arquitetural provisória, a homologação da AUDIT_052, a estratégia de substituição do fluxo legado e o primeiro Kid Step proposto.
+
+A fundação do novo sistema preserva dados e conhecimento úteis, mas não exige compatibilidade com funcionalidades legadas sem benefício comprovado. Quebras devem ser deliberadas, documentadas, testadas e homologadas.

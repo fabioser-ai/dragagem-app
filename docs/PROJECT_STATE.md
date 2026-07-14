@@ -56,6 +56,12 @@ A Fase 1 — Consolidação da Plataforma foi oficialmente encerrada em 2026-07-
 - Foram inventariados o fluxo ativo, seis rotas, cinco páginas, estado de sessão, dez CSVs diretamente usados e três bases externas de fronteira.
 - A auditoria confirmou catálogos compartilhados reutilizáveis, duplicidades reais de implementação e dados, falsos duplicados entre clientes e obras, e a ausência de vínculo entre orçamento, cliente CRM e obra operacional.
 - Nenhum código funcional, CSV, comportamento ou migração foi alterado pela AUDIT_052.
+- A AUDIT_052 foi homologada como base factual para a fundação arquitetural provisória do Novo Sistema de Orçamentos.
+- A decisão de produto vigente é preservar dados e conhecimento úteis e preservar funcionalidades legadas somente quando houver benefício comprovado.
+- A arquitetura provisória está registrada em `docs/architecture/22_NOVO_SISTEMA_ORCAMENTOS.md`.
+- A estratégia recomendada é substituir imediatamente o acesso principal ao fluxo legado, preservar `data/orcamentos.csv` como histórico e evoluir de retirada de acesso para aposentadoria completa controlada.
+- Quebras deliberadas de compatibilidade são permitidas quando documentadas, testadas, homologadas e acompanhadas da preservação ou migração dos dados relevantes.
+- Nenhum código funcional ou CSV foi alterado pela criação da fundação arquitetural.
 
 ## Fundação homologada
 
@@ -145,7 +151,9 @@ Responsável por:
 
 ## Próximo passo
 
-Aguardar a homologação do Merlin sobre a AUDIT_052 antes de qualquer implementação do Novo Sistema de Orçamento.
+Homologar `docs/architecture/22_NOVO_SISTEMA_ORCAMENTOS.md` antes de qualquer implementação.
+
+Após homologação, executar somente o primeiro Kid Step definido nessa fundação: criar a entrada navegável isolada do novo domínio e retirar o fluxo antigo do acesso principal, sem formulário, fórmula, CSV, migração, histórico funcional ou alteração da rota Obras.
 
 Em paralelo documental, continuar a engenharia reversa vertical do sistema orçamentário.
 
