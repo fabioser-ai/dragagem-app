@@ -1,9 +1,9 @@
-"""Página informativa inicial do Novo Sistema de Orçamentos.
-
-Esta fronteira não lê dados, não executa cálculos e não persiste estado de domínio.
-"""
+"""Entrada do Novo Sistema de Orçamentos."""
 
 import streamlit as st
+
+from modulos.orcamentos.apresentacao import painel
+from modulos.orcamentos.persistencia.github_repositorio import RepositorioOrcamentosGitHub
 
 
 def _voltar_ao_menu():
@@ -12,28 +12,15 @@ def _voltar_ao_menu():
 
 
 def render(*, autorizado):
-    """Apresenta a fronteira inicial, respeitando a autorização recebida."""
+    """Apresenta o painel rápido, respeitando a autorização recebida."""
     if not autorizado:
         st.error("Você não possui acesso ao módulo de Orçamentos.")
         if st.button("Voltar ao menu", key="novo_orcamento_sem_acesso_voltar"):
             _voltar_ao_menu()
         return
 
-    st.title("Novo Sistema de Orçamentos")
-    st.info(
-        "Esta é a nova fronteira do sistema orçamentário da FOS, "
-        "que será construída progressivamente por Kid Steps."
+    repositorio = RepositorioOrcamentosGitHub(
+        st.secrets["GITHUB_TOKEN"],
+        st.secrets["REPO"],
     )
-
-    st.markdown(
-        """
-        - A criação de orçamentos ainda não está disponível.
-        - Nenhum dado de orçamento foi carregado nesta página.
-        - Nenhum cálculo ou persistência é executado aqui.
-        - O módulo legado de Orçamentos permanece disponível no menu.
-        - Próximo marco: Kid Step 002 — núcleo do domínio em memória.
-        """
-    )
-
-    if st.button("Voltar ao menu", key="novo_orcamento_voltar_menu"):
-        _voltar_ao_menu()
+    painel.render(repositorio=repositorio, ao_voltar=_voltar_ao_menu)
