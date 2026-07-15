@@ -348,3 +348,10 @@ Geração de propostas, integrações CRM/Obras, inteligência histórica, migra
 ## 20. Encerramento
 
 Esta arquitetura escolhe a menor fundação física para iniciar o MVP, sem implementá-la. A execução começa somente após homologação, pelo Kid Step 001.
+
+
+## Restrição física corretiva — AUDIT_054
+
+A arquitetura física não pode criar módulos, funções, constantes, rotas ou formatos de persistência específicos por cliente. Identidade de cliente permanece dado contextual; não participa do despacho de tecnologia, pacotes, fórmulas ou equipamentos.
+
+A configuração técnica pertence ao documento versionado do cenário e usa os mesmos contratos genéricos para qualquer cliente. O caso SABESP é fixture/evidência de equivalência, não namespace arquitetural.

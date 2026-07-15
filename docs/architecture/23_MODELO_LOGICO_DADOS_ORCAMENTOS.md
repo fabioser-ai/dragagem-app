@@ -699,3 +699,19 @@ O modelo é suficiente quando permite responder, sem Excel ou código:
 ## 24. Encerramento
 
 A Fase 5 define o modelo lógico oficial do domínio sem implementar comportamento ou escolher persistência. O próximo passo recomendado, somente após homologação do Merlin, é modelar o motor conceitual de cálculo e dependências com base nas entidades Fórmula, Dependência de Cálculo, Memória de Cálculo, Resultado, Validação e estados de validade aqui definidos.
+
+
+## Correção de relacionamentos — AUDIT_054
+
+Nenhuma cardinalidade deste modelo autoriza Cliente 1 → 1 Família ou Cliente 1 → 1 Tecnologia. A leitura correta é:
+
+```text
+Cliente 1 → N Orçamentos
+Orçamento 1 → N Versões
+Versão 1 → N Cenários
+Cenário 1 → 1 configuração técnica contextual
+```
+
+A configuração técnica contextual não recebe identidade mestre nesta fase. Ela pertence ao cenário e reúne família técnica/econômica, capacidades, pacotes, parâmetros e aplicabilidades. Pode registrar configuração sugerida e adotada, origem, autor, momento e justificativa. Cenários do mesmo orçamento podem adotar tecnologias diferentes sem alterar cliente, oportunidade ou obra.
+
+Invariantes adicionais: cliente não define tecnologia; tecnologia não define cliente; pacotes e fórmulas não consultam nome de cliente; condições comerciais podem variar por cliente sem contaminar o cálculo técnico.

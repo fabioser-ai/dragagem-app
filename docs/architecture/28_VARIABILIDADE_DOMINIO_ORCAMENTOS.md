@@ -330,3 +330,20 @@ Em caso de dúvida, as evidências das análises individuais e dos documentos de
 > O Novo Sistema de Orçamentos será desenvolvido por capacidades, pacotes e regras aplicáveis, e não por clientes ou cópias de planilhas.
 
 A SABESP é o primeiro teste vertical completo. As cinco famílias e os 49 modelos definem o espaço de variabilidade que a arquitetura deve respeitar.
+
+## AUDIT_054 — reforço normativo
+
+Este documento já proibia lógica por cliente. A auditoria consolida ainda as seguintes invariantes:
+
+1. Cliente não define tecnologia.
+2. Tecnologia não define cliente.
+3. Um cliente pode possuir múltiplas soluções técnicas.
+4. Uma solução técnica pode ser utilizada por múltiplos clientes.
+5. Um orçamento pode comparar múltiplas soluções por cenários.
+6. Cenários podem utilizar tecnologias diferentes.
+7. Fórmulas técnicas não consultam nome de cliente.
+8. Pacotes não são ativados por nome de cliente.
+9. Condições comerciais podem variar por cliente sem contaminar o motor técnico.
+10. SABESP é evidência e caso de equivalência, não template universal.
+
+“Família” significa família técnica/econômica de soluções. Solução Técnica é a configuração contextual do cenário — família, capacidades, pacotes, parâmetros e aplicabilidades — sem lista rígida nem entidade mestre independente nesta etapa.

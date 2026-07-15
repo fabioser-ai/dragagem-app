@@ -535,3 +535,23 @@ Um desenvolvedor deve compreender, sem abrir Excel:
 A descoberta baseada nos 49 modelos está encerrada para fins de modelagem conceitual inicial. Este encerramento não declara que toda fórmula histórica seja correta ou universal; declara que o conhecimento disponível foi organizado em um domínio coerente, com fronteiras, conceitos, regras, exceções e decisões adiadas explícitos.
 
 Próxima etapa permitida somente após homologação do Merlin: modelagem de dados derivada deste domínio, sem reabrir decisões adiadas por suposição.
+
+
+## Correção transversal — desacoplamento entre cliente e solução técnica
+
+A AUDIT_054 torna explícito o fluxo conceitual obrigatório:
+
+```text
+Cliente ou oportunidade
+→ problema e condições da obra
+→ solução/configuração técnica do cenário
+→ capacidades e pacotes aplicáveis
+→ composições e fórmulas versionadas
+→ custos e preço
+```
+
+Cliente, oportunidade, obra, cenário, família e solução possuem responsabilidades distintas. Cliente é referência comercial e contratual; obra fornece condições técnicas; cenário contém a configuração técnica adotada. Um cliente pode possuir múltiplos orçamentos e soluções, uma solução pode atender múltiplos clientes e um orçamento pode comparar tecnologias diferentes entre cenários.
+
+“Família de orçamento” permanece como termo histórico oficial, entendido como **família técnica/econômica de soluções**. Nunca representa cliente, segmento ou template empresarial.
+
+Solução Técnica não é, por ora, entidade independente: é o agregado contextual do cenário composto por família técnica, capacidades, pacotes, parâmetros e aplicabilidades. A solução sugerida e a adotada são distinguíveis por decisão, origem e motivo rastreáveis.

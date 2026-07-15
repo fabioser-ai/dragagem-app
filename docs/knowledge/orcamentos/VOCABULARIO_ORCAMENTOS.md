@@ -188,3 +188,21 @@ Novo termo só deve ser oficializado quando:
 
 Termos históricos dos Excel podem permanecer citados, mas devem apontar para o conceito oficial correspondente e registrar divergências.
 
+
+
+## Correção terminológica — AUDIT_054
+
+| Conceito | Definição oficial corrigida |
+|---|---|
+| **Família de orçamento** | Família técnica/econômica de soluções: conjunto de modelos com objetivo técnico/econômico e cadeia de capacidades/pacotes suficientemente semelhantes. Nunca representa cliente, segmento comercial ou template de empresa. |
+| **Solução Técnica** | Configuração contextual de um cenário, formada por família técnica, capacidades, pacotes, parâmetros e aplicabilidades escolhidos diante do problema e das condições da obra. Não é determinada pelo cliente. Nesta fase não possui identidade mestre própria. |
+| **Solução sugerida** | Configuração proposta a partir das condições técnicas e evidências disponíveis; não substitui decisão do engenheiro. |
+| **Solução adotada** | Configuração efetivamente escolhida no cenário, com origem, responsável e justificativa quando divergir da sugestão. |
+
+Separações obrigatórias:
+
+- cliente ≠ tecnologia;
+- família ≠ cliente ou template empresarial;
+- condição comercial ≠ regra técnica;
+- dado técnico informado pelo cliente ≠ seleção automática de solução;
+- caso de equivalência SABESP ≠ arquitetura SABESP.

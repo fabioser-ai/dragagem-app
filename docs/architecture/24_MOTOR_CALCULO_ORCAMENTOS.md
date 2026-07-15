@@ -596,3 +596,12 @@ Sem abrir código, esta definição permite responder:
 ## 24. Encerramento
 
 A Fase 6 define o motor lógico sem implementar comportamento físico. O próximo passo recomendado, somente após homologação do Merlin, é modelar o fluxo do usuário e a arquitetura física mínima, mantendo separadas as decisões de persistência, interface e tecnologia de cálculo.
+
+
+## Correção de seleção técnica — AUDIT_054
+
+Cliente não é entrada de seleção do motor técnico. Fórmulas são elegíveis por pacote, submodelo, capacidade requerida, condições técnicas da obra, aplicabilidade do cenário e versão da regra. O motor pode consumir parâmetros técnicos cuja origem seja o cliente, mas nunca o nome ou identidade do cliente como chave lógica.
+
+São erros arquiteturais funções, constantes ou desvios equivalentes a `calcular_orcamento_sabesp()`, `if cliente == "SABESP"` ou BDI técnico indexado por cliente. Condições comerciais contextualizadas podem influenciar preço, desde que separadas do grafo técnico, com base, origem e decisão explícitas.
+
+O Excel SABESP permanece caso inicial de equivalência integral da família técnica aplicável, não seletor de fórmula nem template universal.

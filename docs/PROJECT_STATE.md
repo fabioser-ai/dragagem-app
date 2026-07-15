@@ -281,3 +281,18 @@ Nenhum orçamento, versão, cenário, pacote de domínio, fórmula, cálculo, pe
 ### Próximo passo recomendado
 
 Após homologação do Merlin sobre o Kid Step 001, executar somente o Kid Step 002 — núcleo do domínio em memória.
+
+
+## AUDIT_054 — desacoplamento entre cliente e solução técnica
+
+A auditoria corretiva confirmou e formalizou:
+
+- cliente como contexto comercial e contratual;
+- condições da obra como origem das restrições técnicas;
+- solução técnica como configuração contextual do cenário;
+- famílias como padrões técnicos/econômicos, nunca comerciais;
+- pacotes e fórmulas selecionados por capacidades, condições, aplicabilidade e versão da regra;
+- SABESP apenas como primeiro caso vertical de equivalência;
+- proibição de lógica técnica baseada no nome do cliente.
+
+Foram atualizados somente documentos oficiais. Nenhum código funcional, rota, tela, CSV, JSON, persistência ou comportamento do Kid Step 001 foi alterado. O Kid Step 002 permanece bloqueado até homologação.

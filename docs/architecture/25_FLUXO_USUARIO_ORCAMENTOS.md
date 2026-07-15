@@ -406,3 +406,12 @@ Sem abrir código, é possível responder como criar orçamento, escolher famíl
 ## 21. Encerramento
 
 A Fase 7 define fluxo e experiência sem criar tela ou tecnologia. Após homologação do Merlin, o próximo passo recomendado é arquitetura física mínima e plano de Kid Steps, sem implementação antes de autorização própria.
+
+
+## Correção da jornada — AUDIT_054
+
+A jornada deve solicitar primeiro cliente/oportunidade e contexto, depois problema e condições da obra. Somente então o usuário escolhe ou configura a solução técnica do cenário, recebe sugestões de capacidades/pacotes e pode alterar a configuração conscientemente.
+
+O cliente não pré-seleciona tecnologia silenciosamente. Sugestões técnicas devem declarar evidência e aplicabilidade; adoção ou divergência deve ser rastreável. Cenários do mesmo orçamento podem comparar configurações e tecnologias diferentes.
+
+Toda referência anterior a “MVP SABESP” significa: primeiro fluxo vertical de equivalência, usando o orçamento SABESP como caso de referência da família técnica aplicável, implementado por capacidades genéricas.

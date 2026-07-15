@@ -106,3 +106,10 @@ A Fase 7 foi homologada como base da arquitetura física.
 Nenhum código funcional, tela, CSV, rota ou migração foi criado ou alterado.
 
 Próximo passo recomendado, após homologação do Merlin: executar exclusivamente o Kid Step 001.
+
+
+## AUDIT_054 — desacoplamento cliente–solução técnica
+
+A AUDIT_054 consolidou que cliente é contexto comercial/contratual e nunca seletor de tecnologia, família, pacote ou fórmula. “Família de orçamento” permanece como termo rastreável, definido como família técnica/econômica de soluções. Solução Técnica é a configuração contextual do cenário, não entidade mestre independente nesta etapa.
+
+A auditoria corrigiu a interpretação transversal dos documentos 22 a 28 e do vocabulário. SABESP permanece somente como primeiro caso vertical de equivalência da família técnica aplicável.

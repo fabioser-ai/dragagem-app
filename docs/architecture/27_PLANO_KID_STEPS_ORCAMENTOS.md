@@ -245,3 +245,10 @@ Somente após KS015 homologado: criar Kid Step próprio para tornar novo painel 
 ## 21. Critério para iniciar
 
 Somente após homologação dos documentos 26 e 27. O primeiro comando de implementação deve ter escopo exclusivo do KS001.
+
+
+## Interpretação corretiva do plano — AUDIT_054
+
+Todas as expressões “MVP SABESP”, “pacote SABESP” ou “fórmula SABESP” neste plano devem ser lidas como referência de equivalência, nunca como especialização por cliente. A formulação normativa é: **primeiro fluxo vertical de equivalência, usando o orçamento SABESP como caso de referência da família técnica aplicável**.
+
+Cada Kid Step deverá implementar capacidades, pacotes, submodelos e fórmulas genéricos, selecionados pela configuração técnica do cenário. Testes podem usar dados de referência SABESP, mas devem rejeitar despacho por nome de cliente e provar que a mesma capacidade aceita outro contexto comercial.
