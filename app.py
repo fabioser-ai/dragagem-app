@@ -14,6 +14,8 @@ from pages.orcamento.etapa0 import etapa0
 from pages.orcamento.etapa1 import etapa1
 from pages.orcamento.etapa2 import etapa2
 from pages.orcamento.etapa3 import etapa3
+from modulos.orcamentos.apresentacao import entrada as novo_orcamento
+from services.permissoes import pode_acessar_modulo
 
 
 # =========================
@@ -112,6 +114,15 @@ elif st.session_state.tela == "medicoes":
 
 elif st.session_state.tela == "crm":
     crm()
+
+
+# =========================
+# NOVO SISTEMA DE ORÇAMENTOS - FRONTEIRA
+# =========================
+elif st.session_state.tela == "novo_orcamento":
+    novo_orcamento.render(
+        autorizado=pode_acessar_modulo("orcamento"),
+    )
 
 
 # =========================

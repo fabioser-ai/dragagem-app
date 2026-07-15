@@ -265,6 +265,19 @@ O plano oficial está em `docs/architecture/27_PLANO_KID_STEPS_ORCAMENTOS.md` e 
 
 Nenhum código funcional, tela, CSV, rota, migração ou desativação do legado foi realizado.
 
+## Novo Sistema de Orçamentos — Kid Step 001
+
+O Kid Step 001 criou a fronteira física e navegável do Novo Sistema de Orçamentos:
+
+- pacote isolado em `modulos/orcamentos/`;
+- entrada inequívoca no menu, protegida pela permissão atual de Orçamentos;
+- rota própria e página inicial informativa;
+- retorno seguro ao menu com um único rerun intencional;
+- zero leitura remota de dados de Orçamentos na página;
+- legado, rota Obras e `data/orcamentos.csv` preservados.
+
+Nenhum orçamento, versão, cenário, pacote de domínio, fórmula, cálculo, persistência, CSV, JSON, catálogo ou integração foi criado.
+
 ### Próximo passo recomendado
 
-Após homologação do Merlin sobre a Fase 8, executar somente o Kid Step 001 — fronteira do novo módulo — sem dados, cálculos ou persistência.
+Após homologação do Merlin sobre o Kid Step 001, executar somente o Kid Step 002 — núcleo do domínio em memória.

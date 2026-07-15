@@ -183,16 +183,25 @@ def render():
     )
 
     modulos_renderizados = 0
+    pode_orcamento = pode_acessar_modulo("orcamento")
 
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-        if pode_acessar_modulo("orcamento"):
+        if pode_orcamento:
             render_card(
                 "Orçamento",
                 "Elaboração, consolidação e análise de custos de obras de dragagem.",
                 "ABRIR ORÇAMENTO",
                 "orcamento",
+            )
+            modulos_renderizados += 1
+
+            render_card(
+                "Novo Sistema de Orçamentos",
+                "Nova experiência orçamentária em construção por Kid Steps, sem alterar o legado.",
+                "ABRIR NOVO SISTEMA",
+                "novo_orcamento",
             )
             modulos_renderizados += 1
 
