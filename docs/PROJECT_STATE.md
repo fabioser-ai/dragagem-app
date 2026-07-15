@@ -211,7 +211,7 @@ Foram definidos, de forma tecnológica-neutra:
 
 Nenhum código funcional, tela, CSV, formato físico de dados ou tecnologia de persistência foi criado ou alterado.
 
-### Fase 6 — motor lógico de cálculo e dependências
+### Fase 6 homologada — motor lógico de cálculo e dependências
 
 O motor lógico oficial está registrado em `docs/architecture/24_MOTOR_CALCULO_ORCAMENTOS.md`.
 
@@ -230,6 +230,23 @@ Foram definidos, sem implementação:
 
 Nenhum código funcional, tela, CSV, formato físico de dados, biblioteca de cálculo ou tecnologia de persistência foi criado ou alterado.
 
+### Fase 7 — fluxo oficial do usuário
+
+O fluxo e a experiência oficiais estão registrados em `docs/architecture/25_FLUXO_USUARIO_ORCAMENTOS.md`.
+
+Foram definidos, sem implementação:
+
+- perfis conceituais, jornada e navegação com continuidade;
+- painel resumido e carregamento sob demanda;
+- aplicabilidade, valores sugeridos/adotados e cenários;
+- pacotes, composições e feedback de cálculo;
+- salvamento conceitual, conflitos e desempenho funcional;
+- validações, revisão, aprovação, resumos e histórico;
+- wireframes e matrizes conceituais;
+- MVP inicial capaz de reproduzir integralmente a SABESP.
+
+Nenhum código funcional, tela real, CSV, componente de interface ou tecnologia de persistência foi criado ou alterado.
+
 ### Próximo passo recomendado
 
-Após homologação do Merlin sobre a Fase 6, modelar o fluxo do usuário e a arquitetura física mínima. Persistência física, telas e implementação permanecem bloqueadas até autorização própria.
+Após homologação do Merlin sobre a Fase 7, definir a arquitetura física mínima e o plano de Kid Steps. Implementação permanece bloqueada até autorização própria.

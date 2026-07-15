@@ -47,6 +47,7 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `22_DOMINIO_ORCAMENTOS.md`
 - `23_MODELO_LOGICO_DADOS_ORCAMENTOS.md`
 - `24_MOTOR_CALCULO_ORCAMENTOS.md`
+- `25_FLUXO_USUARIO_ORCAMENTOS.md`
 
 ## Cobertura
 
@@ -84,4 +85,12 @@ A Fase 5 foi homologada como base do motor lógico.
 
 Nenhum código funcional, tela, CSV, mecanismo físico de persistência ou tecnologia de cálculo foi criado ou alterado.
 
-Próximo passo recomendado, após homologação do Merlin: modelar o fluxo do usuário e a arquitetura física mínima, sem iniciar implementação antes da autorização própria.
+## Fase 7 — Fluxo do usuário e experiência
+
+A Fase 6 foi homologada como base do fluxo oficial.
+
+`25_FLUXO_USUARIO_ORCAMENTOS.md` define jornada, perfis, navegação, aplicabilidade, cenários, pacotes, composições, feedback de cálculo, salvamento, validações, revisão, aprovação, históricos e o escopo exato do MVP SABESP.
+
+Desempenho percebido, continuidade e ausência de recarregamentos evitáveis são requisitos funcionais. Nenhum código funcional, tela real, CSV ou tecnologia física foi criado ou alterado.
+
+Próximo passo recomendado, após homologação do Merlin: arquitetura física mínima e plano de Kid Steps.
