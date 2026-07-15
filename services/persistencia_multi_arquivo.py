@@ -27,6 +27,14 @@ class StatusPersistenciaMultiArquivo(str, Enum):
 
 
 @dataclass(frozen=True)
+class AlteracaoArquivoConteudo:
+    """Alteração genérica para publicação atômica de texto ou bytes."""
+
+    arquivo: str
+    conteudo: bytes
+
+
+@dataclass(frozen=True)
 class AlteracaoArquivoCSV:
     arquivo: str
     dados: pd.DataFrame
@@ -265,6 +273,61 @@ def publicar_csvs_em_commit(
             erro=erro_validacao,
         )
 
+    conteudos = tuple(
+        AlteracaoArquivoConteudo(
+            item.arquivo, item.dados.to_csv(index=False).encode("utf-8")
+        )
+        for item in arquivos
+    )
+    return _publicar_conteudos(
+        conteudos, token, repo, branch, mensagem, None, timeout=timeout
+    )
+
+
+def _publicar_conteudos(
+    arquivos,
+    token,
+    repo,
+    branch,
+    mensagem,
+    snapshot_esperado,
+    *,
+    timeout=DEFAULT_REQUEST_TIMEOUT,
+):
+    """Publica conteúdos genéricos atomicamente usando snapshot obrigatório.
+
+    A função preserva a fundação Git existente: blobs, árvore, commit com um
+    único pai e atualização da referência sem força. Nenhum objeto parcial se
+    torna visível antes da atualização final da branch.
+    """
+
+    if not isinstance(arquivos, Sequence) or isinstance(arquivos, (str, bytes)):
+        arquivos = ()
+    caminhos = tuple(
+        item.arquivo for item in arquivos if isinstance(item, AlteracaoArquivoConteudo)
+    )
+    entrada_valida = (
+        len(arquivos) >= 2
+        and len(caminhos) == len(arquivos)
+        and len(set(caminhos)) == len(caminhos)
+        and all(item.arquivo.strip() and isinstance(item.conteudo, bytes) for item in arquivos)
+        and all(
+            isinstance(valor, str) and valor.strip()
+            for valor in (token, repo, branch, mensagem)
+        )
+        and (
+            snapshot_esperado is None
+            or (isinstance(snapshot_esperado, str) and snapshot_esperado.strip())
+        )
+    )
+    if not entrada_valida:
+        return _resultado(
+            status=StatusPersistenciaMultiArquivo.REQUISICAO_INVALIDA,
+            branch=branch if isinstance(branch, str) else "",
+            arquivos=caminhos,
+            erro="A publicação exige ao menos dois conteúdos, caminhos únicos e snapshot esperado.",
+        )
+
     snapshot = resolver_snapshot_branch(token, repo, branch, timeout=timeout)
     if isinstance(snapshot, ResultadoPersistenciaMultiArquivo):
         return _resultado(
@@ -275,15 +338,20 @@ def publicar_csvs_em_commit(
             snapshot_commit_sha=snapshot.snapshot_commit_sha,
             erro=snapshot.erro,
         )
+    if snapshot_esperado is not None and snapshot.commit_sha != snapshot_esperado:
+        return _resultado(
+            status=StatusPersistenciaMultiArquivo.CONFLITO,
+            branch=branch,
+            arquivos=caminhos,
+            snapshot_commit_sha=snapshot.commit_sha,
+            erro="A branch avançou desde o snapshot esperado.",
+        )
 
     base_url = f"https://api.github.com/repos/{repo}/git"
     headers = _headers(token)
     blobs = []
-
     for alteracao in arquivos:
-        conteudo = base64.b64encode(
-            alteracao.dados.to_csv(index=False).encode("utf-8")
-        ).decode("ascii")
+        conteudo = base64.b64encode(alteracao.conteudo).decode("ascii")
         try:
             resposta_blob = requests.post(
                 f"{base_url}/blobs",
@@ -293,139 +361,127 @@ def publicar_csvs_em_commit(
             )
         except Exception as exc:
             return _erro_de_requisicao(
-                exc,
-                branch=branch,
-                arquivos=caminhos,
+                exc, branch=branch, arquivos=caminhos,
                 snapshot_commit_sha=snapshot.commit_sha,
             )
-
         if resposta_blob.status_code != 201:
             return _resultado_http(
-                resposta_blob.status_code,
-                branch=branch,
-                arquivos=caminhos,
+                resposta_blob.status_code, branch=branch, arquivos=caminhos,
                 snapshot_commit_sha=snapshot.commit_sha,
             )
-
         try:
             blobs.append(resposta_blob.json()["sha"])
         except (KeyError, TypeError, ValueError):
             return _resultado(
                 status=StatusPersistenciaMultiArquivo.ERRO_DESCONHECIDO,
-                branch=branch,
-                arquivos=caminhos,
-                http_status=resposta_blob.status_code,
+                branch=branch, arquivos=caminhos,
                 snapshot_commit_sha=snapshot.commit_sha,
                 erro="Resposta inválida ao criar o blob.",
             )
 
     tree = [
-        {"path": alteracao.arquivo, "mode": "100644", "type": "blob", "sha": blob_sha}
-        for alteracao, blob_sha in zip(arquivos, blobs)
+        {"path": item.arquivo, "mode": "100644", "type": "blob", "sha": sha}
+        for item, sha in zip(arquivos, blobs)
     ]
     try:
         resposta_tree = requests.post(
-            f"{base_url}/trees",
-            headers=headers,
-            json={"base_tree": snapshot.tree_sha, "tree": tree},
-            timeout=timeout,
+            f"{base_url}/trees", headers=headers,
+            json={"base_tree": snapshot.tree_sha, "tree": tree}, timeout=timeout,
         )
     except Exception as exc:
         return _erro_de_requisicao(
-            exc,
-            branch=branch,
-            arquivos=caminhos,
+            exc, branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
         )
-
     if resposta_tree.status_code != 201:
         return _resultado_http(
-            resposta_tree.status_code,
-            branch=branch,
-            arquivos=caminhos,
+            resposta_tree.status_code, branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
         )
-
     try:
         tree_sha = resposta_tree.json()["sha"]
     except (KeyError, TypeError, ValueError):
         return _resultado(
             status=StatusPersistenciaMultiArquivo.ERRO_DESCONHECIDO,
-            branch=branch,
-            arquivos=caminhos,
-            http_status=resposta_tree.status_code,
+            branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
             erro="Resposta inválida ao criar a árvore.",
         )
 
     try:
         resposta_commit = requests.post(
-            f"{base_url}/commits",
-            headers=headers,
-            json={
-                "message": mensagem,
-                "tree": tree_sha,
-                "parents": [snapshot.commit_sha],
-            },
+            f"{base_url}/commits", headers=headers,
+            json={"message": mensagem, "tree": tree_sha, "parents": [snapshot.commit_sha]},
             timeout=timeout,
         )
     except Exception as exc:
         return _erro_de_requisicao(
-            exc,
-            branch=branch,
-            arquivos=caminhos,
+            exc, branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
         )
-
     if resposta_commit.status_code != 201:
         return _resultado_http(
-            resposta_commit.status_code,
-            branch=branch,
-            arquivos=caminhos,
+            resposta_commit.status_code, branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
         )
-
     try:
         commit_sha = resposta_commit.json()["sha"]
     except (KeyError, TypeError, ValueError):
         return _resultado(
             status=StatusPersistenciaMultiArquivo.ERRO_DESCONHECIDO,
-            branch=branch,
-            arquivos=caminhos,
-            http_status=resposta_commit.status_code,
+            branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
             erro="Resposta inválida ao criar o commit.",
         )
 
     try:
         resposta_ref = requests.patch(
-            f"{base_url}/refs/heads/{branch}",
-            headers=headers,
-            json={"sha": commit_sha, "force": False},
-            timeout=timeout,
+            f"{base_url}/refs/heads/{branch}", headers=headers,
+            json={"sha": commit_sha, "force": False}, timeout=timeout,
         )
     except Exception as exc:
         return _erro_de_requisicao(
-            exc,
-            branch=branch,
-            arquivos=caminhos,
+            exc, branch=branch, arquivos=caminhos,
             snapshot_commit_sha=snapshot.commit_sha,
         )
-
     if resposta_ref.status_code != 200:
         return _resultado_http(
-            resposta_ref.status_code,
-            branch=branch,
-            arquivos=caminhos,
-            snapshot_commit_sha=snapshot.commit_sha,
-            conflito_422=True,
+            resposta_ref.status_code, branch=branch, arquivos=caminhos,
+            snapshot_commit_sha=snapshot.commit_sha, conflito_422=True,
         )
-
     return _resultado(
         status=StatusPersistenciaMultiArquivo.SUCESSO,
-        branch=branch,
-        arquivos=caminhos,
+        branch=branch, arquivos=caminhos,
         http_status=resposta_ref.status_code,
         snapshot_commit_sha=snapshot.commit_sha,
         commit_sha=commit_sha,
+    )
+
+
+def publicar_arquivos_em_commit(
+    arquivos,
+    token,
+    repo,
+    branch,
+    mensagem,
+    snapshot_esperado,
+    *,
+    timeout=DEFAULT_REQUEST_TIMEOUT,
+):
+    """Publica conteúdos genéricos com snapshot esperado obrigatório."""
+
+    if not isinstance(snapshot_esperado, str) or not snapshot_esperado.strip():
+        caminhos = tuple(
+            item.arquivo
+            for item in arquivos
+            if isinstance(item, AlteracaoArquivoConteudo)
+        ) if isinstance(arquivos, Sequence) else ()
+        return _resultado(
+            status=StatusPersistenciaMultiArquivo.REQUISICAO_INVALIDA,
+            branch=branch if isinstance(branch, str) else "",
+            arquivos=caminhos,
+            erro="Snapshot esperado é obrigatório.",
+        )
+    return _publicar_conteudos(
+        arquivos, token, repo, branch, mensagem, snapshot_esperado, timeout=timeout
     )
