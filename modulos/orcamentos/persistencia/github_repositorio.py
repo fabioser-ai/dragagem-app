@@ -27,6 +27,38 @@ class RepositorioOrcamentosGitHub:
     def __init__(self, token: str, repo: str, branch: str = "main", *, timeout=DEFAULT_REQUEST_TIMEOUT):
         self.token, self.repo, self.branch, self.timeout = token, repo, branch, timeout
 
+    def carregar_indice(self):
+        """Carrega somente o índice resumido em uma requisição remota."""
+        try:
+            resposta = requests.get(
+                f"https://api.github.com/repos/{self.repo}/contents/{CAMINHO_INDICE}",
+                headers=self._headers(), params={"ref": self.branch}, timeout=self.timeout,
+            )
+        except requests.RequestException:
+            return ResultadoPersistencia(
+                StatusPersistencia.ERRO_REMOTO, arquivos=(CAMINHO_INDICE,)
+            )
+        if resposta.status_code == 404:
+            return ResultadoPersistencia(
+                StatusPersistencia.DADO_INEXISTENTE, arquivos=(CAMINHO_INDICE,)
+            )
+        if resposta.status_code != 200:
+            return ResultadoPersistencia(
+                StatusPersistencia.ERRO_REMOTO, arquivos=(CAMINHO_INDICE,)
+            )
+        try:
+            conteudo = base64.b64decode(
+                resposta.json()["content"], validate=True
+            ).decode("utf-8")
+        except (KeyError, TypeError, ValueError, UnicodeDecodeError):
+            return ResultadoPersistencia(
+                StatusPersistencia.DADO_CORROMPIDO, arquivos=(CAMINHO_INDICE,)
+            )
+        resultado = desserializar_indice(conteudo)
+        return ResultadoPersistencia(
+            resultado.status, resultado.valor, arquivos=(CAMINHO_INDICE,), erro=resultado.erro
+        )
+
     def carregar_versao(self, orcamento_id: str, versao_id: str):
         """Carrega orçamento+versão em exatamente uma requisição remota."""
         caminho = caminho_versao(orcamento_id, versao_id)
