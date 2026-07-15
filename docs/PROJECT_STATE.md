@@ -230,7 +230,7 @@ Foram definidos, sem implementação:
 
 Nenhum código funcional, tela, CSV, formato físico de dados, biblioteca de cálculo ou tecnologia de persistência foi criado ou alterado.
 
-### Fase 7 — fluxo oficial do usuário
+### Fase 7 homologada — fluxo oficial do usuário
 
 O fluxo e a experiência oficiais estão registrados em `docs/architecture/25_FLUXO_USUARIO_ORCAMENTOS.md`.
 
@@ -247,6 +247,24 @@ Foram definidos, sem implementação:
 
 Nenhum código funcional, tela real, CSV, componente de interface ou tecnologia de persistência foi criado ou alterado.
 
+### Fase 8 — arquitetura física mínima e plano de Kid Steps
+
+A arquitetura física selecionada está registrada em `docs/architecture/26_ARQUITETURA_FISICA_ORCAMENTOS.md`.
+
+Decisões principais:
+
+- módulo isolado e dividido em apresentação, aplicação, domínio, cálculo, persistência, catálogos e validações;
+- persistência híbrida com índice resumido em CSV e documento JSON por versão;
+- catálogos separados e fotografias dentro da versão;
+- carregamento sob demanda e cálculo sem chamada remota;
+- escrita composta e conflito por snapshot/SHA, sem last-write-wins;
+- legado preservado até equivalência SABESP e transição reversível;
+- rota Obras mantida sem alteração enquanto depender de `data/orcamentos.csv`.
+
+O plano oficial está em `docs/architecture/27_PLANO_KID_STEPS_ORCAMENTOS.md` e contém 15 Kid Steps até a homologação integral da SABESP.
+
+Nenhum código funcional, tela, CSV, rota, migração ou desativação do legado foi realizado.
+
 ### Próximo passo recomendado
 
-Após homologação do Merlin sobre a Fase 7, definir a arquitetura física mínima e o plano de Kid Steps. Implementação permanece bloqueada até autorização própria.
+Após homologação do Merlin sobre a Fase 8, executar somente o Kid Step 001 — fronteira do novo módulo — sem dados, cálculos ou persistência.

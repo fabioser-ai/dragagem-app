@@ -48,6 +48,8 @@ A documentação oficial prevalece sobre memória de conversas. Conclusões deve
 - `23_MODELO_LOGICO_DADOS_ORCAMENTOS.md`
 - `24_MOTOR_CALCULO_ORCAMENTOS.md`
 - `25_FLUXO_USUARIO_ORCAMENTOS.md`
+- `26_ARQUITETURA_FISICA_ORCAMENTOS.md`
+- `27_PLANO_KID_STEPS_ORCAMENTOS.md`
 
 ## Cobertura
 
@@ -93,4 +95,14 @@ A Fase 6 foi homologada como base do fluxo oficial.
 
 Desempenho percebido, continuidade e ausência de recarregamentos evitáveis são requisitos funcionais. Nenhum código funcional, tela real, CSV ou tecnologia física foi criado ou alterado.
 
-Próximo passo recomendado, após homologação do Merlin: arquitetura física mínima e plano de Kid Steps.
+## Fase 8 — Arquitetura física mínima e Kid Steps
+
+A Fase 7 foi homologada como base da arquitetura física.
+
+`26_ARQUITETURA_FISICA_ORCAMENTOS.md` seleciona módulos em camadas, persistência híbrida com índice CSV leve e JSON por versão, escrita atômica, cache controlado, conflito sem sobrescrita e transição reversível do legado.
+
+`27_PLANO_KID_STEPS_ORCAMENTOS.md` decompõe o MVP SABESP em 15 passos pequenos, testáveis e reversíveis.
+
+Nenhum código funcional, tela, CSV, rota ou migração foi criado ou alterado.
+
+Próximo passo recomendado, após homologação do Merlin: executar exclusivamente o Kid Step 001.
