@@ -2,9 +2,9 @@
 
 from dataclasses import dataclass, field
 
-from modulos.orcamentos.aplicacao.resultados import ResultadoOperacao
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
+from modulos.orcamentos.dominio.resultados import ResultadoOperacao
 
 
 def _texto_obrigatorio(valor: str, campo: str) -> str:
@@ -13,7 +13,7 @@ def _texto_obrigatorio(valor: str, campo: str) -> str:
     return valor.strip()
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class Cenario:
     id: CenarioId
     versao_id: VersaoId
@@ -21,13 +21,12 @@ class Cenario:
     estado: EstadoCenario = EstadoCenario.ATIVO
 
     def __post_init__(self):
-        self.nome = _texto_obrigatorio(self.nome, "nome")
+        object.__setattr__(self, "nome", _texto_obrigatorio(self.nome, "nome"))
 
-    def descartar(self) -> ResultadoOperacao["Cenario"]:
+    def como_descartado(self) -> "Cenario":
         if self.estado is EstadoCenario.DESCARTADO:
-            return ResultadoOperacao.falha("O cenário já está descartado.")
-        self.estado = EstadoCenario.DESCARTADO
-        return ResultadoOperacao.ok(self)
+            return self
+        return Cenario(self.id, self.versao_id, self.nome, EstadoCenario.DESCARTADO)
 
 
 @dataclass(slots=True)
@@ -40,13 +39,34 @@ class VersaoOrcamento:
     versao_anterior_id: VersaoId | None = None
     _cenarios: dict[CenarioId, Cenario] = field(default_factory=dict, repr=False)
     cenario_adotado_id: CenarioId | None = None
+    _inicializada: bool = field(default=False, init=False, repr=False)
+
+    _CAMPOS_PROTEGIDOS = {
+        "id",
+        "orcamento_id",
+        "numero",
+        "autor",
+        "estado",
+        "versao_anterior_id",
+        "cenario_adotado_id",
+        "_cenarios",
+        "_inicializada",
+    }
+
+    def __setattr__(self, nome, valor):
+        if getattr(self, "_inicializada", False) and nome in self._CAMPOS_PROTEGIDOS:
+            raise AttributeError(
+                f"{nome} não pode ser alterado diretamente; use as operações do domínio."
+            )
+        object.__setattr__(self, nome, valor)
 
     def __post_init__(self):
         if not isinstance(self.numero, int) or self.numero < 1:
             raise ValueError("O número da versão deve ser inteiro positivo.")
-        self.autor = _texto_obrigatorio(self.autor, "autor")
+        object.__setattr__(self, "autor", _texto_obrigatorio(self.autor, "autor"))
         if self.versao_anterior_id == self.id:
             raise ValueError("Uma versão não pode derivar de si mesma.")
+        object.__setattr__(self, "_inicializada", True)
 
     @property
     def cenarios(self) -> tuple[Cenario, ...]:
@@ -66,6 +86,20 @@ class VersaoOrcamento:
         self._cenarios[cenario.id] = cenario
         return ResultadoOperacao.ok(cenario)
 
+    def descartar_cenario(self, cenario_id: CenarioId) -> ResultadoOperacao[Cenario]:
+        if not self.editavel:
+            return ResultadoOperacao.falha("Versão congelada ou aprovada não pode ser alterada.")
+        cenario = self._cenarios.get(cenario_id)
+        if cenario is None:
+            return ResultadoOperacao.falha("O cenário não pertence a esta versão.")
+        if cenario.estado is EstadoCenario.DESCARTADO:
+            return ResultadoOperacao.falha("O cenário já está descartado.")
+        if self.cenario_adotado_id == cenario_id:
+            return ResultadoOperacao.falha("O cenário adotado não pode ser descartado.")
+        descartado = cenario.como_descartado()
+        self._cenarios[cenario_id] = descartado
+        return ResultadoOperacao.ok(descartado)
+
     def adotar_cenario(self, cenario_id: CenarioId) -> ResultadoOperacao[Cenario]:
         if not self.editavel:
             return ResultadoOperacao.falha("A adoção só pode mudar durante a elaboração.")
@@ -74,15 +108,15 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("O cenário não pertence a esta versão.")
         if cenario.estado is EstadoCenario.DESCARTADO:
             return ResultadoOperacao.falha("Cenário descartado não pode ser adotado.")
-        self.cenario_adotado_id = cenario_id
+        object.__setattr__(self, "cenario_adotado_id", cenario_id)
         return ResultadoOperacao.ok(cenario)
 
     def congelar(self) -> ResultadoOperacao["VersaoOrcamento"]:
         if self.estado is not EstadoVersao.ELABORACAO:
             return ResultadoOperacao.falha("Somente versão em elaboração pode ser congelada.")
-        if not self._cenarios:
-            return ResultadoOperacao.falha("A versão precisa possuir ao menos um cenário.")
-        self.estado = EstadoVersao.CONGELADA
+        if not any(c.estado is EstadoCenario.ATIVO for c in self._cenarios.values()):
+            return ResultadoOperacao.falha("A versão precisa possuir ao menos um cenário ativo.")
+        object.__setattr__(self, "estado", EstadoVersao.CONGELADA)
         return ResultadoOperacao.ok(self)
 
     def aprovar(self) -> ResultadoOperacao["VersaoOrcamento"]:
@@ -90,7 +124,10 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Somente versão congelada pode ser aprovada.")
         if self.cenario_adotado_id is None:
             return ResultadoOperacao.falha("A aprovação exige um cenário adotado.")
-        self.estado = EstadoVersao.APROVADA
+        cenario = self._cenarios.get(self.cenario_adotado_id)
+        if cenario is None or cenario.estado is not EstadoCenario.ATIVO:
+            return ResultadoOperacao.falha("O cenário adotado precisa existir e estar ativo.")
+        object.__setattr__(self, "estado", EstadoVersao.APROVADA)
         return ResultadoOperacao.ok(self)
 
 
