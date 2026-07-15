@@ -6,9 +6,11 @@ import pandas as pd
 import requests
 
 from services.persistencia_multi_arquivo import (
+    AlteracaoArquivoConteudo,
     AlteracaoArquivoCSV,
     StatusPersistenciaMultiArquivo,
     publicar_csvs_em_commit,
+    publicar_arquivos_em_commit,
     resolver_snapshot_branch,
 )
 
@@ -219,3 +221,54 @@ class TestPersistenciaMultiArquivo(unittest.TestCase):
             mock_get.call_args_list[1].args[0],
             "https://api.github.com/repos/org/repo/git/commits/commit-base",
         )
+
+    @patch("services.persistencia_multi_arquivo.requests.patch")
+    @patch("services.persistencia_multi_arquivo.requests.post")
+    @patch("services.persistencia_multi_arquivo.requests.get")
+    def test_conteudos_genericos_usam_mesma_fundacao_atomica(
+        self, mock_get, mock_post, mock_patch
+    ):
+        mock_get.side_effect = [
+            Resposta(200, {"object": {"sha": "commit-base"}}),
+            Resposta(200, {"tree": {"sha": "tree-base"}}),
+        ]
+        mock_post.side_effect = [
+            Resposta(201, {"sha": "blob-1"}),
+            Resposta(201, {"sha": "blob-2"}),
+            Resposta(201, {"sha": "tree-nova"}),
+            Resposta(201, {"sha": "commit-novo"}),
+        ]
+        mock_patch.return_value = Resposta(200)
+        arquivos = [
+            AlteracaoArquivoConteudo("indice.csv", b"indice"),
+            AlteracaoArquivoConteudo("versao.json", b'{"schema_version":1}'),
+        ]
+        resultado = publicar_arquivos_em_commit(
+            arquivos, "token", "org/repo", "main", "mensagem", "commit-base"
+        )
+        self.assertTrue(resultado.sucesso)
+        self.assertEqual(mock_post.call_count, 4)
+        mock_patch.assert_called_once()
+        self.assertEqual(mock_patch.call_args.kwargs["json"]["force"], False)
+
+    @patch("services.persistencia_multi_arquivo.requests.patch")
+    @patch("services.persistencia_multi_arquivo.requests.post")
+    @patch("services.persistencia_multi_arquivo.requests.get")
+    def test_snapshot_divergente_recusa_antes_de_criar_objetos_git(
+        self, mock_get, mock_post, mock_patch
+    ):
+        mock_get.side_effect = [
+            Resposta(200, {"object": {"sha": "branch-avancada"}}),
+            Resposta(200, {"tree": {"sha": "tree-base"}}),
+        ]
+        resultado = publicar_arquivos_em_commit(
+            [
+                AlteracaoArquivoConteudo("indice.csv", b"indice"),
+                AlteracaoArquivoConteudo("versao.json", b"json"),
+            ],
+            "token", "org/repo", "main", "mensagem", "snapshot-antigo",
+        )
+        self.assertEqual(resultado.status, StatusPersistenciaMultiArquivo.CONFLITO)
+        self.assertEqual(resultado.snapshot_commit_sha, "branch-avancada")
+        mock_post.assert_not_called()
+        mock_patch.assert_not_called()
