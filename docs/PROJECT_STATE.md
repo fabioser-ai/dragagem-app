@@ -296,3 +296,75 @@ A auditoria corretiva confirmou e formalizou:
 - proibição de lógica técnica baseada no nome do cliente.
 
 Foram atualizados somente documentos oficiais. Nenhum código funcional, rota, tela, CSV, JSON, persistência ou comportamento do Kid Step 001 foi alterado. O Kid Step 002 permanece bloqueado até homologação.
+
+## Novo Sistema de Orçamentos — estado integrado dos Kid Steps
+
+### Kid Step 002 — núcleo do domínio em memória
+
+Status: **homologado e integrado à `main`**.
+
+Commit oficial:
+
+```text
+02a97de4da02edaf8f82d61906a6f90f06a8638c
+```
+
+Integra `Orçamento → Versão → Cenário`, com identidades, estados, propriedade, isolamento, congelamento, aprovação e resultados explícitos de domínio.
+
+### Kid Step 003 — persistência híbrida mínima
+
+Status: **homologado e integrado à `main`**.
+
+Commit oficial:
+
+```text
+cc2a20e13dba62faf73fcc4b0b7916efb29b87bd
+```
+
+Integra serialização JSON da versão, índice CSV resumido, leitura de detalhe em uma operação remota e escrita composta com conflito por snapshot.
+
+### Kid Step 004 — painel rápido
+
+Status: **homologado e integrado à `main`**.
+
+Commit oficial:
+
+```text
+ba553e97d09b1a614008ff748c39277318d6a15f
+```
+
+Integra painel funcional com:
+
+- uma leitura remota do índice por abertura;
+- busca e filtro executados localmente;
+- nenhuma leitura de versões durante a listagem;
+- abertura de detalhe somente por ação explícita;
+- estados vazios e erros tratados explicitamente;
+- legado e rota Obras preservados.
+
+Os workflows oficiais `Tests` e `Testes Python` concluíram com sucesso no head homologado do PR #3.
+
+### Governança de publicação
+
+O commit oficial do APP FOS é o commit remoto existente na branch do PR ou na `main`.
+
+Commits locais são checkpoints transitórios. Bundles são mecanismos de contingência e recuperação, não o fluxo normal de publicação.
+
+Um Kid Step somente libera o seguinte após:
+
+```text
+IMPLEMENTADO
+→ TESTADO
+→ PUBLICADO EM BRANCH REMOTA
+→ PR ABERTO
+→ HOMOLOGADO
+→ INTEGRADO À MAIN
+→ RELIDO NA MAIN
+→ ESTADO DOCUMENTAL ATUALIZADO
+```
+
+### Próximo passo autorizado
+
+Definir e executar somente o Kid Step 005 — identificação e premissas, conforme `docs/architecture/27_PLANO_KID_STEPS_ORCAMENTOS.md`.
+
+O Kid Step 005 deve aproximar o sistema da criação de um orçamento real sem introduzir pacotes ou cálculos e sem acoplar cliente a solução técnica.
