@@ -61,11 +61,33 @@ class TestNucleoDominioOrcamentos(unittest.TestCase):
         self.assertFalse(versao.aprovar().sucesso)
         cenario = Cenario(CenarioId.nova(), versao.id, "Solução A")
         versao.adicionar_cenario(cenario)
-        self.assertTrue(cenario.descartar().sucesso)
-        self.assertEqual(cenario.estado, EstadoCenario.DESCARTADO)
+        self.assertTrue(versao.descartar_cenario(cenario.id).sucesso)
+        self.assertEqual(versao.cenarios[0].estado, EstadoCenario.DESCARTADO)
         self.assertFalse(versao.adotar_cenario(cenario.id).sucesso)
+        self.assertFalse(versao.congelar().sucesso)
 
-    def test_congelamento_impede_mutacao_estrutural(self):
+    def test_cenario_adotado_nao_pode_ser_descartado(self):
+        orcamento = self.criar_orcamento()
+        versao = self.criar_versao(orcamento)
+        cenario = Cenario(CenarioId.nova(), versao.id, "Solução A")
+        versao.adicionar_cenario(cenario)
+        versao.adotar_cenario(cenario.id)
+        resultado = versao.descartar_cenario(cenario.id)
+        self.assertFalse(resultado.sucesso)
+        self.assertEqual(versao.cenarios[0].estado, EstadoCenario.ATIVO)
+
+    def test_aprovacao_revalida_cenario_adotado_ativo(self):
+        orcamento = self.criar_orcamento()
+        versao = self.criar_versao(orcamento)
+        cenario = Cenario(CenarioId.nova(), versao.id, "Solução A")
+        versao.adicionar_cenario(cenario)
+        versao.adotar_cenario(cenario.id)
+        versao.congelar()
+        versao._cenarios[cenario.id] = cenario.como_descartado()
+        self.assertFalse(versao.aprovar().sucesso)
+        self.assertEqual(versao.estado, EstadoVersao.CONGELADA)
+
+    def test_congelamento_impede_mutacao_estrutural_e_direta(self):
         orcamento = self.criar_orcamento()
         versao = self.criar_versao(orcamento)
         cenario = Cenario(CenarioId.nova(), versao.id, "Solução A")
@@ -75,6 +97,22 @@ class TestNucleoDominioOrcamentos(unittest.TestCase):
         novo = Cenario(CenarioId.nova(), versao.id, "Solução B")
         self.assertFalse(versao.adicionar_cenario(novo).sucesso)
         self.assertFalse(versao.adotar_cenario(cenario.id).sucesso)
+        self.assertFalse(versao.descartar_cenario(cenario.id).sucesso)
+        with self.assertRaises(AttributeError):
+            versao.estado = EstadoVersao.ELABORACAO
+        with self.assertRaises(AttributeError):
+            versao.numero = 99
+        with self.assertRaises(AttributeError):
+            cenario.nome = "Outro cenário"
+
+    def test_encadeamento_de_versoes_exige_ancestral_do_mesmo_orcamento(self):
+        orcamento = self.criar_orcamento()
+        v1 = self.criar_versao(orcamento, 1)
+        self.assertTrue(orcamento.adicionar_versao(v1).sucesso)
+        v2 = self.criar_versao(orcamento, 2, v1.id)
+        self.assertTrue(orcamento.adicionar_versao(v2).sucesso)
+        v3 = self.criar_versao(orcamento, 3, VersaoId.nova())
+        self.assertFalse(orcamento.adicionar_versao(v3).sucesso)
 
     def test_cliente_nao_participa_do_nucleo_tecnico(self):
         campos = set(Orcamento.__dataclass_fields__)
