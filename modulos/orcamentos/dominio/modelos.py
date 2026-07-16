@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+from modulos.orcamentos.dominio.barrilete import Barrilete
 from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
@@ -49,6 +50,7 @@ class VersaoOrcamento:
     _dados_obra: DadosObra | None = field(default=None, repr=False)
     _cotacoes: Cotacoes = field(default_factory=Cotacoes.iniciais, repr=False)
     _producao: Producao = field(default_factory=Producao, repr=False)
+    _barrilete: Barrilete = field(default_factory=Barrilete, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -64,6 +66,7 @@ class VersaoOrcamento:
         "_dados_obra",
         "_cotacoes",
         "_producao",
+        "_barrilete",
         "_inicializada",
     }
 
@@ -110,6 +113,10 @@ class VersaoOrcamento:
     def producao(self) -> Producao:
         return self._producao
 
+    @property
+    def barrilete(self) -> Barrilete:
+        return self._barrilete
+
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
             return ResultadoOperacao.falha(
@@ -139,6 +146,16 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Produção inválida.")
         object.__setattr__(self, "_producao", producao)
         return ResultadoOperacao.ok(producao)
+
+    def registrar_barrilete(self, barrilete: Barrilete) -> ResultadoOperacao[Barrilete]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Barrilete."
+            )
+        if not isinstance(barrilete, Barrilete):
+            return ResultadoOperacao.falha("Barrilete inválido.")
+        object.__setattr__(self, "_barrilete", barrilete)
+        return ResultadoOperacao.ok(barrilete)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
