@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
-from services.github import carregar_github, salvar_github
+from services.github import ler_csv_github, salvar_csv_github
 from services.ferias_regras import (
     calcular_status_ferias,
     recalcular_status_dataframe,
@@ -57,6 +57,40 @@ COLUNAS_FOLGAS = [
 # =========================
 # FUNÇÕES AUXILIARES
 # =========================
+def carregar_csv_seguro(arquivo):
+    resultado = ler_csv_github(arquivo, TOKEN, REPO)
+
+    if not resultado.pode_sobrescrever:
+        detalhe = resultado.erro or resultado.status.value
+        st.error(
+            f"Não foi possível confirmar a leitura de {arquivo}. "
+            f"Nenhuma alteração será permitida. Detalhe: {detalhe}"
+        )
+        return None, None
+
+    return resultado.dados, resultado.sha
+
+
+def salvar_csv_seguro(df, arquivo, sha_esperado):
+    resultado = salvar_csv_github(
+        df,
+        arquivo,
+        TOKEN,
+        REPO,
+        sha_esperado=sha_esperado,
+    )
+
+    if resultado.sucesso:
+        return True
+
+    if resultado.erro:
+        st.error(resultado.erro)
+    else:
+        st.error(f"Não foi possível salvar {arquivo}: {resultado.status.value}")
+
+    return False
+
+
 def normalizar_dataframe(df, colunas):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
@@ -523,7 +557,7 @@ def mostrar_alertas_proximas_folgas(df_ferias, df_folgas):
 # =========================
 # TELA DE FÉRIAS
 # =========================
-def render_ferias(df_ferias):
+def render_ferias(df_ferias, sha_ferias):
     st.subheader("Resumo de Férias")
 
     mostrar_alertas_ferias(df_ferias)
@@ -706,7 +740,8 @@ def render_ferias(df_ferias):
 
                 df_ferias = pd.concat([df_ferias, pd.DataFrame([novo])], ignore_index=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                    return
 
                 st.success("Registro de férias adicionado.")
                 st.rerun()
@@ -848,7 +883,8 @@ def render_ferias(df_ferias):
                     df_ferias.loc[idx, "Situacao_Prazo"] = situacao_prazo
 
                     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                    salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                    if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                        return
 
                     st.success("Registro atualizado.")
                     st.rerun()
@@ -860,7 +896,8 @@ def render_ferias(df_ferias):
             ):
                 df_ferias = df_ferias.drop(idx).reset_index(drop=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                    return
 
                 st.warning("Registro excluído.")
                 st.rerun()
@@ -872,7 +909,9 @@ def render_ferias(df_ferias):
 def render_folgas(df_ferias):
     st.subheader("Controle de Folgas")
 
-    df_folgas = carregar_github(ARQ_FOLGAS, TOKEN, REPO)
+    df_folgas, sha_folgas = carregar_csv_seguro(ARQ_FOLGAS)
+    if df_folgas is None:
+        return
     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
 
     mostrar_alertas_folgas(df_folgas)
@@ -1042,7 +1081,8 @@ def render_folgas(df_ferias):
 
                 df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                    return
 
                 st.success("Folga registrada com sucesso.")
                 st.rerun()
@@ -1181,7 +1221,8 @@ def render_folgas(df_ferias):
                     df_folgas.loc[idx_edit, "Observacoes"] = str(observacoes_edit)
 
                     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                    salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+                    if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                        return
 
                     st.success("Folga atualizada com sucesso.")
                     st.rerun()
@@ -1193,7 +1234,8 @@ def render_folgas(df_ferias):
             ):
                 df_folgas = df_folgas.drop(idx_edit).reset_index(drop=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                    return
 
                 st.warning("Folga excluída.")
                 st.rerun()
@@ -1205,7 +1247,9 @@ def render_folgas(df_ferias):
 def render():
     st.title("Férias e Folgas")
 
-    df_ferias = carregar_github(ARQ_FERIAS, TOKEN, REPO)
+    df_ferias, sha_ferias = carregar_csv_seguro(ARQ_FERIAS)
+    if df_ferias is None:
+        return
     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
     # Status são derivados das datas vigentes a cada abertura. Os textos
     # persistidos permanecem compatíveis, mas não são tratados como verdade.
@@ -1214,7 +1258,7 @@ def render():
     aba_ferias, aba_folgas = st.tabs(["Controle de Férias", "Controle de Folgas"])
 
     with aba_ferias:
-        render_ferias(df_ferias)
+        render_ferias(df_ferias, sha_ferias)
 
     with aba_folgas:
         render_folgas(df_ferias)
