@@ -1,7 +1,13 @@
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
-from services.github import carregar_github, salvar_github
+from services.github import ler_csv_github, salvar_csv_github
+from services.ferias_regras import (
+    calcular_status_ferias,
+    recalcular_status_dataframe,
+    validar_registro_ferias,
+)
+from services.permissoes import pode_acessar_modulo, pode_executar
 
 try:
     from services.email_service import enviar_email_smtp
@@ -52,6 +58,40 @@ COLUNAS_FOLGAS = [
 # =========================
 # FUNÇÕES AUXILIARES
 # =========================
+def carregar_csv_seguro(arquivo):
+    resultado = ler_csv_github(arquivo, TOKEN, REPO)
+
+    if not resultado.pode_sobrescrever:
+        detalhe = resultado.erro or resultado.status.value
+        st.error(
+            f"Não foi possível confirmar a leitura de {arquivo}. "
+            f"Nenhuma alteração será permitida. Detalhe: {detalhe}"
+        )
+        return None, None
+
+    return resultado.dados, resultado.sha
+
+
+def salvar_csv_seguro(df, arquivo, sha_esperado):
+    resultado = salvar_csv_github(
+        df,
+        arquivo,
+        TOKEN,
+        REPO,
+        sha_esperado=sha_esperado,
+    )
+
+    if resultado.sucesso:
+        return True
+
+    if resultado.erro:
+        st.error(resultado.erro)
+    else:
+        st.error(f"Não foi possível salvar {arquivo}: {resultado.status.value}")
+
+    return False
+
+
 def normalizar_dataframe(df, colunas):
     if df.empty:
         df = pd.DataFrame(columns=colunas)
@@ -90,27 +130,7 @@ def formatar_datetime_br(valor):
 
 
 def calcular_status(periodo_fim, limite_gozo):
-    hoje = date.today()
-
-    periodo_fim = para_data(periodo_fim)
-    limite_gozo = para_data(limite_gozo)
-
-    if periodo_fim is None:
-        return "Indefinido", "Indefinido"
-
-    if limite_gozo is None:
-        limite_gozo = periodo_fim + timedelta(days=335)
-
-    situacao_ferias = "Férias Vencidas" if hoje >= periodo_fim else "Férias Não Vencidas"
-
-    if hoje > limite_gozo:
-        situacao_prazo = "Férias em Dobro"
-    elif (limite_gozo - hoje).days <= DIAS_ALERTA_FERIAS:
-        situacao_prazo = "Atenção"
-    else:
-        situacao_prazo = "Dentro do Prazo"
-
-    return situacao_ferias, situacao_prazo
+    return calcular_status_ferias(periodo_fim, limite_gozo)
 
 
 def calcular_dias(data_inicio, data_fim):
@@ -538,46 +558,53 @@ def mostrar_alertas_proximas_folgas(df_ferias, df_folgas):
 # =========================
 # TELA DE FÉRIAS
 # =========================
-def render_ferias(df_ferias):
+def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
     st.subheader("Resumo de Férias")
 
     mostrar_alertas_ferias(df_ferias)
 
-    with st.expander("📧 Envio de alerta por e-mail", expanded=False):
-        st.caption(
-            "Este envio usa as configurações de e-mail cadastradas no secrets.toml. "
-            "Nesta fase, o disparo é manual para teste e validação."
-        )
+    if pode_enviar_alerta:
+        email_container = st.expander("📧 Envio de alerta por e-mail", expanded=False)
+    else:
+        email_container = st.container()
+        st.caption("Envio de alertas disponível somente para usuários autorizados.")
 
-        configurado, ausentes = secrets_email_configurados()
+    with email_container:
+        if pode_enviar_alerta:
+            st.caption(
+                "Este envio usa as configurações de e-mail cadastradas no secrets.toml. "
+                "Nesta fase, o disparo é manual para teste e validação."
+            )
 
-        if configurado:
-            st.success("Configurações de e-mail encontradas.")
-        else:
-            st.warning("Configurações de e-mail incompletas.")
-            st.markdown("Chaves ausentes ou vazias:")
-            for chave in ausentes:
-                st.markdown(f"- `{chave}`")
+            configurado, ausentes = secrets_email_configurados()
 
-        corpo_preview = montar_corpo_email_alerta_ferias(df_ferias)
+            if configurado:
+                st.success("Configurações de e-mail encontradas.")
+            else:
+                st.warning("Configurações de e-mail incompletas.")
+                st.markdown("Chaves ausentes ou vazias:")
+                for chave in ausentes:
+                    st.markdown(f"- `{chave}`")
 
-        if corpo_preview:
-            with st.expander("Pré-visualizar conteúdo do e-mail"):
-                st.code(corpo_preview, language="text")
-        else:
-            st.info("Nenhum alerta crítico encontrado para montar e-mail neste momento.")
+            corpo_preview = montar_corpo_email_alerta_ferias(df_ferias)
 
-        if st.button("📧 Enviar alerta de férias por e-mail", use_container_width=True, key="btn_enviar_alerta_ferias_email"):
-            try:
-                enviado, mensagem = enviar_alerta_ferias_por_email(df_ferias)
+            if corpo_preview:
+                with st.expander("Pré-visualizar conteúdo do e-mail"):
+                    st.code(corpo_preview, language="text")
+            else:
+                st.info("Nenhum alerta crítico encontrado para montar e-mail neste momento.")
 
-                if enviado:
-                    st.success(mensagem)
-                else:
-                    st.info(mensagem)
+            if st.button("📧 Enviar alerta de férias por e-mail", use_container_width=True, key="btn_enviar_alerta_ferias_email"):
+                try:
+                    enviado, mensagem = enviar_alerta_ferias_por_email(df_ferias)
 
-            except Exception as e:
-                st.error(f"Erro ao enviar e-mail de alerta: {e}")
+                    if enviado:
+                        st.success(mensagem)
+                    else:
+                        st.info(mensagem)
+
+                except Exception as e:
+                    st.error(f"Erro ao enviar e-mail de alerta: {e}")
 
     total = len(df_ferias)
     vencidas = len(df_ferias[df_ferias["Situacao_Ferias"] == "Férias Vencidas"])
@@ -687,8 +714,19 @@ def render_ferias(df_ferias):
         periodo_gozo = st.text_input("Período de gozo", key="ferias_novo_periodo_gozo")
 
         if st.button("Adicionar férias", use_container_width=True, key="btn_add_ferias"):
-            if not funcionario.strip():
-                st.error("Informe o nome do funcionário.")
+            erros = validar_registro_ferias(
+                df_ferias,
+                matricula=matricula,
+                funcionario=funcionario,
+                periodo_inicio=periodo_inicio,
+                periodo_fim=periodo_fim,
+                inicio_gozo=data_inicio_gozo,
+                fim_gozo=data_fim_gozo,
+            )
+
+            if erros:
+                for erro in erros:
+                    st.error(erro)
             else:
                 situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
@@ -710,7 +748,8 @@ def render_ferias(df_ferias):
 
                 df_ferias = pd.concat([df_ferias, pd.DataFrame([novo])], ignore_index=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                    return
 
                 st.success("Registro de férias adicionado.")
                 st.rerun()
@@ -813,6 +852,11 @@ def render_ferias(df_ferias):
                 key=f"ferias_edit_periodo_gozo_{idx}",
             )
 
+            confirmar_exclusao = st.checkbox(
+                "Confirmo a exclusão definitiva deste registro de férias.",
+                key=f"confirmar_exclusao_ferias_{idx}",
+                disabled=not pode_excluir,
+            )
             col_salvar, col_excluir = st.columns(2)
 
             if col_salvar.button(
@@ -820,8 +864,20 @@ def render_ferias(df_ferias):
                 use_container_width=True,
                 key=f"btn_salvar_ferias_{idx}",
             ):
-                if not funcionario.strip():
-                    st.error("Informe o nome do funcionário.")
+                erros = validar_registro_ferias(
+                    df_ferias,
+                    matricula=matricula,
+                    funcionario=funcionario,
+                    periodo_inicio=periodo_inicio,
+                    periodo_fim=periodo_fim,
+                    inicio_gozo=data_inicio_gozo,
+                    fim_gozo=data_fim_gozo,
+                    ignorar_indice=idx,
+                )
+
+                if erros:
+                    for erro in erros:
+                        st.error(erro)
                 else:
                     situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
@@ -840,7 +896,8 @@ def render_ferias(df_ferias):
                     df_ferias.loc[idx, "Situacao_Prazo"] = situacao_prazo
 
                     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                    salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                    if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                        return
 
                     st.success("Registro atualizado.")
                     st.rerun()
@@ -849,10 +906,12 @@ def render_ferias(df_ferias):
                 "Excluir registro",
                 use_container_width=True,
                 key=f"btn_excluir_ferias_{idx}",
+                disabled=not pode_excluir or not confirmar_exclusao,
             ):
                 df_ferias = df_ferias.drop(idx).reset_index(drop=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                salvar_github(df_ferias, ARQ_FERIAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                    return
 
                 st.warning("Registro excluído.")
                 st.rerun()
@@ -861,10 +920,12 @@ def render_ferias(df_ferias):
 # =========================
 # TELA DE FOLGAS
 # =========================
-def render_folgas(df_ferias):
+def render_folgas(df_ferias, pode_excluir):
     st.subheader("Controle de Folgas")
 
-    df_folgas = carregar_github(ARQ_FOLGAS, TOKEN, REPO)
+    df_folgas, sha_folgas = carregar_csv_seguro(ARQ_FOLGAS)
+    if df_folgas is None:
+        return
     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
 
     mostrar_alertas_folgas(df_folgas)
@@ -1034,7 +1095,8 @@ def render_folgas(df_ferias):
 
                 df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                    return
 
                 st.success("Folga registrada com sucesso.")
                 st.rerun()
@@ -1157,6 +1219,11 @@ def render_folgas(df_ferias):
                 key=f"folga_edit_observacoes_{idx_edit}",
             )
 
+            confirmar_exclusao_folga = st.checkbox(
+                "Confirmo a exclusão definitiva desta folga.",
+                key=f"confirmar_exclusao_folga_{idx_edit}",
+                disabled=not pode_excluir,
+            )
             col_salvar, col_excluir = st.columns(2)
 
             if col_salvar.button(
@@ -1173,7 +1240,8 @@ def render_folgas(df_ferias):
                     df_folgas.loc[idx_edit, "Observacoes"] = str(observacoes_edit)
 
                     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                    salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+                    if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                        return
 
                     st.success("Folga atualizada com sucesso.")
                     st.rerun()
@@ -1182,10 +1250,12 @@ def render_folgas(df_ferias):
                 "Excluir folga",
                 use_container_width=True,
                 key=f"btn_excluir_folga_{idx_edit}",
+                disabled=not pode_excluir or not confirmar_exclusao_folga,
             ):
                 df_folgas = df_folgas.drop(idx_edit).reset_index(drop=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                salvar_github(df_folgas, ARQ_FOLGAS, TOKEN, REPO)
+                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                    return
 
                 st.warning("Folga excluída.")
                 st.rerun()
@@ -1195,18 +1265,30 @@ def render_folgas(df_ferias):
 # RENDER PRINCIPAL
 # =========================
 def render():
+    if not pode_acessar_modulo("ferias"):
+        st.error("Você não possui permissão para acessar Férias e Folgas.")
+        st.stop()
+
+    pode_enviar_alerta = pode_executar("ferias", "alertas", "enviar")
+    pode_excluir = pode_executar("ferias", "registros", "excluir")
+
     st.title("Férias e Folgas")
 
-    df_ferias = carregar_github(ARQ_FERIAS, TOKEN, REPO)
+    df_ferias, sha_ferias = carregar_csv_seguro(ARQ_FERIAS)
+    if df_ferias is None:
+        return
     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
+    # Status são derivados das datas vigentes a cada abertura. Os textos
+    # persistidos permanecem compatíveis, mas não são tratados como verdade.
+    df_ferias = recalcular_status_dataframe(df_ferias)
 
     aba_ferias, aba_folgas = st.tabs(["Controle de Férias", "Controle de Folgas"])
 
     with aba_ferias:
-        render_ferias(df_ferias)
+        render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir)
 
     with aba_folgas:
-        render_folgas(df_ferias)
+        render_folgas(df_ferias, pode_excluir)
 
     st.divider()
 
