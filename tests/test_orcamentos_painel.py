@@ -12,12 +12,14 @@ from modulos.orcamentos.persistencia.indice import ResumoIndice, serializar_indi
 
 
 class StreamlitFalso:
-    def __init__(self, *, abrir=False):
+    def __init__(self, *, abrir=False, editar=False):
         self.abrir = abrir
+        self.editar = editar
         self.erros = []
         self.infos = []
         self.avisos = []
         self.tabelas = []
+        self.session_state = {}
 
     def title(self, texto): pass
     def info(self, texto): self.infos.append(texto)
@@ -26,10 +28,16 @@ class StreamlitFalso:
     def subheader(self, texto): pass
     def caption(self, texto): pass
     def write(self, texto): pass
+    def divider(self): pass
     def text_input(self, *args, **kwargs): return ""
     def selectbox(self, *args, **kwargs): return kwargs["options"][0]
     def dataframe(self, dados, **kwargs): self.tabelas.append(dados)
-    def button(self, texto, **kwargs): return self.abrir and texto == "Abrir versão"
+    def button(self, texto, **kwargs):
+        if texto == "Abrir versão":
+            return self.abrir
+        if texto == "Editar identificação e premissas":
+            return self.editar
+        return False
     def rerun(self): pass
 
 
@@ -94,7 +102,7 @@ class TestPainel(unittest.TestCase):
 
     def test_detalhe_so_abre_sob_demanda(self):
         resumo = ResumoIndice("o1", "v1", 1, "Objeto", "Proposta", "Fabio", "elaboracao")
-        versao = Mock(numero=1, estado=Mock(value="elaboracao"), cenarios=())
+        versao = Mock(numero=1, estado=Mock(value="elaboracao"), cenarios=(), editavel=False)
         orcamento = Mock(objeto="Objeto", finalidade="Proposta", responsavel="Fabio")
         repositorio = Mock()
         repositorio.carregar_indice.return_value = ResultadoPersistencia(
@@ -108,6 +116,25 @@ class TestPainel(unittest.TestCase):
             self.painel.render(repositorio=repositorio, ao_voltar=Mock())
         repositorio.carregar_indice.assert_called_once()
         repositorio.carregar_versao.assert_called_once_with("o1", "v1")
+        self.assertIn("novo_orcamento_detalhe", falso.session_state)
+
+    def test_edicao_captura_snapshot_somente_sob_demanda(self):
+        resumo = ResumoIndice("o1", "v1", 1, "Objeto", "Proposta", "Fabio", "elaboracao")
+        versao = Mock(numero=1, estado=Mock(value="elaboracao"), cenarios=(), editavel=True)
+        orcamento = Mock(objeto="Objeto", finalidade="Proposta", responsavel="Fabio")
+        repositorio = Mock()
+        repositorio.carregar_indice.return_value = ResultadoPersistencia(
+            StatusPersistencia.SUCESSO, [resumo]
+        )
+        repositorio.carregar_snapshot.return_value = ResultadoPersistencia(
+            StatusPersistencia.SUCESSO, "commit-atual"
+        )
+        falso = StreamlitFalso(editar=True)
+        falso.session_state["novo_orcamento_detalhe"] = (orcamento, versao)
+        with patch.object(self.painel, "st", falso):
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+        repositorio.carregar_snapshot.assert_called_once()
+        self.assertEqual(falso.session_state["novo_orcamento_snapshot"], "commit-atual")
 
     def test_vazio_e_erro_sao_explicitos(self):
         for status in (StatusPersistencia.DADO_INEXISTENTE, StatusPersistencia.ERRO_REMOTO):
