@@ -3,8 +3,14 @@ import pandas as pd
 from datetime import date, datetime, timedelta
 from services.github import ler_csv_github, salvar_csv_github
 from services.ferias_regras import (
+    COLUNAS_CICLO_VIDA,
+    TransicaoCicloInvalida,
+    TransicaoNaoAutorizada,
     calcular_status_ferias,
+    normalizar_ciclo_vida_dataframe,
     recalcular_status_dataframe,
+    separar_operacao_historico,
+    transicionar_ciclo_vida,
     validar_registro_ferias,
 )
 from services.permissoes import pode_acessar_modulo, pode_executar
@@ -39,7 +45,7 @@ COLUNAS_FERIAS = [
     "Periodo_Gozo",
     "Situacao_Ferias",
     "Situacao_Prazo",
-]
+] + COLUNAS_CICLO_VIDA
 
 COLUNAS_FOLGAS = [
     "Matricula",
@@ -52,7 +58,7 @@ COLUNAS_FOLGAS = [
     "Observacoes",
     "Criado_Por",
     "Data_Registro",
-]
+] + COLUNAS_CICLO_VIDA
 
 
 # =========================
@@ -106,6 +112,146 @@ def normalizar_dataframe(df, colunas):
         df[col] = df[col].astype("object")
 
     return df
+
+
+def aplicar_transicao(
+    df,
+    *,
+    indice,
+    novo_estado,
+    arquivo,
+    sha_esperado,
+    data_efetiva=None,
+):
+    """Revalida permissão no ponto sensível e persiste somente se tudo for válido."""
+    try:
+        atualizado = transicionar_ciclo_vida(
+            df.loc[indice],
+            novo_estado,
+            usuario=st.session_state.get("usuario", ""),
+            autorizado=pode_executar("ferias", "ciclo_vida", "alterar"),
+            data_efetiva=data_efetiva,
+        )
+    except (TransicaoCicloInvalida, TransicaoNaoAutorizada) as erro:
+        st.error(str(erro))
+        return False
+
+    candidato = df.copy()
+    for coluna, valor in atualizado.items():
+        candidato.at[indice, coluna] = valor
+    candidato = normalizar_dataframe(candidato, list(df.columns))
+    return salvar_csv_seguro(candidato, arquivo, sha_esperado)
+
+
+def render_acoes_ciclo_vida(df, *, arquivo, sha_esperado, prefixo):
+    operacao, _ = separar_operacao_historico(df)
+    if operacao.empty:
+        st.info("Nenhum registro operacional disponível para transição.")
+        return
+
+    opcoes = {
+        f"{idx} - {linha.get('Funcionario', '')} | {linha.get('Estado_Ciclo', '')}": idx
+        for idx, linha in operacao.iterrows()
+    }
+    escolha = st.selectbox(
+        "Registro para acompanhamento",
+        list(opcoes),
+        key=f"{prefixo}_ciclo_registro",
+    )
+    indice = opcoes[escolha]
+    estado = str(df.at[indice, "Estado_Ciclo"])
+    data_efetiva = st.date_input(
+        "Data efetiva da confirmação",
+        value=date.today(),
+        format="DD/MM/YYYY",
+        key=f"{prefixo}_ciclo_data_{indice}",
+    )
+
+    destinos = {
+        "pendente": [("Programar", "programada"), ("Cancelar", "cancelada")],
+        "programada": [("Confirmar início", "em_gozo"), ("Cancelar", "cancelada")],
+        "em_gozo": [("Confirmar término", "concluida")],
+    }.get(estado, [])
+
+    if not destinos:
+        st.info("Este registro não possui transições disponíveis.")
+        return
+
+    st.caption(f"Estado atual: `{estado}`. A ação registra usuário, data e horário.")
+    confirmar = st.checkbox(
+        "Confirmo esta alteração de estado.",
+        key=f"{prefixo}_ciclo_confirmar_{indice}_{estado}",
+    )
+    colunas = st.columns(len(destinos))
+    for coluna, (rotulo, destino) in zip(colunas, destinos):
+        if coluna.button(
+            rotulo,
+            use_container_width=True,
+            disabled=not confirmar,
+            key=f"{prefixo}_ciclo_{indice}_{destino}",
+        ):
+            if aplicar_transicao(
+                df,
+                indice=indice,
+                novo_estado=destino,
+                arquivo=arquivo,
+                sha_esperado=sha_esperado,
+                data_efetiva=data_efetiva,
+            ):
+                st.success("Ciclo de vida atualizado com sucesso.")
+                st.rerun()
+
+
+def filtrar_historico(df, *, prefixo):
+    _, historico = separar_operacao_historico(df)
+    if historico.empty:
+        return historico
+
+    col1, col2, col3 = st.columns(3)
+    funcionarios = ["Todos"] + sorted(
+        historico["Funcionario"].fillna("").astype(str).unique().tolist()
+    )
+    estados = ["Todos"] + sorted(
+        historico["Estado_Ciclo"].fillna("").astype(str).unique().tolist()
+    )
+    responsaveis = sorted(set(
+        historico["Confirmado_Termino_Por"].fillna("").astype(str).tolist()
+        + historico["Cancelado_Por"].fillna("").astype(str).tolist()
+    ) - {""})
+    funcionario = col1.selectbox("Funcionário", funcionarios, key=f"{prefixo}_hist_func")
+    estado = col2.selectbox("Estado", estados, key=f"{prefixo}_hist_estado")
+    responsavel = col3.selectbox(
+        "Responsável", ["Todos"] + responsaveis, key=f"{prefixo}_hist_resp"
+    )
+    col4, col5 = st.columns(2)
+    matriculas = ["Todas"] + sorted(
+        set(historico["Matricula"].fillna("").astype(str).tolist()) - {""}
+    )
+    anos = set()
+    for coluna_data in ("Data_Prevista_Inicio", "Data_Efetiva_Inicio"):
+        datas = pd.to_datetime(historico[coluna_data], errors="coerce").dropna()
+        anos.update(datas.dt.year.astype(str).tolist())
+    matricula = col4.selectbox("Matrícula", matriculas, key=f"{prefixo}_hist_mat")
+    ano = col5.selectbox("Ano/período", ["Todos"] + sorted(anos), key=f"{prefixo}_hist_ano")
+
+    if funcionario != "Todos":
+        historico = historico[historico["Funcionario"].astype(str) == funcionario]
+    if estado != "Todos":
+        historico = historico[historico["Estado_Ciclo"].astype(str) == estado]
+    if responsavel != "Todos":
+        historico = historico[
+            (historico["Confirmado_Termino_Por"].astype(str) == responsavel)
+            | (historico["Cancelado_Por"].astype(str) == responsavel)
+        ]
+    if matricula != "Todas":
+        historico = historico[historico["Matricula"].astype(str) == matricula]
+    if ano != "Todos":
+        prevista = pd.to_datetime(historico["Data_Prevista_Inicio"], errors="coerce")
+        efetiva = pd.to_datetime(historico["Data_Efetiva_Inicio"], errors="coerce")
+        historico = historico[
+            prevista.dt.year.eq(int(ano)) | efetiva.dt.year.eq(int(ano))
+        ]
+    return historico
 
 
 def para_data(valor):
@@ -561,7 +707,9 @@ def mostrar_alertas_proximas_folgas(df_ferias, df_folgas):
 def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
     st.subheader("Resumo de Férias")
 
-    mostrar_alertas_ferias(df_ferias)
+    df_operacao, df_historico = separar_operacao_historico(df_ferias)
+
+    mostrar_alertas_ferias(df_operacao)
 
     if pode_enviar_alerta:
         email_container = st.expander("📧 Envio de alerta por e-mail", expanded=False)
@@ -586,7 +734,7 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
                 for chave in ausentes:
                     st.markdown(f"- `{chave}`")
 
-            corpo_preview = montar_corpo_email_alerta_ferias(df_ferias)
+            corpo_preview = montar_corpo_email_alerta_ferias(df_operacao)
 
             if corpo_preview:
                 with st.expander("Pré-visualizar conteúdo do e-mail"):
@@ -596,7 +744,7 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
 
             if st.button("📧 Enviar alerta de férias por e-mail", use_container_width=True, key="btn_enviar_alerta_ferias_email"):
                 try:
-                    enviado, mensagem = enviar_alerta_ferias_por_email(df_ferias)
+                    enviado, mensagem = enviar_alerta_ferias_por_email(df_operacao)
 
                     if enviado:
                         st.success(mensagem)
@@ -606,10 +754,10 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
                 except Exception as e:
                     st.error(f"Erro ao enviar e-mail de alerta: {e}")
 
-    total = len(df_ferias)
-    vencidas = len(df_ferias[df_ferias["Situacao_Ferias"] == "Férias Vencidas"])
-    dobro = len(df_ferias[df_ferias["Situacao_Prazo"] == "Férias em Dobro"])
-    atencao = len(df_ferias[df_ferias["Situacao_Prazo"] == "Atenção"])
+    total = len(df_operacao)
+    vencidas = len(df_operacao[df_operacao["Situacao_Ferias"] == "Férias Vencidas"])
+    dobro = len(df_operacao[df_operacao["Situacao_Prazo"] == "Férias em Dobro"])
+    atencao = len(df_operacao[df_operacao["Situacao_Prazo"] == "Atenção"])
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -641,10 +789,10 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
 
     st.subheader("Lista de Controle de Férias")
 
-    if df_ferias.empty:
-        st.warning("Nenhum registro de férias cadastrado.")
+    if df_operacao.empty:
+        st.info("Nenhum registro exige acompanhamento operacional.")
     else:
-        df_exibir = preparar_exibicao_ferias(df_ferias)
+        df_exibir = preparar_exibicao_ferias(df_operacao)
 
         # Importante:
         # Não usamos df.style.apply(...) aqui, pois no Safari/iPhone pode deixar os textos ilegíveis.
@@ -653,6 +801,25 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
             use_container_width=True,
             hide_index=True,
         )
+
+    with st.expander("Acompanhamento do ciclo de vida", expanded=False):
+        render_acoes_ciclo_vida(
+            df_ferias,
+            arquivo=ARQ_FERIAS,
+            sha_esperado=sha_ferias,
+            prefixo="ferias",
+        )
+
+    with st.expander(f"Histórico de férias ({len(df_historico)})", expanded=False):
+        historico_filtrado = filtrar_historico(df_ferias, prefixo="ferias")
+        if historico_filtrado.empty:
+            st.info("Nenhum registro encontrado no histórico.")
+        else:
+            st.dataframe(
+                preparar_exibicao_ferias(historico_filtrado),
+                use_container_width=True,
+                hide_index=True,
+            )
 
     st.divider()
 
@@ -744,6 +911,9 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
                     "Periodo_Gozo": str(periodo_gozo),
                     "Situacao_Ferias": situacao_ferias,
                     "Situacao_Prazo": situacao_prazo,
+                    "Estado_Ciclo": "programada" if data_inicio_gozo else "pendente",
+                    "Data_Prevista_Inicio": data_inicio_gozo or "",
+                    "Data_Prevista_Termino": data_fim_gozo or "",
                 }
 
                 df_ferias = pd.concat([df_ferias, pd.DataFrame([novo])], ignore_index=True)
@@ -757,10 +927,10 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
     with aba_edit:
         st.subheader("Editar registro existente")
 
-        if df_ferias.empty:
+        if df_operacao.empty:
             st.info("Nenhum registro disponível.")
         else:
-            opcoes = df_ferias.index.astype(str) + " - " + df_ferias["Funcionario"].astype(str)
+            opcoes = df_operacao.index.astype(str) + " - " + df_operacao["Funcionario"].astype(str)
 
             escolha = st.selectbox(
                 "Selecionar funcionário",
@@ -894,6 +1064,8 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
                     df_ferias.loc[idx, "Periodo_Gozo"] = str(periodo_gozo)
                     df_ferias.loc[idx, "Situacao_Ferias"] = situacao_ferias
                     df_ferias.loc[idx, "Situacao_Prazo"] = situacao_prazo
+                    df_ferias.loc[idx, "Data_Prevista_Inicio"] = data_inicio_gozo or ""
+                    df_ferias.loc[idx, "Data_Prevista_Termino"] = data_fim_gozo or ""
 
                     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
                     if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
@@ -927,31 +1099,45 @@ def render_folgas(df_ferias, pode_excluir):
     if df_folgas is None:
         return
     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
+    df_folgas = normalizar_ciclo_vida_dataframe(
+        df_folgas,
+        coluna_inicio="Data_Saida",
+        coluna_termino="Data_Retorno",
+    )
+    df_operacao, df_historico = separar_operacao_historico(df_folgas)
 
-    mostrar_alertas_folgas(df_folgas)
+    mostrar_alertas_folgas(df_operacao)
     mostrar_alertas_proximas_folgas(df_ferias, df_folgas)
 
     if df_ferias.empty:
         st.warning("Cadastre funcionários em férias primeiro para usar o controle de folgas.")
         return
 
-    aba_hist, aba_nova, aba_edit = st.tabs(
-        ["Histórico de folgas", "Nova folga", "Editar / Excluir"]
+    aba_painel, aba_hist, aba_nova, aba_edit = st.tabs(
+        ["Painel atual", "Histórico", "Nova folga", "Editar / Excluir"]
     )
+
+    with aba_painel:
+        st.markdown("### Folgas em acompanhamento")
+        if df_operacao.empty:
+            st.info("Nenhuma folga exige acompanhamento operacional.")
+        else:
+            st.dataframe(
+                preparar_exibicao_folgas(ordenar_folgas_por_data(df_operacao)),
+                use_container_width=True,
+                hide_index=True,
+            )
+        st.markdown("### Confirmar andamento")
+        render_acoes_ciclo_vida(
+            df_folgas,
+            arquivo=ARQ_FOLGAS,
+            sha_esperado=sha_folgas,
+            prefixo="folgas",
+        )
 
     with aba_hist:
         st.markdown("### Histórico de folgas")
-
-        filtro = st.selectbox(
-            "Filtrar histórico",
-            ["Todos"] + sorted(df_folgas["Funcionario"].dropna().astype(str).unique().tolist()),
-            key="folga_filtro_historico",
-        )
-
-        df_exibir = df_folgas.copy()
-
-        if filtro != "Todos":
-            df_exibir = df_exibir[df_exibir["Funcionario"] == filtro]
+        df_exibir = filtrar_historico(df_folgas, prefixo="folgas")
 
         if df_exibir.empty:
             st.info("Nenhuma folga registrada ainda.")
@@ -1091,6 +1277,9 @@ def render_folgas(df_ferias, pode_excluir):
                     "Observacoes": str(observacoes),
                     "Criado_Por": str(st.session_state.get("usuario", "")),
                     "Data_Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "Estado_Ciclo": "programada",
+                    "Data_Prevista_Inicio": data_saida,
+                    "Data_Prevista_Termino": data_retorno,
                 }
 
                 df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
@@ -1104,10 +1293,10 @@ def render_folgas(df_ferias, pode_excluir):
     with aba_edit:
         st.markdown("### Editar / Excluir folga")
 
-        if df_folgas.empty:
+        if df_operacao.empty:
             st.info("Nenhuma folga registrada para editar.")
         else:
-            df_opcoes = df_folgas.copy()
+            df_opcoes = df_operacao.copy()
             df_opcoes["Data_Saida_Formatada"] = df_opcoes["Data_Saida"].apply(formatar_data_br)
             df_opcoes["Data_Retorno_Formatada"] = df_opcoes["Data_Retorno"].apply(formatar_data_br)
 
@@ -1238,6 +1427,8 @@ def render_folgas(df_ferias, pode_excluir):
                     df_folgas.loc[idx_edit, "Data_Retorno"] = data_retorno_edit
                     df_folgas.loc[idx_edit, "Dias_Folga"] = int(dias_folga_edit)
                     df_folgas.loc[idx_edit, "Observacoes"] = str(observacoes_edit)
+                    df_folgas.loc[idx_edit, "Data_Prevista_Inicio"] = data_saida_edit
+                    df_folgas.loc[idx_edit, "Data_Prevista_Termino"] = data_retorno_edit
 
                     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
                     if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
@@ -1278,6 +1469,11 @@ def render():
     if df_ferias is None:
         return
     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
+    df_ferias = normalizar_ciclo_vida_dataframe(
+        df_ferias,
+        coluna_inicio="Data_Inicio_Gozo",
+        coluna_termino="Data_Fim_Gozo",
+    )
     # Status são derivados das datas vigentes a cada abertura. Os textos
     # persistidos permanecem compatíveis, mas não são tratados como verdade.
     df_ferias = recalcular_status_dataframe(df_ferias)
