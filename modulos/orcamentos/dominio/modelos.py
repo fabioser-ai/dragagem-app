@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
 from modulos.orcamentos.dominio.premissas import Premissa
@@ -43,6 +44,7 @@ class VersaoOrcamento:
     _premissas: dict[tuple[CenarioId, str], tuple[Premissa, ...]] = field(
         default_factory=dict, repr=False
     )
+    _dados_obra: DadosObra | None = field(default=None, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -55,6 +57,7 @@ class VersaoOrcamento:
         "cenario_adotado_id",
         "_cenarios",
         "_premissas",
+        "_dados_obra",
         "_inicializada",
     }
 
@@ -88,6 +91,20 @@ class VersaoOrcamento:
     @property
     def editavel(self) -> bool:
         return self.estado is EstadoVersao.ELABORACAO
+
+    @property
+    def dados_obra(self) -> DadosObra | None:
+        return self._dados_obra
+
+    def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Dados Obra."
+            )
+        if not isinstance(dados, DadosObra):
+            return ResultadoOperacao.falha("Dados Obra inválidos.")
+        object.__setattr__(self, "_dados_obra", dados)
+        return ResultadoOperacao.ok(dados)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

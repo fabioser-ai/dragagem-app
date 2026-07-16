@@ -1,14 +1,36 @@
 """Serialização JSON do domínio; o domínio não conhece este formato."""
 
 import json
+from dataclasses import asdict
+from datetime import date
 
+from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
 from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamento
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
+
+
+def _dados_obra_para_dict(dados):
+    if dados is None:
+        return None
+    documento = asdict(dados)
+    documento["data"] = dados.data.isoformat()
+    return documento
+
+
+def _dados_obra_de_dict(dados):
+    if dados is None:
+        return None
+    esperados = set(DadosObra.__dataclass_fields__)
+    if not isinstance(dados, dict) or set(dados) != esperados:
+        raise ValueError
+    valores = dict(dados)
+    valores["data"] = date.fromisoformat(valores["data"])
+    return DadosObra(**valores)
 
 
 def _valor_para_dict(valor):
@@ -74,6 +96,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
                 for c in versao.cenarios
             ],
             "premissas": grupos,
+            "dados_obra": _dados_obra_para_dict(versao.dados_obra),
         },
     }
     return json.dumps(documento, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
@@ -86,7 +109,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -95,8 +118,16 @@ def desserializar_versao(conteudo: str):
             "id", "orcamento_id", "numero", "autor", "estado",
             "versao_anterior_id", "cenario_adotado_id", "cenarios",
         }
-        esperados = campos_v1 | ({"premissas"} if schema == SCHEMA_VERSION else set())
-        if set(dados_v) != esperados:
+        campos_por_schema = {
+            1: (campos_v1, campos_v1 | {"dados_obra"}),
+            3: (campos_v1 | {"premissas"}, campos_v1 | {"premissas"}),
+            SCHEMA_VERSION: (
+                campos_v1 | {"premissas", "dados_obra"},
+                campos_v1 | {"premissas", "dados_obra"},
+            ),
+        }
+        obrigatorios, permitidos = campos_por_schema[schema]
+        if not obrigatorios.issubset(dados_v) or not set(dados_v).issubset(permitidos):
             return _corrompido("Propriedades da versão inválidas.")
 
         orcamento = Orcamento(
@@ -160,6 +191,9 @@ def desserializar_versao(conteudo: str):
             raise ValueError
         object.__setattr__(versao, "_cenarios", cenarios)
         object.__setattr__(versao, "_premissas", premissas)
+        object.__setattr__(
+            versao, "_dados_obra", _dados_obra_de_dict(dados_v.get("dados_obra"))
+        )
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, (orcamento, versao))
