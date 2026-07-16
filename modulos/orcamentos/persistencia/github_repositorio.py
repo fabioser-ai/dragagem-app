@@ -27,34 +27,36 @@ class RepositorioOrcamentosGitHub:
     def __init__(self, token: str, repo: str, branch: str = "main", *, timeout=DEFAULT_REQUEST_TIMEOUT):
         self.token, self.repo, self.branch, self.timeout = token, repo, branch, timeout
 
-    def carregar_indice(self):
-        """Carrega somente o índice resumido em uma requisição remota."""
+    def carregar_snapshot(self):
+        """Captura a cabeça da branch somente quando uma edição vai começar."""
         try:
             resposta = requests.get(
-                f"https://api.github.com/repos/{self.repo}/contents/{CAMINHO_INDICE}",
-                headers=self._headers(), params={"ref": self.branch}, timeout=self.timeout,
+                f"https://api.github.com/repos/{self.repo}/git/ref/heads/{self.branch}",
+                headers=self._headers(), timeout=self.timeout,
             )
         except requests.RequestException:
-            return ResultadoPersistencia(
-                StatusPersistencia.ERRO_REMOTO, arquivos=(CAMINHO_INDICE,)
-            )
-        if resposta.status_code == 404:
-            return ResultadoPersistencia(
-                StatusPersistencia.DADO_INEXISTENTE, arquivos=(CAMINHO_INDICE,)
-            )
+            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO)
         if resposta.status_code != 200:
-            return ResultadoPersistencia(
-                StatusPersistencia.ERRO_REMOTO, arquivos=(CAMINHO_INDICE,)
-            )
+            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO)
         try:
-            conteudo = base64.b64decode(
-                resposta.json()["content"], validate=True
-            ).decode("utf-8")
-        except (KeyError, TypeError, ValueError, UnicodeDecodeError):
-            return ResultadoPersistencia(
-                StatusPersistencia.DADO_CORROMPIDO, arquivos=(CAMINHO_INDICE,)
-            )
-        resultado = desserializar_indice(conteudo)
+            sha = resposta.json()["object"]["sha"]
+        except (KeyError, TypeError, ValueError):
+            return ResultadoPersistencia(StatusPersistencia.DADO_CORROMPIDO)
+        return ResultadoPersistencia(StatusPersistencia.SUCESSO, sha)
+
+    def carregar_indice_bruto(self):
+        """Carrega o CSV do índice para uma gravação composta explícita."""
+        resultado = self._carregar_conteudo(CAMINHO_INDICE)
+        if resultado.status is StatusPersistencia.DADO_INEXISTENTE:
+            return ResultadoPersistencia(StatusPersistencia.SUCESSO, serializar_indice([]))
+        return resultado
+
+    def carregar_indice(self):
+        """Carrega somente o índice resumido em uma requisição remota."""
+        bruto = self._carregar_conteudo(CAMINHO_INDICE)
+        if not bruto.sucesso:
+            return bruto
+        resultado = desserializar_indice(bruto.valor)
         return ResultadoPersistencia(
             resultado.status, resultado.valor, arquivos=(CAMINHO_INDICE,), erro=resultado.erro
         )
@@ -62,22 +64,10 @@ class RepositorioOrcamentosGitHub:
     def carregar_versao(self, orcamento_id: str, versao_id: str):
         """Carrega orçamento+versão em exatamente uma requisição remota."""
         caminho = caminho_versao(orcamento_id, versao_id)
-        try:
-            resposta = requests.get(
-                f"https://api.github.com/repos/{self.repo}/contents/{caminho}",
-                headers=self._headers(), params={"ref": self.branch}, timeout=self.timeout,
-            )
-        except requests.RequestException:
-            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO, arquivos=(caminho,))
-        if resposta.status_code == 404:
-            return ResultadoPersistencia(StatusPersistencia.DADO_INEXISTENTE, arquivos=(caminho,))
-        if resposta.status_code != 200:
-            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO, arquivos=(caminho,))
-        try:
-            conteudo = base64.b64decode(resposta.json()["content"], validate=True).decode("utf-8")
-        except (KeyError, TypeError, ValueError, UnicodeDecodeError):
-            return ResultadoPersistencia(StatusPersistencia.DADO_CORROMPIDO, arquivos=(caminho,))
-        resultado = desserializar_versao(conteudo)
+        bruto = self._carregar_conteudo(caminho)
+        if not bruto.sucesso:
+            return bruto
+        resultado = desserializar_versao(bruto.valor)
         if not resultado.sucesso:
             return ResultadoPersistencia(resultado.status, erro=resultado.erro, arquivos=(caminho,))
         orcamento, versao = resultado.valor
@@ -111,7 +101,8 @@ class RepositorioOrcamentosGitHub:
         )
         remoto = publicar_arquivos_em_commit(
             arquivos, self.token, self.repo, self.branch,
-            "Persistir versão de orçamento", snapshot_esperado, timeout=self.timeout,
+            "Persistir identificação e premissas do orçamento",
+            snapshot_esperado, timeout=self.timeout,
         )
         status = self._mapear_status(remoto, snapshot_esperado)
         return ResultadoPersistencia(
@@ -119,6 +110,26 @@ class RepositorioOrcamentosGitHub:
             snapshot_esperado, remoto.snapshot_commit_sha, remoto.commit_sha,
             tuple(item.arquivo for item in arquivos), remoto.erro,
         )
+
+    def _carregar_conteudo(self, caminho):
+        try:
+            resposta = requests.get(
+                f"https://api.github.com/repos/{self.repo}/contents/{caminho}",
+                headers=self._headers(), params={"ref": self.branch}, timeout=self.timeout,
+            )
+        except requests.RequestException:
+            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO, arquivos=(caminho,))
+        if resposta.status_code == 404:
+            return ResultadoPersistencia(StatusPersistencia.DADO_INEXISTENTE, arquivos=(caminho,))
+        if resposta.status_code != 200:
+            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO, arquivos=(caminho,))
+        try:
+            conteudo = base64.b64decode(
+                resposta.json()["content"], validate=True
+            ).decode("utf-8")
+        except (KeyError, TypeError, ValueError, UnicodeDecodeError):
+            return ResultadoPersistencia(StatusPersistencia.DADO_CORROMPIDO, arquivos=(caminho,))
+        return ResultadoPersistencia(StatusPersistencia.SUCESSO, conteudo, arquivos=(caminho,))
 
     def _mapear_status(self, remoto, snapshot_esperado):
         if remoto.status is StatusPersistenciaMultiArquivo.SUCESSO:

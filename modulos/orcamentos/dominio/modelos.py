@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
+from modulos.orcamentos.dominio.premissas import Premissa
 from modulos.orcamentos.dominio.resultados import ResultadoOperacao
 
 
@@ -39,6 +40,9 @@ class VersaoOrcamento:
     versao_anterior_id: VersaoId | None = None
     _cenarios: dict[CenarioId, Cenario] = field(default_factory=dict, repr=False)
     cenario_adotado_id: CenarioId | None = None
+    _premissas: dict[tuple[CenarioId, str], tuple[Premissa, ...]] = field(
+        default_factory=dict, repr=False
+    )
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -50,6 +54,7 @@ class VersaoOrcamento:
         "versao_anterior_id",
         "cenario_adotado_id",
         "_cenarios",
+        "_premissas",
         "_inicializada",
     }
 
@@ -73,8 +78,43 @@ class VersaoOrcamento:
         return tuple(self._cenarios.values())
 
     @property
+    def premissas(self) -> tuple[tuple[CenarioId, Premissa], ...]:
+        return tuple(
+            (cenario_id, historico[-1])
+            for (cenario_id, _), historico in self._premissas.items()
+            if historico
+        )
+
+    @property
     def editavel(self) -> bool:
         return self.estado is EstadoVersao.ELABORACAO
+
+    def historico_premissa(
+        self, cenario_id: CenarioId, conceito: str
+    ) -> tuple[Premissa, ...]:
+        chave = (cenario_id, _texto_obrigatorio(conceito, "conceito"))
+        return self._premissas.get(chave, ())
+
+    def registrar_premissa(
+        self, cenario_id: CenarioId, premissa: Premissa
+    ) -> ResultadoOperacao[Premissa]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode receber premissas."
+            )
+        cenario = self._cenarios.get(cenario_id)
+        if cenario is None:
+            return ResultadoOperacao.falha("O cenário não pertence a esta versão.")
+        if cenario.estado is EstadoCenario.DESCARTADO:
+            return ResultadoOperacao.falha("Cenário descartado não pode receber premissas.")
+        chave = (cenario_id, premissa.conceito)
+        historico = self._premissas.get(chave, ())
+        if premissa.sequencia != len(historico) + 1:
+            return ResultadoOperacao.falha(
+                "A sequência da premissa deve continuar o histórico existente."
+            )
+        self._premissas[chave] = historico + (premissa,)
+        return ResultadoOperacao.ok(premissa)
 
     def adicionar_cenario(self, cenario: Cenario) -> ResultadoOperacao[Cenario]:
         if not self.editavel:
