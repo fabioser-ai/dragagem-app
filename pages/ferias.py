@@ -2,7 +2,11 @@ import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
 from services.github import carregar_github, salvar_github
-from services.ferias_regras import calcular_status_ferias, recalcular_status_dataframe
+from services.ferias_regras import (
+    calcular_status_ferias,
+    recalcular_status_dataframe,
+    validar_registro_ferias,
+)
 
 try:
     from services.email_service import enviar_email_smtp
@@ -668,8 +672,19 @@ def render_ferias(df_ferias):
         periodo_gozo = st.text_input("Período de gozo", key="ferias_novo_periodo_gozo")
 
         if st.button("Adicionar férias", use_container_width=True, key="btn_add_ferias"):
-            if not funcionario.strip():
-                st.error("Informe o nome do funcionário.")
+            erros = validar_registro_ferias(
+                df_ferias,
+                matricula=matricula,
+                funcionario=funcionario,
+                periodo_inicio=periodo_inicio,
+                periodo_fim=periodo_fim,
+                inicio_gozo=data_inicio_gozo,
+                fim_gozo=data_fim_gozo,
+            )
+
+            if erros:
+                for erro in erros:
+                    st.error(erro)
             else:
                 situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
@@ -801,8 +816,20 @@ def render_ferias(df_ferias):
                 use_container_width=True,
                 key=f"btn_salvar_ferias_{idx}",
             ):
-                if not funcionario.strip():
-                    st.error("Informe o nome do funcionário.")
+                erros = validar_registro_ferias(
+                    df_ferias,
+                    matricula=matricula,
+                    funcionario=funcionario,
+                    periodo_inicio=periodo_inicio,
+                    periodo_fim=periodo_fim,
+                    inicio_gozo=data_inicio_gozo,
+                    fim_gozo=data_fim_gozo,
+                    ignorar_indice=idx,
+                )
+
+                if erros:
+                    for erro in erros:
+                        st.error(erro)
                 else:
                     situacao_ferias, situacao_prazo = calcular_status(periodo_fim, limite_gozo)
 
