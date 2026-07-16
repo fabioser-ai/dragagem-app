@@ -55,8 +55,10 @@ def aplicar_rascunho(
         autor = rascunho.autor.strip()
         if not conceito or not unidade or not autor:
             raise ValueError
-        sugerido = None
-        adotado = None
+        historico = versao.historico_premissa(cenario_id, conceito)
+        anterior = historico[-1] if historico else None
+        sugerido = anterior.sugerido if anterior else None
+        adotado = anterior.adotado if anterior else None
         if rascunho.valor_sugerido and rascunho.valor_sugerido.strip():
             sugerido = ValorPremissa(
                 rascunho.valor_sugerido,
@@ -80,7 +82,6 @@ def aplicar_rascunho(
                 rascunho.vigencia,
                 rascunho.justificativa,
             )
-        historico = versao.historico_premissa(cenario_id, conceito)
         premissa = Premissa(conceito, len(historico) + 1, sugerido, adotado)
     except (AttributeError, TypeError, ValueError):
         return ResultadoOperacao.falha("Rascunho de premissa inválido.")
