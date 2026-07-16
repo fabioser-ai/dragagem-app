@@ -348,6 +348,38 @@ class TestPainel(unittest.TestCase):
         repositorio.carregar_versao.assert_not_called()
         repositorio.carregar_snapshot.assert_not_called()
 
+    def test_navegacao_para_producao_renderiza_somente_producao_sem_leitura(self):
+        versao = Mock(numero=1, estado=Mock(value="elaboracao"), cenarios=(), editavel=True)
+        orcamento = Mock(objeto="Objeto", finalidade="Proposta", responsavel="Fabio")
+        repositorio = Mock()
+        estado = {
+            "usuario": "fabio",
+            "novo_orcamento_detalhe": (orcamento, versao),
+            "novo_orcamento_snapshot": "snapshot",
+        }
+        falso = StreamlitFalso(session_state=estado, tela="Produção")
+
+        with patch.object(self.painel, "st", falso), patch.object(
+            self.painel.dados_obra, "render"
+        ) as render_dados, patch.object(
+            self.painel.cotacoes, "render"
+        ) as render_cotacoes, patch.object(
+            self.painel.producao, "render"
+        ) as render_producao:
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+
+        render_dados.assert_not_called()
+        render_cotacoes.assert_not_called()
+        render_producao.assert_called_once_with(
+            repositorio=repositorio,
+            orcamento=orcamento,
+            versao=versao,
+            snapshot_esperado="snapshot",
+        )
+        repositorio.carregar_indice.assert_not_called()
+        repositorio.carregar_versao.assert_not_called()
+        repositorio.carregar_snapshot.assert_not_called()
+
     def test_vazio_e_erro_sao_explicitos(self):
         for status in (StatusPersistencia.DADO_INEXISTENTE, StatusPersistencia.ERRO_REMOTO):
             with self.subTest(status=status):
