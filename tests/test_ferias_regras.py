@@ -62,3 +62,60 @@ def test_dataframe_original_nao_e_modificado():
 
     assert df.loc[0, "Situacao_Ferias"] == "antigo"
     assert df.loc[0, "Situacao_Prazo"] == "antigo"
+
+
+def test_validacao_exige_matricula_e_nome():
+    from services.ferias_regras import validar_registro_ferias
+
+    erros = validar_registro_ferias(
+        pd.DataFrame(),
+        matricula=" ",
+        funcionario=" ",
+        periodo_inicio="2026-01-01",
+        periodo_fim="2026-12-31",
+    )
+
+    assert "Informe a matrícula do funcionário." in erros
+    assert "Informe o nome do funcionário." in erros
+
+
+def test_validacao_impede_matricula_duplicada_mas_ignora_proprio_indice():
+    from services.ferias_regras import validar_registro_ferias
+
+    df = pd.DataFrame([{"Matricula": "2175"}])
+
+    duplicado = validar_registro_ferias(
+        df,
+        matricula="2175",
+        funcionario="Fabio",
+        periodo_inicio="2026-01-01",
+        periodo_fim="2026-12-31",
+    )
+    edicao = validar_registro_ferias(
+        df,
+        matricula="2175",
+        funcionario="Fabio",
+        periodo_inicio="2026-01-01",
+        periodo_fim="2026-12-31",
+        ignorar_indice=0,
+    )
+
+    assert "Já existe um funcionário cadastrado com esta matrícula." in duplicado
+    assert edicao == []
+
+
+def test_validacao_rejeita_datas_invertidas_e_gozo_incompleto():
+    from services.ferias_regras import validar_registro_ferias
+
+    erros = validar_registro_ferias(
+        pd.DataFrame(),
+        matricula="1",
+        funcionario="Teste",
+        periodo_inicio="2026-12-31",
+        periodo_fim="2026-01-01",
+        inicio_gozo="2026-06-01",
+        fim_gozo=None,
+    )
+
+    assert "O fim do período aquisitivo não pode ser anterior ao início." in erros
+    assert "Informe conjuntamente o início e o fim do gozo." in erros
