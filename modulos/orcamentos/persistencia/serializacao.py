@@ -14,9 +14,10 @@ from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
 from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamento
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
+from modulos.orcamentos.dominio.producao import Producao
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 
 def _dados_obra_para_dict(dados):
@@ -125,6 +126,15 @@ def _cotacoes_de_dict(dados, schema):
     return Cotacoes(tuple(itens))
 
 
+def _producao_de_dict(dados):
+    if dados is None:
+        return Producao()
+    campos = {"vazao", "eficiencia", "concentracao"}
+    if not isinstance(dados, dict) or set(dados) != campos:
+        raise ValueError
+    return Producao(**dados)
+
+
 def _valor_para_dict(valor):
     if valor is None:
         return None
@@ -184,6 +194,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
     }
     if versao.cotacoes is not None:
         dados_versao["cotacoes"] = _cotacoes_para_dict(versao.cotacoes)
+    dados_versao["producao"] = asdict(versao.producao)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -204,7 +215,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, 5, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, 6, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -224,9 +235,13 @@ def desserializar_versao(conteudo: str):
                 campos_v1 | {"premissas", "dados_obra"},
                 campos_v1 | {"premissas", "dados_obra", "cotacoes"},
             ),
+            6: (
+                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
+                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
+            ),
             SCHEMA_VERSION: (
-                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
-                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
+                campos_v1 | {"premissas", "dados_obra", "cotacoes", "producao"},
+                campos_v1 | {"premissas", "dados_obra", "cotacoes", "producao"},
             ),
         }
         obrigatorios, permitidos = campos_por_schema[schema]
@@ -300,6 +315,7 @@ def desserializar_versao(conteudo: str):
         object.__setattr__(
             versao, "_cotacoes", _cotacoes_de_dict(dados_v.get("cotacoes"), schema)
         )
+        object.__setattr__(versao, "_producao", _producao_de_dict(dados_v.get("producao")))
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, (orcamento, versao))
