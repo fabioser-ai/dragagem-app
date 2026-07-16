@@ -1,3 +1,4 @@
+import ast
 import importlib
 import sys
 import types
@@ -9,6 +10,26 @@ from unittest.mock import Mock, patch
 ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "app.py"
 MENU = ROOT / "pages" / "menu.py"
+
+
+def rotas_do_app():
+    arvore = ast.parse(APP.read_text(encoding="utf-8"))
+    rotas = set()
+    for no in ast.walk(arvore):
+        if not isinstance(no, ast.Compare) or not isinstance(no.left, ast.Name):
+            continue
+        if no.left.id != "tela":
+            continue
+        for comparador in no.comparators:
+            if isinstance(comparador, ast.Constant) and isinstance(comparador.value, str):
+                rotas.add(comparador.value)
+            elif isinstance(comparador, (ast.Set, ast.Tuple, ast.List)):
+                rotas.update(
+                    item.value
+                    for item in comparador.elts
+                    if isinstance(item, ast.Constant) and isinstance(item.value, str)
+                )
+    return rotas
 
 
 class SessionState(dict):
@@ -41,9 +62,7 @@ class TestFronteiraNovoOrcamento(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
-        cls.entrada = importlib.import_module(
-            "modulos.orcamentos.apresentacao.entrada"
-        )
+        cls.entrada = importlib.import_module("modulos.orcamentos.apresentacao.entrada")
 
     def test_novo_pacote_pode_ser_importado(self):
         self.assertIsNotNone(importlib.import_module("modulos.orcamentos"))
@@ -83,7 +102,7 @@ class TestFronteiraNovoOrcamento(unittest.TestCase):
 
     def test_rota_nova_e_guarda_de_permissao_estao_no_roteador(self):
         fonte = APP.read_text(encoding="utf-8")
-        self.assertIn('st.session_state.tela == "novo_orcamento"', fonte)
+        self.assertIn("novo_orcamento", rotas_do_app())
         self.assertIn('pode_acessar_modulo("orcamento")', fonte)
         self.assertIn("novo_orcamento.render", fonte)
 
@@ -93,14 +112,14 @@ class TestFronteiraNovoOrcamento(unittest.TestCase):
         self.assertIn('"Novo Sistema de Orçamentos"', fonte)
         self.assertIn('"novo_orcamento"', fonte)
 
-    def test_legado_e_obras_continuam_inalterados(self):
+    def test_legado_e_obras_continuam_roteados(self):
         fonte = APP.read_text(encoding="utf-8")
-        for rota in (
+        esperadas = {
             "orcamento", "orcamento_lista", "orcamento_etapa0",
             "orcamento1", "orcamento2", "orcamento3", "obras",
-        ):
-            self.assertIn(f'st.session_state.tela == "{rota}"', fonte)
-        self.assertIn('ARQ_OBRAS = "data/orcamentos.csv"', fonte)
+        }
+        self.assertTrue(esperadas.issubset(rotas_do_app()))
+        self.assertIn('"data/orcamentos.csv"', fonte)
 
     def test_modulo_nao_contem_arquivo_de_dados(self):
         arquivos = [

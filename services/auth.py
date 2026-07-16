@@ -1,10 +1,13 @@
 import json
 import time
+
 import streamlit as st
+
 from services.log import registrar_log
 
 
-SESSION_TIMEOUT_SECONDS = 60 * 60  # 1 hora
+SESSION_TIMEOUT_SECONDS = 60 * 60
+CHAVE_LOG_PENDENTE = "_log_acesso_pendente"
 
 
 def carregar_usuarios():
@@ -15,27 +18,21 @@ def carregar_usuarios():
 
 
 def inicializar_auth():
-    if "autenticado" not in st.session_state:
-        st.session_state.autenticado = False
-
-    if "usuario" not in st.session_state:
-        st.session_state.usuario = None
-
-    if "perfil" not in st.session_state:
-        st.session_state.perfil = None
-
-    if "matricula" not in st.session_state:
-        st.session_state.matricula = None
-
-    if "nome" not in st.session_state:
-        st.session_state.nome = None
-
-    if "ultimo_acesso" not in st.session_state:
-        st.session_state.ultimo_acesso = time.time()
+    padroes = {
+        "autenticado": False,
+        "usuario": None,
+        "perfil": None,
+        "matricula": None,
+        "nome": None,
+        "ultimo_acesso": time.time(),
+    }
+    for chave, valor in padroes.items():
+        if chave not in st.session_state:
+            st.session_state[chave] = valor
 
 
 def limpar_sessao():
-    chaves_para_limpar = [
+    for chave in (
         "autenticado",
         "usuario",
         "perfil",
@@ -43,11 +40,24 @@ def limpar_sessao():
         "nome",
         "tela",
         "ultimo_acesso",
-    ]
+        CHAVE_LOG_PENDENTE,
+    ):
+        st.session_state.pop(chave, None)
 
-    for chave in chaves_para_limpar:
-        if chave in st.session_state:
-            del st.session_state[chave]
+
+def _agendar_log(usuario, perfil, acao):
+    st.session_state[CHAVE_LOG_PENDENTE] = (usuario, perfil, acao)
+
+
+def processar_log_pendente():
+    pendente = st.session_state.pop(CHAVE_LOG_PENDENTE, None)
+    if not pendente:
+        return None
+
+    try:
+        return registrar_log(*pendente)
+    except Exception:
+        return None
 
 
 def logout():
@@ -67,10 +77,8 @@ def logout():
 def sessao_expirada():
     agora = time.time()
     ultimo = st.session_state.get("ultimo_acesso", agora)
-
     if agora - ultimo > SESSION_TIMEOUT_SECONDS:
         return True
-
     st.session_state.ultimo_acesso = agora
     return False
 
@@ -89,43 +97,41 @@ def verificar_login():
             except Exception:
                 pass
 
-            st.warning("Sessão expirada. Faça login novamente.")
             limpar_sessao()
-            st.rerun()
-
+            st.warning("Sessão expirada. Faça login novamente.")
+            return False
         return True
 
-    st.markdown("## 🔒 Acesso restrito")
-    st.caption("Sistema interno FOS Engenharia LTDA")
+    area_login = st.empty()
+    with area_login.container():
+        st.markdown("## 🔒 Acesso restrito")
+        st.caption("Sistema interno FOS Engenharia LTDA")
+        usuario = st.text_input("Usuário")
+        senha = st.text_input("Senha", type="password")
+        entrar = st.button("Entrar")
 
-    usuario = st.text_input("Usuário")
-    senha = st.text_input("Senha", type="password")
+    if not entrar:
+        return False
 
-    if st.button("Entrar"):
-        usuarios = carregar_usuarios()
+    usuarios = carregar_usuarios()
+    if usuario not in usuarios or senha != usuarios[usuario]["password"]:
+        st.error("Usuário ou senha incorretos. Atenção a maiúsculas e minúsculas.")
+        return False
 
-        if usuario in usuarios and senha == usuarios[usuario]["password"]:
-            perfil = usuarios[usuario].get("role", "user")
-            matricula = usuarios[usuario].get("matricula", "")
-            nome = usuarios[usuario].get("nome", usuario)
+    dados_usuario = usuarios[usuario]
+    perfil = dados_usuario.get("role", "user")
+    st.session_state.autenticado = True
+    st.session_state.usuario = usuario
+    st.session_state.perfil = perfil
+    st.session_state.matricula = dados_usuario.get("matricula", "")
+    st.session_state.nome = dados_usuario.get("nome", usuario)
+    st.session_state.ultimo_acesso = time.time()
+    st.session_state.tela = "menu"
+    _agendar_log(usuario, perfil, "login")
 
-            st.session_state.autenticado = True
-            st.session_state.usuario = usuario
-            st.session_state.perfil = perfil
-            st.session_state.matricula = matricula
-            st.session_state.nome = nome
-            st.session_state.ultimo_acesso = time.time()
-
-            try:
-                registrar_log(usuario, perfil, "login")
-            except Exception:
-                pass
-
-            st.rerun()
-        else:
-            st.error("Usuário ou senha incorretos. Atenção a maiúsculas e minúsculas.")
-
-    return False
+    # Continua no mesmo ciclo: não há rerun entre a confirmação e o menu.
+    area_login.empty()
+    return True
 
 
 def exigir_admin():
