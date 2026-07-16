@@ -179,6 +179,7 @@ class TestPersistenciaBarrilete(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 7
         documento["versao"].pop("barrilete")
+        documento["versao"].pop("mobilizacao_draga")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].barrilete), asdict(Barrilete()))
