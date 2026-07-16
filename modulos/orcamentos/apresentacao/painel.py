@@ -4,7 +4,7 @@ import streamlit as st
 
 from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
 from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
-from modulos.orcamentos.apresentacao import cotacoes, dados_obra, producao
+from modulos.orcamentos.apresentacao import barrilete, cotacoes, dados_obra, producao
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
 
 
@@ -30,7 +30,7 @@ def _mostrar_detalhe(repositorio):
     if snapshot:
         tela = st.radio(
             "Tela do orçamento",
-            ("Dados Obra", "Cotações", "Produção"),
+            ("Dados Obra", "Cotações", "Produção", "Barrilete"),
             horizontal=True,
             key="novo_orcamento_tela",
         )
@@ -39,6 +39,7 @@ def _mostrar_detalhe(repositorio):
                 "Dados Obra": dados_obra,
                 "Cotações": cotacoes,
                 "Produção": producao,
+                "Barrilete": barrilete,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(
