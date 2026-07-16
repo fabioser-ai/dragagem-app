@@ -7,6 +7,7 @@ from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
 from modulos.orcamentos.dominio.premissas import Premissa
+from modulos.orcamentos.dominio.producao import Producao
 from modulos.orcamentos.dominio.resultados import ResultadoOperacao
 
 
@@ -47,6 +48,7 @@ class VersaoOrcamento:
     )
     _dados_obra: DadosObra | None = field(default=None, repr=False)
     _cotacoes: Cotacoes = field(default_factory=Cotacoes.iniciais, repr=False)
+    _producao: Producao = field(default_factory=Producao, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -61,6 +63,7 @@ class VersaoOrcamento:
         "_premissas",
         "_dados_obra",
         "_cotacoes",
+        "_producao",
         "_inicializada",
     }
 
@@ -103,6 +106,10 @@ class VersaoOrcamento:
     def cotacoes(self) -> Cotacoes:
         return self._cotacoes
 
+    @property
+    def producao(self) -> Producao:
+        return self._producao
+
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
             return ResultadoOperacao.falha(
@@ -122,6 +129,16 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Cotações inválidas.")
         object.__setattr__(self, "_cotacoes", cotacoes)
         return ResultadoOperacao.ok(cotacoes)
+
+    def registrar_producao(self, producao: Producao) -> ResultadoOperacao[Producao]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Produção."
+            )
+        if not isinstance(producao, Producao):
+            return ResultadoOperacao.falha("Produção inválida.")
+        object.__setattr__(self, "_producao", producao)
+        return ResultadoOperacao.ok(producao)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
