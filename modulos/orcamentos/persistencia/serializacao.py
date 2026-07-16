@@ -4,6 +4,12 @@ import json
 from dataclasses import asdict
 from datetime import date
 
+from modulos.orcamentos.dominio.cotacoes import (
+    CotacaoContainer,
+    CotacaoGuindaste,
+    CotacaoMensal,
+    Cotacoes,
+)
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
@@ -11,7 +17,7 @@ from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamen
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 
 def _dados_obra_para_dict(dados):
@@ -31,6 +37,35 @@ def _dados_obra_de_dict(dados):
     valores = dict(dados)
     valores["data"] = date.fromisoformat(valores["data"])
     return DadosObra(**valores)
+
+
+def _cotacoes_para_dict(cotacoes):
+    return asdict(cotacoes) if cotacoes is not None else None
+
+
+def _linha_cotacao(dados, tipo):
+    esperados = set(tipo.__dataclass_fields__)
+    if not isinstance(dados, dict) or set(dados) != esperados:
+        raise ValueError
+    return tipo(**dados)
+
+
+def _cotacoes_de_dict(dados):
+    if dados is None:
+        return None
+    campos = {"guindaste", "container", "banheiro_quimico", "destinacao"}
+    if not isinstance(dados, dict) or set(dados) != campos:
+        raise ValueError
+    return Cotacoes(
+        guindaste=tuple(_linha_cotacao(item, CotacaoGuindaste) for item in dados["guindaste"]),
+        container=tuple(_linha_cotacao(item, CotacaoContainer) for item in dados["container"]),
+        banheiro_quimico=tuple(
+            _linha_cotacao(item, CotacaoMensal) for item in dados["banheiro_quimico"]
+        ),
+        destinacao=tuple(
+            _linha_cotacao(item, CotacaoMensal) for item in dados["destinacao"]
+        ),
+    )
 
 
 def _valor_para_dict(valor):
@@ -75,6 +110,23 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
                 for registro in historico
             ],
         })
+    dados_versao = {
+        "id": str(versao.id),
+        "orcamento_id": str(versao.orcamento_id),
+        "numero": versao.numero,
+        "autor": versao.autor,
+        "estado": versao.estado.value,
+        "versao_anterior_id": str(versao.versao_anterior_id) if versao.versao_anterior_id else None,
+        "cenario_adotado_id": str(versao.cenario_adotado_id) if versao.cenario_adotado_id else None,
+        "cenarios": [
+            {"id": str(c.id), "versao_id": str(c.versao_id), "nome": c.nome, "estado": c.estado.value}
+            for c in versao.cenarios
+        ],
+        "premissas": grupos,
+        "dados_obra": _dados_obra_para_dict(versao.dados_obra),
+    }
+    if versao.cotacoes is not None:
+        dados_versao["cotacoes"] = _cotacoes_para_dict(versao.cotacoes)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -83,21 +135,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
             "finalidade": orcamento.finalidade,
             "responsavel": orcamento.responsavel,
         },
-        "versao": {
-            "id": str(versao.id),
-            "orcamento_id": str(versao.orcamento_id),
-            "numero": versao.numero,
-            "autor": versao.autor,
-            "estado": versao.estado.value,
-            "versao_anterior_id": str(versao.versao_anterior_id) if versao.versao_anterior_id else None,
-            "cenario_adotado_id": str(versao.cenario_adotado_id) if versao.cenario_adotado_id else None,
-            "cenarios": [
-                {"id": str(c.id), "versao_id": str(c.versao_id), "nome": c.nome, "estado": c.estado.value}
-                for c in versao.cenarios
-            ],
-            "premissas": grupos,
-            "dados_obra": _dados_obra_para_dict(versao.dados_obra),
-        },
+        "versao": dados_versao,
     }
     return json.dumps(documento, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
@@ -109,7 +147,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -121,9 +159,13 @@ def desserializar_versao(conteudo: str):
         campos_por_schema = {
             1: (campos_v1, campos_v1 | {"dados_obra"}),
             3: (campos_v1 | {"premissas"}, campos_v1 | {"premissas"}),
+            4: (
+                campos_v1 | {"premissas", "dados_obra"},
+                campos_v1 | {"premissas", "dados_obra"},
+            ),
             SCHEMA_VERSION: (
                 campos_v1 | {"premissas", "dados_obra"},
-                campos_v1 | {"premissas", "dados_obra"},
+                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
             ),
         }
         obrigatorios, permitidos = campos_por_schema[schema]
@@ -194,6 +236,7 @@ def desserializar_versao(conteudo: str):
         object.__setattr__(
             versao, "_dados_obra", _dados_obra_de_dict(dados_v.get("dados_obra"))
         )
+        object.__setattr__(versao, "_cotacoes", _cotacoes_de_dict(dados_v.get("cotacoes")))
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, (orcamento, versao))
