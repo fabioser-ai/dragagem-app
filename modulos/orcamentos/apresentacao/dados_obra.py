@@ -17,10 +17,7 @@ def _montar_dados(valores):
     return DadosObra(**valores)
 
 
-def render(*, repositorio, orcamento, versao, snapshot_esperado):
-    """Exibe somente os campos e os três cálculos existentes na planilha."""
-    atual = versao.dados_obra or DadosObra()
-
+def _preencher_formulario(atual):
     st.subheader("Dados Obra")
     st.markdown(
         '<span style="color:#0000ff">Azul: Dados a serem preenchidos</span><br>'
@@ -173,8 +170,7 @@ def render(*, repositorio, orcamento, versao, snapshot_esperado):
         )
         st.caption("dias/mês")
 
-    if not st.button("Salvar Dados Obra", key="dados_obra_salvar"):
-        return
+    submetido = st.form_submit_button("Salvar Dados Obra")
 
     dados = _montar_dados(
         {
@@ -187,7 +183,22 @@ def render(*, repositorio, orcamento, versao, snapshot_esperado):
             "dias_trabalho": dias_trabalho,
         }
     )
+    return submetido, dados
+
+
+def render(*, repositorio, orcamento, versao, snapshot_esperado):
+    """Exibe somente os campos e os três cálculos existentes na planilha."""
+    if st.session_state.pop("novo_orcamento_dados_obra_salvos", False):
+        st.success("Dados Obra salvos.")
+    atual = versao.dados_obra or DadosObra()
+    with st.form("dados_obra_formulario"):
+        submetido, dados = _preencher_formulario(atual)
+
+    if not submetido:
+        return
+
     copia_orcamento, copia_versao = deepcopy((orcamento, versao))
+    copia_orcamento.objeto = dados.objeto.strip() or "Novo orçamento"
     resultado = salvar_dados_obra(copia_versao, dados)
     if not resultado.sucesso:
         st.error(resultado.erro)
@@ -202,7 +213,8 @@ def render(*, repositorio, orcamento, versao, snapshot_esperado):
     if persistencia.sucesso:
         st.session_state["novo_orcamento_detalhe"] = (copia_orcamento, copia_versao)
         st.session_state["novo_orcamento_snapshot"] = persistencia.commit_sha
-        st.success("Dados Obra salvos.")
+        st.session_state["novo_orcamento_dados_obra_salvos"] = True
+        st.rerun()
     elif persistencia.status is StatusPersistencia.BRANCH_AVANCADA:
         st.error("O orçamento foi alterado por outra operação. Reabra a versão antes de salvar.")
     else:

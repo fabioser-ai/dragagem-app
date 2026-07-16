@@ -3,6 +3,7 @@ import importlib
 import sys
 import types
 import unittest
+from contextlib import nullcontext
 from unittest.mock import Mock, patch
 
 from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
@@ -58,6 +59,8 @@ class StreamlitDadosObraFalso(StreamlitFalso):
 
     def subheader(self, texto): self.subtitulos.append(texto)
     def markdown(self, *args, **kwargs): pass
+    def form(self, *args, **kwargs): return nullcontext()
+    def form_submit_button(self, *args, **kwargs): return False
     def columns(self, especificacao):
         quantidade = especificacao if isinstance(especificacao, int) else len(especificacao)
         return tuple(ColunaFalsa() for _ in range(quantidade))
