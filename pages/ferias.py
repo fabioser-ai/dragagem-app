@@ -7,6 +7,7 @@ from services.ferias_regras import (
     recalcular_status_dataframe,
     validar_registro_ferias,
 )
+from services.permissoes import pode_acessar_modulo, pode_executar
 
 try:
     from services.email_service import enviar_email_smtp
@@ -557,46 +558,53 @@ def mostrar_alertas_proximas_folgas(df_ferias, df_folgas):
 # =========================
 # TELA DE FÉRIAS
 # =========================
-def render_ferias(df_ferias, sha_ferias):
+def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
     st.subheader("Resumo de Férias")
 
     mostrar_alertas_ferias(df_ferias)
 
-    with st.expander("📧 Envio de alerta por e-mail", expanded=False):
-        st.caption(
-            "Este envio usa as configurações de e-mail cadastradas no secrets.toml. "
-            "Nesta fase, o disparo é manual para teste e validação."
-        )
+    if pode_enviar_alerta:
+        email_container = st.expander("📧 Envio de alerta por e-mail", expanded=False)
+    else:
+        email_container = st.container()
+        st.caption("Envio de alertas disponível somente para usuários autorizados.")
 
-        configurado, ausentes = secrets_email_configurados()
+    with email_container:
+        if pode_enviar_alerta:
+            st.caption(
+                "Este envio usa as configurações de e-mail cadastradas no secrets.toml. "
+                "Nesta fase, o disparo é manual para teste e validação."
+            )
 
-        if configurado:
-            st.success("Configurações de e-mail encontradas.")
-        else:
-            st.warning("Configurações de e-mail incompletas.")
-            st.markdown("Chaves ausentes ou vazias:")
-            for chave in ausentes:
-                st.markdown(f"- `{chave}`")
+            configurado, ausentes = secrets_email_configurados()
 
-        corpo_preview = montar_corpo_email_alerta_ferias(df_ferias)
+            if configurado:
+                st.success("Configurações de e-mail encontradas.")
+            else:
+                st.warning("Configurações de e-mail incompletas.")
+                st.markdown("Chaves ausentes ou vazias:")
+                for chave in ausentes:
+                    st.markdown(f"- `{chave}`")
 
-        if corpo_preview:
-            with st.expander("Pré-visualizar conteúdo do e-mail"):
-                st.code(corpo_preview, language="text")
-        else:
-            st.info("Nenhum alerta crítico encontrado para montar e-mail neste momento.")
+            corpo_preview = montar_corpo_email_alerta_ferias(df_ferias)
 
-        if st.button("📧 Enviar alerta de férias por e-mail", use_container_width=True, key="btn_enviar_alerta_ferias_email"):
-            try:
-                enviado, mensagem = enviar_alerta_ferias_por_email(df_ferias)
+            if corpo_preview:
+                with st.expander("Pré-visualizar conteúdo do e-mail"):
+                    st.code(corpo_preview, language="text")
+            else:
+                st.info("Nenhum alerta crítico encontrado para montar e-mail neste momento.")
 
-                if enviado:
-                    st.success(mensagem)
-                else:
-                    st.info(mensagem)
+            if st.button("📧 Enviar alerta de férias por e-mail", use_container_width=True, key="btn_enviar_alerta_ferias_email"):
+                try:
+                    enviado, mensagem = enviar_alerta_ferias_por_email(df_ferias)
 
-            except Exception as e:
-                st.error(f"Erro ao enviar e-mail de alerta: {e}")
+                    if enviado:
+                        st.success(mensagem)
+                    else:
+                        st.info(mensagem)
+
+                except Exception as e:
+                    st.error(f"Erro ao enviar e-mail de alerta: {e}")
 
     total = len(df_ferias)
     vencidas = len(df_ferias[df_ferias["Situacao_Ferias"] == "Férias Vencidas"])
@@ -844,6 +852,11 @@ def render_ferias(df_ferias, sha_ferias):
                 key=f"ferias_edit_periodo_gozo_{idx}",
             )
 
+            confirmar_exclusao = st.checkbox(
+                "Confirmo a exclusão definitiva deste registro de férias.",
+                key=f"confirmar_exclusao_ferias_{idx}",
+                disabled=not pode_excluir,
+            )
             col_salvar, col_excluir = st.columns(2)
 
             if col_salvar.button(
@@ -893,6 +906,7 @@ def render_ferias(df_ferias, sha_ferias):
                 "Excluir registro",
                 use_container_width=True,
                 key=f"btn_excluir_ferias_{idx}",
+                disabled=not pode_excluir or not confirmar_exclusao,
             ):
                 df_ferias = df_ferias.drop(idx).reset_index(drop=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
@@ -906,7 +920,7 @@ def render_ferias(df_ferias, sha_ferias):
 # =========================
 # TELA DE FOLGAS
 # =========================
-def render_folgas(df_ferias):
+def render_folgas(df_ferias, pode_excluir):
     st.subheader("Controle de Folgas")
 
     df_folgas, sha_folgas = carregar_csv_seguro(ARQ_FOLGAS)
@@ -1205,6 +1219,11 @@ def render_folgas(df_ferias):
                 key=f"folga_edit_observacoes_{idx_edit}",
             )
 
+            confirmar_exclusao_folga = st.checkbox(
+                "Confirmo a exclusão definitiva desta folga.",
+                key=f"confirmar_exclusao_folga_{idx_edit}",
+                disabled=not pode_excluir,
+            )
             col_salvar, col_excluir = st.columns(2)
 
             if col_salvar.button(
@@ -1231,6 +1250,7 @@ def render_folgas(df_ferias):
                 "Excluir folga",
                 use_container_width=True,
                 key=f"btn_excluir_folga_{idx_edit}",
+                disabled=not pode_excluir or not confirmar_exclusao_folga,
             ):
                 df_folgas = df_folgas.drop(idx_edit).reset_index(drop=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
@@ -1245,6 +1265,13 @@ def render_folgas(df_ferias):
 # RENDER PRINCIPAL
 # =========================
 def render():
+    if not pode_acessar_modulo("ferias"):
+        st.error("Você não possui permissão para acessar Férias e Folgas.")
+        st.stop()
+
+    pode_enviar_alerta = pode_executar("ferias", "alertas", "enviar")
+    pode_excluir = pode_executar("ferias", "registros", "excluir")
+
     st.title("Férias e Folgas")
 
     df_ferias, sha_ferias = carregar_csv_seguro(ARQ_FERIAS)
@@ -1258,10 +1285,10 @@ def render():
     aba_ferias, aba_folgas = st.tabs(["Controle de Férias", "Controle de Folgas"])
 
     with aba_ferias:
-        render_ferias(df_ferias, sha_ferias)
+        render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir)
 
     with aba_folgas:
-        render_folgas(df_ferias)
+        render_folgas(df_ferias, pode_excluir)
 
     st.divider()
 
