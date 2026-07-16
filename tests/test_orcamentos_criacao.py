@@ -95,6 +95,69 @@ class TestFluxoMinimoPainel(unittest.TestCase):
         self.assertEqual(falso.reruns, 1)
         repositorio.carregar_indice.assert_not_called()
 
+    def test_clique_interrompe_painel_quando_snapshot_falha(self):
+        repositorio = Mock()
+        repositorio.carregar_snapshot.return_value = ResultadoPersistencia(
+            StatusPersistencia.ERRO_REMOTO,
+            erro="GitHub não autorizou a operação de carregar snapshot (HTTP 403).",
+        )
+        falso = StreamlitFalso(criar=True)
+
+        with patch.object(self.painel, "st", falso):
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+
+        repositorio.carregar_indice.assert_not_called()
+        repositorio.carregar_indice_bruto.assert_not_called()
+        self.assertEqual(len(falso.erros), 1)
+        self.assertIn("snapshot", falso.erros[0])
+        self.assertIn("erro_remoto", falso.erros[0])
+        self.assertIn("HTTP 403", falso.erros[0])
+
+    def test_clique_interrompe_painel_quando_indice_falha(self):
+        repositorio = Mock()
+        repositorio.carregar_snapshot.return_value = ResultadoPersistencia(
+            StatusPersistencia.SUCESSO, "snapshot"
+        )
+        repositorio.carregar_indice_bruto.return_value = ResultadoPersistencia(
+            StatusPersistencia.DADO_CORROMPIDO,
+            erro="Conteúdo inválido retornado pelo GitHub.",
+        )
+        falso = StreamlitFalso(criar=True)
+
+        with patch.object(self.painel, "st", falso):
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+
+        repositorio.carregar_indice.assert_not_called()
+        repositorio.persistir_versao.assert_not_called()
+        self.assertEqual(len(falso.erros), 1)
+        self.assertIn("índice", falso.erros[0])
+        self.assertIn("dado_corrompido", falso.erros[0])
+        self.assertIn("Conteúdo inválido", falso.erros[0])
+
+    def test_clique_interrompe_painel_e_exibe_falha_de_persistencia(self):
+        repositorio = Mock()
+        repositorio.carregar_snapshot.return_value = ResultadoPersistencia(
+            StatusPersistencia.SUCESSO, "snapshot"
+        )
+        repositorio.carregar_indice_bruto.return_value = ResultadoPersistencia(
+            StatusPersistencia.SUCESSO,
+            "orcamento_id,versao_id,numero,objeto,finalidade,responsavel,estado\n",
+        )
+        repositorio.persistir_versao.return_value = ResultadoPersistencia(
+            StatusPersistencia.ERRO_REMOTO,
+            erro="Operação Git não autorizada pelo GitHub.",
+        )
+        falso = StreamlitFalso(criar=True)
+
+        with patch.object(self.painel, "st", falso):
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+
+        repositorio.carregar_indice.assert_not_called()
+        self.assertEqual(len(falso.erros), 1)
+        self.assertIn("persistência", falso.erros[0])
+        self.assertIn("erro_remoto", falso.erros[0])
+        self.assertIn("Operação Git não autorizada", falso.erros[0])
+
     def test_reabertura_carrega_versao_e_abre_dados_obra(self):
         resumo = Mock(orcamento_id="orc-1", versao_id="ver-1")
         orcamento, versao = criar_orcamento_vazio("fabio").valor

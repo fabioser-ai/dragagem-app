@@ -201,6 +201,32 @@ class TestRepositorioOrcamentos(unittest.TestCase):
         self.assertTrue(resultado.sucesso)
         get.assert_called_once()
 
+    @patch("modulos.orcamentos.persistencia.github_repositorio.requests.get")
+    def test_conteudo_base64_do_github_aceita_quebras_de_linha(self, get):
+        conteudo = serializar_indice([]).encode()
+        codificado = base64.b64encode(conteudo).decode()
+        quebrado = "\n".join(
+            codificado[indice:indice + 60]
+            for indice in range(0, len(codificado), 60)
+        ) + "\n"
+        get.return_value = Resposta(200, {"content": quebrado})
+
+        resultado = self.repo.carregar_indice_bruto()
+
+        self.assertTrue(resultado.sucesso)
+        self.assertEqual(resultado.valor, serializar_indice([]))
+        get.assert_called_once()
+
+    @patch("modulos.orcamentos.persistencia.github_repositorio.requests.get")
+    def test_falha_http_de_leitura_preserva_causa_segura(self, get):
+        get.return_value = Resposta(403)
+
+        resultado = self.repo.carregar_indice_bruto()
+
+        self.assertEqual(resultado.status, StatusPersistencia.ERRO_REMOTO)
+        self.assertIn("HTTP 403", resultado.erro)
+        self.assertNotIn("token", resultado.erro.casefold())
+
     @patch("modulos.orcamentos.persistencia.github_repositorio.publicar_arquivos_em_commit")
     def test_ausencia_de_parcialidade(self, publicar):
         publicar.return_value = ResultadoPersistenciaMultiArquivo(

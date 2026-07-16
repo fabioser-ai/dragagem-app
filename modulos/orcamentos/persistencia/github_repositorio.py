@@ -35,13 +35,22 @@ class RepositorioOrcamentosGitHub:
                 headers=self._headers(), timeout=self.timeout,
             )
         except requests.RequestException:
-            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO)
+            return ResultadoPersistencia(
+                StatusPersistencia.ERRO_REMOTO,
+                erro="Falha de comunicação com o GitHub ao carregar snapshot.",
+            )
         if resposta.status_code != 200:
-            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO)
+            return ResultadoPersistencia(
+                StatusPersistencia.ERRO_REMOTO,
+                erro=self._erro_http(resposta.status_code, "carregar snapshot"),
+            )
         try:
             sha = resposta.json()["object"]["sha"]
         except (KeyError, TypeError, ValueError):
-            return ResultadoPersistencia(StatusPersistencia.DADO_CORROMPIDO)
+            return ResultadoPersistencia(
+                StatusPersistencia.DADO_CORROMPIDO,
+                erro="Resposta inválida do GitHub ao carregar snapshot.",
+            )
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, sha)
 
     def carregar_indice_bruto(self):
@@ -118,17 +127,31 @@ class RepositorioOrcamentosGitHub:
                 headers=self._headers(), params={"ref": self.branch}, timeout=self.timeout,
             )
         except requests.RequestException:
-            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO, arquivos=(caminho,))
+            return ResultadoPersistencia(
+                StatusPersistencia.ERRO_REMOTO,
+                arquivos=(caminho,),
+                erro="Falha de comunicação com o GitHub ao carregar arquivo.",
+            )
         if resposta.status_code == 404:
             return ResultadoPersistencia(StatusPersistencia.DADO_INEXISTENTE, arquivos=(caminho,))
         if resposta.status_code != 200:
-            return ResultadoPersistencia(StatusPersistencia.ERRO_REMOTO, arquivos=(caminho,))
+            return ResultadoPersistencia(
+                StatusPersistencia.ERRO_REMOTO,
+                arquivos=(caminho,),
+                erro=self._erro_http(resposta.status_code, "carregar arquivo"),
+            )
         try:
+            codificado = resposta.json()["content"]
+            normalizado = "".join(codificado.split())
             conteudo = base64.b64decode(
-                resposta.json()["content"], validate=True
+                normalizado, validate=True
             ).decode("utf-8")
         except (KeyError, TypeError, ValueError, UnicodeDecodeError):
-            return ResultadoPersistencia(StatusPersistencia.DADO_CORROMPIDO, arquivos=(caminho,))
+            return ResultadoPersistencia(
+                StatusPersistencia.DADO_CORROMPIDO,
+                arquivos=(caminho,),
+                erro="Conteúdo inválido retornado pelo GitHub.",
+            )
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, conteudo, arquivos=(caminho,))
 
     def _mapear_status(self, remoto, snapshot_esperado):
@@ -144,3 +167,15 @@ class RepositorioOrcamentosGitHub:
 
     def _headers(self):
         return {"Authorization": f"token {self.token}", "Accept": "application/vnd.github+json"}
+
+    @staticmethod
+    def _erro_http(http_status, operacao):
+        if http_status in (401, 403):
+            return f"GitHub não autorizou a operação de {operacao} (HTTP {http_status})."
+        if http_status == 404:
+            return f"Recurso não encontrado ao {operacao} (HTTP 404)."
+        if http_status == 429:
+            return f"GitHub limitou a operação de {operacao} (HTTP 429)."
+        if 500 <= http_status <= 599:
+            return f"GitHub indisponível ao {operacao} (HTTP {http_status})."
+        return f"GitHub recusou a operação de {operacao} (HTTP {http_status})."
