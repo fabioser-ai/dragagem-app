@@ -35,7 +35,7 @@ class StreamlitFalso:
     def button(self, texto, **kwargs):
         if texto == "Abrir versão":
             return self.abrir
-        if texto == "Editar identificação e premissas":
+        if texto == "Abrir Dados Obra":
             return self.editar
         return False
     def rerun(self): pass
@@ -135,6 +135,20 @@ class TestPainel(unittest.TestCase):
             self.painel.render(repositorio=repositorio, ao_voltar=Mock())
         repositorio.carregar_snapshot.assert_called_once()
         self.assertEqual(falso.session_state["novo_orcamento_snapshot"], "commit-atual")
+
+    def test_edicao_nao_rele_indice_a_cada_calculo(self):
+        versao = Mock(numero=1, estado=Mock(value="elaboracao"), cenarios=(), editavel=True)
+        orcamento = Mock(objeto="Objeto", finalidade="Proposta", responsavel="Fabio")
+        repositorio = Mock()
+        falso = StreamlitFalso()
+        falso.session_state["novo_orcamento_detalhe"] = (orcamento, versao)
+        falso.session_state["novo_orcamento_snapshot"] = "commit-atual"
+        with patch.object(self.painel, "st", falso), patch.object(
+            self.painel.dados_obra, "render"
+        ) as render_dados:
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+        repositorio.carregar_indice.assert_not_called()
+        render_dados.assert_called_once()
 
     def test_vazio_e_erro_sao_explicitos(self):
         for status in (StatusPersistencia.DADO_INEXISTENTE, StatusPersistencia.ERRO_REMOTO):

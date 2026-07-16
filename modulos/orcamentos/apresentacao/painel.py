@@ -3,7 +3,7 @@
 import streamlit as st
 
 from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
-from modulos.orcamentos.apresentacao import premissas
+from modulos.orcamentos.apresentacao import dados_obra
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
 
 
@@ -27,14 +27,14 @@ def _mostrar_detalhe(repositorio):
 
     snapshot = st.session_state.get("novo_orcamento_snapshot")
     if snapshot:
-        premissas.render(
+        dados_obra.render(
             repositorio=repositorio,
             orcamento=orcamento,
             versao=versao,
             snapshot_esperado=snapshot,
         )
     elif versao.editavel and st.button(
-        "Editar identificação e premissas",
+        "Abrir Dados Obra",
         key="novo_orcamento_iniciar_edicao",
     ):
         resultado = repositorio.carregar_snapshot()
@@ -49,6 +49,14 @@ def render(*, repositorio, ao_voltar):
     """Lista o índice em uma leitura e abre uma versão somente sob demanda."""
 
     st.title("Novo Sistema de Orçamentos")
+
+    if st.session_state.get("novo_orcamento_detalhe") and st.session_state.get(
+        "novo_orcamento_snapshot"
+    ):
+        _mostrar_detalhe(repositorio)
+        if st.button("Voltar ao menu", key="novo_orcamento_voltar_menu"):
+            ao_voltar()
+        return
 
     resultado_indice = repositorio.carregar_indice()
     if resultado_indice.status is StatusPersistencia.DADO_INEXISTENTE:
