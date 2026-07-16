@@ -9,10 +9,9 @@ from unittest.mock import Mock, patch
 
 from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
 from modulos.orcamentos.dominio.cotacoes import (
-    CotacaoContainer,
-    CotacaoGuindaste,
-    CotacaoMensal,
     Cotacoes,
+    ItemCotacao,
+    PropostaFornecedor,
 )
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.persistencia.contratos import (
@@ -41,16 +40,18 @@ class ColunaFalsa:
 
 
 class StreamlitCotacoesFalso:
-    def __init__(self, *, enviar=False, valores=None):
-        self.enviar = enviar
+    def __init__(self, *, acoes=(), valores=None, marcacoes=None, session_state=None):
+        self.acoes = set(acoes)
         self.valores = valores or {}
-        self.session_state = {}
+        self.marcacoes = marcacoes or {}
+        self.session_state = session_state if session_state is not None else {}
         self.formularios = []
         self.textos = []
         self.monetarios = []
         self.padroes = {}
         self.sucessos = []
         self.erros = []
+        self.avisos = []
         self.reruns = 0
 
     def form(self, chave):
@@ -58,7 +59,7 @@ class StreamlitCotacoesFalso:
         return nullcontext()
 
     def form_submit_button(self, texto):
-        return self.enviar
+        return texto in self.acoes
 
     def subheader(self, texto):
         pass
@@ -79,13 +80,12 @@ class StreamlitCotacoesFalso:
         chave = kwargs["key"]
         self.monetarios.append(chave)
         self.padroes[chave] = kwargs.get("value")
-        self.assert_configuracao_monetaria(kwargs)
+        if kwargs.get("min_value") != 0.0 or kwargs.get("step") != 0.01:
+            raise AssertionError("Campo monetário sem suporte a centavos não negativos.")
         return self.valores.get(chave, kwargs.get("value"))
 
-    @staticmethod
-    def assert_configuracao_monetaria(kwargs):
-        if kwargs.get("min_value") != 0.0 or kwargs.get("step") != 0.01:
-            raise AssertionError("Campo monetário sem limite não negativo ou centavos.")
+    def checkbox(self, rotulo, **kwargs):
+        return self.marcacoes.get(kwargs["key"], False)
 
     def success(self, texto):
         self.sucessos.append(texto)
@@ -93,91 +93,140 @@ class StreamlitCotacoesFalso:
     def error(self, texto):
         self.erros.append(texto)
 
+    def warning(self, texto):
+        self.avisos.append(texto)
+
     def rerun(self):
         self.reruns += 1
 
 
-def cotacoes_preenchidas():
-    return Cotacoes(
-        guindaste=(
-            CotacaoGuindaste("G1", "A", "1", "D", 10.25, 100.50),
-            CotacaoGuindaste(),
-            CotacaoGuindaste(),
-            CotacaoGuindaste(),
-        ),
-        container=(
-            CotacaoContainer("C1", "B", "2", "D", 200.75, 15.30),
-            CotacaoContainer(),
-            CotacaoContainer(),
-        ),
-        banheiro_quimico=(
-            CotacaoMensal("B1", "C", "3", "D", 90.10),
-            CotacaoMensal(),
-            CotacaoMensal(),
-        ),
-        destinacao=(
-            CotacaoMensal("D1", "D", "4", "D", 300.99),
-            CotacaoMensal(),
-            CotacaoMensal(),
-        ),
+def item_preenchido():
+    return ItemCotacao(
+        "item-transporte",
+        "Transporte",
+        "Preço por viagem",
+        "Preço por quilômetro",
+        (PropostaFornecedor("Fornecedor", "Ana", "123", "Detalhe", 10.25, 2.50),),
     )
 
 
-class TestDominioESerializacaoCotacoes(unittest.TestCase):
-    def test_quantidade_de_linhas_reproduz_excel(self):
-        cotacoes = Cotacoes()
+class TestModeloGenericoCotacoes(unittest.TestCase):
+    def test_versao_nova_recebe_quatro_itens_iniciais_removiveis(self):
+        _, versao = criar_orcamento_vazio("Fabio").valor
         self.assertEqual(
-            tuple(map(len, (
-                cotacoes.guindaste,
-                cotacoes.container,
-                cotacoes.banheiro_quimico,
-                cotacoes.destinacao,
-            ))),
-            (4, 3, 3, 3),
+            [item.nome for item in versao.cotacoes.itens],
+            ["Guindaste", "Container", "Banheiro Químico", "Destinação"],
         )
+        self.assertEqual([len(item.propostas) for item in versao.cotacoes.itens], [4, 3, 3, 3])
+        self.assertEqual(Cotacoes(()).itens, ())
 
-    def test_valores_monetarios_nao_negativos_e_com_centavos(self):
-        self.assertEqual(CotacaoGuindaste(preco_hora=10.25).preco_hora, 10.25)
+    def test_item_novo_aceita_nome_rotulos_e_tres_propostas(self):
+        item = ItemCotacao.novo(
+            "Transporte de equipamento", "Preço por viagem", "Preço por quilômetro"
+        )
+        self.assertTrue(item.id)
+        self.assertEqual(item.nome, "Transporte de equipamento")
+        self.assertEqual(item.rotulo_primeiro_valor, "Preço por viagem")
+        self.assertEqual(item.rotulo_segundo_valor, "Preço por quilômetro")
+        self.assertEqual(len(item.propostas), 3)
+
+    def test_segundo_valor_e_opcional_e_valor_negativo_e_rejeitado(self):
+        item = ItemCotacao.novo("Destinação", "Preço por mês")
+        self.assertIsNone(item.rotulo_segundo_valor)
         with self.assertRaises(ValueError):
-            CotacaoMensal(preco_mes=-0.01)
+            PropostaFornecedor(primeiro_valor=-0.01)
 
-    def test_round_trip_preserva_cotacoes_e_dados_obra(self):
+    def test_centavos_e_identificador_sobrevivem_ao_round_trip(self):
         orcamento, versao = criar_orcamento_vazio("Fabio").valor
-        dados_obra = DadosObra(objeto="Obra preservada")
-        versao.registrar_dados_obra(dados_obra)
-        versao.registrar_cotacoes(cotacoes_preenchidas())
+        item = item_preenchido()
+        versao.registrar_cotacoes(Cotacoes((item,)))
 
         resultado = desserializar_versao(serializar_versao(orcamento, versao))
 
         self.assertTrue(resultado.sucesso)
-        _, carregada = resultado.valor
-        self.assertEqual(asdict(carregada.cotacoes), asdict(versao.cotacoes))
-        self.assertEqual(asdict(carregada.dados_obra), asdict(dados_obra))
+        carregado = resultado.valor[1].cotacoes.itens[0]
+        self.assertEqual(carregado.id, "item-transporte")
+        self.assertEqual(carregado.propostas[0].primeiro_valor, 10.25)
+        self.assertEqual(carregado.propostas[0].segundo_valor, 2.50)
 
-    def test_documento_nao_contem_formula_ou_resultado_inventado(self):
+    def test_dados_obra_permanece_intacto_no_round_trip(self):
         orcamento, versao = criar_orcamento_vazio("Fabio").valor
-        versao.registrar_cotacoes(cotacoes_preenchidas())
+        dados = DadosObra(objeto="Obra preservada")
+        versao.registrar_dados_obra(dados)
+        versao.registrar_cotacoes(Cotacoes((item_preenchido(),)))
+        carregada = desserializar_versao(serializar_versao(orcamento, versao)).valor[1]
+        self.assertEqual(asdict(carregada.dados_obra), asdict(dados))
+
+
+class TestCompatibilidadeSchemaCinco(unittest.TestCase):
+    def test_quatro_grupos_antigos_sao_migrados_sem_perda(self):
+        orcamento, versao = criar_orcamento_vazio("Fabio").valor
         documento = json.loads(serializar_versao(orcamento, versao))
-        texto = json.dumps(documento["versao"]["cotacoes"])
-        self.assertNotIn("formula", texto.lower())
-        self.assertNotIn("media", texto.lower())
-        self.assertNotIn("selecion", texto.lower())
+        documento["schema_version"] = 5
+        documento["versao"]["cotacoes"] = {
+            "guindaste": [
+                {
+                    "nome": "G1", "contato": "A", "telefone": "1", "detalhe": "D",
+                    "preco_hora": 10.25, "preco_diaria": 100.50,
+                },
+                *[
+                    {"nome": "", "contato": "", "telefone": "", "detalhe": "", "preco_hora": None, "preco_diaria": None}
+                    for _ in range(3)
+                ],
+            ],
+            "container": [
+                {"nome": "C1", "contato": "B", "telefone": "2", "detalhe": "D", "preco_mes": 20.75, "frete_hora": 3.30},
+                *[
+                    {"nome": "", "contato": "", "telefone": "", "detalhe": "", "preco_mes": None, "frete_hora": None}
+                    for _ in range(2)
+                ],
+            ],
+            "banheiro_quimico": [
+                {"nome": "B1", "contato": "C", "telefone": "3", "detalhe": "D", "preco_mes": 30.10},
+                *[
+                    {"nome": "", "contato": "", "telefone": "", "detalhe": "", "preco_mes": None}
+                    for _ in range(2)
+                ],
+            ],
+            "destinacao": [
+                {"nome": "D1", "contato": "D", "telefone": "4", "detalhe": "D", "preco_mes": 40.99},
+                *[
+                    {"nome": "", "contato": "", "telefone": "", "detalhe": "", "preco_mes": None}
+                    for _ in range(2)
+                ],
+            ],
+        }
+
+        resultado = desserializar_versao(json.dumps(documento))
+
+        self.assertTrue(resultado.sucesso)
+        itens = resultado.valor[1].cotacoes.itens
+        self.assertEqual([len(item.propostas) for item in itens], [4, 3, 3, 3])
+        self.assertEqual(itens[0].propostas[0].nome, "G1")
+        self.assertEqual(itens[0].propostas[0].primeiro_valor, 10.25)
+        self.assertEqual(itens[0].propostas[0].segundo_valor, 100.50)
+        self.assertEqual(itens[3].propostas[0].primeiro_valor, 40.99)
+        self.assertFalse(itens[0].propostas[1].preenchida)
+
+    def test_schema_anterior_sem_cotacoes_recebe_itens_iniciais(self):
+        orcamento, versao = criar_orcamento_vazio("Fabio").valor
+        documento = json.loads(serializar_versao(orcamento, versao))
+        documento["schema_version"] = 4
+        documento["versao"].pop("cotacoes")
+        resultado = desserializar_versao(json.dumps(documento))
+        self.assertTrue(resultado.sucesso)
+        self.assertEqual(len(resultado.valor[1].cotacoes.itens), 4)
 
 
-class TestTelaCotacoes(unittest.TestCase):
+class TestTelaMutavelCotacoes(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
         cls.tela = importlib.import_module("modulos.orcamentos.apresentacao.cotacoes")
 
-    def _dominio(self):
-        return criar_orcamento_vazio("Fabio").valor
-
-    def test_um_formulario_13_linhas_72_campos_e_zero_operacoes_sem_envio(self):
-        orcamento, versao = self._dominio()
-        repositorio = Mock()
-        falso = StreamlitCotacoesFalso()
-
+    def _render(self, falso, repositorio=None, dominio=None):
+        orcamento, versao = dominio or criar_orcamento_vazio("Fabio").valor
+        repositorio = repositorio or Mock()
         with patch.object(self.tela, "st", falso):
             self.tela.render(
                 repositorio=repositorio,
@@ -185,74 +234,103 @@ class TestTelaCotacoes(unittest.TestCase):
                 versao=versao,
                 snapshot_esperado="snapshot",
             )
+        return orcamento, versao, repositorio
 
+    def test_editar_sem_enviar_tem_zero_operacoes_remotas_e_zero_rerun(self):
+        falso = StreamlitCotacoesFalso()
+        _, _, repositorio = self._render(falso)
         self.assertEqual(falso.formularios, ["cotacoes_formulario"])
-        self.assertEqual(len(falso.textos), 52)
-        self.assertEqual(len(falso.monetarios), 20)
-        self.assertEqual(len(falso.textos) + len(falso.monetarios), 72)
         self.assertEqual(falso.reruns, 0)
         repositorio.carregar_indice.assert_not_called()
         repositorio.carregar_indice_bruto.assert_not_called()
         repositorio.carregar_snapshot.assert_not_called()
         repositorio.carregar_versao.assert_not_called()
-        repositorio.persistir_versao.assert_not_called()
         repositorio.persistir_documento_versao.assert_not_called()
 
-    def test_salvar_persiste_uma_vez_sem_indice_e_preserva_dados_obra(self):
-        orcamento, versao = self._dominio()
-        dados = DadosObra(objeto="Dados Obra intactos")
+    def test_adicionar_item_aplica_localmente_sem_persistir(self):
+        estado = {}
+        falso = StreamlitCotacoesFalso(
+            acoes={"Aplicar alterações"},
+            valores={
+                "cot_novo_item_nome": "Transporte",
+                "cot_novo_item_primeiro": "Preço por viagem",
+                "cot_novo_item_segundo": "Preço por km",
+            },
+            marcacoes={"cot_adicionar_item": True},
+            session_state=estado,
+        )
+        _, _, repositorio = self._render(falso)
+        editadas = estado["novo_orcamento_cotacoes_edicao"]
+        self.assertEqual(editadas.itens[-1].nome, "Transporte")
+        self.assertEqual(len(editadas.itens[-1].propostas), 3)
+        self.assertTrue(editadas.itens[-1].id)
+        self.assertEqual(falso.reruns, 1)
+        repositorio.persistir_documento_versao.assert_not_called()
+
+    def test_adicionar_e_remover_proposta_sao_acoes_explicitas(self):
+        orcamento, versao = criar_orcamento_vazio("Fabio").valor
+        versao.registrar_cotacoes(Cotacoes((item_preenchido(),)))
+        estado = {}
+        adicionar = StreamlitCotacoesFalso(
+            acoes={"Aplicar alterações"},
+            marcacoes={"cot_item-transporte_adicionar_proposta": True},
+            session_state=estado,
+        )
+        self._render(adicionar, dominio=(orcamento, versao))
+        self.assertEqual(len(estado["novo_orcamento_cotacoes_edicao"].itens[0].propostas), 2)
+
+        remover = StreamlitCotacoesFalso(
+            acoes={"Aplicar alterações"},
+            marcacoes={
+                "cot_item-transporte_0_remover": True,
+                "cot_item-transporte_0_confirmar": True,
+            },
+            session_state=estado,
+        )
+        detalhe = estado["novo_orcamento_detalhe"]
+        self._render(remover, dominio=detalhe)
+        self.assertEqual(len(estado["novo_orcamento_cotacoes_edicao"].itens[0].propostas), 1)
+
+    def test_dado_preenchido_nao_e_removido_sem_confirmacao(self):
+        orcamento, versao = criar_orcamento_vazio("Fabio").valor
+        versao.registrar_cotacoes(Cotacoes((item_preenchido(),)))
+        falso = StreamlitCotacoesFalso(
+            acoes={"Aplicar alterações"},
+            marcacoes={"cot_item-transporte_0_remover": True},
+        )
+        self._render(falso, dominio=(orcamento, versao))
+        self.assertTrue(falso.avisos)
+        self.assertEqual(falso.reruns, 0)
+
+    def test_quatro_itens_iniciais_podem_ser_removidos(self):
+        _, versao = criar_orcamento_vazio("Fabio").valor
+        marcacoes = {
+            f"cot_{item.id}_remover_item": True for item in versao.cotacoes.itens
+        }
+        estado = {}
+        falso = StreamlitCotacoesFalso(
+            acoes={"Aplicar alterações"}, marcacoes=marcacoes, session_state=estado
+        )
+        self._render(falso, dominio=(criar_orcamento_vazio("Fabio").valor))
+        self.assertEqual(estado["novo_orcamento_cotacoes_edicao"].itens, ())
+
+    def test_salvar_faz_uma_persistencia_sem_indice_e_preserva_dados_obra(self):
+        orcamento, versao = criar_orcamento_vazio("Fabio").valor
+        dados = DadosObra(objeto="Preservado")
         versao.registrar_dados_obra(dados)
         repositorio = Mock()
         repositorio.persistir_documento_versao.return_value = ResultadoPersistencia(
-            StatusPersistencia.SUCESSO, commit_sha="commit-cotacoes"
+            StatusPersistencia.SUCESSO, commit_sha="commit"
         )
-        falso = StreamlitCotacoesFalso(
-            enviar=True,
-            valores={
-                "cot_guindaste_0_nome": "Fornecedor A",
-                "cot_guindaste_0_hora": 123.45,
-            },
-        )
-
-        with patch.object(self.tela, "st", falso):
-            self.tela.render(
-                repositorio=repositorio,
-                orcamento=orcamento,
-                versao=versao,
-                snapshot_esperado="snapshot-abertura",
-            )
-
+        falso = StreamlitCotacoesFalso(acoes={"Salvar Cotações"})
+        self._render(falso, repositorio, (orcamento, versao))
         repositorio.persistir_documento_versao.assert_called_once()
-        salvo_orcamento, salva_versao, snapshot = (
-            repositorio.persistir_documento_versao.call_args.args
-        )
-        self.assertEqual(snapshot, "snapshot-abertura")
-        self.assertEqual(salva_versao.cotacoes.guindaste[0].nome, "Fornecedor A")
-        self.assertEqual(salva_versao.cotacoes.guindaste[0].preco_hora, 123.45)
+        salva_versao = repositorio.persistir_documento_versao.call_args.args[1]
         self.assertEqual(asdict(salva_versao.dados_obra), asdict(dados))
-        self.assertEqual(salvo_orcamento.objeto, orcamento.objeto)
+        repositorio.carregar_indice.assert_not_called()
         repositorio.carregar_indice_bruto.assert_not_called()
         repositorio.persistir_versao.assert_not_called()
         self.assertEqual(falso.reruns, 1)
-
-    def test_reabertura_mostra_todas_as_cotacoes_salvas(self):
-        orcamento, versao = self._dominio()
-        versao.registrar_cotacoes(cotacoes_preenchidas())
-        falso = StreamlitCotacoesFalso()
-
-        with patch.object(self.tela, "st", falso):
-            self.tela.render(
-                repositorio=Mock(),
-                orcamento=orcamento,
-                versao=versao,
-                snapshot_esperado="snapshot",
-            )
-
-        self.assertEqual(falso.padroes["cot_guindaste_0_nome"], "G1")
-        self.assertEqual(falso.padroes["cot_guindaste_0_hora"], 10.25)
-        self.assertEqual(falso.padroes["cot_container_0_mes"], 200.75)
-        self.assertEqual(falso.padroes["cot_banheiro_0_mes"], 90.10)
-        self.assertEqual(falso.padroes["cot_destinacao_0_mes"], 300.99)
 
 
 class TestPersistenciaSomenteDocumento(unittest.TestCase):
@@ -268,13 +346,11 @@ class TestPersistenciaSomenteDocumento(unittest.TestCase):
             commit_sha="commit",
         )
         orcamento, versao = criar_orcamento_vazio("Fabio").valor
-        versao.registrar_cotacoes(cotacoes_preenchidas())
+        versao.registrar_cotacoes(Cotacoes((item_preenchido(),)))
         repositorio = RepositorioOrcamentosGitHub("token", "org/repo")
-
         resultado = repositorio.persistir_documento_versao(
             orcamento, versao, "snapshot"
         )
-
         self.assertTrue(resultado.sucesso)
         arquivos = publicar.call_args.args[0]
         self.assertEqual(len(arquivos), 1)
