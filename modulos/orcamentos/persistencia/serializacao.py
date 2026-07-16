@@ -8,10 +8,10 @@ from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamen
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
-def _serializar_valor(valor: ValorPremissa | None):
+def _valor_para_dict(valor):
     if valor is None:
         return None
     return {
@@ -24,10 +24,11 @@ def _serializar_valor(valor: ValorPremissa | None):
     }
 
 
-def _desserializar_valor(dados):
+def _valor_de_dict(dados):
     if dados is None:
         return None
-    if set(dados) != {"valor", "unidade", "origem", "autor", "vigencia", "justificativa"}:
+    campos = {"valor", "unidade", "origem", "autor", "vigencia", "justificativa"}
+    if not isinstance(dados, dict) or set(dados) != campos:
         raise ValueError
     return ValorPremissa(
         dados["valor"], dados["unidade"], OrigemPremissa(dados["origem"]),
@@ -38,18 +39,18 @@ def _desserializar_valor(dados):
 def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
     if versao.orcamento_id != orcamento.id:
         raise ValueError("A versão não pertence ao orçamento informado.")
-    premissas = []
+    grupos = []
     for (cenario_id, conceito), historico in versao._premissas.items():
-        premissas.append({
+        grupos.append({
             "cenario_id": str(cenario_id),
             "conceito": conceito,
             "historico": [
                 {
-                    "sequencia": item.sequencia,
-                    "sugerido": _serializar_valor(item.sugerido),
-                    "adotado": _serializar_valor(item.adotado),
+                    "sequencia": registro.sequencia,
+                    "sugerido": _valor_para_dict(registro.sugerido),
+                    "adotado": _valor_para_dict(registro.adotado),
                 }
-                for item in historico
+                for registro in historico
             ],
         })
     documento = {
@@ -66,116 +67,97 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
             "numero": versao.numero,
             "autor": versao.autor,
             "estado": versao.estado.value,
-            "versao_anterior_id": (
-                str(versao.versao_anterior_id) if versao.versao_anterior_id else None
-            ),
-            "cenario_adotado_id": (
-                str(versao.cenario_adotado_id) if versao.cenario_adotado_id else None
-            ),
+            "versao_anterior_id": str(versao.versao_anterior_id) if versao.versao_anterior_id else None,
+            "cenario_adotado_id": str(versao.cenario_adotado_id) if versao.cenario_adotado_id else None,
             "cenarios": [
-                {
-                    "id": str(cenario.id),
-                    "versao_id": str(cenario.versao_id),
-                    "nome": cenario.nome,
-                    "estado": cenario.estado.value,
-                }
-                for cenario in versao.cenarios
+                {"id": str(c.id), "versao_id": str(c.versao_id), "nome": c.nome, "estado": c.estado.value}
+                for c in versao.cenarios
             ],
-            "premissas": premissas,
+            "premissas": grupos,
         },
     }
     return json.dumps(documento, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
-def desserializar_versao(conteudo: str) -> ResultadoPersistencia[tuple[Orcamento, VersaoOrcamento]]:
+def desserializar_versao(conteudo: str):
     try:
         documento = json.loads(conteudo)
     except (TypeError, json.JSONDecodeError):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, SCHEMA_VERSION):
+        if schema not in (1, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
-        if set(documento) != {"schema_version", "orcamento", "versao"}:
-            return _corrompido("Estrutura raiz inválida.")
-        dados_orcamento = documento["orcamento"]
-        dados_versao = documento["versao"]
-        if set(dados_orcamento) != {"id", "objeto", "finalidade", "responsavel"}:
+        dados_o, dados_v = documento["orcamento"], documento["versao"]
+        if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
             return _corrompido("Propriedades do orçamento inválidas.")
-        campos_versao = {
+        campos_v1 = {
             "id", "orcamento_id", "numero", "autor", "estado",
             "versao_anterior_id", "cenario_adotado_id", "cenarios",
         }
-        if schema == SCHEMA_VERSION:
-            campos_versao.add("premissas")
-        if set(dados_versao) != campos_versao:
+        esperados = campos_v1 | ({"premissas"} if schema == SCHEMA_VERSION else set())
+        if set(dados_v) != esperados:
             return _corrompido("Propriedades da versão inválidas.")
 
         orcamento = Orcamento(
-            OrcamentoId(dados_orcamento["id"]),
-            dados_orcamento["objeto"],
-            dados_orcamento["finalidade"],
-            dados_orcamento["responsavel"],
+            OrcamentoId(dados_o["id"]), dados_o["objeto"],
+            dados_o["finalidade"], dados_o["responsavel"],
         )
-        orcamento_id_versao = OrcamentoId(dados_versao["orcamento_id"])
-        if orcamento_id_versao != orcamento.id:
+        orcamento_id = OrcamentoId(dados_v["orcamento_id"])
+        if orcamento_id != orcamento.id:
             return _corrompido("A versão pertence a outro orçamento.")
         versao = VersaoOrcamento(
-            VersaoId(dados_versao["id"]),
-            orcamento_id_versao,
-            dados_versao["numero"],
-            dados_versao["autor"],
-            EstadoVersao(dados_versao["estado"]),
-            VersaoId(dados_versao["versao_anterior_id"])
-            if dados_versao["versao_anterior_id"] else None,
+            VersaoId(dados_v["id"]), orcamento_id, dados_v["numero"], dados_v["autor"],
+            EstadoVersao(dados_v["estado"]),
+            VersaoId(dados_v["versao_anterior_id"]) if dados_v["versao_anterior_id"] else None,
         )
+
         cenarios = {}
-        for item in dados_versao["cenarios"]:
+        for item in dados_v["cenarios"]:
             if set(item) != {"id", "versao_id", "nome", "estado"}:
-                return _corrompido("Propriedades de cenário inválidas.")
+                raise ValueError
             cenario = Cenario(
                 CenarioId(item["id"]), VersaoId(item["versao_id"]),
                 item["nome"], EstadoCenario(item["estado"]),
             )
             if cenario.versao_id != versao.id or cenario.id in cenarios:
-                return _corrompido("Cenário inválido ou pertencente a outra versão.")
+                raise ValueError
             cenarios[cenario.id] = cenario
 
         premissas = {}
-        for grupo in dados_versao.get("premissas", []):
+        for grupo in dados_v.get("premissas", []):
             if set(grupo) != {"cenario_id", "conceito", "historico"}:
-                return _corrompido("Estrutura de premissa inválida.")
+                raise ValueError
             cenario_id = CenarioId(grupo["cenario_id"])
             if cenario_id not in cenarios or not isinstance(grupo["historico"], list):
-                return _corrompido("Premissa pertence a cenário inválido.")
+                raise ValueError
             historico = []
             for item in grupo["historico"]:
                 if set(item) != {"sequencia", "sugerido", "adotado"}:
-                    return _corrompido("Registro de premissa inválido.")
+                    raise ValueError
                 registro = Premissa(
                     grupo["conceito"], item["sequencia"],
-                    _desserializar_valor(item["sugerido"]),
-                    _desserializar_valor(item["adotado"]),
+                    _valor_de_dict(item["sugerido"]), _valor_de_dict(item["adotado"]),
                 )
                 if registro.sequencia != len(historico) + 1:
-                    return _corrompido("Histórico de premissa fora de sequência.")
+                    raise ValueError
                 historico.append(registro)
-            if not historico or (cenario_id, grupo["conceito"]) in premissas:
-                return _corrompido("Histórico de premissa vazio ou duplicado.")
-            premissas[(cenario_id, grupo["conceito"])] = tuple(historico)
+            chave = (cenario_id, grupo["conceito"])
+            if not historico or chave in premissas:
+                raise ValueError
+            premissas[chave] = tuple(historico)
 
-        adotado = (
-            CenarioId(dados_versao["cenario_adotado_id"])
-            if dados_versao["cenario_adotado_id"] else None
-        )
-        if adotado is not None:
-            if adotado not in cenarios or cenarios[adotado].estado is not EstadoCenario.ATIVO:
-                return _corrompido("Cenário adotado inválido.")
-        if versao.estado in (EstadoVersao.CONGELADA, EstadoVersao.APROVADA):
-            if not any(c.estado is EstadoCenario.ATIVO for c in cenarios.values()):
-                return _corrompido("Versão congelada precisa de cenário ativo.")
+        adotado = CenarioId(dados_v["cenario_adotado_id"]) if dados_v["cenario_adotado_id"] else None
+        if adotado is not None and (
+            adotado not in cenarios or cenarios[adotado].estado is not EstadoCenario.ATIVO
+        ):
+            raise ValueError
+        if versao.estado in (EstadoVersao.CONGELADA, EstadoVersao.APROVADA) and not any(
+            c.estado is EstadoCenario.ATIVO for c in cenarios.values()
+        ):
+            raise ValueError
         if versao.estado is EstadoVersao.APROVADA and adotado is None:
-            return _corrompido("Versão aprovada precisa de cenário adotado.")
+            raise ValueError
         object.__setattr__(versao, "_cenarios", cenarios)
         object.__setattr__(versao, "_premissas", premissas)
         object.__setattr__(versao, "cenario_adotado_id", adotado)
