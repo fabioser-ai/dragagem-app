@@ -46,7 +46,7 @@ class VersaoOrcamento:
         default_factory=dict, repr=False
     )
     _dados_obra: DadosObra | None = field(default=None, repr=False)
-    _cotacoes: Cotacoes | None = field(default=None, repr=False)
+    _cotacoes: Cotacoes = field(default_factory=Cotacoes.iniciais, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -100,7 +100,7 @@ class VersaoOrcamento:
         return self._dados_obra
 
     @property
-    def cotacoes(self) -> Cotacoes | None:
+    def cotacoes(self) -> Cotacoes:
         return self._cotacoes
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
