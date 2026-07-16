@@ -46,6 +46,12 @@ def _mostrar_detalhe(repositorio):
             st.error("Não foi possível iniciar uma edição segura.")
 
 
+def _descrever_falha(etapa, resultado):
+    status = getattr(resultado.status, "value", str(resultado.status))
+    detalhe = resultado.erro or "sem detalhe adicional"
+    return f"Não foi possível criar o orçamento ({etapa}): {status} — {detalhe}"
+
+
 def _criar_e_abrir(repositorio):
     autor = st.session_state.get("usuario", "")
     criacao = criar_orcamento_vazio(autor)
@@ -55,11 +61,11 @@ def _criar_e_abrir(repositorio):
 
     snapshot = repositorio.carregar_snapshot()
     if not snapshot.sucesso:
-        st.error("Não foi possível iniciar a criação segura do orçamento.")
+        st.error(_descrever_falha("snapshot", snapshot))
         return False
     indice = repositorio.carregar_indice_bruto()
     if not indice.sucesso:
-        st.error("Não foi possível preparar o índice para criação.")
+        st.error(_descrever_falha("índice", indice))
         return False
 
     orcamento, versao = criacao.valor
@@ -71,10 +77,7 @@ def _criar_e_abrir(repositorio):
         st.session_state["novo_orcamento_snapshot"] = persistencia.commit_sha
         st.rerun()
         return True
-    if persistencia.status is StatusPersistencia.BRANCH_AVANCADA:
-        st.error("A base avançou durante a criação. Tente novamente.")
-    else:
-        st.error("Não foi possível criar o orçamento.")
+    st.error(_descrever_falha("persistência", persistencia))
     return False
 
 
@@ -92,8 +95,8 @@ def render(*, repositorio, ao_voltar):
         return
 
     if st.button("Novo orçamento", key="novo_orcamento_criar"):
-        if _criar_e_abrir(repositorio):
-            return
+        _criar_e_abrir(repositorio)
+        return
 
     resultado_indice = repositorio.carregar_indice()
     if resultado_indice.status is StatusPersistencia.DADO_INEXISTENTE:
