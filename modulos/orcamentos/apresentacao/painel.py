@@ -3,6 +3,7 @@
 import streamlit as st
 
 from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
+from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
 from modulos.orcamentos.apresentacao import dados_obra
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
 
@@ -45,6 +46,38 @@ def _mostrar_detalhe(repositorio):
             st.error("Não foi possível iniciar uma edição segura.")
 
 
+def _criar_e_abrir(repositorio):
+    autor = st.session_state.get("usuario", "")
+    criacao = criar_orcamento_vazio(autor)
+    if not criacao.sucesso:
+        st.error(criacao.erro)
+        return False
+
+    snapshot = repositorio.carregar_snapshot()
+    if not snapshot.sucesso:
+        st.error("Não foi possível iniciar a criação segura do orçamento.")
+        return False
+    indice = repositorio.carregar_indice_bruto()
+    if not indice.sucesso:
+        st.error("Não foi possível preparar o índice para criação.")
+        return False
+
+    orcamento, versao = criacao.valor
+    persistencia = repositorio.persistir_versao(
+        orcamento, versao, indice.valor, snapshot.valor
+    )
+    if persistencia.sucesso:
+        st.session_state["novo_orcamento_detalhe"] = (orcamento, versao)
+        st.session_state["novo_orcamento_snapshot"] = persistencia.commit_sha
+        st.rerun()
+        return True
+    if persistencia.status is StatusPersistencia.BRANCH_AVANCADA:
+        st.error("A base avançou durante a criação. Tente novamente.")
+    else:
+        st.error("Não foi possível criar o orçamento.")
+    return False
+
+
 def render(*, repositorio, ao_voltar):
     """Lista o índice em uma leitura e abre uma versão somente sob demanda."""
 
@@ -57,6 +90,10 @@ def render(*, repositorio, ao_voltar):
         if st.button("Voltar ao menu", key="novo_orcamento_voltar_menu"):
             ao_voltar()
         return
+
+    if st.button("Novo orçamento", key="novo_orcamento_criar"):
+        if _criar_e_abrir(repositorio):
+            return
 
     resultado_indice = repositorio.carregar_indice()
     if resultado_indice.status is StatusPersistencia.DADO_INEXISTENTE:
@@ -116,8 +153,14 @@ def render(*, repositorio, ao_voltar):
                 selecionado.versao_id,
             )
             if detalhe.sucesso:
-                st.session_state["novo_orcamento_detalhe"] = detalhe.valor
-                st.session_state.pop("novo_orcamento_snapshot", None)
+                snapshot = repositorio.carregar_snapshot()
+                if snapshot.sucesso:
+                    st.session_state["novo_orcamento_detalhe"] = detalhe.valor
+                    st.session_state["novo_orcamento_snapshot"] = snapshot.valor
+                    st.rerun()
+                    return
+                else:
+                    st.error("Não foi possível abrir uma edição segura.")
             elif detalhe.status is StatusPersistencia.DADO_INEXISTENTE:
                 st.error("A versão selecionada não foi encontrada.")
             else:

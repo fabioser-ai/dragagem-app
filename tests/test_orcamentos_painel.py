@@ -12,14 +12,15 @@ from modulos.orcamentos.persistencia.indice import ResumoIndice, serializar_indi
 
 
 class StreamlitFalso:
-    def __init__(self, *, abrir=False, editar=False):
+    def __init__(self, *, abrir=False, editar=False, criar=False):
         self.abrir = abrir
         self.editar = editar
+        self.criar = criar
         self.erros = []
         self.infos = []
         self.avisos = []
         self.tabelas = []
-        self.session_state = {}
+        self.session_state = {"usuario": "fabio"}
 
     def title(self, texto): pass
     def info(self, texto): self.infos.append(texto)
@@ -33,6 +34,8 @@ class StreamlitFalso:
     def selectbox(self, *args, **kwargs): return kwargs["options"][0]
     def dataframe(self, dados, **kwargs): self.tabelas.append(dados)
     def button(self, texto, **kwargs):
+        if texto == "Novo orçamento":
+            return self.criar
         if texto == "Abrir versão":
             return self.abrir
         if texto == "Abrir Dados Obra":
