@@ -28,12 +28,18 @@ def _mostrar_detalhe(repositorio):
 
     snapshot = st.session_state.get("novo_orcamento_snapshot")
     if snapshot:
-        dados_obra.render(
-            repositorio=repositorio,
-            orcamento=orcamento,
-            versao=versao,
-            snapshot_esperado=snapshot,
-        )
+        try:
+            dados_obra.render(
+                repositorio=repositorio,
+                orcamento=orcamento,
+                versao=versao,
+                snapshot_esperado=snapshot,
+            )
+        except Exception as erro:  # Streamlit deve sempre apresentar uma resposta segura.
+            st.error(
+                "Não foi possível abrir Dados Obra (renderizar Dados Obra): "
+                f"erro_interno — {type(erro).__name__}."
+            )
     elif versao.editavel and st.button(
         "Abrir Dados Obra",
         key="novo_orcamento_iniciar_edicao",
@@ -46,10 +52,30 @@ def _mostrar_detalhe(repositorio):
             st.error("Não foi possível iniciar uma edição segura.")
 
 
-def _descrever_falha(etapa, resultado):
+def _descrever_falha(etapa, resultado, *, acao="criar o orçamento"):
     status = getattr(resultado.status, "value", str(resultado.status))
     detalhe = resultado.erro or "sem detalhe adicional"
-    return f"Não foi possível criar o orçamento ({etapa}): {status} — {detalhe}"
+    return f"Não foi possível {acao} ({etapa}): {status} — {detalhe}"
+
+
+def _abrir_versao(repositorio, selecionado):
+    detalhe = repositorio.carregar_versao(
+        selecionado.orcamento_id,
+        selecionado.versao_id,
+    )
+    if not detalhe.sucesso:
+        st.error(_descrever_falha("carregar versão", detalhe, acao="abrir a versão"))
+        return False
+
+    snapshot = repositorio.carregar_snapshot()
+    if not snapshot.sucesso:
+        st.error(_descrever_falha("carregar snapshot", snapshot, acao="abrir a versão"))
+        return False
+
+    st.session_state["novo_orcamento_detalhe"] = detalhe.valor
+    st.session_state["novo_orcamento_snapshot"] = snapshot.valor
+    st.rerun()
+    return True
 
 
 def _criar_e_abrir(repositorio):
@@ -151,23 +177,8 @@ def render(*, repositorio, ao_voltar):
             key="novo_orcamento_selecao",
         )
         if st.button("Abrir versão", key="novo_orcamento_abrir_versao"):
-            detalhe = repositorio.carregar_versao(
-                selecionado.orcamento_id,
-                selecionado.versao_id,
-            )
-            if detalhe.sucesso:
-                snapshot = repositorio.carregar_snapshot()
-                if snapshot.sucesso:
-                    st.session_state["novo_orcamento_detalhe"] = detalhe.valor
-                    st.session_state["novo_orcamento_snapshot"] = snapshot.valor
-                    st.rerun()
-                    return
-                else:
-                    st.error("Não foi possível abrir uma edição segura.")
-            elif detalhe.status is StatusPersistencia.DADO_INEXISTENTE:
-                st.error("A versão selecionada não foi encontrada.")
-            else:
-                st.error("Não foi possível abrir a versão selecionada.")
+            _abrir_versao(repositorio, selecionado)
+            return
 
     _mostrar_detalhe(repositorio)
 
