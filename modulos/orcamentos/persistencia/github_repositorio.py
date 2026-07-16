@@ -120,6 +120,33 @@ class RepositorioOrcamentosGitHub:
             tuple(item.arquivo for item in arquivos), remoto.erro,
         )
 
+    def persistir_documento_versao(
+        self, orcamento: Orcamento, versao: VersaoOrcamento, snapshot_esperado: str
+    ):
+        """Persiste somente o JSON quando o resumo do índice não foi alterado."""
+        try:
+            caminho = caminho_versao(str(orcamento.id), str(versao.id))
+            documento = serializar_versao(orcamento, versao)
+        except (AttributeError, TypeError, ValueError):
+            return ResultadoPersistencia(
+                StatusPersistencia.REQUISICAO_INVALIDA,
+                erro="Orçamento ou versão inválidos para persistência.",
+            )
+        arquivos = (
+            AlteracaoArquivoConteudo(caminho, documento.encode("utf-8")),
+        )
+        remoto = publicar_arquivos_em_commit(
+            arquivos, self.token, self.repo, self.branch,
+            "Persistir cotações do orçamento",
+            snapshot_esperado, timeout=self.timeout,
+        )
+        status = self._mapear_status(remoto, snapshot_esperado)
+        return ResultadoPersistencia(
+            status, (orcamento, versao) if status is StatusPersistencia.SUCESSO else None,
+            snapshot_esperado, remoto.snapshot_commit_sha, remoto.commit_sha,
+            tuple(item.arquivo for item in arquivos), remoto.erro,
+        )
+
     def _carregar_conteudo(self, caminho):
         try:
             resposta = requests.get(

@@ -4,7 +4,7 @@ import streamlit as st
 
 from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
 from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
-from modulos.orcamentos.apresentacao import dados_obra
+from modulos.orcamentos.apresentacao import cotacoes, dados_obra
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
 
 
@@ -28,8 +28,15 @@ def _mostrar_detalhe(repositorio):
 
     snapshot = st.session_state.get("novo_orcamento_snapshot")
     if snapshot:
+        tela = st.radio(
+            "Tela do orçamento",
+            ("Dados Obra", "Cotações"),
+            horizontal=True,
+            key="novo_orcamento_tela",
+        )
         try:
-            dados_obra.render(
+            apresentacao = dados_obra if tela == "Dados Obra" else cotacoes
+            apresentacao.render(
                 repositorio=repositorio,
                 orcamento=orcamento,
                 versao=versao,
@@ -37,7 +44,7 @@ def _mostrar_detalhe(repositorio):
             )
         except Exception as erro:  # Streamlit deve sempre apresentar uma resposta segura.
             st.error(
-                "Não foi possível abrir Dados Obra (renderizar Dados Obra): "
+                f"Não foi possível abrir {tela} (renderizar {tela}): "
                 f"erro_interno — {type(erro).__name__}."
             )
     elif versao.editavel and st.button(

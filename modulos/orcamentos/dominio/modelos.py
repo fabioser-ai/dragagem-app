@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
@@ -45,6 +46,7 @@ class VersaoOrcamento:
         default_factory=dict, repr=False
     )
     _dados_obra: DadosObra | None = field(default=None, repr=False)
+    _cotacoes: Cotacoes | None = field(default=None, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -58,6 +60,7 @@ class VersaoOrcamento:
         "_cenarios",
         "_premissas",
         "_dados_obra",
+        "_cotacoes",
         "_inicializada",
     }
 
@@ -96,6 +99,10 @@ class VersaoOrcamento:
     def dados_obra(self) -> DadosObra | None:
         return self._dados_obra
 
+    @property
+    def cotacoes(self) -> Cotacoes | None:
+        return self._cotacoes
+
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
             return ResultadoOperacao.falha(
@@ -105,6 +112,16 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Dados Obra inválidos.")
         object.__setattr__(self, "_dados_obra", dados)
         return ResultadoOperacao.ok(dados)
+
+    def registrar_cotacoes(self, cotacoes: Cotacoes) -> ResultadoOperacao[Cotacoes]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Cotações."
+            )
+        if not isinstance(cotacoes, Cotacoes):
+            return ResultadoOperacao.falha("Cotações inválidas.")
+        object.__setattr__(self, "_cotacoes", cotacoes)
+        return ResultadoOperacao.ok(cotacoes)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
