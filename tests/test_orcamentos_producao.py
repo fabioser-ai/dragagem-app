@@ -137,6 +137,7 @@ class TestPersistenciaProducao(unittest.TestCase):
         documento["schema_version"] = 6
         documento["versao"].pop("producao")
         documento["versao"].pop("barrilete")
+        documento["versao"].pop("mobilizacao_draga")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].producao), asdict(Producao()))
