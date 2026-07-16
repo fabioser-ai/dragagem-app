@@ -1,9 +1,139 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 
 
 DIAS_ALERTA_FERIAS = 60
+
+ESTADOS_ATIVOS = ("pendente", "programada", "em_gozo")
+ESTADOS_HISTORICOS = ("concluida", "cancelada")
+TRANSICOES_PERMITIDAS = {
+    "pendente": ("programada", "cancelada"),
+    "programada": ("em_gozo", "cancelada"),
+    "em_gozo": ("concluida",),
+    "concluida": (),
+    "cancelada": (),
+}
+
+COLUNAS_CICLO_VIDA = [
+    "Estado_Ciclo",
+    "Data_Prevista_Inicio",
+    "Data_Efetiva_Inicio",
+    "Data_Prevista_Termino",
+    "Data_Efetiva_Termino",
+    "Confirmado_Inicio_Por",
+    "Confirmado_Inicio_Em",
+    "Confirmado_Termino_Por",
+    "Confirmado_Termino_Em",
+    "Cancelado_Por",
+    "Cancelado_Em",
+]
+
+
+class TransicaoCicloInvalida(ValueError):
+    pass
+
+
+class TransicaoNaoAutorizada(PermissionError):
+    pass
+
+
+def _texto(valor):
+    if valor is None or pd.isna(valor):
+        return ""
+    return str(valor).strip()
+
+
+def normalizar_ciclo_vida_dataframe(
+    df,
+    *,
+    coluna_inicio,
+    coluna_termino,
+    hoje=None,
+):
+    """Adiciona o contrato de ciclo de vida sem exigir migração prévia do CSV."""
+    resultado = df.copy()
+    hoje = hoje or date.today()
+
+    for coluna in COLUNAS_CICLO_VIDA:
+        if coluna not in resultado.columns:
+            resultado[coluna] = ""
+
+    for indice, linha in resultado.iterrows():
+        inicio = para_data(linha.get(coluna_inicio))
+        termino = para_data(linha.get(coluna_termino))
+
+        if not _texto(linha.get("Data_Prevista_Inicio")) and inicio:
+            resultado.at[indice, "Data_Prevista_Inicio"] = inicio.isoformat()
+        if not _texto(linha.get("Data_Prevista_Termino")) and termino:
+            resultado.at[indice, "Data_Prevista_Termino"] = termino.isoformat()
+
+        estado = _texto(linha.get("Estado_Ciclo")).lower()
+        if estado not in TRANSICOES_PERMITIDAS:
+            # Compatibilidade: períodos legados já terminados entram no histórico;
+            # os demais continuam exigindo confirmação operacional explícita.
+            if termino and termino < hoje:
+                estado = "concluida"
+            elif inicio:
+                estado = "programada"
+            else:
+                estado = "pendente"
+            resultado.at[indice, "Estado_Ciclo"] = estado
+
+    return resultado
+
+
+def separar_operacao_historico(df):
+    estados = df.get("Estado_Ciclo", pd.Series("pendente", index=df.index))
+    estados = estados.fillna("").astype(str).str.strip().str.lower()
+    operacao = df[estados.isin(ESTADOS_ATIVOS)].copy()
+    historico = df[estados.isin(ESTADOS_HISTORICOS)].copy()
+    return operacao, historico
+
+
+def transicionar_ciclo_vida(
+    registro,
+    novo_estado,
+    *,
+    usuario,
+    autorizado,
+    agora=None,
+    data_efetiva=None,
+):
+    """Valida autorização e transição antes de produzir uma cópia auditada."""
+    if not autorizado:
+        raise TransicaoNaoAutorizada("Usuário sem permissão para alterar o ciclo de vida.")
+
+    atual = _texto(registro.get("Estado_Ciclo")).lower() or "pendente"
+    destino = _texto(novo_estado).lower()
+    permitidos = TRANSICOES_PERMITIDAS.get(atual, ())
+    if destino not in permitidos:
+        raise TransicaoCicloInvalida(
+            f"Transição inválida: {atual} → {destino}."
+        )
+
+    usuario = _texto(usuario)
+    if not usuario:
+        raise TransicaoCicloInvalida("Não foi possível identificar o usuário responsável.")
+
+    agora = agora or datetime.now()
+    efetiva = para_data(data_efetiva) or agora.date()
+    resultado = registro.copy()
+    resultado["Estado_Ciclo"] = destino
+
+    if destino == "em_gozo":
+        resultado["Data_Efetiva_Inicio"] = efetiva.isoformat()
+        resultado["Confirmado_Inicio_Por"] = usuario
+        resultado["Confirmado_Inicio_Em"] = agora.isoformat(timespec="seconds")
+    elif destino == "concluida":
+        resultado["Data_Efetiva_Termino"] = efetiva.isoformat()
+        resultado["Confirmado_Termino_Por"] = usuario
+        resultado["Confirmado_Termino_Em"] = agora.isoformat(timespec="seconds")
+    elif destino == "cancelada":
+        resultado["Cancelado_Por"] = usuario
+        resultado["Cancelado_Em"] = agora.isoformat(timespec="seconds")
+
+    return resultado
 
 
 def para_data(valor):
