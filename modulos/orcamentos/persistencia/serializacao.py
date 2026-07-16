@@ -13,12 +13,17 @@ from modulos.orcamentos.dominio.cotacoes import (
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
+from modulos.orcamentos.dominio.mobilizacao_draga import (
+    ItemMobilizacaoDraga,
+    LinhaMaoObraMobilizacao,
+    MobilizacaoDraga,
+)
 from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamento
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.dominio.producao import Producao
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 
 def _dados_obra_para_dict(dados):
@@ -160,6 +165,43 @@ def _barrilete_de_dict(dados):
     return Barrilete(**valores)
 
 
+def _mobilizacao_draga_de_dict(dados):
+    if dados is None:
+        return MobilizacaoDraga()
+    campos = {"equipe", "custo_refeicao", "custo_transporte", "itens", "bdi"}
+    if (
+        not isinstance(dados, dict)
+        or set(dados) != campos
+        or not isinstance(dados["equipe"], list)
+        or not isinstance(dados["itens"], list)
+    ):
+        raise ValueError
+    campos_equipe = {
+        "id", "descricao", "quantidade", "custo_hora_manual", "custo_hora_base",
+        "multiplicador_custo", "horas_dia_manual", "horas_referencia_id",
+        "encargos_sociais",
+    }
+    campos_item = {
+        "id", "descricao", "unidade", "quantidade", "preco_unitario_manual",
+        "preco_unitario_custo_diario", "preco_total_calculado", "preco_total_manual",
+        "observacao",
+    }
+    equipe = []
+    for item in dados["equipe"]:
+        if not isinstance(item, dict) or set(item) != campos_equipe:
+            raise ValueError
+        equipe.append(LinhaMaoObraMobilizacao(**item))
+    itens = []
+    for item in dados["itens"]:
+        if not isinstance(item, dict) or set(item) != campos_item:
+            raise ValueError
+        itens.append(ItemMobilizacaoDraga(**item))
+    valores = dict(dados)
+    valores["equipe"] = tuple(equipe)
+    valores["itens"] = tuple(itens)
+    return MobilizacaoDraga(**valores)
+
+
 def _valor_para_dict(valor):
     if valor is None:
         return None
@@ -221,6 +263,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
         dados_versao["cotacoes"] = _cotacoes_para_dict(versao.cotacoes)
     dados_versao["producao"] = asdict(versao.producao)
     dados_versao["barrilete"] = asdict(versao.barrilete)
+    dados_versao["mobilizacao_draga"] = asdict(versao.mobilizacao_draga)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -241,7 +284,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, 5, 6, 7, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, 6, 7, 8, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -269,12 +312,22 @@ def desserializar_versao(conteudo: str):
                 campos_v1 | {"premissas", "dados_obra", "cotacoes", "producao"},
                 campos_v1 | {"premissas", "dados_obra", "cotacoes", "producao"},
             ),
-            SCHEMA_VERSION: (
+            8: (
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete"
                 },
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete"
+                },
+            ),
+            SCHEMA_VERSION: (
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga",
+                },
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga",
                 },
             ),
         }
@@ -352,6 +405,11 @@ def desserializar_versao(conteudo: str):
         object.__setattr__(versao, "_producao", _producao_de_dict(dados_v.get("producao")))
         object.__setattr__(
             versao, "_barrilete", _barrilete_de_dict(dados_v.get("barrilete"))
+        )
+        object.__setattr__(
+            versao,
+            "_mobilizacao_draga",
+            _mobilizacao_draga_de_dict(dados_v.get("mobilizacao_draga")),
         )
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
