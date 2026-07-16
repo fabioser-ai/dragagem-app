@@ -3,11 +3,46 @@
 import streamlit as st
 
 from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
+from modulos.orcamentos.apresentacao import premissas
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
 
 
 def _rotulo(resumo):
     return f"{resumo.objeto} · v{resumo.numero} · {resumo.responsavel}"
+
+
+def _mostrar_detalhe(repositorio):
+    detalhe = st.session_state.get("novo_orcamento_detalhe")
+    if not detalhe:
+        return
+    orcamento, versao = detalhe
+    st.divider()
+    st.subheader(orcamento.objeto)
+    st.caption(
+        f"Versão {versao.numero} · {versao.estado.value} · "
+        f"{len(versao.cenarios)} cenário(s)"
+    )
+    st.write(f"Finalidade: {orcamento.finalidade}")
+    st.write(f"Responsável: {orcamento.responsavel}")
+
+    snapshot = st.session_state.get("novo_orcamento_snapshot")
+    if snapshot:
+        premissas.render(
+            repositorio=repositorio,
+            orcamento=orcamento,
+            versao=versao,
+            snapshot_esperado=snapshot,
+        )
+    elif versao.editavel and st.button(
+        "Editar identificação e premissas",
+        key="novo_orcamento_iniciar_edicao",
+    ):
+        resultado = repositorio.carregar_snapshot()
+        if resultado.sucesso:
+            st.session_state["novo_orcamento_snapshot"] = resultado.valor
+            st.rerun()
+        else:
+            st.error("Não foi possível iniciar uma edição segura.")
 
 
 def render(*, repositorio, ao_voltar):
@@ -73,18 +108,14 @@ def render(*, repositorio, ao_voltar):
                 selecionado.versao_id,
             )
             if detalhe.sucesso:
-                orcamento, versao = detalhe.valor
-                st.subheader(orcamento.objeto)
-                st.caption(
-                    f"Versão {versao.numero} · {versao.estado.value} · "
-                    f"{len(versao.cenarios)} cenário(s)"
-                )
-                st.write(f"Finalidade: {orcamento.finalidade}")
-                st.write(f"Responsável: {orcamento.responsavel}")
+                st.session_state["novo_orcamento_detalhe"] = detalhe.valor
+                st.session_state.pop("novo_orcamento_snapshot", None)
             elif detalhe.status is StatusPersistencia.DADO_INEXISTENTE:
                 st.error("A versão selecionada não foi encontrada.")
             else:
                 st.error("Não foi possível abrir a versão selecionada.")
+
+    _mostrar_detalhe(repositorio)
 
     if st.button("Voltar ao menu", key="novo_orcamento_voltar_menu"):
         ao_voltar()
