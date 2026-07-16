@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
 from services.github import carregar_github, salvar_github
+from services.ferias_regras import calcular_status_ferias, recalcular_status_dataframe
 
 try:
     from services.email_service import enviar_email_smtp
@@ -90,27 +91,7 @@ def formatar_datetime_br(valor):
 
 
 def calcular_status(periodo_fim, limite_gozo):
-    hoje = date.today()
-
-    periodo_fim = para_data(periodo_fim)
-    limite_gozo = para_data(limite_gozo)
-
-    if periodo_fim is None:
-        return "Indefinido", "Indefinido"
-
-    if limite_gozo is None:
-        limite_gozo = periodo_fim + timedelta(days=335)
-
-    situacao_ferias = "Férias Vencidas" if hoje >= periodo_fim else "Férias Não Vencidas"
-
-    if hoje > limite_gozo:
-        situacao_prazo = "Férias em Dobro"
-    elif (limite_gozo - hoje).days <= DIAS_ALERTA_FERIAS:
-        situacao_prazo = "Atenção"
-    else:
-        situacao_prazo = "Dentro do Prazo"
-
-    return situacao_ferias, situacao_prazo
+    return calcular_status_ferias(periodo_fim, limite_gozo)
 
 
 def calcular_dias(data_inicio, data_fim):
@@ -1199,6 +1180,9 @@ def render():
 
     df_ferias = carregar_github(ARQ_FERIAS, TOKEN, REPO)
     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
+    # Status são derivados das datas vigentes a cada abertura. Os textos
+    # persistidos permanecem compatíveis, mas não são tratados como verdade.
+    df_ferias = recalcular_status_dataframe(df_ferias)
 
     aba_ferias, aba_folgas = st.tabs(["Controle de Férias", "Controle de Folgas"])
 
