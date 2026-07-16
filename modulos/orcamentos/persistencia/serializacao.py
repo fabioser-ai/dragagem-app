@@ -5,10 +5,9 @@ from dataclasses import asdict
 from datetime import date
 
 from modulos.orcamentos.dominio.cotacoes import (
-    CotacaoContainer,
-    CotacaoGuindaste,
-    CotacaoMensal,
     Cotacoes,
+    ItemCotacao,
+    PropostaFornecedor,
 )
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
@@ -17,7 +16,7 @@ from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamen
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 6
 
 
 def _dados_obra_para_dict(dados):
@@ -43,29 +42,87 @@ def _cotacoes_para_dict(cotacoes):
     return asdict(cotacoes) if cotacoes is not None else None
 
 
-def _linha_cotacao(dados, tipo):
-    esperados = set(tipo.__dataclass_fields__)
-    if not isinstance(dados, dict) or set(dados) != esperados:
+def _proposta_de_dict(dados):
+    campos = {
+        "nome", "contato", "telefone", "detalhe",
+        "primeiro_valor", "segundo_valor",
+    }
+    if not isinstance(dados, dict) or set(dados) != campos:
         raise ValueError
-    return tipo(**dados)
+    return PropostaFornecedor(**dados)
 
 
-def _cotacoes_de_dict(dados):
-    if dados is None:
-        return None
+def _cotacoes_schema_5(dados):
     campos = {"guindaste", "container", "banheiro_quimico", "destinacao"}
     if not isinstance(dados, dict) or set(dados) != campos:
         raise ValueError
+
+    def propostas(linhas, primeiro, segundo):
+        resultado = []
+        for linha in linhas:
+            campos_linha = {"nome", "contato", "telefone", "detalhe", primeiro}
+            if segundo:
+                campos_linha.add(segundo)
+            if not isinstance(linha, dict) or set(linha) != campos_linha:
+                raise ValueError
+            resultado.append(
+                PropostaFornecedor(
+                    linha["nome"],
+                    linha["contato"],
+                    linha["telefone"],
+                    linha["detalhe"],
+                    linha[primeiro],
+                    linha[segundo] if segundo else None,
+                )
+            )
+        return tuple(resultado)
+
     return Cotacoes(
-        guindaste=tuple(_linha_cotacao(item, CotacaoGuindaste) for item in dados["guindaste"]),
-        container=tuple(_linha_cotacao(item, CotacaoContainer) for item in dados["container"]),
-        banheiro_quimico=tuple(
-            _linha_cotacao(item, CotacaoMensal) for item in dados["banheiro_quimico"]
-        ),
-        destinacao=tuple(
-            _linha_cotacao(item, CotacaoMensal) for item in dados["destinacao"]
-        ),
+        (
+            ItemCotacao(
+                "inicial-guindaste", "Guindaste", "Preço por hora", "Preço por diária",
+                propostas(dados["guindaste"], "preco_hora", "preco_diaria"),
+            ),
+            ItemCotacao(
+                "inicial-container", "Container", "Preço por mês", "Frete por hora",
+                propostas(dados["container"], "preco_mes", "frete_hora"),
+            ),
+            ItemCotacao(
+                "inicial-banheiro-quimico", "Banheiro Químico", "Preço por mês", None,
+                propostas(dados["banheiro_quimico"], "preco_mes", None),
+            ),
+            ItemCotacao(
+                "inicial-destinacao", "Destinação", "Preço por mês", None,
+                propostas(dados["destinacao"], "preco_mes", None),
+            ),
+        )
     )
+
+
+def _cotacoes_de_dict(dados, schema):
+    if dados is None:
+        return Cotacoes.iniciais()
+    if schema == 5:
+        return _cotacoes_schema_5(dados)
+    if not isinstance(dados, dict) or set(dados) != {"itens"}:
+        raise ValueError
+    itens = []
+    campos_item = {
+        "id", "nome", "rotulo_primeiro_valor", "rotulo_segundo_valor", "propostas"
+    }
+    for dados_item in dados["itens"]:
+        if not isinstance(dados_item, dict) or set(dados_item) != campos_item:
+            raise ValueError
+        itens.append(
+            ItemCotacao(
+                dados_item["id"],
+                dados_item["nome"],
+                dados_item["rotulo_primeiro_valor"],
+                dados_item["rotulo_segundo_valor"],
+                tuple(_proposta_de_dict(item) for item in dados_item["propostas"]),
+            )
+        )
+    return Cotacoes(tuple(itens))
 
 
 def _valor_para_dict(valor):
@@ -147,7 +204,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -163,8 +220,12 @@ def desserializar_versao(conteudo: str):
                 campos_v1 | {"premissas", "dados_obra"},
                 campos_v1 | {"premissas", "dados_obra"},
             ),
-            SCHEMA_VERSION: (
+            5: (
                 campos_v1 | {"premissas", "dados_obra"},
+                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
+            ),
+            SCHEMA_VERSION: (
+                campos_v1 | {"premissas", "dados_obra", "cotacoes"},
                 campos_v1 | {"premissas", "dados_obra", "cotacoes"},
             ),
         }
@@ -236,7 +297,9 @@ def desserializar_versao(conteudo: str):
         object.__setattr__(
             versao, "_dados_obra", _dados_obra_de_dict(dados_v.get("dados_obra"))
         )
-        object.__setattr__(versao, "_cotacoes", _cotacoes_de_dict(dados_v.get("cotacoes")))
+        object.__setattr__(
+            versao, "_cotacoes", _cotacoes_de_dict(dados_v.get("cotacoes"), schema)
+        )
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, (orcamento, versao))
