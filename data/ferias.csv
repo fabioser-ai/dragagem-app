@@ -1,5 +1,5 @@
 Matricula,Funcionario,Unidade,Departamento,Periodo_Aquisitivo_Inicio,Periodo_Aquisitivo_Fim,Data_Inicio_Gozo,Data_Fim_Gozo,Dias_Gozo,Limite_Gozo,Periodo_Gozo,Situacao_Ferias,Situacao_Prazo,Estado_Ciclo,Data_Prevista_Inicio,Data_Efetiva_Inicio,Data_Prevista_Termino,Data_Efetiva_Termino,Confirmado_Inicio_Por,Confirmado_Inicio_Em,Confirmado_Termino_Por,Confirmado_Termino_Em,Cancelado_Por,Cancelado_Em
-2348,Jairo Dantas dos Santos,OFICINA - CUBATÃO/SP,Operacional,2024-08-06,2025-08-05,2026-06-24,2026-07-24,31,2026-07-07,nan,Férias Vencidas,Férias em Dobro,pendente,2026-06-24,,2026-07-24,,,,,,,
+2348,Jairo Dantas dos Santos,OFICINA - CUBATÃO/SP,Operacional,2024-08-06,2025-08-05,2026-06-24,2026-07-24,31.0,2026-07-07,,Férias Vencidas,Férias em Dobro,programada,2026-06-24,,2026-07-24,,,,,,,
 2182,Junival Silva Santos,OFICINA - CUBATÃO/SP,Operacional,2025-03-29,2026-03-28,,,,2027-02-27,,Férias Vencidas,Dentro do Prazo,pendente,,,,,,,,,,
 2338,Leonardo da Silva Freitas,OFICINA - CUBATÃO/SP,Operacional,2025-02-27,2026-02-26,,,,2027-01-28,,Férias Vencidas,Dentro do Prazo,pendente,,,,,,,,,,
 1209,Oseias Piovanelli de Souza,OFICINA - CUBATÃO/SP,Operacional,2024-11-11,2025-11-10,,,,2026-10-12,,Férias Vencidas,Dentro do Prazo,pendente,,,,,,,,,,
