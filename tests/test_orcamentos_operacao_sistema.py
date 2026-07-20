@@ -173,6 +173,7 @@ class TestPersistenciaOperacaoSistema(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 13
         documento["versao"].pop("operacao_sistema")
+        documento["versao"].pop("dragagem")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].operacao_sistema), asdict(OperacaoSistema()))

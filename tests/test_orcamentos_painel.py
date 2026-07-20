@@ -405,6 +405,27 @@ class TestPainel(unittest.TestCase):
         render_bag.assert_not_called()
         repositorio.assert_not_called()
 
+    def test_navegacao_renderiza_dragagem_apos_operacao_sem_leitura_remota(self):
+        orcamento, versao = criar_orcamento_vazio("fabio").valor
+        repositorio = Mock()
+        estado = {
+            "usuario": "fabio", "novo_orcamento_detalhe": (orcamento, versao),
+            "novo_orcamento_snapshot": "snapshot",
+        }
+        falso = StreamlitFalso(session_state=estado, tela="Dragagem")
+        with patch.object(self.painel, "st", falso), patch.object(
+            self.painel.dragagem, "render"
+        ) as render_dragagem, patch.object(
+            self.painel.operacao_sistema, "render"
+        ) as render_operacao:
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+        render_dragagem.assert_called_once_with(
+            repositorio=repositorio, orcamento=orcamento, versao=versao,
+            snapshot_esperado="snapshot",
+        )
+        render_operacao.assert_not_called()
+        repositorio.assert_not_called()
+
     def test_falha_ao_carregar_versao_exibe_etapa_status_e_erro(self):
         resumo = ResumoIndice("o1", "v1", 1, "Objeto", "Proposta", "Fabio", "elaboracao")
         repositorio = Mock()

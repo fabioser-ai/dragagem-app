@@ -6,6 +6,7 @@ from modulos.orcamentos.dominio.barrilete import Barrilete
 from modulos.orcamentos.dominio.canteiro import Canteiro
 from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
+from modulos.orcamentos.dominio.dragagem import Dragagem
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.fornecimento_bag import FornecimentoBag
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
@@ -67,6 +68,7 @@ class VersaoOrcamento:
     _preparacao_celula: PreparacaoCelula = field(default_factory=PreparacaoCelula, repr=False)
     _fornecimento_bag: FornecimentoBag = field(default_factory=FornecimentoBag, repr=False)
     _operacao_sistema: OperacaoSistema = field(default_factory=OperacaoSistema, repr=False)
+    _dragagem: Dragagem = field(default_factory=Dragagem, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -89,6 +91,7 @@ class VersaoOrcamento:
         "_preparacao_celula",
         "_fornecimento_bag",
         "_operacao_sistema",
+        "_dragagem",
         "_inicializada",
     }
 
@@ -162,6 +165,10 @@ class VersaoOrcamento:
     @property
     def operacao_sistema(self) -> OperacaoSistema:
         return self._operacao_sistema
+
+    @property
+    def dragagem(self) -> Dragagem:
+        return self._dragagem
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -272,6 +279,16 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Operação do Sistema inválida.")
         object.__setattr__(self, "_operacao_sistema", operacao)
         return ResultadoOperacao.ok(operacao)
+
+    def registrar_dragagem(self, dragagem: Dragagem) -> ResultadoOperacao[Dragagem]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Dragagem."
+            )
+        if not isinstance(dragagem, Dragagem):
+            return ResultadoOperacao.falha("Dragagem inválida.")
+        object.__setattr__(self, "_dragagem", dragagem)
+        return ResultadoOperacao.ok(dragagem)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

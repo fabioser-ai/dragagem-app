@@ -124,6 +124,7 @@ class TestPremissas(unittest.TestCase):
         documento["versao"].pop("preparacao_celula")
         documento["versao"].pop("fornecimento_bag")
         documento["versao"].pop("operacao_sistema")
+        documento["versao"].pop("dragagem")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(resultado.valor[1].premissas, ())

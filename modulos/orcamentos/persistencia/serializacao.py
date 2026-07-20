@@ -12,6 +12,7 @@ from modulos.orcamentos.dominio.cotacoes import (
     PropostaFornecedor,
 )
 from modulos.orcamentos.dominio.dados_obra import DadosObra
+from modulos.orcamentos.dominio.dragagem import Dragagem, EntradaDragagem
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.fornecimento_bag import (
     FornecimentoBag,
@@ -47,7 +48,7 @@ from modulos.orcamentos.dominio.preparacao_celula import (
 )
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 14
+SCHEMA_VERSION = 15
 
 
 def _dados_obra_para_dict(dados):
@@ -409,6 +410,20 @@ def _operacao_sistema_de_dict(dados):
     return OperacaoSistema(**valores)
 
 
+def _dragagem_de_dict(dados):
+    if dados is None:
+        return Dragagem()
+    if not isinstance(dados, dict) or set(dados) != {"entradas"} or not isinstance(dados["entradas"], list):
+        raise ValueError
+    campos = set(EntradaDragagem.__dataclass_fields__)
+    entradas = []
+    for item in dados["entradas"]:
+        if not isinstance(item, dict) or set(item) != campos:
+            raise ValueError
+        entradas.append(EntradaDragagem(**item))
+    return Dragagem(tuple(entradas))
+
+
 def _valor_para_dict(valor):
     if valor is None:
         return None
@@ -478,6 +493,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
     dados_versao["preparacao_celula"] = asdict(versao.preparacao_celula)
     dados_versao["fornecimento_bag"] = asdict(versao.fornecimento_bag)
     dados_versao["operacao_sistema"] = asdict(versao.operacao_sistema)
+    dados_versao["dragagem"] = asdict(versao.dragagem)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -498,7 +514,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -590,7 +606,7 @@ def desserializar_versao(conteudo: str):
                     "preparacao_celula", "fornecimento_bag",
                 },
             ),
-            SCHEMA_VERSION: (
+            14: (
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
@@ -600,6 +616,18 @@ def desserializar_versao(conteudo: str):
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
                     "preparacao_celula", "fornecimento_bag", "operacao_sistema",
+                },
+            ),
+            SCHEMA_VERSION: (
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula", "fornecimento_bag", "operacao_sistema", "dragagem",
+                },
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula", "fornecimento_bag", "operacao_sistema", "dragagem",
                 },
             ),
         }
@@ -703,6 +731,7 @@ def desserializar_versao(conteudo: str):
             versao, "_operacao_sistema",
             _operacao_sistema_de_dict(dados_v.get("operacao_sistema")),
         )
+        object.__setattr__(versao, "_dragagem", _dragagem_de_dict(dados_v.get("dragagem")))
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, (orcamento, versao))
