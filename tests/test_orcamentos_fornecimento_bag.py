@@ -203,6 +203,7 @@ class TestPersistenciaFornecimentoBag(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 12
         documento["versao"].pop("fornecimento_bag")
+        documento["versao"].pop("operacao_sistema")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].fornecimento_bag), asdict(FornecimentoBag()))

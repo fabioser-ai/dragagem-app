@@ -13,6 +13,7 @@ from modulos.orcamentos.dominio.mobilizacao_draga import MobilizacaoDraga
 from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
     MobilizacaoEquipamentoPolimero,
 )
+from modulos.orcamentos.dominio.operacao_sistema import OperacaoSistema
 from modulos.orcamentos.dominio.premissas import Premissa
 from modulos.orcamentos.dominio.preparacao_celula import PreparacaoCelula
 from modulos.orcamentos.dominio.producao import Producao
@@ -65,6 +66,7 @@ class VersaoOrcamento:
     _canteiro: Canteiro = field(default_factory=Canteiro, repr=False)
     _preparacao_celula: PreparacaoCelula = field(default_factory=PreparacaoCelula, repr=False)
     _fornecimento_bag: FornecimentoBag = field(default_factory=FornecimentoBag, repr=False)
+    _operacao_sistema: OperacaoSistema = field(default_factory=OperacaoSistema, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -86,6 +88,7 @@ class VersaoOrcamento:
         "_canteiro",
         "_preparacao_celula",
         "_fornecimento_bag",
+        "_operacao_sistema",
         "_inicializada",
     }
 
@@ -155,6 +158,10 @@ class VersaoOrcamento:
     @property
     def fornecimento_bag(self) -> FornecimentoBag:
         return self._fornecimento_bag
+
+    @property
+    def operacao_sistema(self) -> OperacaoSistema:
+        return self._operacao_sistema
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -253,6 +260,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Fornecimento de Bag inválido.")
         object.__setattr__(self, "_fornecimento_bag", fornecimento)
         return ResultadoOperacao.ok(fornecimento)
+
+    def registrar_operacao_sistema(
+        self, operacao: OperacaoSistema
+    ) -> ResultadoOperacao[OperacaoSistema]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Operação do Sistema."
+            )
+        if not isinstance(operacao, OperacaoSistema):
+            return ResultadoOperacao.falha("Operação do Sistema inválida.")
+        object.__setattr__(self, "_operacao_sistema", operacao)
+        return ResultadoOperacao.ok(operacao)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
