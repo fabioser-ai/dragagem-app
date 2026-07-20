@@ -327,6 +327,27 @@ class TestPainel(unittest.TestCase):
         render_barrilete.assert_not_called()
         repositorio.assert_not_called()
 
+    def test_navegacao_renderiza_somente_canteiro_sem_leitura_remota(self):
+        orcamento, versao = criar_orcamento_vazio("fabio").valor
+        repositorio = Mock()
+        estado = {
+            "usuario": "fabio", "novo_orcamento_detalhe": (orcamento, versao),
+            "novo_orcamento_snapshot": "snapshot",
+        }
+        falso = StreamlitFalso(session_state=estado, tela="Canteiro")
+        with patch.object(self.painel, "st", falso), patch.object(
+            self.painel.canteiro, "render"
+        ) as render_canteiro, patch.object(
+            self.painel.mobilizacao_equipamento_polimero, "render"
+        ) as render_polimero:
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+        render_canteiro.assert_called_once_with(
+            repositorio=repositorio, orcamento=orcamento, versao=versao,
+            snapshot_esperado="snapshot",
+        )
+        render_polimero.assert_not_called()
+        repositorio.assert_not_called()
+
     def test_falha_ao_carregar_versao_exibe_etapa_status_e_erro(self):
         resumo = ResumoIndice("o1", "v1", 1, "Objeto", "Proposta", "Fabio", "elaboracao")
         repositorio = Mock()
