@@ -6,6 +6,7 @@ from modulos.orcamentos.aplicacao.consultas import filtrar_resumos
 from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
 from modulos.orcamentos.apresentacao import (
     barrilete,
+    canteiro,
     cotacoes,
     dados_obra,
     mobilizacao_draga,
@@ -40,6 +41,7 @@ def _mostrar_detalhe(repositorio):
             (
                 "Dados Obra", "Cotações", "Produção", "Barrilete", "Mob. Draga",
                 "Mob. Eq. Polímero",
+                "Canteiro",
             ),
             horizontal=True,
             key="novo_orcamento_tela",
@@ -52,6 +54,7 @@ def _mostrar_detalhe(repositorio):
                 "Barrilete": barrilete,
                 "Mob. Draga": mobilizacao_draga,
                 "Mob. Eq. Polímero": mobilizacao_equipamento_polimero,
+                "Canteiro": canteiro,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(

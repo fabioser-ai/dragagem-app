@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 
 from modulos.orcamentos.dominio.barrilete import Barrilete
+from modulos.orcamentos.dominio.canteiro import Canteiro
 from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
@@ -59,6 +60,7 @@ class VersaoOrcamento:
     _mobilizacao_equipamento_polimero: MobilizacaoEquipamentoPolimero = field(
         default_factory=MobilizacaoEquipamentoPolimero, repr=False
     )
+    _canteiro: Canteiro = field(default_factory=Canteiro, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -77,6 +79,7 @@ class VersaoOrcamento:
         "_barrilete",
         "_mobilizacao_draga",
         "_mobilizacao_equipamento_polimero",
+        "_canteiro",
         "_inicializada",
     }
 
@@ -134,6 +137,10 @@ class VersaoOrcamento:
     @property
     def mobilizacao_equipamento_polimero(self) -> MobilizacaoEquipamentoPolimero:
         return self._mobilizacao_equipamento_polimero
+
+    @property
+    def canteiro(self) -> Canteiro:
+        return self._canteiro
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -198,6 +205,16 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Mobilização do Equipamento de Polímero inválida.")
         object.__setattr__(self, "_mobilizacao_equipamento_polimero", mobilizacao)
         return ResultadoOperacao.ok(mobilizacao)
+
+    def registrar_canteiro(self, canteiro: Canteiro) -> ResultadoOperacao[Canteiro]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Canteiro."
+            )
+        if not isinstance(canteiro, Canteiro):
+            return ResultadoOperacao.falha("Canteiro inválido.")
+        object.__setattr__(self, "_canteiro", canteiro)
+        return ResultadoOperacao.ok(canteiro)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
