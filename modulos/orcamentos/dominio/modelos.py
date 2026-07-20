@@ -7,6 +7,7 @@ from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
+from modulos.orcamentos.dominio.mobilizacao_draga import MobilizacaoDraga
 from modulos.orcamentos.dominio.premissas import Premissa
 from modulos.orcamentos.dominio.producao import Producao
 from modulos.orcamentos.dominio.resultados import ResultadoOperacao
@@ -51,6 +52,7 @@ class VersaoOrcamento:
     _cotacoes: Cotacoes = field(default_factory=Cotacoes.iniciais, repr=False)
     _producao: Producao = field(default_factory=Producao, repr=False)
     _barrilete: Barrilete = field(default_factory=Barrilete, repr=False)
+    _mobilizacao_draga: MobilizacaoDraga = field(default_factory=MobilizacaoDraga, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -67,6 +69,7 @@ class VersaoOrcamento:
         "_cotacoes",
         "_producao",
         "_barrilete",
+        "_mobilizacao_draga",
         "_inicializada",
     }
 
@@ -117,6 +120,10 @@ class VersaoOrcamento:
     def barrilete(self) -> Barrilete:
         return self._barrilete
 
+    @property
+    def mobilizacao_draga(self) -> MobilizacaoDraga:
+        return self._mobilizacao_draga
+
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
             return ResultadoOperacao.falha(
@@ -156,6 +163,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Barrilete inválido.")
         object.__setattr__(self, "_barrilete", barrilete)
         return ResultadoOperacao.ok(barrilete)
+
+    def registrar_mobilizacao_draga(
+        self, mobilizacao: MobilizacaoDraga
+    ) -> ResultadoOperacao[MobilizacaoDraga]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Mobilização da Draga."
+            )
+        if not isinstance(mobilizacao, MobilizacaoDraga):
+            return ResultadoOperacao.falha("Mobilização da Draga inválida.")
+        object.__setattr__(self, "_mobilizacao_draga", mobilizacao)
+        return ResultadoOperacao.ok(mobilizacao)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
