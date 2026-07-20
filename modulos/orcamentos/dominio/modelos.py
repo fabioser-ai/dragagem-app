@@ -7,6 +7,7 @@ from modulos.orcamentos.dominio.canteiro import Canteiro
 from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
+from modulos.orcamentos.dominio.fornecimento_bag import FornecimentoBag
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
 from modulos.orcamentos.dominio.mobilizacao_draga import MobilizacaoDraga
 from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
@@ -63,6 +64,7 @@ class VersaoOrcamento:
     )
     _canteiro: Canteiro = field(default_factory=Canteiro, repr=False)
     _preparacao_celula: PreparacaoCelula = field(default_factory=PreparacaoCelula, repr=False)
+    _fornecimento_bag: FornecimentoBag = field(default_factory=FornecimentoBag, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -83,6 +85,7 @@ class VersaoOrcamento:
         "_mobilizacao_equipamento_polimero",
         "_canteiro",
         "_preparacao_celula",
+        "_fornecimento_bag",
         "_inicializada",
     }
 
@@ -148,6 +151,10 @@ class VersaoOrcamento:
     @property
     def preparacao_celula(self) -> PreparacaoCelula:
         return self._preparacao_celula
+
+    @property
+    def fornecimento_bag(self) -> FornecimentoBag:
+        return self._fornecimento_bag
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -234,6 +241,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Preparação da Célula inválida.")
         object.__setattr__(self, "_preparacao_celula", preparacao)
         return ResultadoOperacao.ok(preparacao)
+
+    def registrar_fornecimento_bag(
+        self, fornecimento: FornecimentoBag
+    ) -> ResultadoOperacao[FornecimentoBag]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Fornecimento de Bag."
+            )
+        if not isinstance(fornecimento, FornecimentoBag):
+            return ResultadoOperacao.falha("Fornecimento de Bag inválido.")
+        object.__setattr__(self, "_fornecimento_bag", fornecimento)
+        return ResultadoOperacao.ok(fornecimento)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

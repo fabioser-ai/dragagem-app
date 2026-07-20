@@ -13,6 +13,13 @@ from modulos.orcamentos.dominio.cotacoes import (
 )
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
+from modulos.orcamentos.dominio.fornecimento_bag import (
+    FornecimentoBag,
+    ItemFornecimentoBag,
+    LinhaMaoObraFornecimentoBag,
+    MemorialFisicoBag,
+    OpcaoDimensionamentoBag,
+)
 from modulos.orcamentos.dominio.identidades import CenarioId, OrcamentoId, VersaoId
 from modulos.orcamentos.dominio.mobilizacao_draga import (
     ItemMobilizacaoDraga,
@@ -35,7 +42,7 @@ from modulos.orcamentos.dominio.preparacao_celula import (
 )
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 12
+SCHEMA_VERSION = 13
 
 
 def _dados_obra_para_dict(dados):
@@ -326,6 +333,50 @@ def _preparacao_celula_de_dict(dados):
     return PreparacaoCelula(**valores)
 
 
+def _fornecimento_bag_de_dict(dados):
+    if dados is None:
+        return FornecimentoBag()
+    campos = {
+        "equipe", "custo_refeicao", "custo_transporte", "memorial_fisico",
+        "opcoes", "fator_preco_bag_6x30", "itens", "bdi",
+    }
+    if (
+        not isinstance(dados, dict) or set(dados) != campos
+        or not isinstance(dados["equipe"], list) or not isinstance(dados["opcoes"], list)
+        or not isinstance(dados["itens"], list) or not isinstance(dados["memorial_fisico"], dict)
+    ):
+        raise ValueError
+    campos_equipe = {
+        "id", "descricao", "quantidade", "custo_hora", "horas_dados_obra",
+        "horas_referencia_id", "encargos_sociais",
+    }
+    campos_opcao = set(OpcaoDimensionamentoBag.__dataclass_fields__)
+    campos_item = set(ItemFornecimentoBag.__dataclass_fields__)
+    if set(dados["memorial_fisico"]) != set(MemorialFisicoBag.__dataclass_fields__):
+        raise ValueError
+    equipe = []
+    for item in dados["equipe"]:
+        if not isinstance(item, dict) or set(item) != campos_equipe:
+            raise ValueError
+        equipe.append(LinhaMaoObraFornecimentoBag(**item))
+    opcoes = []
+    for item in dados["opcoes"]:
+        if not isinstance(item, dict) or set(item) != campos_opcao:
+            raise ValueError
+        opcoes.append(OpcaoDimensionamentoBag(**item))
+    itens = []
+    for item in dados["itens"]:
+        if not isinstance(item, dict) or set(item) != campos_item:
+            raise ValueError
+        itens.append(ItemFornecimentoBag(**item))
+    valores = dict(dados)
+    valores["equipe"] = tuple(equipe)
+    valores["memorial_fisico"] = MemorialFisicoBag(**dados["memorial_fisico"])
+    valores["opcoes"] = tuple(opcoes)
+    valores["itens"] = tuple(itens)
+    return FornecimentoBag(**valores)
+
+
 def _valor_para_dict(valor):
     if valor is None:
         return None
@@ -393,6 +444,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
     )
     dados_versao["canteiro"] = asdict(versao.canteiro)
     dados_versao["preparacao_celula"] = asdict(versao.preparacao_celula)
+    dados_versao["fornecimento_bag"] = asdict(versao.fornecimento_bag)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -413,7 +465,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -481,7 +533,7 @@ def desserializar_versao(conteudo: str):
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
                 },
             ),
-            SCHEMA_VERSION: (
+            12: (
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
@@ -491,6 +543,18 @@ def desserializar_versao(conteudo: str):
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
                     "preparacao_celula",
+                },
+            ),
+            SCHEMA_VERSION: (
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula", "fornecimento_bag",
+                },
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula", "fornecimento_bag",
                 },
             ),
         }
@@ -585,6 +649,10 @@ def desserializar_versao(conteudo: str):
         object.__setattr__(
             versao, "_preparacao_celula",
             _preparacao_celula_de_dict(dados_v.get("preparacao_celula")),
+        )
+        object.__setattr__(
+            versao, "_fornecimento_bag",
+            _fornecimento_bag_de_dict(dados_v.get("fornecimento_bag")),
         )
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
