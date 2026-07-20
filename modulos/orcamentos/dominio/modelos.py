@@ -13,6 +13,7 @@ from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
     MobilizacaoEquipamentoPolimero,
 )
 from modulos.orcamentos.dominio.premissas import Premissa
+from modulos.orcamentos.dominio.preparacao_celula import PreparacaoCelula
 from modulos.orcamentos.dominio.producao import Producao
 from modulos.orcamentos.dominio.resultados import ResultadoOperacao
 
@@ -61,6 +62,7 @@ class VersaoOrcamento:
         default_factory=MobilizacaoEquipamentoPolimero, repr=False
     )
     _canteiro: Canteiro = field(default_factory=Canteiro, repr=False)
+    _preparacao_celula: PreparacaoCelula = field(default_factory=PreparacaoCelula, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -80,6 +82,7 @@ class VersaoOrcamento:
         "_mobilizacao_draga",
         "_mobilizacao_equipamento_polimero",
         "_canteiro",
+        "_preparacao_celula",
         "_inicializada",
     }
 
@@ -141,6 +144,10 @@ class VersaoOrcamento:
     @property
     def canteiro(self) -> Canteiro:
         return self._canteiro
+
+    @property
+    def preparacao_celula(self) -> PreparacaoCelula:
+        return self._preparacao_celula
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -215,6 +222,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Canteiro inválido.")
         object.__setattr__(self, "_canteiro", canteiro)
         return ResultadoOperacao.ok(canteiro)
+
+    def registrar_preparacao_celula(
+        self, preparacao: PreparacaoCelula
+    ) -> ResultadoOperacao[PreparacaoCelula]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Preparação da Célula."
+            )
+        if not isinstance(preparacao, PreparacaoCelula):
+            return ResultadoOperacao.falha("Preparação da Célula inválida.")
+        object.__setattr__(self, "_preparacao_celula", preparacao)
+        return ResultadoOperacao.ok(preparacao)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

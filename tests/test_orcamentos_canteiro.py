@@ -178,6 +178,7 @@ class TestPersistenciaCanteiro(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 10
         documento["versao"].pop("canteiro")
+        documento["versao"].pop("preparacao_celula")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].canteiro), asdict(Canteiro()))

@@ -27,9 +27,15 @@ from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
 from modulos.orcamentos.dominio.modelos import Cenario, Orcamento, VersaoOrcamento
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.dominio.producao import Producao
+from modulos.orcamentos.dominio.preparacao_celula import (
+    ComposicaoRealPreparacaoCelula,
+    ItemPreparacaoCelula,
+    LinhaMaoObraPreparacaoCelula,
+    PreparacaoCelula,
+)
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 
 
 def _dados_obra_para_dict(dados):
@@ -276,6 +282,50 @@ def _canteiro_de_dict(dados):
     return Canteiro(**valores)
 
 
+def _preparacao_celula_de_dict(dados):
+    if dados is None:
+        return PreparacaoCelula()
+    campos = {
+        "equipe", "custo_refeicao", "custo_transporte", "composicao_real",
+        "itens", "quantidade_repeticoes",
+    }
+    if (
+        not isinstance(dados, dict) or set(dados) != campos
+        or not isinstance(dados["equipe"], list) or not isinstance(dados["itens"], list)
+        or not isinstance(dados["composicao_real"], dict)
+    ):
+        raise ValueError
+    campos_equipe = {
+        "id", "descricao", "quantidade", "custo_hora", "horas_dados_obra",
+        "horas_referencia_id", "encargos_sociais",
+    }
+    campos_composicao = set(ComposicaoRealPreparacaoCelula.__dataclass_fields__)
+    campos_item = {
+        "id", "numero", "descricao", "unidade", "quantidade_manual",
+        "quantidade_pead", "quantidade_referencia_pead", "quantidade_bidim",
+        "quantidade_brita", "preco_unitario_manual",
+        "preco_unitario_custo_diario", "preco_total_calculado",
+        "preco_total_manual", "observacao",
+    }
+    if set(dados["composicao_real"]) != campos_composicao:
+        raise ValueError
+    equipe = []
+    for item in dados["equipe"]:
+        if not isinstance(item, dict) or set(item) != campos_equipe:
+            raise ValueError
+        equipe.append(LinhaMaoObraPreparacaoCelula(**item))
+    itens = []
+    for item in dados["itens"]:
+        if not isinstance(item, dict) or set(item) != campos_item:
+            raise ValueError
+        itens.append(ItemPreparacaoCelula(**item))
+    valores = dict(dados)
+    valores["equipe"] = tuple(equipe)
+    valores["composicao_real"] = ComposicaoRealPreparacaoCelula(**dados["composicao_real"])
+    valores["itens"] = tuple(itens)
+    return PreparacaoCelula(**valores)
+
+
 def _valor_para_dict(valor):
     if valor is None:
         return None
@@ -342,6 +392,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
         versao.mobilizacao_equipamento_polimero
     )
     dados_versao["canteiro"] = asdict(versao.canteiro)
+    dados_versao["preparacao_celula"] = asdict(versao.preparacao_celula)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -362,7 +413,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -420,7 +471,7 @@ def desserializar_versao(conteudo: str):
                     "mobilizacao_equipamento_polimero",
                 },
             ),
-            SCHEMA_VERSION: (
+            11: (
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
@@ -428,6 +479,18 @@ def desserializar_versao(conteudo: str):
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                },
+            ),
+            SCHEMA_VERSION: (
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula",
+                },
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula",
                 },
             ),
         }
@@ -519,6 +582,10 @@ def desserializar_versao(conteudo: str):
             ),
         )
         object.__setattr__(versao, "_canteiro", _canteiro_de_dict(dados_v.get("canteiro")))
+        object.__setattr__(
+            versao, "_preparacao_celula",
+            _preparacao_celula_de_dict(dados_v.get("preparacao_celula")),
+        )
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
         return ResultadoPersistencia(StatusPersistencia.SUCESSO, (orcamento, versao))

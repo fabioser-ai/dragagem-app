@@ -11,6 +11,7 @@ from modulos.orcamentos.apresentacao import (
     dados_obra,
     mobilizacao_draga,
     mobilizacao_equipamento_polimero,
+    preparacao_celula,
     producao,
 )
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
@@ -42,6 +43,7 @@ def _mostrar_detalhe(repositorio):
                 "Dados Obra", "Cotações", "Produção", "Barrilete", "Mob. Draga",
                 "Mob. Eq. Polímero",
                 "Canteiro",
+                "Prep. Célula",
             ),
             horizontal=True,
             key="novo_orcamento_tela",
@@ -55,6 +57,7 @@ def _mostrar_detalhe(repositorio):
                 "Mob. Draga": mobilizacao_draga,
                 "Mob. Eq. Polímero": mobilizacao_equipamento_polimero,
                 "Canteiro": canteiro,
+                "Prep. Célula": preparacao_celula,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(

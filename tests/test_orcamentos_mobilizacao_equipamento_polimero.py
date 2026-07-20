@@ -243,6 +243,7 @@ class TestPersistenciaMobilizacaoEquipamentoPolimero(unittest.TestCase):
         documento["schema_version"] = 9
         documento["versao"].pop("mobilizacao_equipamento_polimero")
         documento["versao"].pop("canteiro")
+        documento["versao"].pop("preparacao_celula")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(
