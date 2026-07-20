@@ -9,6 +9,7 @@ from modulos.orcamentos.apresentacao import (
     canteiro,
     cotacoes,
     dados_obra,
+    fornecimento_bag,
     mobilizacao_draga,
     mobilizacao_equipamento_polimero,
     preparacao_celula,
@@ -44,6 +45,7 @@ def _mostrar_detalhe(repositorio):
                 "Mob. Eq. Polímero",
                 "Canteiro",
                 "Prep. Célula",
+                "Forn. Bag",
             ),
             horizontal=True,
             key="novo_orcamento_tela",
@@ -58,6 +60,7 @@ def _mostrar_detalhe(repositorio):
                 "Mob. Eq. Polímero": mobilizacao_equipamento_polimero,
                 "Canteiro": canteiro,
                 "Prep. Célula": preparacao_celula,
+                "Forn. Bag": fornecimento_bag,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(

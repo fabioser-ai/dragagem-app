@@ -176,6 +176,7 @@ class TestPersistenciaPreparacaoCelula(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 11
         documento["versao"].pop("preparacao_celula")
+        documento["versao"].pop("fornecimento_bag")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].preparacao_celula), asdict(PreparacaoCelula()))
