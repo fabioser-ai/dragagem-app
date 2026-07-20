@@ -9,6 +9,7 @@ from modulos.orcamentos.apresentacao import (
     cotacoes,
     dados_obra,
     mobilizacao_draga,
+    mobilizacao_equipamento_polimero,
     producao,
 )
 from modulos.orcamentos.persistencia.contratos import StatusPersistencia
@@ -36,7 +37,10 @@ def _mostrar_detalhe(repositorio):
     if snapshot:
         tela = st.radio(
             "Tela do orçamento",
-            ("Dados Obra", "Cotações", "Produção", "Barrilete", "Mob. Draga"),
+            (
+                "Dados Obra", "Cotações", "Produção", "Barrilete", "Mob. Draga",
+                "Mob. Eq. Polímero",
+            ),
             horizontal=True,
             key="novo_orcamento_tela",
         )
@@ -47,6 +51,7 @@ def _mostrar_detalhe(repositorio):
                 "Produção": producao,
                 "Barrilete": barrilete,
                 "Mob. Draga": mobilizacao_draga,
+                "Mob. Eq. Polímero": mobilizacao_equipamento_polimero,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(

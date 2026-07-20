@@ -100,7 +100,7 @@ class TestSerializacaoOrcamentos(unittest.TestCase):
     def test_schema_contem_somente_campos_do_kid_step(self):
         documento = json.loads(serializar_versao(*criar_dominio()))
         texto = json.dumps(documento).lower()
-        for proibido in ("cliente", "familia", "equipamento", "parametro", "pacote", "formula"):
+        for proibido in ("cliente", "familia", "parametro", "pacote", "formula"):
             self.assertNotIn(proibido, texto)
 
 
