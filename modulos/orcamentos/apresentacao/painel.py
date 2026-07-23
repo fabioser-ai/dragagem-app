@@ -9,6 +9,7 @@ from modulos.orcamentos.apresentacao import (
     canteiro,
     cotacoes,
     dados_obra,
+    desmobilizacao_draga,
     dragagem,
     fornecimento_bag,
     mobilizacao_draga,
@@ -50,6 +51,7 @@ def _mostrar_detalhe(repositorio):
                 "Forn. Bag",
                 "Op. Sistema",
                 "Dragagem",
+                "Desmob. Draga",
             ),
             horizontal=True,
             key="novo_orcamento_tela",
@@ -67,6 +69,7 @@ def _mostrar_detalhe(repositorio):
                 "Forn. Bag": fornecimento_bag,
                 "Op. Sistema": operacao_sistema,
                 "Dragagem": dragagem,
+                "Desmob. Draga": desmobilizacao_draga,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(
