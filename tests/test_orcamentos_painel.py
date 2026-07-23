@@ -471,6 +471,30 @@ class TestPainel(unittest.TestCase):
         render_dragagem.assert_not_called()
         repositorio.assert_not_called()
 
+    def test_navegacao_renderiza_carga_transporte_apos_medicao_sem_leitura(self):
+        orcamento, versao = criar_orcamento_vazio("fabio").valor
+        repositorio = Mock()
+        estado = {
+            "usuario": "fabio",
+            "novo_orcamento_detalhe": (orcamento, versao),
+            "novo_orcamento_snapshot": "snapshot",
+        }
+        falso = StreamlitFalso(session_state=estado, tela="Carga e Transporte")
+        with patch.object(self.painel, "st", falso), patch.object(
+            self.painel.carga_transporte, "render"
+        ) as render_carga, patch.object(
+            self.painel.medicao_orcamento, "render"
+        ) as render_medicao:
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+        render_carga.assert_called_once_with(
+            repositorio=repositorio,
+            orcamento=orcamento,
+            versao=versao,
+            snapshot_esperado="snapshot",
+        )
+        render_medicao.assert_not_called()
+        repositorio.assert_not_called()
+
     def test_navegacao_renderiza_desmob_polimero_apos_desmob_draga_sem_leitura(self):
         orcamento, versao = criar_orcamento_vazio("fabio").valor
         repositorio = Mock()
