@@ -13,6 +13,7 @@ from modulos.orcamentos.apresentacao import (
     desmobilizacao_equipamento_polimero,
     dragagem,
     fornecimento_bag,
+    medicao_orcamento,
     mobilizacao_draga,
     mobilizacao_equipamento_polimero,
     operacao_sistema,
@@ -52,6 +53,7 @@ def _mostrar_detalhe(repositorio):
                 "Forn. Bag",
                 "Op. Sistema",
                 "Dragagem",
+                "Medição",
                 "Desmob. Draga",
                 "Desmob. Eq. Polímero",
             ),
@@ -71,6 +73,7 @@ def _mostrar_detalhe(repositorio):
                 "Forn. Bag": fornecimento_bag,
                 "Op. Sistema": operacao_sistema,
                 "Dragagem": dragagem,
+                "Medição": medicao_orcamento,
                 "Desmob. Draga": desmobilizacao_draga,
                 "Desmob. Eq. Polímero": desmobilizacao_equipamento_polimero,
             }
