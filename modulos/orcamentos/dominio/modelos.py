@@ -18,6 +18,7 @@ from modulos.orcamentos.dominio.mobilizacao_draga import MobilizacaoDraga
 from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
     MobilizacaoEquipamentoPolimero,
 )
+from modulos.orcamentos.dominio.medicao_orcamento import MedicaoOrcamento
 from modulos.orcamentos.dominio.operacao_sistema import OperacaoSistema
 from modulos.orcamentos.dominio.premissas import Premissa
 from modulos.orcamentos.dominio.preparacao_celula import PreparacaoCelula
@@ -79,6 +80,9 @@ class VersaoOrcamento:
     _desmobilizacao_equipamento_polimero: DesmobilizacaoEquipamentoPolimero = field(
         default_factory=DesmobilizacaoEquipamentoPolimero, repr=False
     )
+    _medicao_orcamento: MedicaoOrcamento = field(
+        default_factory=MedicaoOrcamento, repr=False
+    )
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -104,6 +108,7 @@ class VersaoOrcamento:
         "_dragagem",
         "_desmobilizacao_draga",
         "_desmobilizacao_equipamento_polimero",
+        "_medicao_orcamento",
         "_inicializada",
     }
 
@@ -191,6 +196,10 @@ class VersaoOrcamento:
         self,
     ) -> DesmobilizacaoEquipamentoPolimero:
         return self._desmobilizacao_equipamento_polimero
+
+    @property
+    def medicao_orcamento(self) -> MedicaoOrcamento:
+        return self._medicao_orcamento
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -340,6 +349,18 @@ class VersaoOrcamento:
             self, "_desmobilizacao_equipamento_polimero", desmobilizacao
         )
         return ResultadoOperacao.ok(desmobilizacao)
+
+    def registrar_medicao_orcamento(
+        self, medicao: MedicaoOrcamento
+    ) -> ResultadoOperacao[MedicaoOrcamento]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Medição."
+            )
+        if not isinstance(medicao, MedicaoOrcamento):
+            return ResultadoOperacao.falha("Medição inválida.")
+        object.__setattr__(self, "_medicao_orcamento", medicao)
+        return ResultadoOperacao.ok(medicao)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

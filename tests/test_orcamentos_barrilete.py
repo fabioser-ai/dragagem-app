@@ -188,6 +188,7 @@ class TestPersistenciaBarrilete(unittest.TestCase):
         documento["versao"].pop("dragagem")
         documento["versao"].pop("desmobilizacao_draga")
         documento["versao"].pop("desmobilizacao_equipamento_polimero")
+        documento["versao"].pop("medicao_orcamento")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].barrilete), asdict(Barrilete()))
