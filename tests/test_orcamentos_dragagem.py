@@ -194,6 +194,7 @@ class TestPersistenciaDragagem(unittest.TestCase):
         documento["schema_version"] = 14
         documento["versao"].pop("dragagem")
         documento["versao"].pop("desmobilizacao_draga")
+        documento["versao"].pop("desmobilizacao_equipamento_polimero")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].dragagem), asdict(Dragagem()))
