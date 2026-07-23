@@ -172,6 +172,7 @@ class TestCompatibilidadeSchemaCinco(unittest.TestCase):
         documento["versao"].pop("fornecimento_bag")
         documento["versao"].pop("operacao_sistema")
         documento["versao"].pop("dragagem")
+        documento["versao"].pop("desmobilizacao_draga")
         documento["versao"]["cotacoes"] = {
             "guindaste": [
                 {
@@ -231,6 +232,7 @@ class TestCompatibilidadeSchemaCinco(unittest.TestCase):
         documento["versao"].pop("fornecimento_bag")
         documento["versao"].pop("operacao_sistema")
         documento["versao"].pop("dragagem")
+        documento["versao"].pop("desmobilizacao_draga")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(len(resultado.valor[1].cotacoes.itens), 4)

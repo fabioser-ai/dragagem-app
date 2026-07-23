@@ -174,6 +174,7 @@ class TestPersistenciaOperacaoSistema(unittest.TestCase):
         documento["schema_version"] = 13
         documento["versao"].pop("operacao_sistema")
         documento["versao"].pop("dragagem")
+        documento["versao"].pop("desmobilizacao_draga")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].operacao_sistema), asdict(OperacaoSistema()))
