@@ -10,6 +10,7 @@ from modulos.orcamentos.apresentacao import (
     cotacoes,
     dados_obra,
     desmobilizacao_draga,
+    desmobilizacao_equipamento_polimero,
     dragagem,
     fornecimento_bag,
     mobilizacao_draga,
@@ -52,6 +53,7 @@ def _mostrar_detalhe(repositorio):
                 "Op. Sistema",
                 "Dragagem",
                 "Desmob. Draga",
+                "Desmob. Eq. Polímero",
             ),
             horizontal=True,
             key="novo_orcamento_tela",
@@ -70,6 +72,7 @@ def _mostrar_detalhe(repositorio):
                 "Op. Sistema": operacao_sistema,
                 "Dragagem": dragagem,
                 "Desmob. Draga": desmobilizacao_draga,
+                "Desmob. Eq. Polímero": desmobilizacao_equipamento_polimero,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(

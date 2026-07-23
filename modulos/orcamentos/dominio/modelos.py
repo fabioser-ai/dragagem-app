@@ -7,6 +7,9 @@ from modulos.orcamentos.dominio.canteiro import Canteiro
 from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.desmobilizacao_draga import DesmobilizacaoDraga
+from modulos.orcamentos.dominio.desmobilizacao_equipamento_polimero import (
+    DesmobilizacaoEquipamentoPolimero,
+)
 from modulos.orcamentos.dominio.dragagem import Dragagem
 from modulos.orcamentos.dominio.estados import EstadoCenario, EstadoVersao
 from modulos.orcamentos.dominio.fornecimento_bag import FornecimentoBag
@@ -73,6 +76,9 @@ class VersaoOrcamento:
     _desmobilizacao_draga: DesmobilizacaoDraga = field(
         default_factory=DesmobilizacaoDraga, repr=False
     )
+    _desmobilizacao_equipamento_polimero: DesmobilizacaoEquipamentoPolimero = field(
+        default_factory=DesmobilizacaoEquipamentoPolimero, repr=False
+    )
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -97,6 +103,7 @@ class VersaoOrcamento:
         "_operacao_sistema",
         "_dragagem",
         "_desmobilizacao_draga",
+        "_desmobilizacao_equipamento_polimero",
         "_inicializada",
     }
 
@@ -178,6 +185,12 @@ class VersaoOrcamento:
     @property
     def desmobilizacao_draga(self) -> DesmobilizacaoDraga:
         return self._desmobilizacao_draga
+
+    @property
+    def desmobilizacao_equipamento_polimero(
+        self,
+    ) -> DesmobilizacaoEquipamentoPolimero:
+        return self._desmobilizacao_equipamento_polimero
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -309,6 +322,23 @@ class VersaoOrcamento:
         if not isinstance(desmobilizacao, DesmobilizacaoDraga):
             return ResultadoOperacao.falha("Desmobilização da Draga inválida.")
         object.__setattr__(self, "_desmobilizacao_draga", desmobilizacao)
+        return ResultadoOperacao.ok(desmobilizacao)
+
+    def registrar_desmobilizacao_equipamento_polimero(
+        self, desmobilizacao: DesmobilizacaoEquipamentoPolimero
+    ) -> ResultadoOperacao[DesmobilizacaoEquipamentoPolimero]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar "
+                "Desmobilização do Equipamento de Polímero."
+            )
+        if not isinstance(desmobilizacao, DesmobilizacaoEquipamentoPolimero):
+            return ResultadoOperacao.falha(
+                "Desmobilização do Equipamento de Polímero inválida."
+            )
+        object.__setattr__(
+            self, "_desmobilizacao_equipamento_polimero", desmobilizacao
+        )
         return ResultadoOperacao.ok(desmobilizacao)
 
     def historico_premissa(

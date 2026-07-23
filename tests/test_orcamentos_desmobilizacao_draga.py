@@ -169,6 +169,7 @@ class TestPersistenciaDesmobilizacaoDraga(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 15
         documento["versao"].pop("desmobilizacao_draga")
+        documento["versao"].pop("desmobilizacao_equipamento_polimero")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(
