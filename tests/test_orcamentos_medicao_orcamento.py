@@ -283,6 +283,7 @@ class TestPersistenciaMedicaoOrcamento(unittest.TestCase):
         documento["schema_version"] = 17
         documento["versao"].pop("medicao_orcamento")
         documento["versao"].pop("carga_transporte")
+        documento["versao"].pop("planilha_precos")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(

@@ -21,6 +21,7 @@ from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
 )
 from modulos.orcamentos.dominio.medicao_orcamento import MedicaoOrcamento
 from modulos.orcamentos.dominio.operacao_sistema import OperacaoSistema
+from modulos.orcamentos.dominio.planilha_precos import PlanilhaPrecos
 from modulos.orcamentos.dominio.premissas import Premissa
 from modulos.orcamentos.dominio.preparacao_celula import PreparacaoCelula
 from modulos.orcamentos.dominio.producao import Producao
@@ -87,6 +88,9 @@ class VersaoOrcamento:
     _carga_transporte: CargaTransporte = field(
         default_factory=CargaTransporte, repr=False
     )
+    _planilha_precos: PlanilhaPrecos = field(
+        default_factory=PlanilhaPrecos, repr=False
+    )
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -114,6 +118,7 @@ class VersaoOrcamento:
         "_desmobilizacao_equipamento_polimero",
         "_medicao_orcamento",
         "_carga_transporte",
+        "_planilha_precos",
         "_inicializada",
     }
 
@@ -209,6 +214,10 @@ class VersaoOrcamento:
     @property
     def carga_transporte(self) -> CargaTransporte:
         return self._carga_transporte
+
+    @property
+    def planilha_precos(self) -> PlanilhaPrecos:
+        return self._planilha_precos
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -382,6 +391,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Carga e Transporte inválida.")
         object.__setattr__(self, "_carga_transporte", carga_transporte)
         return ResultadoOperacao.ok(carga_transporte)
+
+    def registrar_planilha_precos(
+        self, planilha_precos: PlanilhaPrecos
+    ) -> ResultadoOperacao[PlanilhaPrecos]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar a Planilha de Preços."
+            )
+        if not isinstance(planilha_precos, PlanilhaPrecos):
+            return ResultadoOperacao.falha("Planilha de Preços inválida.")
+        object.__setattr__(self, "_planilha_precos", planilha_precos)
+        return ResultadoOperacao.ok(planilha_precos)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

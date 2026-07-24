@@ -516,6 +516,30 @@ class TestPainel(unittest.TestCase):
         render_draga.assert_not_called()
         repositorio.assert_not_called()
 
+    def test_navegacao_renderiza_planilha_precos_apos_desmob_polimero_sem_leitura(self):
+        orcamento, versao = criar_orcamento_vazio("fabio").valor
+        repositorio = Mock()
+        estado = {
+            "usuario": "fabio",
+            "novo_orcamento_detalhe": (orcamento, versao),
+            "novo_orcamento_snapshot": "snapshot",
+        }
+        falso = StreamlitFalso(session_state=estado, tela="Plan. Preços")
+        with patch.object(self.painel, "st", falso), patch.object(
+            self.painel.planilha_precos, "render"
+        ) as render_precos, patch.object(
+            self.painel.desmobilizacao_equipamento_polimero, "render"
+        ) as render_desmob:
+            self.painel.render(repositorio=repositorio, ao_voltar=Mock())
+        render_precos.assert_called_once_with(
+            repositorio=repositorio,
+            orcamento=orcamento,
+            versao=versao,
+            snapshot_esperado="snapshot",
+        )
+        render_desmob.assert_not_called()
+        repositorio.assert_not_called()
+
     def test_falha_ao_carregar_versao_exibe_etapa_status_e_erro(self):
         resumo = ResumoIndice("o1", "v1", 1, "Objeto", "Proposta", "Fabio", "elaboracao")
         repositorio = Mock()

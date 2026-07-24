@@ -244,6 +244,7 @@ class TestPersistenciaMobilizacaoDraga(unittest.TestCase):
         documento["versao"].pop("desmobilizacao_equipamento_polimero")
         documento["versao"].pop("medicao_orcamento")
         documento["versao"].pop("carga_transporte")
+        documento["versao"].pop("planilha_precos")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].mobilizacao_draga), asdict(MobilizacaoDraga()))
