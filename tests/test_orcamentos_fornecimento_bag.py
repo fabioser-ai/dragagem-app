@@ -208,6 +208,7 @@ class TestPersistenciaFornecimentoBag(unittest.TestCase):
         documento["versao"].pop("desmobilizacao_draga")
         documento["versao"].pop("desmobilizacao_equipamento_polimero")
         documento["versao"].pop("medicao_orcamento")
+        documento["versao"].pop("carga_transporte")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(asdict(resultado.valor[1].fornecimento_bag), asdict(FornecimentoBag()))

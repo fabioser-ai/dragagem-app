@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from modulos.orcamentos.dominio.barrilete import Barrilete
 from modulos.orcamentos.dominio.canteiro import Canteiro
+from modulos.orcamentos.dominio.carga_transporte import CargaTransporte
 from modulos.orcamentos.dominio.cotacoes import Cotacoes
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.desmobilizacao_draga import DesmobilizacaoDraga
@@ -83,6 +84,9 @@ class VersaoOrcamento:
     _medicao_orcamento: MedicaoOrcamento = field(
         default_factory=MedicaoOrcamento, repr=False
     )
+    _carga_transporte: CargaTransporte = field(
+        default_factory=CargaTransporte, repr=False
+    )
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -109,6 +113,7 @@ class VersaoOrcamento:
         "_desmobilizacao_draga",
         "_desmobilizacao_equipamento_polimero",
         "_medicao_orcamento",
+        "_carga_transporte",
         "_inicializada",
     }
 
@@ -200,6 +205,10 @@ class VersaoOrcamento:
     @property
     def medicao_orcamento(self) -> MedicaoOrcamento:
         return self._medicao_orcamento
+
+    @property
+    def carga_transporte(self) -> CargaTransporte:
+        return self._carga_transporte
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -361,6 +370,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Medição inválida.")
         object.__setattr__(self, "_medicao_orcamento", medicao)
         return ResultadoOperacao.ok(medicao)
+
+    def registrar_carga_transporte(
+        self, carga_transporte: CargaTransporte
+    ) -> ResultadoOperacao[CargaTransporte]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar Carga e Transporte."
+            )
+        if not isinstance(carga_transporte, CargaTransporte):
+            return ResultadoOperacao.falha("Carga e Transporte inválida.")
+        object.__setattr__(self, "_carga_transporte", carga_transporte)
+        return ResultadoOperacao.ok(carga_transporte)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str

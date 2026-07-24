@@ -7,6 +7,7 @@ from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
 from modulos.orcamentos.apresentacao import (
     barrilete,
     canteiro,
+    carga_transporte,
     cotacoes,
     dados_obra,
     desmobilizacao_draga,
@@ -54,6 +55,7 @@ def _mostrar_detalhe(repositorio):
                 "Op. Sistema",
                 "Dragagem",
                 "Medição",
+                "Carga e Transporte",
                 "Desmob. Draga",
                 "Desmob. Eq. Polímero",
             ),
@@ -74,6 +76,7 @@ def _mostrar_detalhe(repositorio):
                 "Op. Sistema": operacao_sistema,
                 "Dragagem": dragagem,
                 "Medição": medicao_orcamento,
+                "Carga e Transporte": carga_transporte,
                 "Desmob. Draga": desmobilizacao_draga,
                 "Desmob. Eq. Polímero": desmobilizacao_equipamento_polimero,
             }
