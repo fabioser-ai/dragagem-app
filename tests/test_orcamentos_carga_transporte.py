@@ -327,6 +327,7 @@ class TestPersistenciaCargaTransporte(unittest.TestCase):
         documento["schema_version"] = 18
         documento["versao"].pop("carga_transporte")
         documento["versao"].pop("planilha_precos")
+        documento["versao"].pop("planilha1")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(

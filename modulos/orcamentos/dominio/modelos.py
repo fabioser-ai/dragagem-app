@@ -21,6 +21,7 @@ from modulos.orcamentos.dominio.mobilizacao_equipamento_polimero import (
 )
 from modulos.orcamentos.dominio.medicao_orcamento import MedicaoOrcamento
 from modulos.orcamentos.dominio.operacao_sistema import OperacaoSistema
+from modulos.orcamentos.dominio.planilha1 import Planilha1
 from modulos.orcamentos.dominio.planilha_precos import PlanilhaPrecos
 from modulos.orcamentos.dominio.premissas import Premissa
 from modulos.orcamentos.dominio.preparacao_celula import PreparacaoCelula
@@ -91,6 +92,7 @@ class VersaoOrcamento:
     _planilha_precos: PlanilhaPrecos = field(
         default_factory=PlanilhaPrecos, repr=False
     )
+    _planilha1: Planilha1 = field(default_factory=Planilha1, repr=False)
     _inicializada: bool = field(default=False, init=False, repr=False)
 
     _CAMPOS_PROTEGIDOS = {
@@ -119,6 +121,7 @@ class VersaoOrcamento:
         "_medicao_orcamento",
         "_carga_transporte",
         "_planilha_precos",
+        "_planilha1",
         "_inicializada",
     }
 
@@ -218,6 +221,10 @@ class VersaoOrcamento:
     @property
     def planilha_precos(self) -> PlanilhaPrecos:
         return self._planilha_precos
+
+    @property
+    def planilha1(self) -> Planilha1:
+        return self._planilha1
 
     def registrar_dados_obra(self, dados: DadosObra) -> ResultadoOperacao[DadosObra]:
         if not self.editavel:
@@ -403,6 +410,18 @@ class VersaoOrcamento:
             return ResultadoOperacao.falha("Planilha de Preços inválida.")
         object.__setattr__(self, "_planilha_precos", planilha_precos)
         return ResultadoOperacao.ok(planilha_precos)
+
+    def registrar_planilha1(
+        self, planilha1: Planilha1
+    ) -> ResultadoOperacao[Planilha1]:
+        if not self.editavel:
+            return ResultadoOperacao.falha(
+                "Versão congelada ou aprovada não pode alterar a Planilha1."
+            )
+        if not isinstance(planilha1, Planilha1):
+            return ResultadoOperacao.falha("Planilha1 inválida.")
+        object.__setattr__(self, "_planilha1", planilha1)
+        return ResultadoOperacao.ok(planilha1)
 
     def historico_premissa(
         self, cenario_id: CenarioId, conceito: str
