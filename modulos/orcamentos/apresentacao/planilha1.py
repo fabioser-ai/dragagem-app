@@ -5,7 +5,9 @@ from copy import deepcopy
 import streamlit as st
 
 from modulos.orcamentos.aplicacao.planilha1 import salvar_planilha1
-from modulos.orcamentos.apresentacao.planilha_precos import _referencias_externas
+from modulos.orcamentos.aplicacao.planilha_precos import (
+    compor_referencias_planilha_precos,
+)
 from modulos.orcamentos.dominio.planilha1 import (
     EntradaLinhaPlanilha1,
     Planilha1,
@@ -30,7 +32,7 @@ def render(*, repositorio, orcamento, versao, snapshot_esperado):
         st.success("Planilha1 salva.")
 
     atual = versao.planilha1
-    referencias = _referencias_externas(versao)
+    referencias = compor_referencias_planilha_precos(versao)
     precos = calcular_planilha_precos(versao.planilha_precos, referencias)
     resultados = calcular_planilha1(atual, precos)
 

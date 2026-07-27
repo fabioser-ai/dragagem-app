@@ -1,13 +1,15 @@
 """Caracterização integrada da equivalência do orçamento SABESP."""
 
 import json
-import sys
-import types
 import unittest
 from dataclasses import asdict, replace
+from pathlib import Path
 from unittest.mock import patch
 
 from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
+from modulos.orcamentos.aplicacao.planilha_precos import (
+    compor_referencias_planilha_precos,
+)
 from modulos.orcamentos.dominio.dados_obra import DadosObra
 from modulos.orcamentos.dominio.planilha1 import calcular_planilha1
 from modulos.orcamentos.dominio.planilha_precos import calcular_planilha_precos
@@ -24,12 +26,6 @@ from services.persistencia_multi_arquivo import (
     ResultadoPersistenciaMultiArquivo,
     StatusPersistenciaMultiArquivo,
 )
-
-sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
-from modulos.orcamentos.apresentacao.planilha_precos import (  # noqa: E402
-    _referencias_externas,
-)
-
 
 WORKSHEETS_OFICIAIS = (
     ("Dados Obra ", 3),
@@ -75,7 +71,7 @@ def criar_caso_oficial():
 
 
 def calcular_fechamento(versao):
-    referencias = _referencias_externas(versao)
+    referencias = compor_referencias_planilha_precos(versao)
     precos = calcular_planilha_precos(versao.planilha_precos, referencias)
     final = calcular_planilha1(versao.planilha1, precos)
     return referencias, precos, final
@@ -87,6 +83,23 @@ class TestAudit053Inventario(unittest.TestCase):
         self.assertEqual(sum(total for _, total in WORKSHEETS_OFICIAIS), 480)
         self.assertEqual(WORKSHEETS_OFICIAIS[0][0], "Dados Obra ")
         self.assertEqual(WORKSHEETS_OFICIAIS[14][0], "9. Desmob. Eq. Polimero ")
+
+    def test_coordenacao_intertelas_nao_reside_na_apresentacao(self):
+        raiz = Path(__file__).resolve().parents[1]
+        planilha_precos = (
+            raiz / "modulos/orcamentos/apresentacao/planilha_precos.py"
+        ).read_text(encoding="utf-8")
+        planilha1 = (
+            raiz / "modulos/orcamentos/apresentacao/planilha1.py"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("_referencias_externas", planilha_precos)
+        self.assertNotIn("_referencias_externas", planilha1)
+        self.assertIn(
+            "compor_referencias_planilha_precos(versao)", planilha_precos
+        )
+        self.assertIn(
+            "compor_referencias_planilha_precos(versao)", planilha1
+        )
 
 
 class TestAudit053GoldenIntegrado(unittest.TestCase):
