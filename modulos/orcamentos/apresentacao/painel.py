@@ -18,6 +18,7 @@ from modulos.orcamentos.apresentacao import (
     mobilizacao_draga,
     mobilizacao_equipamento_polimero,
     operacao_sistema,
+    planilha1,
     planilha_precos,
     preparacao_celula,
     producao,
@@ -60,6 +61,7 @@ def _mostrar_detalhe(repositorio):
                 "Desmob. Draga",
                 "Desmob. Eq. Polímero",
                 "Plan. Preços",
+                "Planilha1",
             ),
             horizontal=True,
             key="novo_orcamento_tela",
@@ -82,6 +84,7 @@ def _mostrar_detalhe(repositorio):
                 "Desmob. Draga": desmobilizacao_draga,
                 "Desmob. Eq. Polímero": desmobilizacao_equipamento_polimero,
                 "Plan. Preços": planilha_precos,
+                "Planilha1": planilha1,
             }
             apresentacao = apresentacoes[tela]
             apresentacao.render(

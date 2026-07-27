@@ -6,7 +6,6 @@ import types
 import unittest
 from contextlib import nullcontext
 from dataclasses import asdict, replace
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 from modulos.orcamentos.aplicacao.criacao import criar_orcamento_vazio
@@ -100,12 +99,9 @@ class StreamlitPlanilhaPrecosFalso:
 
 
 class TestEstruturaPlanilhaPrecos(unittest.TestCase):
-    def test_nome_posicao_e_planilha1_fora_do_escopo(self):
+    def test_nome_e_posicao_da_worksheet(self):
         self.assertEqual(WORKSHEET_ORIGEM_PLANILHA_PRECOS, "10. Plan. Preços")
         self.assertEqual(INDICE_WORKSHEET_PLANILHA_PRECOS, 15)
-        self.assertFalse(
-            Path("modulos/orcamentos/dominio/planilha1.py").exists()
-        )
 
     def test_estrutura_e_valores_manuais_iniciais(self):
         planilha = PlanilhaPrecos()
@@ -271,6 +267,7 @@ class TestPersistenciaPlanilhaPrecos(unittest.TestCase):
         documento = json.loads(serializar_versao(orcamento, versao))
         documento["schema_version"] = 19
         documento["versao"].pop("planilha_precos")
+        documento["versao"].pop("planilha1")
         resultado = desserializar_versao(json.dumps(documento))
         self.assertTrue(resultado.sucesso)
         self.assertEqual(

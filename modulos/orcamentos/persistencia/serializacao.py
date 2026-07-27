@@ -62,6 +62,7 @@ from modulos.orcamentos.dominio.planilha_precos import (
     EntradaLinhaPlanilhaPrecos,
     PlanilhaPrecos,
 )
+from modulos.orcamentos.dominio.planilha1 import EntradaLinhaPlanilha1, Planilha1
 from modulos.orcamentos.dominio.premissas import OrigemPremissa, Premissa, ValorPremissa
 from modulos.orcamentos.dominio.producao import Producao
 from modulos.orcamentos.dominio.preparacao_celula import (
@@ -72,7 +73,7 @@ from modulos.orcamentos.dominio.preparacao_celula import (
 )
 from modulos.orcamentos.persistencia.contratos import ResultadoPersistencia, StatusPersistencia
 
-SCHEMA_VERSION = 20
+SCHEMA_VERSION = 21
 
 
 def _dados_obra_para_dict(dados):
@@ -592,6 +593,24 @@ def _planilha_precos_de_dict(dados):
     return PlanilhaPrecos(tuple(linhas))
 
 
+def _planilha1_de_dict(dados):
+    if dados is None:
+        return Planilha1()
+    if (
+        not isinstance(dados, dict)
+        or set(dados) != {"linhas"}
+        or not isinstance(dados["linhas"], list)
+    ):
+        raise ValueError
+    campos = set(EntradaLinhaPlanilha1.__dataclass_fields__)
+    linhas = []
+    for item in dados["linhas"]:
+        if not isinstance(item, dict) or set(item) != campos:
+            raise ValueError
+        linhas.append(EntradaLinhaPlanilha1(**item))
+    return Planilha1(tuple(linhas))
+
+
 def _valor_para_dict(valor):
     if valor is None:
         return None
@@ -669,6 +688,7 @@ def serializar_versao(orcamento: Orcamento, versao: VersaoOrcamento) -> str:
     dados_versao["medicao_orcamento"] = asdict(versao.medicao_orcamento)
     dados_versao["carga_transporte"] = asdict(versao.carga_transporte)
     dados_versao["planilha_precos"] = asdict(versao.planilha_precos)
+    dados_versao["planilha1"] = asdict(versao.planilha1)
     documento = {
         "schema_version": SCHEMA_VERSION,
         "orcamento": {
@@ -689,7 +709,7 @@ def desserializar_versao(conteudo: str):
         return _corrompido("JSON inválido.")
     try:
         schema = documento.get("schema_version") if isinstance(documento, dict) else None
-        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
+        if schema not in (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, SCHEMA_VERSION) or set(documento) != {"schema_version", "orcamento", "versao"}:
             return _corrompido("Schema inválido ou não suportado.")
         dados_o, dados_v = documento["orcamento"], documento["versao"]
         if set(dados_o) != {"id", "objeto", "finalidade", "responsavel"}:
@@ -865,7 +885,7 @@ def desserializar_versao(conteudo: str):
                     "medicao_orcamento", "carga_transporte",
                 },
             ),
-            SCHEMA_VERSION: (
+            20: (
                 campos_v1 | {
                     "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
                     "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
@@ -879,6 +899,22 @@ def desserializar_versao(conteudo: str):
                     "preparacao_celula", "fornecimento_bag", "operacao_sistema", "dragagem",
                     "desmobilizacao_draga", "desmobilizacao_equipamento_polimero",
                     "medicao_orcamento", "carga_transporte", "planilha_precos",
+                },
+            ),
+            SCHEMA_VERSION: (
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula", "fornecimento_bag", "operacao_sistema", "dragagem",
+                    "desmobilizacao_draga", "desmobilizacao_equipamento_polimero",
+                    "medicao_orcamento", "carga_transporte", "planilha_precos", "planilha1",
+                },
+                campos_v1 | {
+                    "premissas", "dados_obra", "cotacoes", "producao", "barrilete",
+                    "mobilizacao_draga", "mobilizacao_equipamento_polimero", "canteiro",
+                    "preparacao_celula", "fornecimento_bag", "operacao_sistema", "dragagem",
+                    "desmobilizacao_draga", "desmobilizacao_equipamento_polimero",
+                    "medicao_orcamento", "carga_transporte", "planilha_precos", "planilha1",
                 },
             ),
         }
@@ -1007,6 +1043,11 @@ def desserializar_versao(conteudo: str):
             versao,
             "_planilha_precos",
             _planilha_precos_de_dict(dados_v.get("planilha_precos")),
+        )
+        object.__setattr__(
+            versao,
+            "_planilha1",
+            _planilha1_de_dict(dados_v.get("planilha1")),
         )
         object.__setattr__(versao, "cenario_adotado_id", adotado)
         object.__setattr__(orcamento, "_versoes", {versao.id: versao})
