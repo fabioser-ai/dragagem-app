@@ -182,7 +182,9 @@ class TestTelaPlanilha1(unittest.TestCase):
     def render(self, falso, repositorio):
         orcamento, versao = criar_orcamento_vazio("Fabio").valor
         with patch.object(self.tela, "st", falso), patch.object(
-            self.tela, "_referencias_externas", return_value=referencias_excel()
+            self.tela,
+            "compor_referencias_planilha_precos",
+            return_value=referencias_excel(),
         ):
             self.tela.render(
                 repositorio=repositorio, orcamento=orcamento, versao=versao,
