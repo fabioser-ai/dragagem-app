@@ -7,15 +7,22 @@ from services.github import StatusLeitura
 from services.permissoes import pode_acessar_modulo, pode_executar
 from services.uniformes_epis import (
     ARQ_COMPRAS,
+    ARQ_ENTREGAS,
     ARQ_ITENS,
     ARQ_MOVIMENTACOES,
     COLUNAS_COMPRAS,
+    COLUNAS_ENTREGAS,
     COLUNAS_ITENS,
     COLUNAS_MOVIMENTACOES,
     cadastrar_item,
     calcular_estoque,
+    calcular_posse_funcionarios,
     carregar_bases,
+    historico_funcionario,
+    registrar_baixa,
     registrar_compra,
+    registrar_devolucao,
+    registrar_entrega,
     registrar_movimentacao,
     salvar_base,
 )
@@ -368,6 +375,381 @@ def _render_movimentacoes(
             )
 
 
+def _rotulo_posse(linha):
+    tamanho = (
+        f" · tam. {linha['tamanho']}"
+        if str(linha["tamanho"]).strip()
+        else ""
+    )
+    return (
+        f"{linha['matricula']} · {linha['funcionario']} · "
+        f"{linha['item']}{tamanho} · posse {linha['quantidade']:g}"
+    )
+
+
+def _render_entrega(itens, entregas, estoque, resultado, pode_editar):
+    posicoes = estoque[estoque["quantidade"] > 1e-9].copy()
+    if posicoes.empty:
+        st.warning("Não há saldo disponível para entregar.")
+        return
+    mapa = _mapa_itens(itens)
+    posicoes["rotulo"] = posicoes.apply(
+        lambda linha: (
+            f"{mapa.get(str(linha['item_id']), linha['item_id'])} · "
+            f"{linha['quantidade']:g} em {linha['localizacao']}"
+            + (
+                f" · obra {linha['obra_id']}"
+                if str(linha["obra_id"]).strip()
+                else ""
+            )
+        ),
+        axis=1,
+    )
+    opcoes = posicoes.index.tolist()
+    rotulos = dict(zip(posicoes.index, posicoes["rotulo"]))
+    with st.form("form_entrega_funcionario", clear_on_submit=True):
+        origem_indice = st.selectbox(
+            "Saldo de origem", opcoes, format_func=rotulos.get
+        )
+        origem = posicoes.loc[origem_indice]
+        col1, col2 = st.columns(2)
+        matricula = col1.text_input("Matrícula")
+        funcionario = col2.text_input("Funcionário")
+        col3, col4 = st.columns(2)
+        quantidade = col3.number_input(
+            "Quantidade entregue", min_value=0.01, step=1.0
+        )
+        data_entrega = col4.date_input("Data da entrega", value=date.today())
+        responsavel = st.text_input("Responsável pela entrega")
+        observacoes = st.text_area("Observações")
+        salvar = st.form_submit_button(
+            "Registrar entrega",
+            disabled=not pode_editar or not _escrita_liberada(resultado),
+            use_container_width=True,
+        )
+    if salvar:
+        try:
+            atualizadas = registrar_entrega(
+                entregas,
+                itens,
+                estoque,
+                matricula=matricula,
+                funcionario=funcionario,
+                item_id=str(origem["item_id"]),
+                quantidade=quantidade,
+                data_entrega=data_entrega.isoformat(),
+                local_estoque=str(origem["localizacao"]),
+                obra_id=str(origem["obra_id"]),
+                responsavel=responsavel,
+                observacoes=observacoes,
+                criado_por=st.session_state.get("usuario", ""),
+            )
+        except ValueError as exc:
+            st.error(str(exc))
+        else:
+            _salvar(
+                atualizadas,
+                ARQ_ENTREGAS,
+                COLUNAS_ENTREGAS,
+                resultado,
+                "Entrega registrada com sucesso.",
+            )
+
+
+def _selecionar_posse(posses, chave):
+    if posses.empty:
+        st.warning("Nenhum funcionário possui itens neste momento.")
+        return None
+    opcoes = posses.index.tolist()
+    rotulos = {
+        indice: _rotulo_posse(linha)
+        for indice, linha in posses.iterrows()
+    }
+    indice = st.selectbox(
+        "Funcionário e item", opcoes, format_func=rotulos.get, key=chave
+    )
+    return posses.loc[indice]
+
+
+def _render_devolucao(
+    itens, entregas, posses, resultado, pode_editar
+):
+    with st.form("form_devolucao_funcionario", clear_on_submit=True):
+        posse = _selecionar_posse(posses, "posse_devolucao")
+        col1, col2 = st.columns(2)
+        quantidade = col1.number_input(
+            "Quantidade devolvida", min_value=0.01, step=1.0
+        )
+        data_devolucao = col2.date_input(
+            "Data da devolução", value=date.today()
+        )
+        col3, col4 = st.columns(2)
+        local_estoque = col3.text_input("Local de retorno ao estoque")
+        obra_id = col4.text_input("Obra / código do estoque (opcional)")
+        responsavel = st.text_input("Responsável pelo recebimento")
+        observacoes = st.text_area("Observações")
+        salvar = st.form_submit_button(
+            "Registrar devolução",
+            disabled=(
+                posse is None
+                or not pode_editar
+                or not _escrita_liberada(resultado)
+            ),
+            use_container_width=True,
+        )
+    if salvar and posse is not None:
+        try:
+            atualizadas = registrar_devolucao(
+                entregas,
+                itens,
+                posses,
+                matricula=str(posse["matricula"]),
+                funcionario=str(posse["funcionario"]),
+                item_id=str(posse["item_id"]),
+                quantidade=quantidade,
+                data_devolucao=data_devolucao.isoformat(),
+                local_estoque=local_estoque,
+                obra_id=obra_id,
+                responsavel=responsavel,
+                observacoes=observacoes,
+                criado_por=st.session_state.get("usuario", ""),
+            )
+        except ValueError as exc:
+            st.error(str(exc))
+        else:
+            _salvar(
+                atualizadas,
+                ARQ_ENTREGAS,
+                COLUNAS_ENTREGAS,
+                resultado,
+                "Devolução registrada com sucesso.",
+            )
+
+
+def _render_baixa(itens, entregas, posses, resultado, pode_editar):
+    with st.form("form_baixa_funcionario", clear_on_submit=True):
+        posse = _selecionar_posse(posses, "posse_baixa")
+        col1, col2 = st.columns(2)
+        quantidade = col1.number_input(
+            "Quantidade baixada", min_value=0.01, step=1.0
+        )
+        data_baixa = col2.date_input("Data da baixa", value=date.today())
+        motivo = st.selectbox(
+            "Motivo", ["Perda", "Dano", "Descarte", "Extravio", "Outro"]
+        )
+        responsavel = st.text_input("Responsável pela baixa")
+        observacoes = st.text_area("Observações")
+        salvar = st.form_submit_button(
+            "Registrar baixa",
+            disabled=(
+                posse is None
+                or not pode_editar
+                or not _escrita_liberada(resultado)
+            ),
+            use_container_width=True,
+        )
+    if salvar and posse is not None:
+        try:
+            atualizadas = registrar_baixa(
+                entregas,
+                itens,
+                posses,
+                matricula=str(posse["matricula"]),
+                funcionario=str(posse["funcionario"]),
+                item_id=str(posse["item_id"]),
+                quantidade=quantidade,
+                data_baixa=data_baixa.isoformat(),
+                motivo=motivo,
+                responsavel=responsavel,
+                observacoes=observacoes,
+                criado_por=st.session_state.get("usuario", ""),
+            )
+        except ValueError as exc:
+            st.error(str(exc))
+        else:
+            _salvar(
+                atualizadas,
+                ARQ_ENTREGAS,
+                COLUNAS_ENTREGAS,
+                resultado,
+                "Baixa registrada com sucesso.",
+            )
+
+
+def _render_ciclo_funcionario(
+    itens, entregas, estoque, posses, resultado, pode_editar
+):
+    entrega, devolucao, baixa = st.tabs(["Entrega", "Devolução", "Baixa"])
+    with entrega:
+        _render_entrega(
+            itens, entregas, estoque, resultado, pode_editar
+        )
+    with devolucao:
+        _render_devolucao(
+            itens, entregas, posses, resultado, pode_editar
+        )
+    with baixa:
+        _render_baixa(
+            itens, entregas, posses, resultado, pode_editar
+        )
+
+
+def _historico_item(
+    item_id, compras, movimentacoes, entregas
+):
+    linhas = []
+    for _, compra in compras[
+        compras["item_id"].astype(str) == str(item_id)
+    ].iterrows():
+        linhas.append(
+            {
+                "data": compra["data_compra"],
+                "evento": "COMPRA",
+                "quantidade": compra["quantidade"],
+                "origem": compra["fornecedor"],
+                "destino": compra["local_inicial"],
+                "funcionario": "",
+                "responsavel": compra["criado_por"],
+                "motivo": "",
+                "observacoes": compra["observacoes"],
+            }
+        )
+    for _, movimento in movimentacoes[
+        movimentacoes["item_id"].astype(str) == str(item_id)
+    ].iterrows():
+        linhas.append(
+            {
+                "data": movimento["data_movimentacao"],
+                "evento": "TRANSFERENCIA",
+                "quantidade": movimento["quantidade"],
+                "origem": movimento["local_origem"],
+                "destino": movimento["local_destino"],
+                "funcionario": "",
+                "responsavel": movimento["responsavel"],
+                "motivo": "",
+                "observacoes": movimento["observacoes"],
+            }
+        )
+    for _, evento in entregas[
+        entregas["item_id"].astype(str) == str(item_id)
+    ].iterrows():
+        tipo = str(evento["tipo_evento"])
+        linhas.append(
+            {
+                "data": evento["data_evento"],
+                "evento": tipo,
+                "quantidade": evento["quantidade"],
+                "origem": (
+                    evento["local_estoque"] if tipo == "ENTREGA" else ""
+                ),
+                "destino": (
+                    evento["local_estoque"] if tipo == "DEVOLUCAO" else ""
+                ),
+                "funcionario": (
+                    f"{evento['matricula']} · {evento['funcionario']}"
+                ),
+                "responsavel": evento["responsavel"],
+                "motivo": evento["motivo"],
+                "observacoes": evento["observacoes"],
+            }
+        )
+    colunas = [
+        "data",
+        "evento",
+        "quantidade",
+        "origem",
+        "destino",
+        "funcionario",
+        "responsavel",
+        "motivo",
+        "observacoes",
+    ]
+    if not linhas:
+        return pd.DataFrame(columns=colunas)
+    return (
+        pd.DataFrame(linhas, columns=colunas)
+        .sort_values("data", ascending=False)
+        .reset_index(drop=True)
+    )
+
+
+def _render_historicos(
+    itens, compras, movimentacoes, entregas, posses
+):
+    funcionarios, itens_aba = st.tabs(
+        ["Por funcionário", "Por item"]
+    )
+    with funcionarios:
+        if entregas.empty:
+            st.info("Nenhuma entrega registrada.")
+        else:
+            pessoas = (
+                entregas[["matricula", "funcionario"]]
+                .drop_duplicates("matricula", keep="last")
+                .sort_values("funcionario")
+            )
+            opcoes = pessoas["matricula"].astype(str).tolist()
+            rotulos = dict(
+                zip(
+                    pessoas["matricula"].astype(str),
+                    pessoas.apply(
+                        lambda linha: (
+                            f"{linha['matricula']} · {linha['funcionario']}"
+                        ),
+                        axis=1,
+                    ),
+                )
+            )
+            matricula = st.selectbox(
+                "Funcionário", opcoes, format_func=rotulos.get
+            )
+            st.markdown("**Itens atualmente em posse**")
+            atuais = posses[
+                posses["matricula"].astype(str) == matricula
+            ]
+            if atuais.empty:
+                st.info("Este funcionário não possui itens atualmente.")
+            else:
+                st.dataframe(
+                    atuais[
+                        [
+                            "categoria",
+                            "item",
+                            "tamanho",
+                            "quantidade",
+                            "unidade",
+                        ]
+                    ],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            st.markdown("**Histórico completo**")
+            st.dataframe(
+                historico_funcionario(entregas, itens, matricula),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    with itens_aba:
+        if itens.empty:
+            st.info("Nenhum item cadastrado.")
+        else:
+            mapa = _mapa_itens(itens)
+            opcoes = itens["item_id"].astype(str).tolist()
+            item_id = st.selectbox(
+                "Item", opcoes, format_func=mapa.get
+            )
+            historico = _historico_item(
+                item_id, compras, movimentacoes, entregas
+            )
+            if historico.empty:
+                st.info("Este item ainda não possui histórico.")
+            else:
+                st.dataframe(
+                    historico, use_container_width=True, hide_index=True
+                )
+
+
 def render():
     if not pode_acessar_modulo("uniformes_epis"):
         st.error("Você não possui permissão para acessar Uniformes e EPIs.")
@@ -398,13 +780,31 @@ def render():
     itens = bases["itens"].dados
     compras = bases["compras"].dados
     movimentacoes = bases["movimentacoes"].dados
-    estoque = calcular_estoque(itens, compras, movimentacoes)
+    entregas = bases["entregas"].dados
+    estoque = calcular_estoque(
+        itens, compras, movimentacoes, entregas
+    )
+    posses = calcular_posse_funcionarios(itens, entregas)
     pode_editar = pode_executar(
         "uniformes_epis", recurso="cadastros", permissao="editar"
     )
 
-    resumo, cadastro, aba_compras, aba_movimentos = st.tabs(
-        ["Visão geral", "Itens", "Compras", "Movimentações"]
+    (
+        resumo,
+        cadastro,
+        aba_compras,
+        aba_movimentos,
+        aba_entregas,
+        aba_historicos,
+    ) = st.tabs(
+        [
+            "Visão geral",
+            "Itens",
+            "Compras",
+            "Movimentações",
+            "Entregas",
+            "Históricos",
+        ]
     )
     with resumo:
         _render_resumo(itens, compras, movimentacoes, estoque)
@@ -419,4 +819,17 @@ def render():
             estoque,
             bases["movimentacoes"],
             pode_editar,
+        )
+    with aba_entregas:
+        _render_ciclo_funcionario(
+            itens,
+            entregas,
+            estoque,
+            posses,
+            bases["entregas"],
+            pode_editar,
+        )
+    with aba_historicos:
+        _render_historicos(
+            itens, compras, movimentacoes, entregas, posses
         )
