@@ -1868,3 +1868,100 @@ d308301c-f8be-5411-9b4a-9aacfb68b69d,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instal
 c4dfa3b5-af27-52c8-b896-10f5522010bf,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de suporte em fibra de vidro para ar condicionado,un,"3,00",Item: 18.26
 8445ec5f-fb51-575e-a54b-5a2b1078b7c8,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Ponto de tomada de 02 polos e terra para ar condicionado,un,"3,00",Item: 18.27
 84fc153f-af99-5450-9d50-3a135f2d4a98,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Limpeza geral,m²,"360,19",Item: 18.28
+38f31b8e-45d5-5403-b665-97238873e778,858c692f-b167-4376-857f-85622e14469f,"Alvenaria 0,5 x 0,19 x 0,39",m²,"10,00",Item: 01.01 | Grupo: Rampa de Acesso
+e20f076a-f658-5af9-8295-b448bdf905cc,858c692f-b167-4376-857f-85622e14469f,Aterro interno,m³,"8,50",Item: 01.02 | Grupo: Rampa de Acesso
+562598ef-d5bf-522b-9299-5e7cd57a9262,858c692f-b167-4376-857f-85622e14469f,Lastro de concreto,m²,"18,50",Item: 01.03 | Grupo: Rampa de Acesso
+3bdba427-a09d-5a56-9dfe-c465c19415cd,858c692f-b167-4376-857f-85622e14469f,Regularização de base,m²,"17,00",Item: 01.04 | Grupo: Rampa de Acesso
+cf34faa7-dac2-50b2-bc0c-2c0f3562474d,858c692f-b167-4376-857f-85622e14469f,Ladrilho hidráulico,m²,"17,00",Item: 01.05 | Grupo: Rampa de Acesso
+02932e01-e059-5afd-881b-5b676748360e,858c692f-b167-4376-857f-85622e14469f,Pedra Miracema,m²,"10,00",Item: 01.06 | Grupo: Rampa de Acesso
+a8e31951-44a6-556f-9da5-8fb2c47b5602,858c692f-b167-4376-857f-85622e14469f,Corrimão tubo Ø 1” x 2”,m,"20,00",Item: 01.07 | Grupo: Rampa de Acesso
+72636a8a-4041-5ad6-92d8-33b62a6a317a,858c692f-b167-4376-857f-85622e14469f,Pintura corrimão,m²,"20,00",Item: 01.08 | Grupo: Rampa de Acesso
+87c3d7a0-7b66-5003-b63b-c3be675bbf6e,858c692f-b167-4376-857f-85622e14469f,Demolição de concreto,m²,"3,75",Item: 02.01 | Grupo: Escada de Acesso
+b0c2f4ed-a721-5e84-8b6e-a4d5b93cc79b,858c692f-b167-4376-857f-85622e14469f,Escavação manual,m³,"3,00",Item: 02.02 | Grupo: Escada de Acesso
+dd74c5bd-c81b-51f8-bcb3-81254ad69155,858c692f-b167-4376-857f-85622e14469f,Lastro de concreto magro,m³,"0,50",Item: 02.03 | Grupo: Escada de Acesso
+a5388515-67b8-5f1e-9d4a-52c005334334,858c692f-b167-4376-857f-85622e14469f,Concreto 18 mpa,m³,"0,50",Item: 02.04 | Grupo: Escada de Acesso
+dfe84aa0-5e25-5d33-a248-416c73a51eb6,858c692f-b167-4376-857f-85622e14469f,Aço CA-60,kg,"50,00",Item: 02.05 | Grupo: Escada de Acesso
+fe29f640-0863-591a-a0f9-2da9e6b76ca5,858c692f-b167-4376-857f-85622e14469f,Forma de madeirit,m²,"2,00",Item: 02.06 | Grupo: Escada de Acesso
+1875344d-48ef-51f1-8468-0edc6aa11be3,858c692f-b167-4376-857f-85622e14469f,"Alvenaria bloco 0,19 x 0,19 x 0,39",m,"14,00",Item: 02.07 | Grupo: Escada de Acesso
+e1100035-67bc-5789-b638-fcdc0170627a,858c692f-b167-4376-857f-85622e14469f,Chapisco 1:3,m²,"14,00",Item: 02.08 | Grupo: Escada de Acesso
+885dfc3d-6ea0-5f59-8442-272f4b79c92b,858c692f-b167-4376-857f-85622e14469f,Pedra Miracema,m²,"8,00",Item: 02.09 | Grupo: Escada de Acesso
+234991ed-316a-5f79-9f3a-5dbbc610213d,858c692f-b167-4376-857f-85622e14469f,Aterro interno,m³,"8,50",Item: 02.10 | Grupo: Escada de Acesso
+dfa4544a-476e-56f8-8464-438a443b51bd,858c692f-b167-4376-857f-85622e14469f,Ladrilho hidráulico,m²,"10,00",Item: 02.11 | Grupo: Escada de Acesso
+6c913192-3b93-5971-b692-8e9eefccc67a,858c692f-b167-4376-857f-85622e14469f,Remoção piso madeira,m²,"32,00",Item: 03.01 | Grupo: Recepção
+a05e3f88-2a55-5285-9276-e62270aca845,858c692f-b167-4376-857f-85622e14469f,Demolição balcão alvenaria,m³,"2,00",Item: 03.02 | Grupo: Recepção
+f4ab4d53-f40d-5fad-bbad-34f2fab42d8b,858c692f-b167-4376-857f-85622e14469f,"Alvenaria 0,20 x 0,20 x 0,40",m²,"5,00",Item: 03.03 | Grupo: Recepção
+ff55cdd1-3f02-5aff-9afe-5269ac86bb94,858c692f-b167-4376-857f-85622e14469f,"Porta completa externa (0,80 x 2,10)",un,"1,00",Item: 03.04 | Grupo: Recepção
+02057841-fab5-59da-ae67-5bca84c985c1,858c692f-b167-4376-857f-85622e14469f,Execução de Lambri de madeira,m²,"5,00",Item: 03.05 | Grupo: Recepção
+b6ad15ca-7ccb-5550-9e6a-72ca232f4365,858c692f-b167-4376-857f-85622e14469f,Lixamento e envernizamento de Lambri,m²,"50,00",Item: 03.06 | Grupo: Recepção
+d6b94719-3d97-5296-a5d6-e390b15cfffc,858c692f-b167-4376-857f-85622e14469f,Regularização para piso de granito,m²,"42,00",Item: 03.07 | Grupo: Recepção
+85ddae9d-185f-5665-bbdf-9c39f80fa3a1,858c692f-b167-4376-857f-85622e14469f,"Piso de granito polido esp.=0,03m",m²,"42,00",Item: 03.08 | Grupo: Recepção
+9b2312eb-a208-5382-afa4-da9d555cc3cb,858c692f-b167-4376-857f-85622e14469f,Balcão da recepção revestido de fórmica,m,"5,00",Item: 03.09 | Grupo: Recepção
+66c70924-179c-5ff7-b4b4-b45ede55bc41,858c692f-b167-4376-857f-85622e14469f,Retirada de aquários,un,"3,00",Item: 04.01 | Grupo: Mini Auditório
+1652e9f4-5e87-582d-9b3a-882f10f807f9,858c692f-b167-4376-857f-85622e14469f,Demolição da base do aquário,m³,"3,00",Item: 04.02 | Grupo: Mini Auditório
+b57ea9ca-1622-5b30-b4b6-74e60c89c73c,858c692f-b167-4376-857f-85622e14469f,Retirada de lambri de madeira,m²,"30,00",Item: 04.03 | Grupo: Mini Auditório
+cb05b8b2-4aed-5a27-851d-88b4a1d09b3a,858c692f-b167-4376-857f-85622e14469f,Demolição de alvenaria de tijolo,m²,"3,15",Item: 04.04 | Grupo: Mini Auditório
+ad2a7ad0-ed6f-522d-afec-8aaf7bcda471,858c692f-b167-4376-857f-85622e14469f,"Alvenaria de bloco 0,20 x 0,20 x 0,40",m²,"26,00",Item: 04.05 | Grupo: Mini Auditório
+bcff93c1-91f1-5658-8a84-0fd7f7d38655,858c692f-b167-4376-857f-85622e14469f,Chapisco / Emboço / Reboco,m²,"52,00",Item: 04.06 | Grupo: Mini Auditório
+de1179f0-f983-5d39-870e-d4092a1ee865,858c692f-b167-4376-857f-85622e14469f,"Instalação de porta interna (0,70 x 2,10)",un,"2,00",Item: 04.07 | Grupo: Mini Auditório
+9a7c199d-349c-557b-b333-42cbc592ad10,858c692f-b167-4376-857f-85622e14469f,Regularização de piso de borracha,m²,"36,00",Item: 04.08 | Grupo: Mini Auditório
+e846a524-b872-5cc9-b1f4-19c6b0284256,858c692f-b167-4376-857f-85622e14469f,Piso Plurigoma,m²,"36,00",Item: 04.09 | Grupo: Mini Auditório
+388a37cc-c361-5271-a459-20b3a4c754bb,858c692f-b167-4376-857f-85622e14469f,Massa corrida,m²,"85,00",Item: 04.10 | Grupo: Mini Auditório
+2fbad3ff-2951-5896-8228-c6efc59f4d5e,858c692f-b167-4376-857f-85622e14469f,Pintura Latex,m²,"120,00",Item: 04.11 | Grupo: Mini Auditório
+9c1ad765-9e5f-56b5-a2a6-7fe7c6f28301,858c692f-b167-4376-857f-85622e14469f,Execução de lambri de madeira,m,"12,00",Item: 04.12 | Grupo: Mini Auditório
+e96ac2fe-eef8-5826-802f-8a3bbf16fdfd,858c692f-b167-4376-857f-85622e14469f,Demolição de alvenaria,m³,"4,60",Item: 05.01 | Grupo: Novos Aquários
+557e5874-8755-5f96-8eb2-80f390f3cfcd,858c692f-b167-4376-857f-85622e14469f,Remoção lambri de madeira,m²,"22,75",Item: 05.02 | Grupo: Novos Aquários
+6afa1afa-a5cb-5285-bd7e-f96683667430,858c692f-b167-4376-857f-85622e14469f,Construção base do aquário,m²,"1,68",Item: 05.03 | Grupo: Novos Aquários
+ae60c704-89ff-5f88-9688-817c650dff57,858c692f-b167-4376-857f-85622e14469f,"Alvenaria bloco 0,10 x 0,20 x 0,40",m²,"7,35",Item: 05.04 | Grupo: Novos Aquários
+1359a04e-1460-53ee-80d4-a9d50c9428bf,858c692f-b167-4376-857f-85622e14469f,Chapisco / Emboço / Reboco,m²,"15,00",Item: 05.05 | Grupo: Novos Aquários
+ea4f7466-337a-52c4-8448-7e74e7864afa,858c692f-b167-4376-857f-85622e14469f,"Porta interna (0,60 x 2,10)",un,"1,00",Item: 05.06 | Grupo: Novos Aquários
+4adfef63-be50-5b2b-a702-8df1ce323032,858c692f-b167-4376-857f-85622e14469f,Regularização para caco cerâmico,m²,"12,00",Item: 05.07 | Grupo: Novos Aquários
+db0919aa-810a-596d-9999-ce48ba7e87e9,858c692f-b167-4376-857f-85622e14469f,Piso em caco cerâmico,m²,"12,00",Item: 05.08 | Grupo: Novos Aquários
+d9dd946e-c40b-51bb-beaa-03b21e10b4b7,858c692f-b167-4376-857f-85622e14469f,Demolição de balcão em alvenaria,m³,"0,30",Item: 06.01 | Grupo: Administração
+5352a8fe-0009-5fcc-aabb-13828cc40df7,858c692f-b167-4376-857f-85622e14469f,Demolição de bases de aquário,m³,"3,00",Item: 06.02 | Grupo: Administração
+51001daa-23c4-536a-a145-342e3a2fbe4b,858c692f-b167-4376-857f-85622e14469f,"Tampo e cuba inox - 1,60 x 0,60",un,"1,00",Item: 06.03 | Grupo: Administração
+1e525719-955a-5497-8742-1409f7077c33,858c692f-b167-4376-857f-85622e14469f,Balcão revestido em fórmica,un,"1,00",Item: 06.04 | Grupo: Administração
+c2c22c8f-5c44-5e6b-9d66-71584695685e,858c692f-b167-4376-857f-85622e14469f,Regularização para piso de borracha,m²,"15,00",Item: 06.05 | Grupo: Administração
+afa9dad5-d39a-55df-a467-f044daf5b571,858c692f-b167-4376-857f-85622e14469f,Piso Plurigoma,m²,"15,00",Item: 06.06 | Grupo: Administração
+a52c0ffb-fb9c-5a4e-8aed-33f9f0ac6f29,858c692f-b167-4376-857f-85622e14469f,Pintura Latex Pva,m²,"55,00",Item: 06.07 | Grupo: Administração
+d9b67d6d-65f0-5804-92b5-97d63d39d99a,858c692f-b167-4376-857f-85622e14469f,Remoção de piso cerâmico,m²,"20,00",Item: 07.01 | Grupo: Sanitários
+96210efd-f615-5a78-bc76-d70753a8ad54,858c692f-b167-4376-857f-85622e14469f,Regularização de piso de ardósia,m²,"20,00",Item: 07.02 | Grupo: Sanitários
+7c922202-abf6-5456-b283-2b63227196b1,858c692f-b167-4376-857f-85622e14469f,Piso de ardósia,m²,"20,00",Item: 07.03 | Grupo: Sanitários
+eaae81f3-8d3f-5fb3-a1da-b1460a19529e,858c692f-b167-4376-857f-85622e14469f,Lavagem de rejuntamento de azulejo,m²,"62,00",Item: 07.04 | Grupo: Sanitários
+fc480ef7-8c4e-5d3d-aad1-917dc1078eb3,858c692f-b167-4376-857f-85622e14469f,Pintura Latex Pva,m²,"63,00",Item: 07.05 | Grupo: Sanitários
+fce995ee-8354-5bc9-b821-16596de1aaa1,858c692f-b167-4376-857f-85622e14469f,"Porta (0,60 x 1,80) - revestida de fórmica",un,"3,00",Item: 07.06 | Grupo: Sanitários
+b2c96145-3d4d-5a99-8d65-9cfd8d87cd05,858c692f-b167-4376-857f-85622e14469f,"Alvenaria 0,15 x 0,19 x 0,39",m²,"12,00",Item: 08.01 | Grupo: Tanque e sala de equipamentos
+86afc290-7762-5bc7-9d32-49ad9ce9553a,858c692f-b167-4376-857f-85622e14469f,Chapisco / Emboço / Reboco,m²,"24,00",Item: 08.02 | Grupo: Tanque e sala de equipamentos
+f40f89ca-24a3-53e7-aec4-8930ca6f5251,858c692f-b167-4376-857f-85622e14469f,"Porta externa (0,80 x 2,10)",un,"1,00",Item: 08.03 | Grupo: Tanque e sala de equipamentos
+9b31d917-35ad-5b42-8701-5940e7beef7e,858c692f-b167-4376-857f-85622e14469f,Tela tipo nortene,m²,"20,00",Item: 08.04 | Grupo: Tanque e sala de equipamentos
+7e1ee555-b61e-50ac-aa79-3c6a0f59e230,858c692f-b167-4376-857f-85622e14469f,Balaustre tubo galvanizado 2”,m,"36,00",Item: 08.05 | Grupo: Tanque e sala de equipamentos
+4289fbd0-6636-5605-8426-f765229c66a5,858c692f-b167-4376-857f-85622e14469f,Alvenaria bloco de vidro,m²,"22,00",Item: 08.06 | Grupo: Tanque e sala de equipamentos
+103d6a4c-34d8-5ce0-bb13-424625e54994,858c692f-b167-4376-857f-85622e14469f,Remoção de pastilha,m²,"217,00",Item: 08.07 | Grupo: Tanque e sala de equipamentos
+6a2dacce-f4ea-56e3-9a5c-c6a671876b10,858c692f-b167-4376-857f-85622e14469f,Colocação de cerâmica esmaltada,m²,"217,00",Item: 08.08 | Grupo: Tanque e sala de equipamentos
+fffd34e4-3725-53ee-afe6-335b154b2438,858c692f-b167-4376-857f-85622e14469f,Pintura latex Pva (2 demão),m²,"95,00",Item: 08.09 | Grupo: Tanque e sala de equipamentos
+c8fa3a82-327c-56c8-854e-eaa37927a256,858c692f-b167-4376-857f-85622e14469f,Rampa aquário / tanque,m²,"4,00",Item: 08.10 | Grupo: Tanque e sala de equipamentos
+3db9fc19-a704-509b-a166-fab8c5bfe155,858c692f-b167-4376-857f-85622e14469f,Piso ardósia,m²,"120,00",Item: 08.11 | Grupo: Tanque e sala de equipamentos
+95b4d0b2-359a-58b3-a43a-a4b51baab7a0,858c692f-b167-4376-857f-85622e14469f,Remoção de piso cerâmico,m²,"120,00",Item: 08.12 | Grupo: Tanque e sala de equipamentos
+973b14ea-1534-57db-b29f-2d5a0769e9d5,858c692f-b167-4376-857f-85622e14469f,Remoção de impermeabilização,m²,"50,00",Item: 09.01 | Grupo: Laje de Cobertura
+25e69621-c2e9-5e94-b16c-6189f18d55f4,858c692f-b167-4376-857f-85622e14469f,Execução de limpeza de regularização,m²,"70,00",Item: 09.02 | Grupo: Laje de Cobertura
+8e6294fe-c2cd-5edb-954b-551fc3dbd756,858c692f-b167-4376-857f-85622e14469f,Impermeabilização com asfalto oxidado,m²,"70,00",Item: 09.03 | Grupo: Laje de Cobertura
+390bbc3f-356a-5c62-9d07-0832d7692b9a,858c692f-b167-4376-857f-85622e14469f,Demolição de calçada,m²,"32,00",Item: 10.01 | Grupo: Jardim
+7ee472bb-c86e-5e11-9473-8a4178237c94,858c692f-b167-4376-857f-85622e14469f,Cordonel de jardim c/ pedra Miracema,m,"40,00",Item: 10.02 | Grupo: Jardim
+53f40f1f-1d6a-528b-9f0b-9ed91e998f1c,858c692f-b167-4376-857f-85622e14469f,Terra vegetal,m³,"6,00",Item: 10.03 | Grupo: Jardim
+543d02b0-bcd2-56f5-a5c7-f7ddd36e4b6f,858c692f-b167-4376-857f-85622e14469f,Execução de jardim,m²,"32,00",Item: 10.04 | Grupo: Jardim
+99db466e-0ec1-527f-ab86-652f86fb9fd3,858c692f-b167-4376-857f-85622e14469f,Demolição de alvenaria,m²,"4,00",Item: 11.01 | Grupo: Sala e Veterinária
+9a7875f9-5302-599d-9f06-0ec225afc2ae,858c692f-b167-4376-857f-85622e14469f,Demolição de tanques,m³,"5,00",Item: 11.02 | Grupo: Sala e Veterinária
+69e37b98-3963-5f11-981e-c3842299c073,858c692f-b167-4376-857f-85622e14469f,Remoção de alambrados,m²,"20,00",Item: 11.03 | Grupo: Sala e Veterinária
+df7bc329-1871-58b2-8b37-56ce85c74a3f,858c692f-b167-4376-857f-85622e14469f,"Alvenaria de blocos de 0,15 x 0,19 x 0,39",m²,"16,00",Item: 11.04 | Grupo: Sala e Veterinária
+94090cb1-8a96-51f4-b881-cb4711b861ab,858c692f-b167-4376-857f-85622e14469f,Chapisco / Emboço / Reboco,m²,"32,00",Item: 11.05 | Grupo: Sala e Veterinária
+0f3e5eb2-2800-5f22-8b4e-687c0d3c077e,858c692f-b167-4376-857f-85622e14469f,"Instalação de porta (0,80 x 2,10)",un,"1,00",Item: 11.06 | Grupo: Sala e Veterinária
+1239f92d-4fd8-588c-be57-37677508965b,858c692f-b167-4376-857f-85622e14469f,Tampo e cuba inox,un,"1,00",Item: 11.07 | Grupo: Sala e Veterinária
+98007b98-368a-5315-833e-f0082299e44f,858c692f-b167-4376-857f-85622e14469f,Balcão revestido em fórmica,un,"1,00",Item: 11.08 | Grupo: Sala e Veterinária
+01a0c752-1ed6-5b16-a05a-3026151d56f3,858c692f-b167-4376-857f-85622e14469f,Mureta de alvenaria,m²,"12,00",Item: 11.09 | Grupo: Sala e Veterinária
+6860ea76-8b02-5acb-a3fd-e54f53f76169,858c692f-b167-4376-857f-85622e14469f,Chapisco / Emboço,m²,"24,00",Item: 11.10 | Grupo: Sala e Veterinária
+318fc622-12a1-5dec-ad0e-8334cf7f077f,858c692f-b167-4376-857f-85622e14469f,Revestimento de azulejo,m²,"24,00",Item: 11.11 | Grupo: Sala e Veterinária
+d876aef6-bc85-599b-a9e8-f5997f1c795e,858c692f-b167-4376-857f-85622e14469f,Tela galvanizada c/ moldura,m²,"8,00",Item: 11.12 | Grupo: Sala e Veterinária
+fefd24a1-133b-5e6b-9d74-6facaaf7b89e,858c692f-b167-4376-857f-85622e14469f,"Patamar 0,30 x 0,60 x 0,30",m³,"0,55",Item: 11.13 | Grupo: Sala e Veterinária
+b29678c9-e820-5c51-83d6-308d4cb31206,858c692f-b167-4376-857f-85622e14469f,Pintura Latex,m²,"40,00",Item: 11.14 | Grupo: Sala e Veterinária
+ddef5612-ffc5-5a44-863d-4671bae3134f,858c692f-b167-4376-857f-85622e14469f,Pintura de esquadrias,m²,"100,00",Item: 12.01 | Grupo: Geral
+90868d65-93fe-5bca-af6c-cea59de69487,858c692f-b167-4376-857f-85622e14469f,Pintura latex,m²,"1.600,00",Item: 12.02 | Grupo: Geral
+3349f168-6ab2-5708-afed-cf9afa2a2f50,858c692f-b167-4376-857f-85622e14469f,Verba,vb,"1,00",Item: 13.01 | Grupo: Hidráulica
