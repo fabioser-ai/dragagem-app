@@ -89,6 +89,11 @@ elif tela == "crm":
 
     crm()
 
+elif tela == "uniformes_epis":
+    from pages import uniformes_epis
+
+    uniformes_epis.render()
+
 elif tela == "novo_orcamento":
     from modulos.orcamentos.apresentacao import entrada as novo_orcamento
     from services.permissoes import pode_acessar_modulo
