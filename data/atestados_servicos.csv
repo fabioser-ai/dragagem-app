@@ -1972,3 +1972,81 @@ ddef5612-ffc5-5a44-863d-4671bae3134f,858c692f-b167-4376-857f-85622e14469f,Pintur
 1fdb917d-cb48-5b03-97e5-de6618edd75b,c776610a-eeed-4586-b124-a7f5ce26a598,Pintura demarcatória,m.l.,"300,00",Item: 5
 e9a2d557-4d8a-532f-8a46-b249c93c5957,c776610a-eeed-4586-b124-a7f5ce26a598,Colocação de vidros,m²,"10,00",Item: 6
 d613e00c-ee11-5f0a-bb44-5a17b92515a4,a45d8b41-e9df-4209-97fe-4481a98c13a0,"Locação de caminhões basculantes, com motorista e combustível",caminhão,"2,00",Item: 1
+93b629f0-6334-53af-92a5-ac188eaba0f5,624ddb15-8189-4e42-b353-ee2fcb839d19,Raspagem e limpeza do terreno,m²,"1.925,00",Item: 1 | Grupo: SERVIÇOS PRELIMINARES
+d08dedd3-ff65-5a75-ae3f-f7d8f4d038ec,624ddb15-8189-4e42-b353-ee2fcb839d19,Execução de tapume,m²,"396,00",Item: 2 | Grupo: SERVIÇOS PRELIMINARES
+4209fbcd-3a20-52dc-aa6e-956f6c110dab,624ddb15-8189-4e42-b353-ee2fcb839d19,Escavação manual de valas,m³,"755,81",Item: 3 | Grupo: SERVIÇOS PRELIMINARES
+e8f60bb1-4bde-57d4-bc1f-9920be8cea0c,624ddb15-8189-4e42-b353-ee2fcb839d19,"Carga, transporte e descarga de material",m³,"1.000,94",Item: 4 | Grupo: SERVIÇOS PRELIMINARES
+a9880767-0c00-5ed8-80e0-46814a3d0fec,624ddb15-8189-4e42-b353-ee2fcb839d19,Fornecimento e cravação de estacas,m,"2.310,00",Item: 5 | Grupo: SERVIÇOS PRELIMINARES
+07412590-7ad6-5311-95a8-0a3cbd3b6026,624ddb15-8189-4e42-b353-ee2fcb839d19,Emenda de estacas,un,"76,00",Item: 6 | Grupo: SERVIÇOS PRELIMINARES
+16e8d890-3db9-55a0-a15f-8da3b01e06cd,624ddb15-8189-4e42-b353-ee2fcb839d19,Execução de forma para concreto,m²,"927,06",Item: 7 | Grupo: SERVIÇOS PRELIMINARES
+0e34c4ef-0f44-5920-a64f-3bd1af0616f6,624ddb15-8189-4e42-b353-ee2fcb839d19,Armadura de aço CA - 50,kg,"11.027,80",Item: 8 | Grupo: SERVIÇOS PRELIMINARES
+98605b15-a2b9-5a10-ba55-f8f13577af26,624ddb15-8189-4e42-b353-ee2fcb839d19,"Concreto estrutural, inclusive lançamento",m³,"72,25",Item: 9 | Grupo: SERVIÇOS PRELIMINARES
+ca9dd486-fa5c-5d4b-873b-46875d8c9a01,624ddb15-8189-4e42-b353-ee2fcb839d19,"Alvenaria c/ bloco estrutural ""IREAGO""",m²,"423,92",Item: 10 | Grupo: SERVIÇOS PRELIMINARES
+453ce72c-869c-53bb-9b98-1d9ef7a7aa17,624ddb15-8189-4e42-b353-ee2fcb839d19,"Alvenaria c/ elemento vazado ""NEO-REX""",m²,"133,67",Item: 11 | Grupo: SERVIÇOS PRELIMINARES
+54fb5fb5-263b-5dc8-b090-3e3ede3b1f59,624ddb15-8189-4e42-b353-ee2fcb839d19,Divisórias de granilite,m²,"16,29",Item: 12 | Grupo: SERVIÇOS PRELIMINARES
+66a844bd-d6f4-50fb-8613-0433ffb333d0,624ddb15-8189-4e42-b353-ee2fcb839d19,Lajes pré-moldada inclusive capeamento,m²,"679,50",Item: 13 | Grupo: SERVIÇOS PRELIMINARES
+8aee9138-9d91-584d-8ca4-4c2996c8b8fc,624ddb15-8189-4e42-b353-ee2fcb839d19,"Laje em painéis protendidos ""IREAGO""",m²,"471,60",Item: 14 | Grupo: SERVIÇOS PRELIMINARES
+121e44fd-3f42-56b1-a66b-aa591091cce1,624ddb15-8189-4e42-b353-ee2fcb839d19,Fornecimento e aplicação de concreto grout,m³,"87,70",Item: 15 | Grupo: SERVIÇOS PRELIMINARES
+6bb5926d-f6a4-5459-a3e8-dac3be830277,624ddb15-8189-4e42-b353-ee2fcb839d19,"Esquadrias de madeira revestidas c/ ""FORMICA""",m²,"67,97",Item: 16 | Grupo: SERVIÇOS PRELIMINARES
+46372b34-2f60-56f4-a7b1-226aaa6c2756,624ddb15-8189-4e42-b353-ee2fcb839d19,"Armário embutido revestido em ""FORMICA""",m²,"13,50",Item: 17 | Grupo: SERVIÇOS PRELIMINARES
+3ad478df-df56-5148-b84a-c348ab1ddc48,624ddb15-8189-4e42-b353-ee2fcb839d19,Esquadria de alumínio linha 30,m²,"100,92",Item: 18 | Grupo: SERVIÇOS PRELIMINARES
+68ce62b1-1f19-5c95-ad05-5d2b23625f91,624ddb15-8189-4e42-b353-ee2fcb839d19,Vidro liso 6 mm,m²,"100,92",Item: 19 | Grupo: SERVIÇOS PRELIMINARES
+ece7a151-d023-5959-a368-72a7118f5f84,624ddb15-8189-4e42-b353-ee2fcb839d19,"Cobertura c/ telha modulada, incl. estrutura",m²,"513,79",Item: 20 | Grupo: SERVIÇOS PRELIMINARES
+8b9aa2d5-4906-5282-8655-9e661a3c015c,624ddb15-8189-4e42-b353-ee2fcb839d19,Estrutura metálica treliçada,m²,"446,60",Item: 21 | Grupo: SERVIÇOS PRELIMINARES
+626645f7-d987-55cd-83f3-dc83273978a8,624ddb15-8189-4e42-b353-ee2fcb839d19,"Cobertura c/ telha metálica ""PERKRON""",m²,"446,60",Item: 22 | Grupo: SERVIÇOS PRELIMINARES
+2bc1f077-c420-51b9-9558-7a63593b1da8,624ddb15-8189-4e42-b353-ee2fcb839d19,Bacia sanitária,un,15,Item: 23 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+44860272-d184-5cbb-aa4b-ad3e7fa5cffb,624ddb15-8189-4e42-b353-ee2fcb839d19,Lavatório de sobrepor,un,23,Item: 24 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+d2727e13-01cb-591f-a033-aa4b47de41e5,624ddb15-8189-4e42-b353-ee2fcb839d19,Cuba de aço inox 50 x 70 x 40,un,3,Item: 25 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+a44caa88-a081-5736-8cf8-069414784e0c,624ddb15-8189-4e42-b353-ee2fcb839d19,"Filtro purificador ""APOLLO"" Mod. HY-100",un,1,Item: 26 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+aacea9c4-2295-565e-b731-1225885107f3,624ddb15-8189-4e42-b353-ee2fcb839d19,Tubo PVC marrom incl. conexões e registros,m,"325,00",Item: 27 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+179bac21-162f-5155-a7a9-ba55131f4389,624ddb15-8189-4e42-b353-ee2fcb839d19,Tubo PVC branco para esgoto,m,"262,00",Item: 28 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+5b80033a-feb5-5352-b9c6-e3575989a9dc,624ddb15-8189-4e42-b353-ee2fcb839d19,"Válvula ""Hydra Master""",un,15,Item: 29 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+4508a5ab-6e8f-51ba-92ad-f19fc167e9eb,624ddb15-8189-4e42-b353-ee2fcb839d19,Caixas de inspeção e gordura,un,13,Item: 30 | Grupo: INSTALAÇÕES HIDRÁULICAS COMPLETAS
+5717ef01-cdb9-5a7d-a8df-b31d782fc873,624ddb15-8189-4e42-b353-ee2fcb839d19,Conjunto motobomba de recalque,un,1,Item: 31 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+0598ece0-da1d-5883-a049-c728f5cb49b8,624ddb15-8189-4e42-b353-ee2fcb839d19,Sistema automático liga - desliga,un,1,Item: 32 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+1ca2ced0-4919-5158-8b76-fc21d194f527,624ddb15-8189-4e42-b353-ee2fcb839d19,Hidrante e abrigo p/ mangueira,un,2,Item: 33 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+201db14c-6284-583e-965f-14fc1d747e8c,624ddb15-8189-4e42-b353-ee2fcb839d19,Extintor de água pressurizada,un,2,Item: 34 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+4d14521f-9d84-502a-aff1-94844b46a5a0,624ddb15-8189-4e42-b353-ee2fcb839d19,Extintor de pó químico,un,2,Item: 35 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+c2a33c33-6763-578d-9162-5cb4bf3687cc,624ddb15-8189-4e42-b353-ee2fcb839d19,Extintor CO₂,un,2,Item: 36 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+b8a5d8e4-5851-5939-928e-5027e2fc696d,624ddb15-8189-4e42-b353-ee2fcb839d19,Registro de recalque no passeio,un,1,Item: 37 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+28c3b016-813a-50c9-8bec-116bab512c17,624ddb15-8189-4e42-b353-ee2fcb839d19,Iluminação de emergência,un,2,Item: 38 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+06fc5f62-6d78-5fca-bdc2-a939b0a5f5bd,624ddb15-8189-4e42-b353-ee2fcb839d19,Alarme sonoro,un,1,Item: 39 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+722e054b-491b-5395-8e3e-8a69ca041df1,624ddb15-8189-4e42-b353-ee2fcb839d19,Central acumuladora de energia,un,1,Item: 40 | Grupo: INSTALAÇÕES DE COMBATE A INCÊNDIO COMPLETAS
+f66928cd-5484-5761-b8d7-81daf76b6978,624ddb15-8189-4e42-b353-ee2fcb839d19,Poste de entrada c/ caixa tipo III,un,1,Item: 41 | Grupo: INSTALAÇÕES ELÉTRICAS
+71f0ae55-d3da-5dc8-b63f-21652d0b6a2b,624ddb15-8189-4e42-b353-ee2fcb839d19,Quadro geral de distribuição,un,1,Item: 42 | Grupo: INSTALAÇÕES ELÉTRICAS
+8c506625-59a9-5bb8-84e5-77f8ddb1b327,624ddb15-8189-4e42-b353-ee2fcb839d19,Luminária fluorescente 2 x 65 W,un,90,Item: 43 | Grupo: INSTALAÇÕES ELÉTRICAS
+0f90ce14-3521-5bd7-b22f-9c763425f862,624ddb15-8189-4e42-b353-ee2fcb839d19,"Luminária TPL 321 ""Trópico""",un,25,Item: 44 | Grupo: INSTALAÇÕES ELÉTRICAS
+f678ad4c-5f6d-5347-9697-c7c109c9e9df,624ddb15-8189-4e42-b353-ee2fcb839d19,Tomadas,un,80,Item: 45 | Grupo: INSTALAÇÕES ELÉTRICAS
+0bae819e-a9db-5447-b847-b69b085256e3,624ddb15-8189-4e42-b353-ee2fcb839d19,Sistema de aterramento completo,un,1,Item: 46 | Grupo: INSTALAÇÕES ELÉTRICAS
+c5288da0-bb67-53e2-bbfc-ff6d3658d304,624ddb15-8189-4e42-b353-ee2fcb839d19,Para-raio completo,un,1,Item: 47 | Grupo: INSTALAÇÕES ELÉTRICAS
+2fa3bf02-9e10-572d-a20c-c4e7a85a0030,624ddb15-8189-4e42-b353-ee2fcb839d19,Fios e cabos,m,"4.250,00",Item: 48 | Grupo: INSTALAÇÕES ELÉTRICAS
+a1f139aa-5e7b-5728-9408-5ccb5f6586ac,624ddb15-8189-4e42-b353-ee2fcb839d19,Eletrodutos de PVC,m,"1.066,00",Item: 49 | Grupo: INSTALAÇÕES ELÉTRICAS
+a8f90853-3d81-5895-9e12-d7b96b7e4576,624ddb15-8189-4e42-b353-ee2fcb839d19,Impermeabilização c/ manta butílica,m²,"85,38",Item: 50 | Grupo: INSTALAÇÕES ELÉTRICAS
+31b43f8d-2669-5af8-92dd-d6ba33489ca5,624ddb15-8189-4e42-b353-ee2fcb839d19,Impermeab. de superfície em contato c/ terra,m²,"819,51",Item: 51 | Grupo: INSTALAÇÕES ELÉTRICAS
+993602a3-fccf-5c08-91c9-d4c0c622f07f,624ddb15-8189-4e42-b353-ee2fcb839d19,Aplicação de resina epóxi,m²,"13,93",Item: 52 | Grupo: INSTALAÇÕES ELÉTRICAS
+c3dc3dfa-c1d4-5a1c-b81a-71eb3f30f854,624ddb15-8189-4e42-b353-ee2fcb839d19,Tratamento de juntas,m,"25,00",Item: 53 | Grupo: INSTALAÇÕES ELÉTRICAS
+f532a167-1c95-5c31-87c8-7fe37fbf44c4,624ddb15-8189-4e42-b353-ee2fcb839d19,"Pintura com ""Neutrol""",m²,"819,51",Item: 54 | Grupo: INSTALAÇÕES ELÉTRICAS
+49e4ec1c-a3b5-5b81-ba60-f8f24dd45202,624ddb15-8189-4e42-b353-ee2fcb839d19,Injeção de massa de cimento,m,"25,00",Item: 55 | Grupo: INSTALAÇÕES ELÉTRICAS
+90463357-654a-53bc-85a8-8f125a229cf5,624ddb15-8189-4e42-b353-ee2fcb839d19,Chapisco 1:3,m²,"2.826,09",Item: 56 | Grupo: REVESTIMENTOS
+2f376430-fba9-504a-bbce-6f9bdcdbff71,624ddb15-8189-4e42-b353-ee2fcb839d19,Emboço argamassa mista 1:2:9,m²,"2.826,09",Item: 57 | Grupo: REVESTIMENTOS
+5083fb5b-0f86-5299-b1e4-673911bcb125,624ddb15-8189-4e42-b353-ee2fcb839d19,Aplicação de Reboco 1:4,m²,"1.911,77",Item: 58 | Grupo: REVESTIMENTOS
+dbed1a99-dabc-5ee2-a778-62b260dfde58,624ddb15-8189-4e42-b353-ee2fcb839d19,Azulejo junta a prumo,m²,"442,72",Item: 59 | Grupo: REVESTIMENTOS
+67713f2c-6835-546f-8d7d-8d5b6e760ca0,624ddb15-8189-4e42-b353-ee2fcb839d19,Aplicação de massa corrida,m²,"512,40",Item: 60 | Grupo: REVESTIMENTOS
+4f714e4e-11a0-52c7-a3b6-4a6d9ef90470,624ddb15-8189-4e42-b353-ee2fcb839d19,Revestimento c/ laminado p/ lousa,m²,"115,54",Item: 61 | Grupo: REVESTIMENTOS
+6463aeb4-7539-5605-a693-45df6cdeb5d4,624ddb15-8189-4e42-b353-ee2fcb839d19,Piso cimento placas 100x100 inclusive lastro,m²,"759,10",Item: 62 | Grupo: REVESTIMENTOS
+4f3bc28a-d07b-5a27-9a2c-bbcc95b91a5e,624ddb15-8189-4e42-b353-ee2fcb839d19,Piso cerâmico 20 x 20 grês,m²,"61,70",Item: 63 | Grupo: REVESTIMENTOS
+fdd734e3-bb74-57ad-a5f5-e83c1e1668a6,624ddb15-8189-4e42-b353-ee2fcb839d19,"Piso borracha ""PLURIGOMA"" G 15 - SOFT",m²,"404,50",Item: 64 | Grupo: REVESTIMENTOS
+ea263c04-01ef-5ec3-bf2f-07fe6e4531c8,624ddb15-8189-4e42-b353-ee2fcb839d19,Pintura esquadria de madeira,m²,"209,79",Item: 65 | Grupo: REVESTIMENTOS
+5649500e-c974-5e4d-a4e9-5737e9cb9a6d,624ddb15-8189-4e42-b353-ee2fcb839d19,Pintura látex acrílico,m²,"1.234,60",Item: 66 | Grupo: REVESTIMENTOS
+f1bd746c-9a89-556d-a8b4-c46de7713383,624ddb15-8189-4e42-b353-ee2fcb839d19,Pintura grafite em gradis,m²,"211,08",Item: 67 | Grupo: REVESTIMENTOS
+bd52a90f-c919-52dc-98b4-74984d129d46,624ddb15-8189-4e42-b353-ee2fcb839d19,Pintura a óleo sobre estrutura metálica,m²,"240,00",Item: 68 | Grupo: REVESTIMENTOS
+106cb3f8-36c1-57e0-abbd-78a158b7b931,624ddb15-8189-4e42-b353-ee2fcb839d19,"Ajardinamento, grama e plantas ornamentais",m²,"812,72",Item: 69 | Grupo: SERVIÇOS COMPLEMENTARES
+9a9ecd21-517b-5049-a9f9-ddd743ff7e1a,624ddb15-8189-4e42-b353-ee2fcb839d19,Gradis e portões,m²,"33,66",Item: 70 | Grupo: SERVIÇOS COMPLEMENTARES
+06fd56cc-f990-5169-9852-0ab8ba9937c8,624ddb15-8189-4e42-b353-ee2fcb839d19,Bancadas de concreto armado,m,"317,60",Item: 71 | Grupo: SERVIÇOS COMPLEMENTARES
+01a7a479-b31d-51b8-913f-7f1e773ab326,624ddb15-8189-4e42-b353-ee2fcb839d19,"Muro de bloco aparente h = 2,00",m,"145,00",Item: 72 | Grupo: SERVIÇOS COMPLEMENTARES
+d2eeeb1a-92a0-5eda-93e5-baac7ad6fbca,624ddb15-8189-4e42-b353-ee2fcb839d19,Passeio em ladrilhos hidráulicos,m²,"175,00",Item: 73 | Grupo: SERVIÇOS COMPLEMENTARES
+0fa83ef1-72d4-5d2c-99a8-6d1430a1182c,624ddb15-8189-4e42-b353-ee2fcb839d19,Execução de aterro,m³,"533,29",Item: 74 | Grupo: SERVIÇOS COMPLEMENTARES
+46b6f674-b97a-5076-8ebd-4af17249203c,624ddb15-8189-4e42-b353-ee2fcb839d19,"Sistema de gás de cozinha padrão Conesp c/ cilindros, tubos de cobre e reguladores",cj,"1,00",Item: 75 | Grupo: SERVIÇOS COMPLEMENTARES
+19e6e5fa-6bb6-5387-b8e8-aba7ab9ab6a8,624ddb15-8189-4e42-b353-ee2fcb839d19,Cordonel de concreto,m,"1.101,00",Item: 76 | Grupo: SERVIÇOS COMPLEMENTARES
+e4c768c5-c29f-5c53-81f6-d7b30fa21359,624ddb15-8189-4e42-b353-ee2fcb839d19,Alambrado sobre muro,m²,"126,00",Item: 77 | Grupo: SERVIÇOS COMPLEMENTARES
+460fab7f-42c4-5c64-84e6-a40ee43cc4a8,624ddb15-8189-4e42-b353-ee2fcb839d19,Bebedouro de alvenaria padrão Conesp,un,1,Item: 78 | Grupo: SERVIÇOS COMPLEMENTARES
