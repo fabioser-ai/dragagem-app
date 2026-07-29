@@ -1747,3 +1747,124 @@ d56c8e84-78d9-4980-b44b-dd6044cd0cbf,1d8f9140-a713-4f1e-bb92-8ee464b2df77,Assent
 fa4e87f8-b8cf-4f55-9d9e-dfe9fa85e3c8,1d8f9140-a713-4f1e-bb92-8ee464b2df77,Assentamento de tubos de concreto armado Ø400 mm,m,"50,00",
 d47e1918-eeca-4306-a652-d5f22f034de9,1d8f9140-a713-4f1e-bb92-8ee464b2df77,Poço de visita com profundidade de 2 m,un,1,
 69d20d89-b37c-47e3-99f0-43f362b0e73f,1d8f9140-a713-4f1e-bb92-8ee464b2df77,Tampão de ferro fundido para poço de visita,un,1,
+8e681353-5106-56eb-86fd-b4836ad1f850,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Abrigo Provisório, Tapume, Placa da Obra, etc",Vb,"1,00",Item: 01.01
+3a4f5fe9-8479-5dc8-94f4-69633ed61729,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Locação da Obra,m²,"167,32",Item: 01.02
+69d49eb2-94d0-5572-85cf-68bfebfc7c47,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Raspagem e limpeza do terreno,m²,"360,19",Item: 01.03
+131b9c3b-e27d-5a05-b26a-1ad1c240eb2a,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Demolição de jardineiras, com retirada de entulho sem reaproveitamento, remoção de árvores, inclusive, arrancamento de tubos de concreto",m²,"360,19",Item: 02.01
+1548df05-6a75-507b-95a2-ade0bb450a04,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Escavações para sapatas e baldrames,m³,"84,72",Item: 03.01
+7390a640-1e47-5461-83e9-24d79e40e317,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Apiloamento de fundo de cavas,m²,"133,85",Item: 03.02
+5aa936d2-13c8-57bf-8b64-26b4ea2068fa,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Lastro de concreto (5 cm),m³,"7,04",Item: 03.03
+4858b5fb-9808-5344-a4cb-3317ccd13a5c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Forma de pinho para fundação,m²,"241,63",Item: 03.04
+e37f3dcd-b1f7-56c3-9dbe-f8ee8e2dada7,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Armadura aço CA-50,Kg,"1.551,73",Item: 03.05
+94cc4ab9-b0ed-5eb3-9bb2-2a04427c6287,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Concreto estrutural fck 18 MPa e lançamento,m³,"27,15",Item: 03.06
+8a93b68f-1447-50a4-b3f9-e0a150428888,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Reaterro apiloado,m³,"49,49",Item: 03.07
+faf9e146-2cbb-5d5e-9345-4be2b1103dc6,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Transporte de terra em caminhão basculante,m³,"45,49",Item: 03.08
+2f7a3532-971a-5ca2-b75b-39206d437e38,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Alvenaria de embasamento,m³,"6,02",Item: 03.09
+2d88a38d-64d1-571c-b246-d4dddad50586,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Impermeabilização em alvenaria de embasamento,m²,"100,28",Item: 03.10
+37d29e26-5807-51f4-b28c-059c22e0fb25,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Forma de compensado resinado,m²,"937,67",Item: 04.01
+6715a091-015c-52bf-8c8e-690f4e30d1d0,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Armadura aço CA-50,Kg,"5.399,27",Item: 04.02
+a9e316c4-d563-59f4-abf1-0ffca4193830,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Concreto estrutural fck 18 MPa e lançamento,m²,"57,28",Item: 04.03
+446ea9fd-5658-5c50-a70d-346e3b57eb03,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Alvenaria de blocos de concreto de 9 cm de esp.,m²,"7,85",Item: 05.01
+335cd3e1-090c-5dba-957a-0d61baf7365a,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Alvenaria de blocos de concreto de 14 cm de esp.,m²,"24,00",Item: 05.02
+15ba7d95-0c00-5420-9801-2594dc5f5737,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Elemento vazado de concreto 19x19x19 cm,m²,"81,13",Item: 05.03
+9ea599ce-1304-50bd-afd1-b8d321561150,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Porta de madeira de Cedro tipo veneziana, com ferragens, c/ batentes de 1,00 x 2,10m",un,"2,00",Item: 06.01
+47f5c199-a310-5906-b47d-acc1844ff58b,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Porta de madeira de Cedro lisa c/ laminado melamínico, ferragens e batentes de 0,90 x 2,10m",un,"18,00",Item: 06.02
+2bc58cd1-2e0f-5fed-b18c-3339fa25803c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem Acima de 0,80 x 2,10m",un,"3,00",Item: 06.03
+d0acfecf-1371-5ff6-9161-80834c7341aa,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem Acima de 0,70 x 2,10m",un,"2,00",Item: 06.04
+e22a4242-5164-5e18-a76e-98b801b20598,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Portão de ferro em elemento vazado, c/ferragens e batentes, c/todos acessórios de (1,10 x 2,25)m",un,"3,00",Item: 07.01
+7e65570c-3e74-516b-a1d4-2aff430ffc31,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Porta de alumínio anodizado semi-circular s/vidro, com ferragens e batentes e com todos os acessórios (1,90 x 2,25)m, inclusive janela de alumínio anodizado semi-circular s/vidro (1,90 x 1,40)m",cj,"1,00",Item: 07.02
+6314ea06-c13d-54e5-8482-a944a89f584f,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Porta de alumínio anodizado c/bandeira H = 1,10m s/ vidro, com ferragens, batentes e acessórios de (2,95 x 2,25)m",un,"1,00",Item: 07.03
+c3280ff1-7e6f-5595-bdeb-9d5783e76387,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Porta de alumínio anodizado c/ ferragens, batentes e acessórios de (0,80 x 2,10)m",un,"1,00",Item: 07.04
+8613686d-22cb-5ce4-8244-81c208261350,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Janela de alumínio anodizado, sem vidros, com ferragens, batentes, completa c/ todos acessórios de (4,30 x 2,80)m",un,"1,00",Item: 07.05
+c3529da7-3600-5f81-b2dc-78cc83882447,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (3,65 x 0,30)m",un,"1,00",Item: 07.06
+2e2152d4-5d40-598f-850b-d804bd08f8f1,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (2,40 x 1,20)m",un,"2,00",Item: 07.07
+db227fbd-8e00-592f-97f6-7f071c412664,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (1,20 x 1,20)m",un,"16,00",Item: 07.08
+36d2b6c5-feec-593a-af75-62adc9e2497e,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (1,20 x 0,60)m",un,"4,00",Item: 07.09
+30699a4c-700c-5896-9772-1f49b0ac82ca,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (1,20 x 0,30)m",un,"4,00",Item: 07.10
+4431f20d-dbc8-53fd-840f-8bfcedfebe61,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Janela alumínio anodizado, semi-circular sem vidros, ferragens, batentes, completa com todos os acessórios de (3,77 x 0,40)m",un,"1,00",Item: 07.11
+f6c825a9-139d-5f09-8e77-f390d3ebd677,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Telha ondulada de fibrocimento de 8mm de esp. inclusive madeiramento,m²,"119,16",Item: 08.01
+1055b849-d46c-5ea3-83e2-e4cf6f44f6dd,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Cumeeira normal de fibrocimento p/telha ondulada,m,"18,10",Item: 08.02
+4218dc4b-ff26-5717-bea4-405dcccfb29e,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Pontos para captação de águas pluviais e esgotamento completo, inclusive caixas e ligação à rede públicas.",un,"20,00",Item: 09.01
+38c837e0-f630-5a03-8dc2-5e3b46b00720,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Pontos de alimentação de água fria c/ esgotamento, inclusive torneiras de pressão cromadas (12 un) longa, 5 lavatórios de louça, 5 bacias sifonada, 1 un tanque de louça com torneira cromada e 2 un torneira de uso geral, com todos acessórios",un,"24,00",Item: 09.02
+663998fc-be04-528d-8ad0-00857f146778,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Bancada de concreto com cuba aço inox, válvula americana, sifão metálico cromado, com todos os acessórios, de (2,20 x 0,60)m",un,"1,00",Item: 09.03
+b5cca8dd-6bd7-56f7-8d7b-9caf1586282f,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (1,65 x 0,60)m",un,"12,00",Item: 09.04
+e1f12a00-470c-5d0a-9a00-ed228d65a89a,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (1,88 x 0,60)m",un,"1,00",Item: 09.05
+ec812475-5e6b-5d66-a7aa-35bdceff179c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima de (1,20 x 0,60)m",un,"1,00",Item: 09.06
+2405d737-3d95-51af-9ad0-42d62ee249e4,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Ponto de força completamente energizado,un,"89,00",Item: 10.01
+966abf2e-3b53-5fda-bbb9-5732aaf1e9fe,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Ponto de luz completamente energizado,un,"49,00",Item: 10.02
+f3a5a1c1-f3b1-525a-9a7f-8b4db5cf923e,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Pára-raio completo com acessórios, instalados",un,"1,00",Item: 10.03
+ea0e663f-071f-52fe-8bb2-188542ab8a00,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Placas de gesso completo com acessórios instalado,m²,"70,67",Item: 11.01
+19c1b658-bbc8-5e82-8bec-81d58be9d0cc,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Regularização de superfície p/ impermeabilização,m²,"70,12",Item: 12.01
+ecfcefbd-b56d-594c-afe3-bb7b67378d9a,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Manta asfáltica c/ véu de poliester para lajes,m²,"39,11",Item: 12.02
+e4f89bfc-6ca5-5a3f-9950-5b1d6a7e3042,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Argamassa rígida e asfalto modif. p/reservatório,m²,"31,01",Item: 12.03
+10403c60-206e-510a-8f97-c1e73c8c277f,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Proteção mecânica da impermeabilização,m²,"70,12",Item: 12.04
+cf99f556-ad04-596f-add2-dbcd9ca40232,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Argila expandida aglomerada - Cinasita,m³,"6,00",Item: 12.05
+4ed43675-a79b-502c-95f0-94a77b18782c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Chapisco 1:3 no forro,m²,"273,48",Item: 13.01
+bb03cb3e-fc8c-5ef9-b1cb-09eb3ad8a434,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Emboço 1:2:9 no forro,m²,"273,48",Item: 13.02
+3bff51f1-4255-557c-83a0-a1635eaa6ad6,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Reboco 1:3 no forro,m²,"273,48",Item: 13.03
+d2726e0e-e7ec-58f0-8374-1e74c6691c11,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Chapisco 1:3 em parede interna,m²,"719,51",Item: 13.04
+f3c4591d-ea00-5d0f-ad1a-01b56d57b5ae,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Emboço 1:2:9 em parede interna,m²,"592,27",Item: 13.05
+e7cdf3a1-c5b8-5529-be55-447025bfc59c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Reboco 1:3 em parede interna,m²,"592,27",Item: 13.06
+4932cbdb-cddb-55ce-90b9-2880001ccd0f,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Emboço para azulejo,m²,"127,24",Item: 13.07
+f469a672-ce79-5cb4-9330-3fff0b550434,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Azulejo c/ junta à prumo c/ cimento-colante,m²,"127,24",Item: 13.08
+a645173f-7a87-5ce6-8073-dcf0ef672b6a,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Emboço para laminado melamínico,m²,"4,20",Item: 13.09
+c2f6bfbb-f665-5b3a-b998-1afd1c0ebffa,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Laminado melamínico,m²,"4,20",Item: 13.10
+653dbbd5-cc27-59e4-b6e1-034e15dfe3b7,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Chapisco 1:3 em parede externa,m²,"496,80",Item: 13.11
+7f4df8e3-6b36-5406-bf5b-b63cf01736f2,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Emboço 1:2:9 em parede externa,m²,"496,80",Item: 13.12
+ff926f3b-d8b0-50e0-a1e7-315bf3531468,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Reboco 1:3 em parede externa,m²,"496,80",Item: 13.13
+447a5b4d-41bf-5aca-8888-cd1315d398e0,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Lastro concreto impermeab. para piso vinílico e=6 cm,m²,"151,13",Item: 14.01
+2ec71c74-21c6-5c78-af76-32cd2d3be2bc,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Regularização de base p/piso vinílico,m²,"151,13",Item: 14.02
+dcade97b-b374-577b-b5df-16903fc71562,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Chapas vinílica e = 2mm (Paviflex),m²,"151,13",Item: 14.03
+3b44f7fc-0574-5d50-b398-93924db3b0bc,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Lastro de concreto impermeab. p/ piso cimentado,m²,"130,10",Item: 14.04
+b8c342b9-6adf-519c-b065-34242302ab82,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Piso cimentado liso desempenado c/ junta plástica inclusive preparo de caixa e regularização,m²,"130,10",Item: 14.05
+77108d12-da22-5743-a403-b4a7afd80230,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Soleira em perfil extrudado flexível de PVC,m,"13,50",Item: 14.06
+5dd4221c-86db-53c7-9eb0-bbc8c4131373,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Rodapé hospitalar em perfil extrudado de PVC,m,"152,10",Item: 14.07
+b66d51a0-5894-5c38-81db-56b35d0009e0,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Rodapé cimentado liso desempenado c/ pigmentação,m,"145,19",Item: 14.08
+bc1d8b29-2793-5b01-8645-e89843d8355e,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Degrau cimentado liso desempenado c/ pigmentação e com testeira em perfil extrudado de PVC,m,"22,80",Item: 14.09
+9aa234e9-040a-5a43-b2ae-63b6c10f5f63,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Lastro de concreto e = 6 cm para pedra Miracema,m²,"98,08",Item: 14.10
+0e9e7d51-cbb8-5c28-b06d-4d0efa800351,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Regularização para piso pedra Miracema,m²,"98,08",Item: 14.11
+95518f49-7c81-587d-8e94-a644954365b4,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Piso em pedra Miracema,m²,"98,02",Item: 14.12
+40e4628e-cb8e-5526-a3e2-24cf07231354,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Lastro de concreto para piso cimentado liso e desempenado com junta plástica,m²,"41,77",Item: 14.13
+4f89a677-836b-5c59-9d7b-17cce72fcf42,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Regularização de base para piso cimentado liso e desempenado com junta plástica,m²,"41,77",Item: 14.14
+1ae036ff-ccf4-569c-a40d-c6c81148a615,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Piso cimentado liso desempenado c/junta plástica,m²,"41,77",Item: 14.15
+f3969530-36a6-5f9b-98cf-1c5b62b286fa,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Rodapé p/ piso cimentado liso desempenado,m,"261,43",Item: 14.16
+1bd49634-8faa-599e-9a15-7bf67783cc37,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Vidro comum liso verde e=4mm,m²,"50,42",Item: 15.01
+ec789edf-7ac9-5a87-aecb-e548f3c08148,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Vidro comum pontilhado verde e=4 mm,m²,"2,86",Item: 15.02
+e0a43793-efd3-5db1-9f2b-c35de56aa7d5,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Emassamento para paredes internas / externas, muro e tetos com 2 demãos em massa acrílica",m²,"1.487,68",Item: 16.01
+b8687c31-7c7e-5a55-952c-78d7a993facb,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Látex acrílico em 2 demãos em paredes internas e externas, tetos e muro",m²,"1.487,68",Item: 16.02
+9c10c9d6-458d-57f4-91b6-c1c0e2827307,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Tinta epoxi em superfícies de concreto,m²,"13,33",Item: 16.03
+5c590dde-88c0-57ab-bf93-b40e3edd62f5,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Silicone, 2 demãos em paredes de elemento vazado",m²,"162,34",Item: 16.04
+25a7b059-b57d-5a93-8f70-eb1b05b1682a,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Emassamento de esquadrias de madeira, para tinta em esmalte sintético",m²,"8,40",Item: 16.05
+6127f110-5327-55d1-a458-bed1d3732aef,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Esmalte sintético 2 demãos em esquadrias madeira,m²,"8,40",Item: 16.06
+361879ae-5d30-597b-a278-597ebfb34ba0,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Esmalte sintético 2 demãos em esquadrias metálica perfil metálico e corrimão de escada, etc.",m²,"7,49",Item: 16.07
+d5d82e04-d298-57c7-b678-b7473c3b7108,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Arbustos e arvores ornamentais com fornecimento geral, inclusive terra vegetal adubada, plantio",vb,"1,00",Item: 17.01
+49307f95-ad92-514f-bc0e-55dd2598de97,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Fornecimento e colocação de grama em placas, inclusive terra vegetal adubada, plantio",m²,"74,77",Item: 17.02
+5adab967-bd05-53bd-aa53-c93ba2a93862,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Cordonel de concreto p/ Jardim H = 7 cm, L = 5 cm",m,"30,75",Item: 17.03
+b7716f16-177e-59d1-ba83-34b7932b5fd2,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Banco de concreto armado contínuo L = 50 cm,m,"10,00",Item: 18.01
+df6bc238-760d-5e1c-8d7e-1ea6b498aeea,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Banco de concreto armado contínuo L = 40 cm,m,"10,00",Item: 18.02
+e3bd9cb1-557d-5f72-be95-8452aa8ae697,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Confecção/instalação de armário de madeira embutido, revestido c/ fórmica, acabamento de 1ª, completo, inclusive acessórios, H = 2,10 m",m²,"10,40",Item: 18.03
+6da4b2f3-4dd3-5986-9962-92b87ae89f92,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Idem acima H = 0,75 m",m²,"12,38",Item: 18.04
+8350437e-60e9-5ca1-ae1f-d40e6bb6f4af,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Retirada e reassentamento de guias,m,"20,00",Item: 18.05
+4bbb8574-72ed-56d1-9205-44d043039c3c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Demolição de sarjeta,m,"20,00",Item: 18.06
+7ee650f2-33e8-59db-bb21-08aed4706195,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Execução de sarjeta,m,"20,00",Item: 18.07
+dd9617b1-578a-563e-9b33-37c47a300451,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Demolição de passeio,m²,"60,00",Item: 18.08
+0763754c-f6b3-5809-8631-a0de37915b22,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Recomposição de passeio,m²,"60,00",Item: 18.09
+93c7ac12-9a2c-568f-90c2-2a44e59dc116,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Construção muro divisório bloco aparente de concreto 0,20 x 0,20 cm H = 2,20 m",m²,"91,74",Item: 18.10
+494e970d-a2d0-51a0-a7f7-57fc387b8916,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de luminária de emergência,un,"1,00",Item: 18.11
+dc229a2b-07ca-5402-9615-bb5c8f638ab9,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Instalação de papeleiras, argola, porta-toalha e assento de vaso sanitário",un,"15,00",Item: 18.12
+702d3794-a9bc-5b2d-8c26-c926935bb0e4,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação do corrimão metálico com colocação de tela metálica galvanizada,un,"1,00",Item: 18.13
+e2e50ecd-bf66-5808-805a-07b532416b0c,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Construção de apoio nos sanitários para deficientes físicos,un,"8,00",Item: 18.14
+d82fe992-005d-59b0-981b-07622533e2f4,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Locação de um veículo marca Volkswagen modelo Gol 1000, ano 1994, para uso da fiscalização, quilometragem livre por um período de 03 (três) meses",vb,"1,00",Item: 18.15
+c9bb412d-7e11-556a-8797-2314a96b82dd,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de portas de alumínio para acesso a caixa d’água,un,"1,00",Item: 18.16
+2eff72ea-a175-5ee6-8e9d-93acadf53420,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Idem acima para casa de bombas,un,"1,00",Item: 18.17
+4e4f9e17-331a-5a1e-b0ad-61248dd94a22,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Idem acima para abrigo de cavalete Sabesp,un,"1,00",Item: 18.18
+576fb728-82a9-504d-993b-d2c2446d85d1,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Idem acima para abrigo do compressor,un,"1,00",Item: 18.19
+b5511134-25c6-5d89-87ab-0244c4690a00,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de escada tipo marinheiro,un,"2,00",Item: 18.20
+4f4f00d2-d660-557a-9485-b177c464a2d2,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de motor-bomba centrífuga de ¾ HP,un,"2,00",Item: 18.21
+df581a7f-6258-5915-9f1c-11d583b505dd,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de duchas manuais higiênicas,un,"5,00",Item: 18.22
+641098bf-3e07-5a5f-b045-810033c74a5b,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de chave magnética com proteção térmica para bombas,un,"2,00",Item: 18.23
+d3d3f334-491e-5ece-9e1e-8d8c19796962,70e2789d-a401-4e0b-a9b9-b634b8a827d2,"Pórtico metálico completo com 4,00 x 1,10 m com comunicação visual",un,"2,00",Item: 18.24
+d308301c-f8be-5411-9b4a-9aacfb68b69d,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de prateleiras revestidas de fórmica na sala da farmácia,m²,"20,00",Item: 18.25
+c4dfa3b5-af27-52c8-b896-10f5522010bf,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Instalação de suporte em fibra de vidro para ar condicionado,un,"3,00",Item: 18.26
+8445ec5f-fb51-575e-a54b-5a2b1078b7c8,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Ponto de tomada de 02 polos e terra para ar condicionado,un,"3,00",Item: 18.27
+84fc153f-af99-5450-9d50-3a135f2d4a98,70e2789d-a401-4e0b-a9b9-b634b8a827d2,Limpeza geral,m²,"360,19",Item: 18.28
