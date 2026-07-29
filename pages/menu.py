@@ -232,6 +232,15 @@ def render():
             )
             modulos_renderizados += 1
 
+        if pode_acessar_modulo("uniformes_epis"):
+            render_card(
+                "Uniformes e EPIs",
+                "Controle de compras, valores, estoques e localização física nas obras.",
+                "ABRIR UNIFORMES E EPIs",
+                "uniformes_epis",
+            )
+            modulos_renderizados += 1
+
     with col2:
         if pode_acessar_modulo("obras"):
             render_card(

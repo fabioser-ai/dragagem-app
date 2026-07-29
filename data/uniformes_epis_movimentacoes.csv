@@ -1,0 +1,1 @@
+movimentacao_id,item_id,data_movimentacao,quantidade,local_origem,obra_origem_id,local_destino,obra_destino_id,responsavel,observacoes,criado_por,criado_em
