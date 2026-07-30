@@ -368,3 +368,13 @@ IMPLEMENTADO
 Definir e executar somente o Kid Step 005 — identificação e premissas, conforme `docs/architecture/27_PLANO_KID_STEPS_ORCAMENTOS.md`.
 
 O Kid Step 005 deve aproximar o sistema da criação de um orçamento real sem introduzir pacotes ou cálculos e sem acoplar cliente a solução técnica.
+
+## Registro administrativo — investigação da AUDIT_057
+
+Data da investigação: 30 de julho de 2026.
+
+A investigação técnica do repositório remoto confirmou que a AUDIT_057 não está publicada na `main` e não possui branch remota, Pull Request ou tag correspondente. O commit anteriormente esperado também não pertence às referências do repositório remoto verificadas.
+
+O bundle oficial da AUDIT_057 não estava disponível no ambiente da investigação. Por ausência da documentação base, o AC-001 permaneceu bloqueado e nenhuma funcionalidade foi implementada.
+
+A definição da próxima ação ficará para decisão posterior.
