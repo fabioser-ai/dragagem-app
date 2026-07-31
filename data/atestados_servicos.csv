@@ -2150,3 +2150,25 @@ fa7e61fb-e2fa-4aed-9b67-131d9e325793,74806f08-bea6-42d4-819b-f1b171093fa7,Bloco 
 f055a397-efd7-4db1-8a7d-948c405f06b4,74806f08-bea6-42d4-819b-f1b171093fa7,"Contrapiso de concreto magro, espessura 5cm",m²,"35,70",Item: 6 | Grupo: Piso
 c745b079-ef86-4123-8f39-0d5a84beaf25,74806f08-bea6-42d4-819b-f1b171093fa7,"Lajota cerâmica, colocada",m²,"35,70",Item: 7 | Grupo: Piso
 262f0fdb-a6ba-4941-a164-8ffdbc89c888,74806f08-bea6-42d4-819b-f1b171093fa7,Silicone para concreto aparente,m²,"352,00",Item: 8 | Grupo: Pintura
+48d8ebdd-2e75-42a3-a9f0-fde6f997d9a8,441b8154-aed7-4e0f-8e1c-b09efc193574,Área total construída,m²,"1.119,00",Item: 1
+4c46214b-e5c0-4d67-942b-9f4a7eaf126d,441b8154-aed7-4e0f-8e1c-b09efc193574,Movimento de terra,m³,"354,00",Item: 2
+0f9a30b7-430a-4326-9d45-49b74db63338,441b8154-aed7-4e0f-8e1c-b09efc193574,Estaqueamento com estacas pré-moldadas de concreto armado — 30 t,m,"460,00",Item: 3
+f9923c90-5d30-4ee5-8b4b-47698fbce606,441b8154-aed7-4e0f-8e1c-b09efc193574,Estaqueamento com estacas pré-moldadas de concreto armado — 20 t,m,"154,00",Item: 4
+c6a17955-4d92-47eb-99ec-5a6865a0f70f,441b8154-aed7-4e0f-8e1c-b09efc193574,Formas para concreto aparente,m²,"2.990,00",Item: 5
+8d41b55b-c352-4795-aaa7-d39f87c9e5fd,441b8154-aed7-4e0f-8e1c-b09efc193574,Armação com aço CA-50,kg,"31.894,00",Item: 6
+6ca5f895-2738-4969-b3b5-b4cedd887a87,441b8154-aed7-4e0f-8e1c-b09efc193574,Concreto estrutural FCK 18 MPa,m³,"347,00",Item: 7
+445a7f5f-fabc-453d-b650-b1f5183067b6,441b8154-aed7-4e0f-8e1c-b09efc193574,Alvenaria aparente com tijolo laminado,m²,"484,00",Item: 8
+b1d955cf-a33e-4f8b-ad5d-89b1bebc561b,441b8154-aed7-4e0f-8e1c-b09efc193574,Alvenaria leve com blocos sílico-calcáreos,m²,"925,00",Item: 9
+a2856eaf-52d6-458b-9d1c-69539a39d429,441b8154-aed7-4e0f-8e1c-b09efc193574,Estrutura de madeira para cobertura,m²,"373,00",Item: 10
+c56b538d-4f67-4f01-acf7-95d8f7903281,441b8154-aed7-4e0f-8e1c-b09efc193574,"Cobertura com telha estrutural ""Canalete/90""",m²,"373,00",Item: 11
+94f82a7a-7281-4cec-bfdd-383880e2d559,441b8154-aed7-4e0f-8e1c-b09efc193574,Esquadrias de alumínio anodizado,m²,"307,00",Item: 12
+09345ed6-fd87-412b-9027-f0ef6114afca,441b8154-aed7-4e0f-8e1c-b09efc193574,Piso vinílico,m²,"330,00",Item: 13
+131abc0f-15e0-4a12-a09b-4687d1a2861c,441b8154-aed7-4e0f-8e1c-b09efc193574,"Piso de borracha ""Plurigona""",m²,"300,00",Item: 14
+3b9a519a-fb60-4092-9204-2ce54b199c8c,441b8154-aed7-4e0f-8e1c-b09efc193574,"Piso ""Durbeton"" de alta resistência",m²,"489,00",Item: 15
+d94aea10-c5e6-4bd4-8b2e-b32c25bdf717,441b8154-aed7-4e0f-8e1c-b09efc193574,Piso de concreto espessura 8 cm,m²,"977,00",Item: 16
+1fddde8f-f72f-47fc-8878-00e7ac7cadc4,441b8154-aed7-4e0f-8e1c-b09efc193574,Impermeabilização de laje de cobertura,m²,"417,00",Item: 17
+378e469b-60a1-405c-8da3-ad61d0d6bf08,441b8154-aed7-4e0f-8e1c-b09efc193574,Revestimento com azulejos,m²,"474,00",Item: 18
+78394a28-48ff-4d65-815c-3c7f397bcdee,441b8154-aed7-4e0f-8e1c-b09efc193574,"Tratamento de concreto aparente com estucagem, lixamento e polimento",m²,"785,00",Item: 19
+1421885e-6d1c-495f-87a0-91993cbd265e,441b8154-aed7-4e0f-8e1c-b09efc193574,"Painéis verticais ""Brise Soleil"" anodizado",m²,"82,00",Item: 20
+04349d61-641a-4a4f-b0fc-11a19294f357,441b8154-aed7-4e0f-8e1c-b09efc193574,Forro termo-acústico,m²,"629,00",Item: 21
+c84f06fa-3331-4977-8ae8-c380cd47ad23,441b8154-aed7-4e0f-8e1c-b09efc193574,"Instalações elétricas, hidráulicas, sanitárias, telefonia e combate a incêndio completas para todo o edifício, de acordo com os projetos contratuais",serviço,1,Item: 22
