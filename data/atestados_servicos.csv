@@ -2172,3 +2172,8 @@ d94aea10-c5e6-4bd4-8b2e-b32c25bdf717,441b8154-aed7-4e0f-8e1c-b09efc193574,Piso d
 1421885e-6d1c-495f-87a0-91993cbd265e,441b8154-aed7-4e0f-8e1c-b09efc193574,"Painéis verticais ""Brise Soleil"" anodizado",m²,"82,00",Item: 20
 04349d61-641a-4a4f-b0fc-11a19294f357,441b8154-aed7-4e0f-8e1c-b09efc193574,Forro termo-acústico,m²,"629,00",Item: 21
 c84f06fa-3331-4977-8ae8-c380cd47ad23,441b8154-aed7-4e0f-8e1c-b09efc193574,"Instalações elétricas, hidráulicas, sanitárias, telefonia e combate a incêndio completas para todo o edifício, de acordo com os projetos contratuais",serviço,1,Item: 22
+e2170710-3a8c-4998-820c-91a47622044e,a2aa01c8-ed06-4e33-b369-47b0640fb446,Escavação manual,m³,"70,25",Item: 1 | Grupo: Principais serviços executados
+1cce3ff7-21d7-4625-9171-b7e6a448e0d9,a2aa01c8-ed06-4e33-b369-47b0640fb446,Estacas Strauss Ø 25 mm,m,"309,50",Item: 2 | Grupo: Principais serviços executados
+3af85e8e-f789-4996-8cdf-3d08155bbd74,a2aa01c8-ed06-4e33-b369-47b0640fb446,Formas de madeira,m²,"83,05",Item: 3 | Grupo: Principais serviços executados
+74c5b73c-1578-4f2d-8238-657d57f37d6d,a2aa01c8-ed06-4e33-b369-47b0640fb446,Aço CA 50/60,kg,"1.197,86",Item: 4 | Grupo: Principais serviços executados
+5ceb34a1-94d5-4f10-8c2b-9bd7d05cc75f,a2aa01c8-ed06-4e33-b369-47b0640fb446,Concreto estrutural FCK = 180 kgf/cm²,m³,"22,42",Item: 5 | Grupo: Principais serviços executados
