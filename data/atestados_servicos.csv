@@ -2222,3 +2222,10 @@ b2a57516-005b-4a3a-9c55-908d43a2a5e9,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Tela e
 22bd9f11-346b-46e0-a7cb-7e3f23219214,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Início das obras em 26/10/92,un,1,Item: 10 | Característica da obra constante do atestado.
 07dbe35f-a871-4f33-92ba-b3bae757516c,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Término das obras em 10/12/92,un,1,Item: 11 | Característica da obra constante do atestado.
 7f626cc4-d5e2-4175-b33e-d50998ef9e9c,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Valor total da obra,Cr$,"150.000.000,00",Item: 12 | Valor informado no atestado: cento e cinquenta milhões de cruzeiros.
+bdd64f54-451b-4d96-8758-808eef0eaf58,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,"Plantio de árvores com porte mínimo de 2,50 m inclusive tutor e demolição de calçada",un,3.260,Item: 1
+56e96b65-fa0b-4f7c-9461-2d908465d0b9,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,"Replantio de árvores com porte mínimo de 2,50 m inclusive tutor",un,2.948,Item: 2
+7a1f1b7e-95d9-4001-a8be-aa9a935d9bd7,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,"Poda de árvore com porte até 10,00 m incluída remoção de material para bota fora",un,5.302,Item: 3
+d87dbfe1-e9f8-440d-ba05-b7c3f288ac7b,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,"Corte rasteiro, rastejamento, refilamento de gramado e poda de arbustos inclusive remoção para bota fora",m²,"307.996,42",Item: 4
+b6b19dc2-b63e-4825-b7f7-16df55a09b93,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,"Corte rasteiro, rastejamento e refilamento de gramado inclusive remoção de material para bota fora",m²,"3.068.960,46",Item: 5
+469aaf40-6e2d-4f2c-b40b-590bf384ac1c,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,Jardineiro,horas,312,Item: 6
+707f4031-cdb5-4254-8e24-eed7acfbda84,6882dd90-7ecd-4ac3-b6a3-691a8dad106a,Ajudante geral,horas,2.776,Item: 7
