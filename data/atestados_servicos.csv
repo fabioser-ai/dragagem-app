@@ -2210,3 +2210,15 @@ d36d7608-ed31-4da4-bf7b-15b5f3b669d1,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Alvena
 f8dda792-704b-4976-9dba-73fbb1851d51,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Impermeabilização c/ pintura betuminosa,m²,"135,30",Item: 31
 d09f082c-53e2-4589-b587-e7d631352067,69b5dc29-5cf1-4294-a3cb-a8b764a58b5c,"Locação de 01 Kombi, ano 1994, cor branca, placa BHN 9542",veículo,1,Item: 1 | Período: 05/07/95 a 02/10/95
 98901afc-e084-46cc-804a-f818d444511a,69b5dc29-5cf1-4294-a3cb-a8b764a58b5c,"Locação de 01 Pick-up Ford F-1000 ""S"", ano 1991/2, cor azul, placa BHN 8061",veículo,1,Item: 2 | Período: 05/07/95 a 01/10/96
+648f4968-5d93-4e46-a55a-51a111c8dc87,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Escavação manual,m³,"50,00",Item: 1
+04cab5e4-aae6-484c-89e7-8143bbba9c2d,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Estaqueamento com estacas de concreto armado para 6 toneladas,metros,"80,00",Item: 2
+2deb8d30-ce12-4ccb-b460-6270b87617b3,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Formas comuns,m²,"45,00",Item: 3
+7b78c790-240f-4c9f-9a48-2b3bd06aae17,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Armação em aço CA-50,kg,"2600,00",Item: 4
+b2a57516-005b-4a3a-9c55-908d43a2a5e9,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Tela em aço tipo Telcon,m²,"70,00",Item: 5
+3b7d0ddd-a582-4667-a401-dafb324a6c72,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,"Chumbador para concreto com DN 1 1/2""",un,"48,00",Item: 6
+5e90fbba-2aeb-4007-8714-90ac16a8eee1,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Concreto estrutural FCK = 18 MPA,m³,"26,00",Item: 7
+4ad0b640-0386-45d0-8fd0-af1ae2d32781,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Contrapiso desempenado,m²,"70,00",Item: 8
+3bc198c6-18da-42fc-9fe3-9d2575fd8371,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Contrato nº SE-2982 de 26/10/92,un,1,Item: 9 | Característica da obra constante do atestado.
+22bd9f11-346b-46e0-a7cb-7e3f23219214,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Início das obras em 26/10/92,un,1,Item: 10 | Característica da obra constante do atestado.
+07dbe35f-a871-4f33-92ba-b3bae757516c,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Término das obras em 10/12/92,un,1,Item: 11 | Característica da obra constante do atestado.
+7f626cc4-d5e2-4175-b33e-d50998ef9e9c,df6d8b50-3da5-4fe0-8b51-2bfcfa00de2b,Valor total da obra,Cr$,"150.000.000,00",Item: 12 | Valor informado no atestado: cento e cinquenta milhões de cruzeiros.
