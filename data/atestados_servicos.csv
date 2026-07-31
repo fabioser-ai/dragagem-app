@@ -2337,3 +2337,11 @@ a6d33174-c3e2-5438-bfe3-6a6f48e1ea0a,c704cbe3-2f9c-55d1-a00f-b5b2de41b6fe,"Eletr
 7b87b167-4141-5d91-bee6-0b556e2f7225,c704cbe3-2f9c-55d1-a00f-b5b2de41b6fe,Eletricista,h,176,Item: 106
 94faf8be-5745-5508-9b80-ecaeddf94719,c704cbe3-2f9c-55d1-a00f-b5b2de41b6fe,Ajudante,h,176,Item: 107
 63835035-03ea-5b46-9131-1fa11c88177b,c704cbe3-2f9c-55d1-a00f-b5b2de41b6fe,Revisão de projeto,VB,1,Item: 108
+aa80f98a-a5a5-461d-9bae-e6f7c05f1b3a,40eb739e-c6f2-4329-8302-dbd788107214,"Concreto ciclópico para conformação dos graus da plataforma, lado do mar, escadas de acesso e bases de concreto para postes de iluminação de 20 (vinte) metros de altura.",m³,"100,00",Item: 1
+be8b2f06-ebd6-4418-aa88-1585a162c5b1,40eb739e-c6f2-4329-8302-dbd788107214,"Fundações de torre de salva-vidas, constituídas de 04 tubos de concreto preenchidos com mistura de solo-cal.",,,Item: 2
+2de826e7-eb2c-4fcb-99ad-90b417f3f8b7,40eb739e-c6f2-4329-8302-dbd788107214,Aterro de plataforma com argila/areia.,m³,"700,00",Item: 3
+a3535b4f-db88-47e7-bae2-60229c49bc10,40eb739e-c6f2-4329-8302-dbd788107214,Deck de madeira (tábuas e barrotes em eucalipto).,,,Item: 4
+e73f32e0-001a-4fe4-ae46-2e45a4051da7,40eb739e-c6f2-4329-8302-dbd788107214,Torre de salva-vidas construída em madeira roliça (eucalipto tratado).,un,01,Item: 5
+a4c518d8-c016-47f5-b6ad-5029102924f5,40eb739e-c6f2-4329-8302-dbd788107214,"Construção de 01 (um) quiosque com área de 25,00 m².",un,01,Item: 6
+5826fefe-14cb-4fe3-8ba5-471913138294,40eb739e-c6f2-4329-8302-dbd788107214,Construção de bancos de madeira (1/2 tronco de eucalipto).,,,Item: 7
+278ef8dc-7e5a-4f1b-bbba-3c91ca14eae0,40eb739e-c6f2-4329-8302-dbd788107214,"Conjunto de iluminação de 03 (três) postes de aço de 20 metros de altura, com 04 (quatro) projetores (02 lâmpadas de 400W por refletor), em cada poste, cruzetas, lâmpadas, reatores, tubulações e fiações, quadro com barramento trifásico e aterramento do sistema.",,,Item: 8
