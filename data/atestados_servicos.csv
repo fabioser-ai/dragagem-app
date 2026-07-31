@@ -2177,3 +2177,34 @@ e2170710-3a8c-4998-820c-91a47622044e,a2aa01c8-ed06-4e33-b369-47b0640fb446,Escava
 3af85e8e-f789-4996-8cdf-3d08155bbd74,a2aa01c8-ed06-4e33-b369-47b0640fb446,Formas de madeira,m²,"83,05",Item: 3 | Grupo: Principais serviços executados
 74c5b73c-1578-4f2d-8238-657d57f37d6d,a2aa01c8-ed06-4e33-b369-47b0640fb446,Aço CA 50/60,kg,"1.197,86",Item: 4 | Grupo: Principais serviços executados
 5ceb34a1-94d5-4f10-8c2b-9bd7d05cc75f,a2aa01c8-ed06-4e33-b369-47b0640fb446,Concreto estrutural FCK = 180 kgf/cm²,m³,"22,42",Item: 5 | Grupo: Principais serviços executados
+b40d0ac2-b421-4b9c-9fac-e763809b7d81,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Demolição de concreto asfáltico,m³,"16,56",Item: 1
+ec23f1bd-3f00-4611-89d9-ddbbe51bdf5e,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Escavação manual de solo argiloso,m³,"546,48",Item: 2
+55951df3-f97e-41a9-bbad-c09997ebd694,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Reaterro compactado,m³,"539,52",Item: 3
+1e770859-c845-4466-8a25-158c14163b37,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Forma de chapa compensada,m²,"490,40",Item: 4
+d404e7d0-b9eb-4c87-b8d9-1ee9f8751f8f,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Armação de aço CA 25 / CA 50,kg,"6000,0",Item: 5
+c2951516-cfbf-4e11-a67f-911c20481acd,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Concreto 18 MPA inclusive lançamento,m³,"83,30",Item: 6
+b23ae9cc-a2c1-4cd9-9d96-9274c37c9c08,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Estruturas de madeiras para cobertura com telha fibrocimento ondulada,m²,"75,48",Item: 7
+24ea7c44-31cb-4fe4-b93d-ce0aef1db697,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Cobertura c/ telha fibrocimento ondulada,m²,"75,48",Item: 8
+94aa8c4a-56a4-4a2c-a3dd-50b11df817e6,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Piso de cimentado liso,m²,"137,70",Item: 9
+ed17324d-5563-4c05-a17d-86b61eacc0e6,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Passeio de concreto rústico,m²,"14,46",Item: 10
+5214306a-a62d-4618-a875-16d746949065,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Jardineiras,m²,"37,82",Item: 11
+dd4ad1a4-03f4-4b90-a7b2-172636d2d4fa,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Plantio de mudas,m²,"37,82",Item: 12
+11258492-6fd0-4488-82c5-942e647f696b,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Chapisco,m²,"114,80",Item: 13
+9b6d2d20-9a71-4c61-a13e-82008a2f5f3c,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Emboço p/ azulejo,m²,"42,0",Item: 14
+a607c69f-90a9-4d22-900e-57bccf7845d5,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Assentamento de azulejo c/ cimento colante,m²,"42,0",Item: 15
+7f46be69-09ba-4c39-a451-246894945dee,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Contrapiso de concreto impermeabilizado,m²,"5,85",Item: 16
+12e2a64e-53eb-4d4e-8d1c-a01aa559a3c6,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Assentamento de piso cerâmico,m²,"5,85",Item: 17
+1de2aa8a-bd51-4d50-9ecb-b4d4aa77e2fc,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Emassamento de forro c/ massa PVA,m²,"5,85",Item: 18
+a179ce63-c20d-4a04-9571-04ba4755952f,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Pintura em forro c/ latex PVA,m²,"5,85",Item: 19
+48fd6118-8b17-4a04-b928-e308c7e2bb5e,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,"Colocação de porta externa madeira lisa, uma folha 1,00 x 2,10",un,2,Item: 20
+fd29c327-db30-4640-822c-fd3a5cb2f483,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,"Colocação de porta interna madeira lisa, uma folha 1,00 x 2,10",un,2,Item: 21
+9098acdb-95e8-4719-b4c4-510cdca49f92,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,"Colocação de porta interna madeira lisa, uma folha 0,70 x 2,10",un,1,Item: 22
+d71d1aa5-b170-429a-bba2-e90653cd80bd,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,"Colocação de porta externa madeira lisa, uma folha 0,80 x 2,10",un,1,Item: 23
+4f190951-e1e5-4cab-8e14-13c1dd953882,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,"Instalação hidráulica e sanitária, inclusive louças e metais cromados, p/ 01 (um) sanitário",m²,"6,0",Item: 24
+2d7eea71-172b-4e4a-8597-415de9fa7ee5,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Limpeza geral da obra,m²,"210,0",Item: 25
+1d76ee5c-a3ca-4fad-a9a3-d8e0df6ffc3a,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Regularização de base p/ piso vinílico,vb,1,Item: 26
+9d6e8450-62d5-4669-b2b1-08a8a6b75b70,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Carga de entulho em caminhão basculante,m³,"23,52",Item: 27
+965f61d5-6d68-4f16-a89e-9ee9e2530e33,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Transporte de material em caminhão basculante,m³,"23,52",Item: 28
+ddace275-f374-4345-a06b-d55f0fba9a15,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Alvenaria de bloco concreto aparente espessura de 19 cm,m²,"240,0",Item: 29
+d36d7608-ed31-4da4-bf7b-15b5f3b669d1,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Alvenaria de bloco concreto aparente espessura de 10 cm,m²,"83,20",Item: 30
+f8dda792-704b-4976-9dba-73fbb1851d51,9ffba71d-10a3-4196-b1ad-f67946b5a4cc,Impermeabilização c/ pintura betuminosa,m²,"135,30",Item: 31
