@@ -2391,3 +2391,48 @@ ca59e9b0-5dd8-5fbe-87dd-be8b577a9c90,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Mesa d
 329c49d9-3cad-57aa-88d0-2d28f7118915,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Brinquedo Play Escorregador,UN,1,Item: 41
 80b694ad-e5e7-5f7f-adb9-2d2b457ad5db,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Mesa de concreto para tabuleiro de xadrez,UN,2,Item: 42
 f083bac4-d717-57b0-9dee-b759b9054fbe,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Banco/mesa de concreto,UN,8,Item: 43
+4f97ce09-45e8-54e6-b573-892fa3295ab5,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Demolição de alvenaria,m²,"41,62",Item: 1
+6322d365-43cd-53f9-a249-b4d2d49d776e,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Demolição de piso,m²,"32,00",Item: 2
+669fefa5-04ec-50bf-bc82-f8f7fc65acda,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Placa da obra,un,"2,00",Item: 3
+4a9e1fd4-66ab-573a-af6a-7a8a2a91ae05,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Abrigo provisório metálico para alojamento e depósito,un,"1,00",Item: 4
+62b6f512-eaac-5707-8400-f2e3231d8051,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Tapume ao redor da obra,m²,"90,20",Item: 5
+430b9ca5-5839-5264-9f39-db0499431e52,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Retirada de portões,un,"2,00",Item: 6
+6b33a9a7-fc1f-5c3a-9f1c-170226b0b753,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Escavação e remoção,m³,"45,20",Item: 7
+c37e1301-0de9-5d9d-93d8-d83b020573ff,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Aterro compactado,m³,"147,08",Item: 8
+c56c8e4e-d723-526f-97c4-e4da8ca74e0f,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de fundações diretas em concreto armado FCK = 25 MPa,m³,"34,00",Item: 9
+8ce4ea16-b59b-57ea-8f4f-ca74aa3dbecb,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Pilares de concreto armado FCK = 25 MPa,m³,"7,71",Item: 10
+2111dfdc-f5f9-5dcf-bafc-5b9d542ca7db,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Vigas de concreto armado,m³,"3,00",Item: 11
+60dc730f-eece-5953-aa53-8e99df7f9ae9,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Escada de concreto armado com acabamento em cimento,m³,"0,80",Item: 12
+be9ed892-67ae-58d0-851e-110c3438be07,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Colocação de perfil metálico,kg,"91,00",Item: 13
+ea10bbe2-689c-5d4e-b80d-ca0a4634b861,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Alvenaria de tijolos cerâmicos laminados,m²,"267,90",Item: 14
+a401193f-e548-53a4-b727-3c604bfc703e,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Divisória de granilite,m²,"17,15",Item: 15
+5a054a94-be7f-5d55-8f4e-9ba914f9f490,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de alvenaria de bloco de concreto 19x19x39,m²,"6,51",Item: 16
+d20f41fe-2b93-522d-82fe-0dfe6704d717,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de chapisco,m²,"128,18",Item: 17
+73761623-cd2a-5a1e-a0bb-f667450c310e,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de emboço,m²,"128,18",Item: 18
+35301291-fe2c-58a1-b108-072a10af2829,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de lousa,m²,"12,00",Item: 19
+d9eaa2ee-ab65-561f-b660-d8562be6bf9a,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Piso cimentado sobre lastro de concreto áreas externas e corredores,m²,"74,08",Item: 20
+dd41ac53-063e-537d-96f1-e600a97a1240,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Piso cerâmico sobre lastro de concreto 5 cm com regularização assentados com cola,m²,"323,62",Item: 21
+80f9fb8c-e3ff-52a3-b561-05de08708654,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Azulejo branco 15 x 15,m²,"128,18",Item: 22
+7f19e4c4-4546-56f1-b320-9e3d4a7fa8e0,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de estrutura de madeira,m²,"232,50",Item: 23
+5ae343b2-5daf-5d13-bde6-fafedf659a25,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Aplicação de produto para descupinização,m²,"232,50",Item: 24
+7011ac24-a0ef-5496-aeea-e50e3441a684,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Recobrimento com telha canaleta,m²,"232,50",Item: 25
+9a72f0e3-12d6-5bb0-acfd-7ede56976fd9,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de forro de PVC em lâminas de 10 cm fixadas em estrutura de madeira,m²,"76,76",Item: 26
+6a277f05-0cb0-5083-9722-4cc18389b822,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de forro de PVC em lâminas de 10 cm fixadas em estrutura de aço galvanizado,m²,"102,00",Item: 27
+3d94601a-1488-54f8-b178-e394db921ccc,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Isolamento térmico em placas de poliestireno expandido,m²,"178,76",Item: 28
+c2be5cf6-68a6-5dc8-853b-f34c02025d34,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Execução de um toldo de lona,m²,"12,00",Item: 29
+e4041f03-5c2c-5cb5-a7e3-4c84193f7c1d,58166ad5-8e44-53f6-bf44-f90de5b3eda2,"Esquadrias de alumínio – vitrôs, inclusive vidro canelado colocado",m²,"42,68",Item: 30
+de7a8975-9ae8-5257-a813-406010fdabff,58166ad5-8e44-53f6-bf44-f90de5b3eda2,"Porta lisa inclusive batente, fechadura e ferragens (colocada) 0,80 x 2,10",un,"10,00",Item: 31
+d4119391-6aef-5de7-ba67-f800ccfbd3c4,58166ad5-8e44-53f6-bf44-f90de5b3eda2,"Colocação de porta 0,90 x 2,10",un,"7,00",Item: 32
+2cc5de0c-47fc-50a4-b8da-81edc5108d9a,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Chumbamento de portão de ferro,un,"2,00",Item: 33
+b0bedca9-28bf-5912-8947-01280c58d7d6,58166ad5-8e44-53f6-bf44-f90de5b3eda2,"Pintura de paredes com látex acrílico, inclusive aplicação de massa corrida",m²,"76,35",Item: 34
+b0484323-d1c2-5443-a205-26777f16375d,58166ad5-8e44-53f6-bf44-f90de5b3eda2,"Pintura das portas de madeira, inclusive fundo e massa",un,"10,00",Item: 35
+b0a0e1e1-2da6-54e6-aa05-24c87df24c50,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Pintura hidrofugante com uma demão de silicone,m²,"530,00",Item: 36
+419994a5-b10f-5ead-81c6-12a94a49b786,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Projeto de instalações elétricas,vb,"1,00",Item: 37
+fcaee0a8-5c6c-57ca-b68c-1c820ef8bfa6,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Instalações elétricas,vb,"1,00",Item: 38
+80ce0ce3-a522-53c6-8d0e-14eb08e3b2d1,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Instalação de chuveiro,vb,"1,00",Item: 39
+9e1d9e3e-82b4-5c56-a0d4-44b28c78ca6d,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Projeto de instalações hidráulicas,vb,"1,00",Item: 40
+c6cda4ca-6c03-5de9-badc-65ee1e742de1,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Instalações hidráulicas,vb,"1,00",Item: 41
+15df3eb1-c7cf-5770-85af-f8c79f8cdb70,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Tubos de água e esgoto e torneiras,vb,"1,00",Item: 42
+9f47c453-2ede-549c-ac8a-9cb06f302f4f,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Carga manual de entulho em caminhão basculante,m²,"51,37",Item: 43
+fdf5fbed-37cb-5870-89bf-2bd3e432a171,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Transporte de material para bota fora,m²,"51,37",Item: 44
+7b1116d2-489a-5dd8-a4ae-e5f1fde0cfbc,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Limpeza geral da obra,m²,"171,00",Item: 45
