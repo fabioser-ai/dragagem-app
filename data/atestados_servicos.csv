@@ -2142,3 +2142,11 @@ e5f716cd-f95c-454a-83ba-448e944ab9f9,12bad6a5-475e-4c1e-9f91-e987f24e02fe,Execu�
 d40b208e-4b87-4fd6-a0c9-6bd488aec33d,12bad6a5-475e-4c1e-9f91-e987f24e02fe,Renivelamento de meio-fio,m,"53,50",Item: 5
 0d544c74-c3c2-4a3a-8648-98e640b40b03,12bad6a5-475e-4c1e-9f91-e987f24e02fe,Poda de raiz,u,369,Item: 6
 f973fe0a-cef5-41d3-97db-ee1de49137a1,12bad6a5-475e-4c1e-9f91-e987f24e02fe,Cordonel de concreto,m,"1.994,23",Item: 7
+fa7e61fb-e2fa-4aed-9b67-131d9e325793,74806f08-bea6-42d4-819b-f1b171093fa7,Bloco de concreto aparente 15x20x40,m²,"303,00",Item: 1 | Grupo: Vedação
+14e508ef-c792-43ef-9abc-91746509bbc8,74806f08-bea6-42d4-819b-f1b171093fa7,Bloco de concreto aparente 20x20x40,m²,"49,00",Item: 2 | Grupo: Vedação
+25912daa-c338-4a12-8802-bb93e7d7605c,74806f08-bea6-42d4-819b-f1b171093fa7,Chapisco,m²,"116,00",Item: 3 | Grupo: Revestimento
+47c6debb-ac0d-4391-ab63-f5156f2d1586,74806f08-bea6-42d4-819b-f1b171093fa7,Emboço,m²,"116,00",Item: 4 | Grupo: Revestimento
+47c89e2c-b773-49c4-8195-12ee5629a9f5,74806f08-bea6-42d4-819b-f1b171093fa7,Assentamento de azulejo,m²,"116,00",Item: 5 | Grupo: Revestimento
+f055a397-efd7-4db1-8a7d-948c405f06b4,74806f08-bea6-42d4-819b-f1b171093fa7,"Contrapiso de concreto magro, espessura 5cm",m²,"35,70",Item: 6 | Grupo: Piso
+c745b079-ef86-4123-8f39-0d5a84beaf25,74806f08-bea6-42d4-819b-f1b171093fa7,"Lajota cerâmica, colocada",m²,"35,70",Item: 7 | Grupo: Piso
+262f0fdb-a6ba-4941-a164-8ffdbc89c888,74806f08-bea6-42d4-819b-f1b171093fa7,Silicone para concreto aparente,m²,"352,00",Item: 8 | Grupo: Pintura
