@@ -2062,3 +2062,51 @@ df44126d-6577-4222-b9c5-71112227a265,fdfe21f1-fdef-4bee-8170-9d6704af18d9,Locaç
 1b697e86-dc32-46ce-a48e-00054df436fa,9e654376-37b7-491f-9027-dc4eec5bfd81,"Pórticos completos, com 10 (dez) placas de madeira em cada pórtico para indicações diversas, em estrutura de madeira de lei para instalação na Ilha de Conveniência do Bairro do Boqueirão.",un,"3,00",Item: 4
 0d6117eb-ee53-4581-9251-3f9f110645cd,9e654376-37b7-491f-9027-dc4eec5bfd81,"Pórtico em tubos de aço galvanizado, com altura de 12,00 m, para fixação de bandeiras, conforme projeto, para instalação na Ilha de Conveniência no Bairro do Boqueirão.",un,"1,00",Item: 5
 10e5303b-b803-44ab-8d29-76e0ba6f2611,9e654376-37b7-491f-9027-dc4eec5bfd81,"Substituição de placas duplas de pórtico de lixeiras existentes na orla da praia, pintura nas duas faces para indicação visual.",un,"3,00",Item: 6
+b7a6c416-80cd-4a0a-bb57-ca602e03ef2f,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Limpeza e regularização do terreno,m²,"655,00",Item: 1 | Grupo: PRAÇA ALBERTINO MOREIRA
+1257f55f-b435-4944-b7ce-746288556394,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Arrancamento e remoção de meios-fios,m,"5,00",Item: 2 | Grupo: PRAÇA ALBERTINO MOREIRA
+e9d43fe7-96b5-4042-bdf8-b302b538db6e,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de cordonéis de concreto,m,"150,00",Item: 3 | Grupo: PRAÇA ALBERTINO MOREIRA
+f82c8173-f0b3-4d88-b00e-9f36006041b2,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de passeios em concreto,m²,"350,00",Item: 4 | Grupo: PRAÇA ALBERTINO MOREIRA
+137adbf6-5137-45c0-b9c6-7af7a1ed7fee,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e colocação de bancos,u,7,Item: 5 | Grupo: PRAÇA ALBERTINO MOREIRA
+b741cda6-306a-4373-addd-892aa09f6d55,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e colocação de mesas para jogos com quatro bancos,u,4,Item: 6 | Grupo: PRAÇA ALBERTINO MOREIRA
+c3f14fb2-65d5-4215-9662-87ad2b0e9f99,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento de terra para jardim,m³,"36,00",Item: 7 | Grupo: PRAÇA ALBERTINO MOREIRA
+a97e8cb4-3829-44eb-ade2-d1dad487a3e4,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de jardim,m²,"300,00",Item: 8 | Grupo: PRAÇA ALBERTINO MOREIRA
+0b131626-425c-4b44-bfde-29d3a34aedd2,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Gangorra aérea,u,1,Item: 9 | Grupo: PRAÇA ALBERTINO MOREIRA
+5faff477-77b3-4f0e-90bf-1b1f4349e253,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Pontinha,u,1,Item: 10 | Grupo: PRAÇA ALBERTINO MOREIRA
+b677f9c8-307f-4f84-a90e-03d535cd3135,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Escorregador rústico pequeno,u,1,Item: 11 | Grupo: PRAÇA ALBERTINO MOREIRA
+3b26d809-5ad2-4022-be8f-ff78e9035f00,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Instalação, com fornecimento, de postinho com luminária",u,7,Item: 12 | Grupo: PRAÇA ALBERTINO MOREIRA
+3f2981db-1a03-46ba-aef6-4eb9569c71bd,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e fixação de brinquedos no playground,vb,1,Item: 13 | Grupo: PRAÇA ALBERTINO MOREIRA
+4426a806-6bc7-4ac0-9205-a5f2bd811f3b,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Limpeza e regularização do terreno,m²,"966,00",Item: 14 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+024211e2-0d2e-44da-a459-72765ecb7803,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Arrancamento e remoção de meios-fios,m,"20,00",Item: 15 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+65997274-487e-4937-856e-ff853a90651b,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Assentamento, com fornecimento, de meios-fios",m,"20,00",Item: 16 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+c2e0ab2b-cb2c-4457-bfc8-6076b2e00300,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fundação para o alambrado,m,"82,30",Item: 17 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+913b9959-f71b-4c58-8df2-a0d8d01cc3eb,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Alambrado,m²,"218,00",Item: 18 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+b23fe339-c400-42ab-ae6b-b472c984ebf0,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Traves,u,2,Item: 19 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+7b75af12-f02e-4a56-a921-321d92322c1e,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e transporte de areia,m³,"58,50",Item: 20 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+1f7c5f5a-6570-4f3b-a045-bc3a311d228d,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de bancos tipo jardineira,u,6,Item: 21 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+ef934e3e-99d7-4817-973a-706aff29f0ae,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de cordonéis em tijolo laminado,m,"110,00",Item: 22 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+5d089dc5-46fa-471e-9ff5-c92cbc64ffb6,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de passeio em concreto,m²,"450,00",Item: 23 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+dca4f3c4-f3b3-4180-8752-9781a7494e0a,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de mesa para jogos com quatro bancos,u,3,Item: 24 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+769c2349-5279-4272-a3ad-6faf97ce9308,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Tanque de areia,m³,"16,00",Item: 25 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+3aa5b48b-9f65-4093-bd12-4fc3d4e1a0b4,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e colocação de conjunto de tubos de concreto para brinquedo,u,1,Item: 26 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+9247ad4e-80d8-421b-9746-b750ba78df6f,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Carga, transporte e descarga de entulho (L = 10 km)",m³,"10,00",Item: 27 | Grupo: PRAÇA DÉCIO BRANDÃO CAMARGO
+31f213a0-73b7-4bd5-a751-bd4b4f16c2d9,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Limpeza e regularização do terreno,m²,"306,00",Item: 28 | Grupo: PRAÇA ESPANHA
+9e727fa0-19ac-4f03-babd-bcfe1e9ebe41,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Arrancamento e remoção de meio-fio,m,"5,00",Item: 29 | Grupo: PRAÇA ESPANHA
+f42625b0-7bc6-442a-bfaa-01917174da36,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Assentamento, com fornecimento, de meios-fios",m,"5,00",Item: 30 | Grupo: PRAÇA ESPANHA
+12c722fb-e6f0-4ea1-8abc-ac9705617397,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de passeio em concreto,m²,"250,00",Item: 31 | Grupo: PRAÇA ESPANHA
+72794c65-ca4d-4ab3-860d-b83065d949b9,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de floreiras,u,3,Item: 32 | Grupo: PRAÇA ESPANHA
+8385ae71-e829-4272-8523-d3572f6ab0c4,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e colocação de bancos,u,4,Item: 33 | Grupo: PRAÇA ESPANHA
+ab504d4f-79c7-4957-b554-514ddff7df5b,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento e colocação de mesas de jogos com quatro bancos,u,3,Item: 34 | Grupo: PRAÇA ESPANHA
+c57e95af-2be5-4f3e-8e28-6fb8f4bb44b5,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento de terra para jardim,m³,"16,00",Item: 35 | Grupo: PRAÇA ESPANHA
+fbb080e4-f5da-4cd0-b73a-23584393e246,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de jardim,m²,"92,00",Item: 36 | Grupo: PRAÇA ESPANHA
+840cb8ff-b7d0-4f60-a6b6-2afddeb76ab4,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Instalação, com fornecimento, de postinho com luminária",u,5,Item: 37 | Grupo: PRAÇA ESPANHA
+7bf58363-2346-4206-9e3b-e5b18748c1e0,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Remoção de entulho, com carga, transporte e descarga",m³,"20,00",Item: 38 | Grupo: PRAÇA ESPANHA
+2f2e62aa-f96d-4216-90fd-bf0d7f729692,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Limpeza e regularização do terreno,m²,"190,00",Item: 39 | Grupo: PRAÇA JOSÉ DEMAR PERES
+63594f29-e936-4555-a19f-6be5649afd02,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Assentamento, com fornecimento, de meios-fios",m,"5,00",Item: 40 | Grupo: PRAÇA JOSÉ DEMAR PERES
+bebf99ad-369e-484c-a674-e6bdd978f4d7,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de passeios em concreto,m²,"120,00",Item: 41 | Grupo: PRAÇA JOSÉ DEMAR PERES
+caf3fff2-06c0-4a41-925f-af5e4c730f8c,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de cordonéis em concreto,m,"80,00",Item: 42 | Grupo: PRAÇA JOSÉ DEMAR PERES
+ba22c59a-6068-49fc-98f1-06df0e00ea4d,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de mesas para jogos com quatro bancos,u,2,Item: 43 | Grupo: PRAÇA JOSÉ DEMAR PERES
+34b09064-daa9-4be3-a548-f2b01f42b342,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Fornecimento, com colocação, de bancos",u,5,Item: 44 | Grupo: PRAÇA JOSÉ DEMAR PERES
+6dcbbd1d-0a16-4215-abc7-fdb448d0fe02,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Fornecimento de terra para jardim,m³,"12,00",Item: 45 | Grupo: PRAÇA JOSÉ DEMAR PERES
+155b11d6-c965-4c0f-a072-135029a4819d,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,Execução de jardim,m²,"96,00",Item: 46 | Grupo: PRAÇA JOSÉ DEMAR PERES
+9aaca07a-de54-49f3-a7b8-18da078bad93,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Instalação, com fornecimento, de postinho com luminária",u,4,Item: 47 | Grupo: PRAÇA JOSÉ DEMAR PERES
+045822d7-2290-4e53-acac-342d5418efdf,3bc1b3ea-6ed3-4766-897e-a68bdd2b8ebf,"Carga, transporte e descarga de entulho",m³,"20,00",Item: 48 | Grupo: PRAÇA JOSÉ DEMAR PERES
