@@ -2348,3 +2348,46 @@ a4c518d8-c016-47f5-b6ad-5029102924f5,40eb739e-c6f2-4329-8302-dbd788107214,"Const
 114df9de-b060-4655-a368-f1004dbacec2,c14a73bd-95ee-4e14-ad77-cb78da9bb1a1,Destinada aos motoristas,Unidades,235,Item: 1
 4d50273c-3227-4222-95b9-3c4b505ec3de,c14a73bd-95ee-4e14-ad77-cb78da9bb1a1,Destinada aos pedestres,Unidades,86,Item: 2
 5bbc08d3-e1a3-4489-97fb-2151c4256946,c14a73bd-95ee-4e14-ad77-cb78da9bb1a1,Destinada aos ciclistas,Unidades,224,Item: 3
+a261c7e3-2468-54ab-a2d8-c1884760fccf,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Demolição simples de concreto,m³,30,Item: 1
+a3d1af1d-ad5c-58ec-94dd-5e4c04e080a5,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Demolição de piso ladrilho hidráulico sobre lastro de concreto,m²,14,Item: 2
+41c2c27f-316e-5805-9f4f-46eb36117ab8,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Ligação provisória de água e sanitário,ligação,1,Item: 3
+fb5443b8-4032-52ad-a2a6-6a5bf06ba554,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Ligação provisória de luz e força,ligação,1,Item: 4
+562bed94-338e-5cd8-bb82-a5da43e8ec4e,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Placa indicativa de obra,m²,"4,50",Item: 5
+c932b958-0689-5f39-809c-3637b51fcb86,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Barracão para guarda de materiais e ferramentas,m²,24,Item: 6
+2de89cd1-3ea4-5a45-8db9-6592662c7af2,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Apiloamento de fundo de vala c/ maço de 40 a 60 kg,m²,60,Item: 7
+00fbca09-7101-52e0-a076-5ac5f8ab86c8,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Carga manual de entulho,m³,"90,72",Item: 8
+c1b623c8-f2bd-5a4e-a723-dde106980ca3,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Carga mecanizada de entulho em caminhão basculante,m³,"78,56",Item: 9
+d56c88ca-71e5-53af-b0df-117186e6743c,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Transporte de material (exceto rocha) em caminhão até 5 km,m³,"169,26",Item: 10
+f03cf67d-479b-5af4-a5e8-c0d115ac8be6,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Broca de concreto armado D=20 cm,m,"85,50",Item: 11
+fc9963cf-c2d0-5d6d-a6bd-01225ad8675a,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Escavação manual de valas em terra até 2 m,m³,"43,20",Item: 12
+46037417-1ceb-5452-a65d-d2b4934a2b14,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Reaterro apiloado de valas,m³,"39,52",Item: 13
+78a1a6ab-feaa-5cf2-9bb5-71a8510b1805,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Lastro de brita nº 3 e 4 apiloado manualmente,m³,"42,50",Item: 14
+693a1fd8-b9c2-5b8c-9f5a-d791bde61187,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Tábuas de pinho para fundações (utilização 5 vezes),m²,130,Item: 15
+a7dd783b-b819-5378-a9fb-97b4bf9f4709,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,"Armadura CA-50 média Ø 6,3 a 10 mm (1/4"" a 3/8"")",kg,905,Item: 16
+ce70a5bf-fcaa-5936-a32a-b5e162415b38,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Concreto estrutural pré-misturado FCK 15 MPa,m³,"12,50",Item: 17
+e8251ace-cb87-5875-a4df-7b3ba910997d,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Lançamento e aplicação de concreto em fundação,m³,"19,36",Item: 18
+bf01431d-93e2-589f-bfc6-25c1172db053,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Alvenaria de vedação em bloco de concreto 14x19x39 cm,m²,160,Item: 19
+f304604f-176f-58b3-babc-ed295687d47b,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Chapisco com argamassa cimento e areia 1:3 (E=5 mm),m²,350,Item: 20
+12a808ac-4729-515a-9bc6-483963f5fe73,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,"Emboço com argamassa cal e areia 1:1,5 (E=20 mm)",m²,350,Item: 21
+34b1055a-bfd8-5c96-8573-d9da2e2d49bd,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Pintura látex duas demãos em paredes externas sem massa,m²,400,Item: 22
+5b61aa4a-5c6b-5752-af3f-871b09968f28,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Pintura esmalte duas demãos em esquadrias de ferro,m²,45,Item: 23
+7d7acbe7-d076-559d-b7ff-88c4edbc14ca,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Caiação de guias,m,500,Item: 24
+739de466-1f02-5fbd-8843-030fa9e02b0c,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Tabela de basquete com aros e redes,VB,1,Item: 25
+46206de8-d564-5807-b11c-192f257b9bb1,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Trave para futebol de salão,UN,2,Item: 26
+fab07beb-c3ea-525b-b743-c5b72167c597,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,"Preparo de caixa para pavimentação até 0,40 m",m²,648,Item: 27
+234a5a1f-3ff1-5d1c-96d7-ee4d000732f7,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Lastro de concreto regularizado para ladrilho hidráulico (E=5 cm),m²,40,Item: 28
+d54f4682-1e19-5709-8d7d-8b8fdbd9a891,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Ladrilho hidráulico com argamassa de cal,m²,40,Item: 29
+c17ffe26-6655-5dd4-901b-228812b38963,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,"Piso rústico de concreto ripado 1:20x1,20 m (E=7 cm)",m²,750,Item: 30
+f2f1ea68-34e8-518d-a998-f5bcb4a9b2ff,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Estrutura para basquete,UN,2,Item: 31
+05f96430-1050-5355-b434-a5bbf34f0bdf,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,"Aterro com areia (fornecimento, carga, descarga, espalhamento e compactação)",m³,"97,20",Item: 32
+6d5ab31e-2206-5c61-aa45-46b866e4b941,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Grama em placa (E=6 cm) com fornecimento e plantio,m²,800,Item: 33
+3da6fa1f-b6cc-59a1-a028-a49fd6d282f9,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Roçada de vegetação com retirada e transporte,m²,"1.209,15",Item: 34
+94c19cfe-1c27-59e2-9b09-d9080514674b,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Quadra de esportes 18 x 36 m,UN,1,Item: 35
+0adc4d7f-77f5-5ff4-8847-7788eaaacd29,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Alambrado para quadra esportiva (altura 4 m),m,108,Item: 36
+ba3f2de0-edbd-53ea-872a-4c4de7a6d3a6,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Banco de concreto B4,UN,14,Item: 37
+ca59e9b0-5dd8-5fbe-87dd-be8b577a9c90,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Mesa de ping-pong,UN,1,Item: 38
+46fe777a-bf85-5a02-a578-4854fa955954,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Balanço americano,UN,1,Item: 39
+32adfb6b-1d9f-5ddc-a86e-6faaa69fdb9c,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Brinquedo Play Gangorra,UN,1,Item: 40
+329c49d9-3cad-57aa-88d0-2d28f7118915,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Brinquedo Play Escorregador,UN,1,Item: 41
+80b694ad-e5e7-5f7f-adb9-2d2b457ad5db,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Mesa de concreto para tabuleiro de xadrez,UN,2,Item: 42
+f083bac4-d717-57b0-9dee-b759b9054fbe,6130c915-2b1e-55d1-ac66-72ef14cb7ca2,Banco/mesa de concreto,UN,8,Item: 43
