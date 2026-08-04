@@ -2436,3 +2436,51 @@ c6cda4ca-6c03-5de9-badc-65ee1e742de1,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Instal
 9f47c453-2ede-549c-ac8a-9cb06f302f4f,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Carga manual de entulho em caminhão basculante,m²,"51,37",Item: 43
 fdf5fbed-37cb-5870-89bf-2bd3e432a171,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Transporte de material para bota fora,m²,"51,37",Item: 44
 7b1116d2-489a-5dd8-a4ae-e5f1fde0cfbc,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Limpeza geral da obra,m²,"171,00",Item: 45
+f8c8a73c-7785-44c8-9529-107feb57d007,b4a3eef1-968c-46bb-83ac-e023f98da188,"Escavação manual, profundidade até 1,50 m",m³,"8,93",Item: 1
+99d0349a-70df-4aec-afb4-7aa0feb3c65b,b4a3eef1-968c-46bb-83ac-e023f98da188,Apiloamento para simples regularização,m²,"4,24",Item: 2
+d370ef0f-569e-4b93-b13e-5465b8daf2a6,b4a3eef1-968c-46bb-83ac-e023f98da188,Lastro de concreto 5 cm,m²,"4,24",Item: 3
+43973d03-3415-4bee-a92d-c0889adf1408,b4a3eef1-968c-46bb-83ac-e023f98da188,Aterro interno apiloado,m³,"11,72",Item: 4
+fdfea25b-c40c-46f6-9f3f-be3280fdb24f,b4a3eef1-968c-46bb-83ac-e023f98da188,Perfil de PVC rígido seção NBR 6499,m,"161,00",Item: 5
+ff3282be-d038-4989-8317-473ca966fe51,b4a3eef1-968c-46bb-83ac-e023f98da188,Emenda com anéis soldados para estanqueidade,un,2,Item: 6
+2daa0c4a-16de-455b-99ce-4ec150d79519,b4a3eef1-968c-46bb-83ac-e023f98da188,Forma de madeira maciça,m²,"5,52",Item: 7
+77e9d532-4d51-4a9a-9f7b-84f8c8d0be91,b4a3eef1-968c-46bb-83ac-e023f98da188,Aço CA-50,kg,"411,40",Item: 8
+7fea8c09-9c91-4fb8-8d98-b377810412fe,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto dosado FCK 20 MPa,m³,"22,80",Item: 9
+1749629b-381e-4b76-9b00-d8b8420b2c92,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto dosado FCK 25 MPa,m³,"11,61",Item: 10
+bc91fa75-ab30-4fca-a1e3-af4ec26c348b,b4a3eef1-968c-46bb-83ac-e023f98da188,Estrutura pré-moldada de concreto,m³,"23,36",Item: 11
+dbc43c04-72ef-448b-ae11-9dc4888832c6,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto incluindo revestimentos,m³,"11,14",Item: 12
+ecc4b65c-f78d-4efa-8137-a5af9b6238d9,b4a3eef1-968c-46bb-83ac-e023f98da188,Alvenaria de blocos de concreto,m²,"23,00",Item: 13
+05984f6d-7a91-4cbe-a00c-5f0e9efcd86f,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto grout para parede autoportante,m³,"40,96",Item: 14
+0abbda95-e10f-43c2-bf0c-d8e870667ca6,b4a3eef1-968c-46bb-83ac-e023f98da188,Argamassa estrutural,m³,"10,22",Item: 15
+92a65d34-251a-4437-b7dd-76b3a05425ac,b4a3eef1-968c-46bb-83ac-e023f98da188,Porta comum lisa inclusive pintura,m²,"1,68",Item: 16
+d9574125-b624-40c1-831b-6861763185c9,b4a3eef1-968c-46bb-83ac-e023f98da188,Batente de madeira para portas,cj,1,Item: 17
+8c872317-f591-4181-9889-298b3b989a1e,b4a3eef1-968c-46bb-83ac-e023f98da188,Folha de madeira para porta,cj,1,Item: 18
+07157b69-75d9-4002-9904-ae66430f000e,b4a3eef1-968c-46bb-83ac-e023f98da188,Fechadura completa tipo gorge,jogo,1,Item: 19
+ee727ca0-e28b-441d-ad43-10169327de55,b4a3eef1-968c-46bb-83ac-e023f98da188,"Dobradiça 3½\" × 3\"",un,3,Item: 20
+6b07cbd6-1a58-47bc-a347-30e198968592,b4a3eef1-968c-46bb-83ac-e023f98da188,Telha tecnologia CFS ondulada,m²,"54,29",Item: 21
+b6dcb3e7-ee31-4969-aef8-97f679d6edea,b4a3eef1-968c-46bb-83ac-e023f98da188,Cumeeira normal telha tecnologia,m,"24,30",Item: 22
+1f99eb92-3ef5-402e-b280-6cef978c8dc0,b4a3eef1-968c-46bb-83ac-e023f98da188,Telha de cimento amianto,m²,"3,68",Item: 23
+e3168271-0bbd-483d-ac8e-8dece0ae009c,b4a3eef1-968c-46bb-83ac-e023f98da188,Eletroduto galvanizado,m,8,Item: 24
+7fd2f583-fd76-4ffa-8df3-e53d02ed44fe,b4a3eef1-968c-46bb-83ac-e023f98da188,Eletroduto PVC,m,2,Item: 25
+b8924b0f-63c4-43f5-995c-1fe2bcd4d1e9,b4a3eef1-968c-46bb-83ac-e023f98da188,Embutido incandescente,un,1,Item: 26
+9238482c-f98d-410b-818f-75e20342e9d0,b4a3eef1-968c-46bb-83ac-e023f98da188,Tomada bipolar termomagnética,un,2,Item: 27
+abd47520-9a45-4cb2-a666-e856d916f847,b4a3eef1-968c-46bb-83ac-e023f98da188,Tomada tripolar termomagnética,un,1,Item: 28
+fc564198-07eb-439c-9ec2-b59d8dfb3127,b4a3eef1-968c-46bb-83ac-e023f98da188,Caixa de alumínio,un,1,Item: 29
+fe872faa-9215-4a7a-9701-090305ed146c,b4a3eef1-968c-46bb-83ac-e023f98da188,Fio de isolamento,m,244,Item: 30
+f7bded43-98f3-475e-b374-8e86ee4a3ca0,b4a3eef1-968c-46bb-83ac-e023f98da188,Tomada simples embutir,un,1,Item: 31
+70b5af78-3682-4236-96d7-acfaf23edcd6,b4a3eef1-968c-46bb-83ac-e023f98da188,Uso geral vapor de sódio,un,8,Item: 32
+30175e92-1ef7-47df-b713-dd45398091df,b4a3eef1-968c-46bb-83ac-e023f98da188,Barracão galvanizado,m,167,Item: 33
+09989b3c-9a6f-4e48-ba6e-80429b6850fb,b4a3eef1-968c-46bb-83ac-e023f98da188,Terra simples,un,6,Item: 34
+63b9174c-805e-43ef-b959-bfe355edf52d,b4a3eef1-968c-46bb-83ac-e023f98da188,Conexão exotérmica em estrutura metálica,un,12,Item: 35
+ed32951e-01b8-42eb-8d40-1df64d7a7b7d,b4a3eef1-968c-46bb-83ac-e023f98da188,Poste de ferro reto engastado,un,4,Item: 36
+a6bf7b12-7693-45cd-bfc5-f40726cf40b8,b4a3eef1-968c-46bb-83ac-e023f98da188,Chapisco,m²,46,Item: 37
+fa891bd9-4530-4e6f-827b-323b2306047c,b4a3eef1-968c-46bb-83ac-e023f98da188,Emboço,m²,46,Item: 38
+b4318e63-a741-4ed5-8c17-dc1af782cd36,b4a3eef1-968c-46bb-83ac-e023f98da188,Reboco,m²,46,Item: 39
+61ba078a-1e8a-45ed-b963-24bc7424c112,b4a3eef1-968c-46bb-83ac-e023f98da188,Revestimento azulejos,m²,"15,36",Item: 40
+149d08c0-805c-47ea-b27a-3d6b6ba546dc,b4a3eef1-968c-46bb-83ac-e023f98da188,Demolição piso de concreto simples,m³,"15,36",Item: 41
+f5757a35-cc3e-4597-9c74-a4f6c61359db,b4a3eef1-968c-46bb-83ac-e023f98da188,Lastro de pedra britada,m²,"270,80",Item: 42
+d95b5135-01bb-474f-b25d-a5563bc1d309,b4a3eef1-968c-46bb-83ac-e023f98da188,Piso cimentado com requadro,m²,"270,80",Item: 43
+03382492-5a48-4555-9d28-5181fca30de4,b4a3eef1-968c-46bb-83ac-e023f98da188,Tela de arame galvanizado,m²,"15,36",Item: 44
+5f885185-9cf8-4a92-afa2-430b1120fd50,b4a3eef1-968c-46bb-83ac-e023f98da188,Retirada de entulho,m³,"15,36",Item: 45
+f388c085-0b48-4ca5-a1c8-b512611caa54,b4a3eef1-968c-46bb-83ac-e023f98da188,CONCRETO DOSADO E LANÇADO FCK=20 MPA,M3,"0,00",Código documental: 02.05.14
+e03722e3-8700-4102-bbae-fb8e5b80d7f0,b4a3eef1-968c-46bb-83ac-e023f98da188,FD-16 FECHAMENTO PARA DIVISA H=230 CM - BROCA (REV CHAPISCO FINO),M,"0,00",Código documental: 16.01.16
+e310f17d-4ad0-49d5-bbf4-92882154d1a9,b4a3eef1-968c-46bb-83ac-e023f98da188,SERVIÇOS - CIVIL,MV,"0,00",Código documental: 16.18.01
