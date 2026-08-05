@@ -43,6 +43,7 @@ A migrar incrementalmente.
 - Persistência
 - Permissões
 - [Usuários operacionais — AUTH-001](AUTH001_USUARIOS_OPERACIONAIS.md)
+- [Catálogo de Roles — RBAC-001](RBAC001_CATALOGO_ROLES.md)
 
 ## Módulos
 
