@@ -171,6 +171,9 @@ def salvar_comprovante(upload, id_despesa):
     if upload is None:
         return ""
 
+    if not pode(modulo="prestacao_contas", recurso="despesa", acao="criar"):
+        raise PermissionError("Operação não autorizada.")
+
     extensao = upload.name.split(".")[-1].lower()
 
     nome_limpo = upload.name.replace(" ", "_").replace("/", "_").replace("\\", "_")
@@ -191,6 +194,20 @@ def salvar_comprovante(upload, id_despesa):
     )
 
     return caminho
+
+
+def salvar_despesas_seguro(df_despesas):
+    if not pode(modulo="prestacao_contas", recurso="despesa", acao="criar"):
+        st.error("Operação não autorizada.")
+        return False
+
+    salvar_github(
+        df_despesas,
+        ARQ_DESPESAS,
+        TOKEN,
+        REPO,
+    )
+    return True
 
 
 def render_comprovante(caminho):
@@ -386,12 +403,8 @@ def render_nova_despesa():
             COLUNAS_DESPESAS,
         )
 
-        salvar_github(
-            df_despesas,
-            ARQ_DESPESAS,
-            TOKEN,
-            REPO,
-        )
+        if not salvar_despesas_seguro(df_despesas):
+            return
 
         st.success("Despesa registrada com sucesso.")
         st.rerun()

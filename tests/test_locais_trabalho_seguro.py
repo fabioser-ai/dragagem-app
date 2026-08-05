@@ -70,8 +70,9 @@ class TestAdaptadoresLocais(unittest.TestCase):
             "repo-teste",
         )
 
+    @patch.object(locais, "pode", return_value=True)
     @patch.object(locais, "salvar_cadastro_seguro")
-    def test_salvar_locais_encaminha_resultado_original(self, salvar):
+    def test_salvar_locais_encaminha_resultado_original(self, salvar, autorizar):
         leitura = resultado_leitura(
             StatusLeitura.SUCESSO_COM_DADOS,
             sha="sha-original",
@@ -94,6 +95,25 @@ class TestAdaptadoresLocais(unittest.TestCase):
             "repo-teste",
             resultado_leitura=leitura,
         )
+        autorizar.assert_called_once_with(
+            modulo="dados", recurso="local_trabalho", acao="criar"
+        )
+
+    @patch.object(locais, "pode", return_value=False)
+    @patch.object(locais, "salvar_cadastro_seguro")
+    def test_salvar_locais_nega_sem_autorizacao_antes_da_persistencia(
+        self, salvar, autorizar
+    ):
+        resultado = locais.salvar_locais_seguro(
+            pd.DataFrame(columns=locais.COLUNAS),
+            resultado_leitura(StatusLeitura.SUCESSO_COM_DADOS, sha="sha"),
+        )
+
+        self.assertEqual(resultado.status, StatusEscrita.NAO_AUTORIZADO)
+        autorizar.assert_called_once_with(
+            modulo="dados", recurso="local_trabalho", acao="criar"
+        )
+        salvar.assert_not_called()
 
 
 class TestDecisaoEscrita(unittest.TestCase):

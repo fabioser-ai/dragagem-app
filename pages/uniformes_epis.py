@@ -46,8 +46,17 @@ def _detalhes(resultado):
     return detalhes
 
 
-def _salvar(df, arquivo, colunas, resultado_leitura, mensagem):
-    if not pode(modulo="uniformes_epis", recurso="cadastros", acao="editar"):
+def _pode_operacao(recurso, acao):
+    """Preserva a permissão ampla legada e distingue a operação consultada."""
+    return pode(modulo="uniformes_epis", recurso=recurso, acao=acao) or pode(
+        modulo="uniformes_epis", recurso="cadastros", acao="editar"
+    )
+
+
+def _salvar(
+    df, arquivo, colunas, resultado_leitura, mensagem, *, recurso, acao="criar"
+):
+    if not _pode_operacao(recurso, acao):
         st.error("Operação não autorizada.")
         return False
 
@@ -191,6 +200,7 @@ def _render_itens(itens, resultado, pode_editar):
                 COLUNAS_ITENS,
                 resultado,
                 "Item cadastrado com sucesso.",
+                recurso="item",
             )
 
 
@@ -277,6 +287,7 @@ def _render_compras(itens, compras, resultado, pode_editar):
                 COLUNAS_COMPRAS,
                 resultado,
                 "Compra registrada com sucesso.",
+                recurso="compra",
             )
 
 
@@ -378,6 +389,7 @@ def _render_movimentacoes(
                 COLUNAS_MOVIMENTACOES,
                 resultado,
                 "Movimentação registrada com sucesso.",
+                recurso="movimentacao",
             )
 
 
@@ -459,6 +471,7 @@ def _render_entrega(itens, entregas, estoque, resultado, pode_editar):
                 COLUNAS_ENTREGAS,
                 resultado,
                 "Entrega registrada com sucesso.",
+                recurso="entrega",
             )
 
 
@@ -529,6 +542,7 @@ def _render_devolucao(
                 COLUNAS_ENTREGAS,
                 resultado,
                 "Devolução registrada com sucesso.",
+                recurso="devolucao",
             )
 
 
@@ -579,6 +593,7 @@ def _render_baixa(itens, entregas, posses, resultado, pode_editar):
                 COLUNAS_ENTREGAS,
                 resultado,
                 "Baixa registrada com sucesso.",
+                recurso="baixa",
             )
 
 

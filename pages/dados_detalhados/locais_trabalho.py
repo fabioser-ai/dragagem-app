@@ -3,7 +3,8 @@ import streamlit as st
 from datetime import datetime
 from uuid import uuid4
 
-from services.github import StatusLeitura
+from services.autorizacao import pode
+from services.github import ResultadoEscritaCSV, StatusEscrita, StatusLeitura
 from services.dados_persistencia import (
     carregar_cadastro_resultado,
     salvar_cadastro_seguro,
@@ -56,6 +57,13 @@ def carregar_locais_resultado():
 
 
 def salvar_locais_seguro(df, resultado_leitura):
+    if not pode(modulo="dados", recurso="local_trabalho", acao="criar"):
+        return ResultadoEscritaCSV(
+            status=StatusEscrita.NAO_AUTORIZADO,
+            arquivo=ARQUIVO,
+            erro="Operação não autorizada.",
+        )
+
     return salvar_cadastro_seguro(
         df,
         ARQUIVO,

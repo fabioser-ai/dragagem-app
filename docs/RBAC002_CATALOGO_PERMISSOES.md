@@ -34,7 +34,7 @@ como autorização.
 | Módulo | Entradas | Recursos principais | Estado predominante |
 |---|---:|---|---|
 | administracao | 11 | permissão individual, usuário operacional, Role, catálogo | completa |
-| dados | 10 | cadastro, atestado, local de trabalho | completa/parcial; 1 inexistente |
+| dados | 10 | cadastro, atestado, local de trabalho | completa/parcial |
 | ferias | 7 | registro, férias, folga | parcial |
 | prestacao_contas | 6 | despesa, decisão, pagamento, tipo | completa/parcial |
 | medicoes | 6 | medição, lançamento | específica de Medições |
@@ -43,7 +43,7 @@ como autorização.
 | obras | 1 | obra | completa |
 | orcamento | 5 | orçamento, cliente, insumo | completa/parcial |
 
-O catálogo possui 61 permissões: 31 com proteção completa, 23 parciais, 1 sem
+Após o RBAC-003, o catálogo possui 61 permissões: 32 com proteção completa, 23 parciais, nenhuma sem
 proteção adequada confirmada e 6 dependentes da arquitetura própria de Medições.
 O significado e a evidência de cada entrada estão registrados na própria matriz
 CSV e são exibidos integralmente na Administração.
@@ -59,23 +59,22 @@ A classificação é documental. Ela não concede nem bloqueia acesso.
 
 ## Lacunas de proteção encontradas
 
-1. `dados/local_trabalho/criar`: a persistência segura controla concorrência,
-   mas `salvar_locais_seguro()` não revalida autorização central. Estado:
-   **inexistente** para a ação específica.
-2. Leituras de recursos em vários módulos dependem da entrada na rota e não de
+1. Leituras de recursos em vários módulos dependem da entrada na rota e não de
    guarda específica por recurso. Foram classificadas como **parciais**.
-3. Férias e Folgas persistem com o recurso amplo legado `registros`; as
+2. Férias e Folgas persistem com o recurso amplo legado `registros`; as
    capacidades específicas `ferias` e `folga` ainda não são distinguidas.
-4. Uniformes/EPIs usa uma única decisão `cadastros/editar` para item, compra,
-   movimentação, entrega, devolução e baixa. As capacidades existem, mas a
-   autorização específica é parcial.
-5. A criação de orçamento usa atualmente a autorização `orcamento/editar`.
+3. Uniformes/EPIs distingue item, compra, movimentação, entrega, devolução e
+   baixa imediatamente antes da persistência, mas mantém `cadastros/editar`
+   como compatibilidade legada e ainda usa a guarda ampla na interface. As
+   capacidades permanecem parciais.
+4. A criação de orçamento usa atualmente a autorização `orcamento/editar`.
    `orcamento/criar` foi catalogada como capacidade real com proteção parcial.
-6. CRM protege as escritas por recurso e ação, mas as consultas dependem da rota.
-7. Medições mantém perfis e vínculos por obra próprios. Nenhuma unificação foi
+5. CRM protege as escritas por recurso e ação, mas as consultas dependem da rota.
+6. Medições mantém perfis e vínculos por obra próprios. Nenhuma unificação foi
    afirmada ou implementada.
 
-Nenhuma dessas lacunas foi corrigida neste PR.
+O histórico original do RBAC-002 permanece no Git. O estado acima corresponde ao
+catálogo após o endurecimento mínimo do RBAC-003.
 
 ## Operações ambíguas e decisões humanas pendentes
 
