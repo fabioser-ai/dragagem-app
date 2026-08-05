@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from services.autorizacao import usuario_superadmin
+from services.autorizacao import pode_gerenciar_administracao
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 
 
@@ -70,7 +70,7 @@ def _mostrar_erro_leitura(resultado):
 
 
 def _salvar_alteracao(df, sha_esperado, mensagem_sucesso):
-    if not usuario_superadmin():
+    if not pode_gerenciar_administracao():
         st.error("Alteração não autorizada.")
         return False
 
@@ -97,8 +97,8 @@ def render():
     st.title("Administração")
     st.caption("Gestão de permissões de usuários do sistema FOS.")
 
-    if not usuario_superadmin():
-        st.error("Acesso restrito ao SuperAdmin.")
+    if not pode_gerenciar_administracao():
+        st.error("Acesso restrito à custódia administrativa.")
         st.stop()
 
     resultado_leitura = carregar_permissoes_resultado()

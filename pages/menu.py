@@ -1,7 +1,12 @@
 import streamlit as st
 
 from services.auth import logout
-from services.autorizacao import pode_acessar, usuario_superadmin
+from services.autorizacao import (
+    pode_acessar,
+    pode_gerenciar_administracao,
+    pode_recuperar_administracao,
+    recuperar_administracao,
+)
 
 
 def render_card(titulo, descricao, botao, tela_destino):
@@ -264,7 +269,7 @@ def render():
             render_card_medicoes()
             modulos_renderizados += 1
 
-        if usuario_superadmin():
+        if pode_gerenciar_administracao():
             render_card(
                 "Administração",
                 "Gestão de permissões e acessos dos usuários.",
@@ -272,6 +277,27 @@ def render():
                 "administracao",
             )
             modulos_renderizados += 1
+        elif pode_recuperar_administracao():
+            st.markdown(
+                """
+                <div class="module-card">
+                    <h3>Custódia do Sistema</h3>
+                    <p>Recuperação mínima da autoridade administrativa do proprietário.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button(
+                "RECUPERAR ADMINISTRAÇÃO",
+                use_container_width=True,
+                key="btn_recuperar_administracao",
+            ):
+                resultado = recuperar_administracao()
+                if resultado["sucesso"]:
+                    st.success("Autoridade administrativa recuperada para esta sessão.")
+                    st.rerun()
+                else:
+                    st.error("A recuperação administrativa foi negada.")
 
     if modulos_renderizados == 0:
         st.warning("Nenhum módulo disponível para seu usuário.")
