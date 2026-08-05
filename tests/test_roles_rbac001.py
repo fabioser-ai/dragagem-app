@@ -43,8 +43,8 @@ class TestCatalogoRolesRBAC001(unittest.TestCase):
             df_roles["codigo"].tolist(),
             ["FUNCIONARIO", "ENCARREGADO", "APROVADOR", "ENGENHARIA", "FINANCEIRO", "RH"],
         )
-        self.assertEqual(len(df_permissoes), 43)
-        self.assertEqual(set(df_permissoes["role_id"]), set(df_roles["role_id"]))
+        self.assertEqual(len(df_permissoes), 9)
+        self.assertTrue(set(df_permissoes["role_id"]) <= set(df_roles["role_id"]))
 
     def test_criacao_normaliza_codigo_e_inicia_inativa(self):
         with patch.object(roles, "pode_gerenciar_roles", return_value=True), patch.object(

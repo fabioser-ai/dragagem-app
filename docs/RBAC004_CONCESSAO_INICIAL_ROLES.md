@@ -1,6 +1,6 @@
-# RBAC-004 — Concessão inicial de permissões às Roles
+# RBAC-004 — Matriz inicial conservadora
 
-## Princípio
+## Princípio homologado
 
 Uma Role representa uma função institucional.
 
@@ -8,71 +8,75 @@ Uma permissão representa uma decisão administrativa.
 
 Sempre que uma nova permissão não representar uma decisão diferente de negócio, ela não deverá existir.
 
-A matriz usa apenas capacidades já existentes em `data/permissoes_catalogo.csv`.
-Somente linhas `allow` foram registradas. Tudo que não foi concedido permanece
-negado por padrão. Não foram usados `deny`, pois precedência entre efeitos ainda
-não faz parte da arquitetura homologada.
+**Uma Role vazia é preferível a uma Role com poder mal definido.**
 
-## Matriz institucional
+**O acesso será ampliado conforme necessidade real, em Baby Steps.**
 
-### FUNCIONARIO
+A primeira proposta, com 43 concessões, foi deliberadamente reduzida após
+homologação humana. A matriz final contém somente 9 linhas `allow`. Tudo que não
+foi concedido permanece negado por padrão.
 
-Objetivo: registrar e consultar as próprias prestações de contas.
+## Matriz final
 
-Concedidas: `prestacao_contas/despesa/visualizar` e
-`prestacao_contas/despesa/criar`.
+### FUNCIONARIO — 1 concessão
 
-Negadas: aprovação, pagamento, tipos de despesa e toda Administração.
+- `prestacao_contas/despesa/criar`.
 
-### ENCARREGADO
+Foi retirada a visualização de despesas porque o modelo ainda não distingue com
+segurança despesas próprias, da equipe, da obra ou todas as despesas.
 
-Objetivo: acompanhar produção, registrar lançamentos e coordenar movimentação
-física de Uniformes/EPIs.
+### ENCARREGADO — Role vazia
 
-Concedidas: visualização de medição e lançamento; criação de lançamento;
-visualização de estoque; criação de movimentação.
+Foram retiradas todas as concessões de Medições e de Uniformes/EPIs. Medições
+possui arquitetura própria de perfil e obra; as operações de Uniformes/EPIs
+continuam parciais e a responsabilidade institucional não foi homologada.
 
-Negadas: aprovação, alteração estrutural de medições, compras, administração de
-usuários, Roles ou permissões.
+### APROVADOR — 1 concessão
 
-### APROVADOR
+- `prestacao_contas/decisao_despesa/aprovar`.
 
-Objetivo: executar exclusivamente decisões formais de aprovação.
+A aprovação de lançamento foi retirada junto com toda integração de Medições.
+A decisão de despesa permanece separada de pagamento e Administração.
 
-Concedidas: aprovação de decisão de despesa e de lançamento de Medições.
+### FINANCEIRO — 3 concessões
 
-Negadas: criação, edição, exclusão, pagamento e Administração.
+- `prestacao_contas/pagamento/editar`;
+- `prestacao_contas/tipo_despesa/visualizar`;
+- `prestacao_contas/tipo_despesa/criar`.
 
-### FINANCEIRO
+A visualização de despesas foi retirada porque seu escopo ainda é parcial e não
+distingue com segurança os recortes próprios, de equipe, obra ou globais.
 
-Objetivo: consultar despesas, registrar pagamento e manter tipos de despesa.
+### ENGENHARIA — 4 concessões
 
-Concedidas: visualização de despesa; edição de pagamento; visualização e criação
-de tipo de despesa.
+- `dados/atestado/criar`;
+- `dados/atestado/editar`;
+- `dados/local_trabalho/criar`;
+- `obras/obra/visualizar`.
 
-Negadas: decisão de aprovação, gestão técnica e Administração do sistema.
+Foram retiradas as capacidades amplas de cadastro, a visualização parcial de
+atestados e locais, todas as capacidades de orçamento e toda Medição. Permanecem
+somente ações classificadas como completas e tecnicamente delimitadas.
 
-### ENGENHARIA
+### RH — Role vazia
 
-Objetivo: manter cadastros e atestados técnicos, estruturar medições, consultar
-obras e produzir orçamentos.
+Foram retiradas todas as permissões de Férias/Folgas porque as capacidades
+específicas ainda usam o recurso amplo legado `registros`. Também foram retiradas
+todas as permissões de Uniformes/EPIs porque a responsabilidade institucional do
+RH não está explicitamente homologada no APP. As exclusões de férias e folgas não
+foram concedidas.
 
-Concedidas: visualização, criação e edição de cadastros e atestados; visualização
-e criação de local de trabalho; visualização, criação e edição de medição;
-visualização de lançamentos e obras; visualização, criação e edição de orçamento;
-criação de cliente de orçamento; edição de insumos.
+## Concessões retiradas
 
-Negadas: exclusões, aprovações, finanças, RH e Administração.
+Foram removidas 34 das 43 linhas iniciais:
 
-### RH
-
-Objetivo: gerir férias e folgas e custodiar entrega, devolução e baixa de
-Uniformes/EPIs.
-
-Concedidas: visualização de registros; criação, edição e exclusão de férias e
-folgas; visualização de estoque; criação de item, entrega, devolução e baixa.
-
-Negadas: compra e movimentação entre obras, aprovação, finanças e Administração.
+- toda permissão de Medições;
+- toda permissão de Uniformes/EPIs;
+- toda permissão de Férias/Folgas;
+- visualização de despesas de FUNCIONARIO e FINANCEIRO;
+- cadastros gerais, visualizações parciais, orçamentos e clientes/insumos da
+  ENGENHARIA;
+- visualização parcial de atestados e locais de trabalho.
 
 ## Garantias e limitações
 
@@ -82,8 +86,9 @@ fora do RBAC.
 
 Nenhum usuário foi associado a Role. A matriz não participa da autenticação nem
 do cálculo efetivo de acesso; `data/permissoes_usuarios.csv` continua sendo a
-fonte vigente. Portanto, este PR não altera acesso efetivo.
+fonte vigente. Portanto, este ajuste não altera acesso efetivo.
 
-Algumas capacidades concedidas ainda estão classificadas como parciais ou
-específicas de Medições. Sua futura ativação dependerá das etapas próprias de
-integração, preservando negação por padrão e as fronteiras documentadas.
+As quatro Roles com concessões ainda não estão ativas para usuários. Antes de
+qualquer integração será necessário confirmar o recorte visual das rotas e a
+compatibilidade operacional das permissões isoladas. Futuras ampliações exigirão
+necessidade operacional real e homologação humana específica.
