@@ -42,6 +42,7 @@ A migrar incrementalmente.
 - Interface
 - Persistência
 - Permissões
+- [Usuários operacionais — AUTH-001](AUTH001_USUARIOS_OPERACIONAIS.md)
 
 ## Módulos
 

@@ -180,6 +180,11 @@ def pode_gerenciar_administracao():
     return usuario_superadmin() or recuperacao_administrativa_ativa()
 
 
+def pode_gerenciar_usuarios_operacionais():
+    """Restringe a gestão interna à mesma custódia administrativa homologada."""
+    return pode_gerenciar_administracao()
+
+
 def possui_perfil(perfil):
     """Centraliza consultas de identidade que não representam uma permissão."""
     return autenticado() and str(perfil_global()).strip().lower() == str(perfil).strip().lower()
