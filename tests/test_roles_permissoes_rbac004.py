@@ -120,7 +120,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
     def test_autenticacao_usuarios_catalogo_e_permissoes_vigentes_inalterados(self):
         esperados = {
             "services/auth.py": "b8f864ed3c9a892f53280e28ee56b78f5c979cee62d253923f88b55b477caec0",
-            "services/autorizacao.py": "ceb618911b47eb8cfaf5452033fd85cc8def55e55484fe23a5a807f5315cd9de",
+            "services/autorizacao.py": "3062e25a6d1a6afce9ee0d1a3cc9832a0edc111f3e1378cc4de29bbf23e59b66",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "data/usuarios_operacionais.csv": "ce72411b6c49e15814fea35d285ee291ba7282fba2ee807db6a7e1b70a3dbb79",
             "data/permissoes_catalogo.csv": "e2d3471e08dc7abfe13c9d46d95cd70a38cb712757a95dc2eb3efcb584908376",

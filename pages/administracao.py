@@ -16,6 +16,11 @@ from services.usuarios_operacionais import (
     criar_usuario,
     editar_usuario,
 )
+from services.usuarios_roles import (
+    atribuir_role,
+    carregar_usuarios_roles_resultado,
+    retirar_role,
+)
 
 
 MODULOS_DISPONIVEIS = [
@@ -334,6 +339,102 @@ def _render_usuarios_operacionais():
     st.divider()
 
 
+def _render_usuarios_roles():
+    st.subheader("ROLES DOS USUÁRIOS")
+    st.caption("Estas associações ainda não alteram o acesso efetivo do usuário.")
+    leitura = carregar_usuarios_roles_resultado()
+    leitura_usuarios = carregar_usuarios_operacionais_resultado()
+    leitura_roles = carregar_roles_resultado()
+    leitura_permissoes = carregar_roles_permissoes_resultado()
+    liberada = all(item.pode_sobrescrever for item in (
+        leitura, leitura_usuarios, leitura_roles,
+    ))
+    if not liberada:
+        st.error("Alterações bloqueadas: usuários, Roles e associações exigem leitura confirmada.")
+        st.divider()
+        return
+
+    usuarios = leitura_usuarios.dados.copy()
+    roles = leitura_roles.dados.copy()
+    associacoes = leitura.dados.copy()
+    if usuarios.empty:
+        st.info("Nenhum usuário operacional disponível para associação.")
+        st.divider()
+        return
+
+    opcoes_usuarios = {
+        f"{row['nome']} — {row['login']} — matrícula {row['matricula']} ({row['ativo']})": row["usuario_id"]
+        for _, row in usuarios.iterrows()
+    }
+    escolhido = st.selectbox("Usuário operacional", list(opcoes_usuarios), key="usuario_role_usuario")
+    usuario_id = opcoes_usuarios[escolhido]
+    usuario = usuarios[usuarios["usuario_id"] == usuario_id].iloc[0]
+    st.write(
+        f"**Nome:** {usuario['nome']}  |  **Login:** {usuario['login']}  |  "
+        f"**Matrícula:** {usuario['matricula']}  |  **Ativo:** {usuario['ativo']}"
+    )
+
+    historico = associacoes[associacoes["usuario_id"].astype(str) == str(usuario_id)].copy()
+    if historico.empty:
+        st.info("Este usuário ainda não possui histórico de Roles.")
+    else:
+        nomes = roles.set_index("role_id")["codigo"].to_dict()
+        historico["role"] = historico["role_id"].map(nomes).fillna("Role não localizada")
+        st.dataframe(
+            historico[[
+                "role", "ativo", "criado_em", "criado_por",
+                "atualizado_em", "atualizado_por",
+            ]], use_container_width=True, hide_index=True,
+        )
+
+    roles_ativas = roles[roles["ativo"].astype(str).str.casefold() == "sim"]
+    if str(usuario["ativo"]).casefold() == "sim" and not roles_ativas.empty:
+        opcoes_roles = {
+            f"{row['codigo']} — {row['nome']}": row["role_id"]
+            for _, row in roles_ativas.iterrows()
+        }
+        role_escolhida = st.selectbox("Role ativa", list(opcoes_roles), key="usuario_role_role")
+        role_id = opcoes_roles[role_escolhida]
+        col_atribuir, col_retirar = st.columns(2)
+        if col_atribuir.button("Atribuir ou reativar Role", use_container_width=True):
+            _informar_operacao(atribuir_role(
+                leitura=leitura, leitura_usuarios=leitura_usuarios,
+                leitura_roles=leitura_roles, usuario_id=usuario_id, role_id=role_id,
+            ))
+        if col_retirar.button("Retirar Role", use_container_width=True):
+            _informar_operacao(retirar_role(
+                leitura=leitura, leitura_usuarios=leitura_usuarios,
+                leitura_roles=leitura_roles, usuario_id=usuario_id, role_id=role_id,
+            ))
+        if leitura_permissoes.leitura_confirmada:
+            permissoes = leitura_permissoes.dados
+            vinculadas = permissoes[permissoes["role_id"].astype(str) == str(role_id)]
+            st.markdown("#### Permissões documentais da Role")
+            if vinculadas.empty:
+                st.info("Esta Role é válida e está vazia.")
+            else:
+                st.dataframe(
+                    vinculadas[["modulo", "recurso", "acao", "efeito"]],
+                    use_container_width=True, hide_index=True,
+                )
+    else:
+        st.info("Usuário inativo não pode receber nova Role; associações existentes podem ser consultadas e retiradas.")
+        ativas = historico[historico["ativo"].astype(str).str.casefold() == "sim"]
+        if not ativas.empty:
+            opcoes_retirada = {
+                roles.set_index("role_id")["codigo"].to_dict().get(row["role_id"], row["role_id"]): row["role_id"]
+                for _, row in ativas.iterrows()
+            }
+            selecionada = st.selectbox("Role ativa para retirada", list(opcoes_retirada), key="usuario_role_retirada")
+            if st.button("Retirar Role ativa", use_container_width=True):
+                _informar_operacao(retirar_role(
+                    leitura=leitura, leitura_usuarios=leitura_usuarios,
+                    leitura_roles=leitura_roles, usuario_id=usuario_id,
+                    role_id=opcoes_retirada[selecionada],
+                ))
+    st.divider()
+
+
 def render():
     st.title("Administração")
     st.caption("Gestão de permissões de usuários do sistema FOS.")
@@ -345,6 +446,7 @@ def render():
     _render_catalogo_permissoes()
     _render_roles()
     _render_usuarios_operacionais()
+    _render_usuarios_roles()
 
     resultado_leitura = carregar_permissoes_resultado()
     df = resultado_leitura.dados

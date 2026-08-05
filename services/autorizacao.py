@@ -185,6 +185,11 @@ def pode_gerenciar_usuarios_operacionais():
     return pode_gerenciar_administracao()
 
 
+def pode_gerenciar_usuarios_roles():
+    """Restringe associações documentais à custódia administrativa."""
+    return pode_gerenciar_administracao()
+
+
 def pode_gerenciar_roles():
     """Restringe o catálogo RBAC à custódia administrativa homologada."""
     return pode_gerenciar_administracao()
