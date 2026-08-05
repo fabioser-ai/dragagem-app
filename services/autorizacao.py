@@ -190,6 +190,11 @@ def pode_gerenciar_roles():
     return pode_gerenciar_administracao()
 
 
+def pode_gerenciar_catalogo_permissoes():
+    """Restringe a manutenção do catálogo canônico à custódia administrativa."""
+    return pode_gerenciar_administracao()
+
+
 def possui_perfil(perfil):
     """Centraliza consultas de identidade que não representam uma permissão."""
     return autenticado() and str(perfil_global()).strip().lower() == str(perfil).strip().lower()

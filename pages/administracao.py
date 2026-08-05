@@ -3,6 +3,7 @@ import streamlit as st
 
 from services.autorizacao import pode_gerenciar_administracao
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
+from services.permissoes_catalogo import carregar_catalogo_resultado
 from services.roles import (
     carregar_roles_permissoes_resultado,
     carregar_roles_resultado,
@@ -111,6 +112,65 @@ def _informar_operacao(resultado):
         st.rerun()
     else:
         st.error(resultado.mensagem)
+
+
+def _render_catalogo_permissoes():
+    st.subheader("CATÁLOGO DE PERMISSÕES")
+    st.caption(
+        "Este catálogo não concede acesso. Ele apenas define as capacidades "
+        "reconhecidas pelo RBAC."
+    )
+    resultado = carregar_catalogo_resultado()
+    if not resultado.leitura_confirmada:
+        st.error("Não foi possível confirmar a leitura do catálogo canônico.")
+        st.divider()
+        return
+
+    catalogo = resultado.dados.copy()
+    if catalogo.empty:
+        st.info("O catálogo canônico está vazio.")
+        st.divider()
+        return
+
+    col1, col2, col3, col4 = st.columns(4)
+    modulo = col1.selectbox(
+        "Módulo", ["Todos"] + sorted(catalogo["modulo"].unique().tolist()),
+        key="catalogo_filtro_modulo",
+    )
+    acao = col2.selectbox(
+        "Ação", ["Todas"] + sorted(catalogo["acao"].unique().tolist()),
+        key="catalogo_filtro_acao",
+    )
+    sensibilidade = col3.selectbox(
+        "Sensibilidade",
+        ["Todas"] + sorted(catalogo["sensibilidade"].unique().tolist()),
+        key="catalogo_filtro_sensibilidade",
+    )
+    protecao = col4.selectbox(
+        "Estado da proteção",
+        ["Todos"] + sorted(catalogo["estado_protecao"].unique().tolist()),
+        key="catalogo_filtro_protecao",
+    )
+
+    filtrado = catalogo.copy()
+    if modulo != "Todos":
+        filtrado = filtrado[filtrado["modulo"] == modulo]
+    if acao != "Todas":
+        filtrado = filtrado[filtrado["acao"] == acao]
+    if sensibilidade != "Todas":
+        filtrado = filtrado[filtrado["sensibilidade"] == sensibilidade]
+    if protecao != "Todos":
+        filtrado = filtrado[filtrado["estado_protecao"] == protecao]
+
+    st.dataframe(
+        filtrado[[
+            "modulo", "recurso", "acao", "nome", "descricao",
+            "sensibilidade", "escopo_obra", "estado_protecao", "evidencia",
+        ]],
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.divider()
 
 
 def _render_roles():
@@ -282,6 +342,7 @@ def render():
         st.error("Acesso restrito à custódia administrativa.")
         st.stop()
 
+    _render_catalogo_permissoes()
     _render_roles()
     _render_usuarios_operacionais()
 
