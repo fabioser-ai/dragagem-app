@@ -6,6 +6,9 @@
 
 **Estado:** implementação incremental; a segurança do APP não está concluída.
 
+> A identidade canônica e a custódia implementadas depois deste estado estão
+> documentadas em `docs/AC003_IDENTIDADE_PROPRIETARIO_CUSTODIA.md`.
+
 ## Interface central
 
 `services/autorizacao.py` é a fachada canônica consumida pelos módulos. Ela

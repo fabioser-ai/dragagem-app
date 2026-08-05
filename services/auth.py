@@ -8,6 +8,7 @@ from services.log import registrar_log
 
 SESSION_TIMEOUT_SECONDS = 60 * 60
 CHAVE_LOG_PENDENTE = "_log_acesso_pendente"
+CHAVE_RECUPERACAO_ADMIN = "_custodia_admin_recuperada"
 
 
 def carregar_usuarios():
@@ -41,6 +42,7 @@ def limpar_sessao():
         "tela",
         "ultimo_acesso",
         CHAVE_LOG_PENDENTE,
+        CHAVE_RECUPERACAO_ADMIN,
     ):
         st.session_state.pop(chave, None)
 
