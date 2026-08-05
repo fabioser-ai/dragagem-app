@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from services.github import carregar_github, salvar_github
+from services.autorizacao import pode
 
 # =========================
 # ARQUIVO
@@ -54,6 +55,9 @@ def etapa3():
     col1, col2 = st.columns(2)
 
     if col1.button("💾 Salvar Insumos"):
+        if not pode(modulo="orcamento", recurso="insumos", acao="editar"):
+            st.error("Operação não autorizada.")
+            return
 
         df_salvar = df_crud.copy()
 

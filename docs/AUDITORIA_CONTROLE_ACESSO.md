@@ -1,5 +1,8 @@
 # APP FOS — Auditoria do controle de acesso
 
+> Este documento registra o baseline anterior ao AC-001. O estado incremental
+> após o AC-002 está documentado em `docs/AC002_AUTORIDADE_AUTORIZACAO.md`.
+
 **Estado auditado:** `main` no commit `54bd51a3e24bf104fee0102957feea6429f75aac`.
 
 **Natureza:** investigação estática e registro de baseline; nenhuma correção foi implementada.

@@ -121,6 +121,12 @@ class TestIndiceOrcamentos(unittest.TestCase):
 
 class TestRepositorioOrcamentos(unittest.TestCase):
     def setUp(self):
+        self.patch_autorizacao = patch(
+            "modulos.orcamentos.persistencia.github_repositorio.pode",
+            return_value=True,
+        )
+        self.patch_autorizacao.start()
+        self.addCleanup(self.patch_autorizacao.stop)
         self.repo = RepositorioOrcamentosGitHub("token", "org/repo")
         self.orcamento, self.versao = criar_dominio()
         self.indice_vazio = serializar_indice([])

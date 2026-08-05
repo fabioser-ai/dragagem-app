@@ -52,6 +52,7 @@ class TestSalvarCadastro(unittest.TestCase):
         dados.st.success = Mock()
         dados.st.error = Mock()
         dados.st.rerun = Mock()
+        dados.pode = Mock(return_value=True)
 
     @patch.object(dados, "salvar_cadastro_seguro")
     def test_sucesso_apresenta_mensagem_e_executa_rerun(self, salvar):

@@ -111,7 +111,7 @@ class TestFronteiraNovoOrcamento(unittest.TestCase):
 
     def test_menu_exibe_nova_entrada_sob_mesma_permissao(self):
         fonte = MENU.read_text(encoding="utf-8")
-        self.assertIn('pode_orcamento = pode_acessar_modulo("orcamento")', fonte)
+        self.assertIn('pode_orcamento = pode_acessar("orcamento")', fonte)
         self.assertIn('"Novo Sistema de Orçamentos"', fonte)
         self.assertIn('"novo_orcamento"', fonte)
 

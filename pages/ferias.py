@@ -13,7 +13,7 @@ from services.ferias_regras import (
     transicionar_ciclo_vida,
     validar_registro_ferias,
 )
-from services.permissoes import pode_acessar_modulo, pode_executar
+from services.autorizacao import pode, pode_acessar
 
 try:
     from services.email_service import enviar_email_smtp
@@ -78,7 +78,11 @@ def carregar_csv_seguro(arquivo):
     return resultado.dados, resultado.sha
 
 
-def salvar_csv_seguro(df, arquivo, sha_esperado):
+def salvar_csv_seguro(df, arquivo, sha_esperado, *, recurso="registros", acao="editar"):
+    if not pode(modulo="ferias", recurso=recurso, acao=acao):
+        st.error("Operação não autorizada.")
+        return False
+
     resultado = salvar_csv_github(
         df,
         arquivo,
@@ -129,7 +133,7 @@ def aplicar_transicao(
             df.loc[indice],
             novo_estado,
             usuario=st.session_state.get("usuario", ""),
-            autorizado=pode_executar("ferias", "ciclo_vida", "alterar"),
+            autorizado=pode(modulo="ferias", recurso="ciclo_vida", acao="alterar"),
             data_efetiva=data_efetiva,
         )
     except (TransicaoCicloInvalida, TransicaoNaoAutorizada) as erro:
@@ -140,7 +144,9 @@ def aplicar_transicao(
     for coluna, valor in atualizado.items():
         candidato.at[indice, coluna] = valor
     candidato = normalizar_dataframe(candidato, list(df.columns))
-    return salvar_csv_seguro(candidato, arquivo, sha_esperado)
+    return salvar_csv_seguro(
+        candidato, arquivo, sha_esperado, recurso="ciclo_vida", acao="alterar"
+    )
 
 
 def render_acoes_ciclo_vida(df, *, arquivo, sha_esperado, prefixo):
@@ -489,6 +495,9 @@ def montar_corpo_email_alerta_ferias(df_ferias):
 
 
 def enviar_alerta_ferias_por_email(df_ferias):
+    if not pode(modulo="ferias", recurso="alertas", acao="enviar"):
+        return False, "Operação não autorizada."
+
     if enviar_email_smtp is None:
         return False, "Arquivo services/email_service.py não encontrado ou com erro de importação."
 
@@ -918,7 +927,7 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
 
                 df_ferias = pd.concat([df_ferias, pd.DataFrame([novo])], ignore_index=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias, acao="criar"):
                     return
 
                 st.success("Registro de férias adicionado.")
@@ -1068,7 +1077,7 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
                     df_ferias.loc[idx, "Data_Prevista_Termino"] = data_fim_gozo or ""
 
                     df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                    if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                    if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias, acao="editar"):
                         return
 
                     st.success("Registro atualizado.")
@@ -1082,7 +1091,7 @@ def render_ferias(df_ferias, sha_ferias, pode_enviar_alerta, pode_excluir):
             ):
                 df_ferias = df_ferias.drop(idx).reset_index(drop=True)
                 df_ferias = normalizar_dataframe(df_ferias, COLUNAS_FERIAS)
-                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias):
+                if not salvar_csv_seguro(df_ferias, ARQ_FERIAS, sha_ferias, acao="excluir"):
                     return
 
                 st.warning("Registro excluído.")
@@ -1284,7 +1293,7 @@ def render_folgas(df_ferias, pode_excluir):
 
                 df_folgas = pd.concat([df_folgas, pd.DataFrame([novo])], ignore_index=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas, acao="criar"):
                     return
 
                 st.success("Folga registrada com sucesso.")
@@ -1431,7 +1440,7 @@ def render_folgas(df_ferias, pode_excluir):
                     df_folgas.loc[idx_edit, "Data_Prevista_Termino"] = data_retorno_edit
 
                     df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                    if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                    if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas, acao="editar"):
                         return
 
                     st.success("Folga atualizada com sucesso.")
@@ -1445,7 +1454,7 @@ def render_folgas(df_ferias, pode_excluir):
             ):
                 df_folgas = df_folgas.drop(idx_edit).reset_index(drop=True)
                 df_folgas = normalizar_dataframe(df_folgas, COLUNAS_FOLGAS)
-                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas):
+                if not salvar_csv_seguro(df_folgas, ARQ_FOLGAS, sha_folgas, acao="excluir"):
                     return
 
                 st.warning("Folga excluída.")
@@ -1456,12 +1465,12 @@ def render_folgas(df_ferias, pode_excluir):
 # RENDER PRINCIPAL
 # =========================
 def render():
-    if not pode_acessar_modulo("ferias"):
+    if not pode_acessar("ferias"):
         st.error("Você não possui permissão para acessar Férias e Folgas.")
         st.stop()
 
-    pode_enviar_alerta = pode_executar("ferias", "alertas", "enviar")
-    pode_excluir = pode_executar("ferias", "registros", "excluir")
+    pode_enviar_alerta = pode(modulo="ferias", recurso="alertas", acao="enviar")
+    pode_excluir = pode(modulo="ferias", recurso="registros", acao="excluir")
 
     st.title("Férias e Folgas")
 

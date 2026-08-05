@@ -1,7 +1,7 @@
 import streamlit as st
 
 from services.auth import logout
-from services.permissoes import pode_acessar_modulo, eh_superadmin
+from services.autorizacao import pode_acessar, usuario_superadmin
 
 
 def render_card(titulo, descricao, botao, tela_destino):
@@ -183,7 +183,7 @@ def render():
     )
 
     modulos_renderizados = 0
-    pode_orcamento = pode_acessar_modulo("orcamento")
+    pode_orcamento = pode_acessar("orcamento")
 
     col1, col2 = st.columns(2, gap="large")
 
@@ -205,7 +205,7 @@ def render():
             )
             modulos_renderizados += 1
 
-        if pode_acessar_modulo("ferias"):
+        if pode_acessar("ferias"):
             render_card(
                 "Férias",
                 "Controle interno de períodos aquisitivos, vencimentos e programação.",
@@ -214,7 +214,7 @@ def render():
             )
             modulos_renderizados += 1
 
-        if pode_acessar_modulo("prestacao_contas"):
+        if pode_acessar("prestacao_contas"):
             render_card(
                 "Prestação de Contas",
                 "Gestão de despesas, comprovantes, reembolsos e acompanhamento financeiro.",
@@ -223,7 +223,7 @@ def render():
             )
             modulos_renderizados += 1
 
-        if pode_acessar_modulo("crm"):
+        if pode_acessar("crm"):
             render_card(
                 "CRM",
                 "Cadastro de clientes, contatos, histórico comercial e prospecção de oportunidades.",
@@ -232,7 +232,7 @@ def render():
             )
             modulos_renderizados += 1
 
-        if pode_acessar_modulo("uniformes_epis"):
+        if pode_acessar("uniformes_epis"):
             render_card(
                 "Uniformes e EPIs",
                 "Controle de compras, valores, estoques e localização física nas obras.",
@@ -242,7 +242,7 @@ def render():
             modulos_renderizados += 1
 
     with col2:
-        if pode_acessar_modulo("obras"):
+        if pode_acessar("obras"):
             render_card(
                 "Obras",
                 "Acompanhamento operacional, histórico e gestão de obras cadastradas.",
@@ -251,7 +251,7 @@ def render():
             )
             modulos_renderizados += 1
 
-        if pode_acessar_modulo("dados"):
+        if pode_acessar("dados"):
             render_card(
                 "Dados",
                 "Base técnica de insumos, equipes, equipamentos e parâmetros do sistema.",
@@ -260,11 +260,11 @@ def render():
             )
             modulos_renderizados += 1
 
-        if pode_acessar_modulo("medicoes"):
+        if pode_acessar("medicoes"):
             render_card_medicoes()
             modulos_renderizados += 1
 
-        if eh_superadmin():
+        if usuario_superadmin():
             render_card(
                 "Administração",
                 "Gestão de permissões e acessos dos usuários.",

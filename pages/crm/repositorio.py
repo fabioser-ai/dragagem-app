@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from services.autorizacao import pode
 
 from pages.crm.config import (
     COLUNAS_CLIENTES,
@@ -55,7 +56,13 @@ def carregar_csv_github(caminho: str, colunas: list[str]) -> pd.DataFrame:
     return df.fillna("").astype(str)
 
 
-def salvar_csv_github(df: pd.DataFrame, caminho: str, colunas: list[str]):
+def salvar_csv_github(
+    df: pd.DataFrame, caminho: str, colunas: list[str], *, recurso="cadastros", acao="editar"
+):
+    if not pode(modulo="crm", recurso=recurso, acao=acao):
+        st.error("Operação não autorizada.")
+        return False
+
     token, repo = get_github_config()
 
     for coluna in colunas:
@@ -83,30 +90,31 @@ def salvar_csv_github(df: pd.DataFrame, caminho: str, colunas: list[str]):
         st.error(f"Erro ao salvar arquivo no GitHub: {caminho}")
         st.exception(e)
         raise e
+    return True
 
 
 def carregar_clientes() -> pd.DataFrame:
     return carregar_csv_github(ARQ_CLIENTES, COLUNAS_CLIENTES)
 
 
-def salvar_clientes(df: pd.DataFrame):
-    salvar_csv_github(df, ARQ_CLIENTES, COLUNAS_CLIENTES)
+def salvar_clientes(df: pd.DataFrame, *, acao="editar"):
+    return salvar_csv_github(df, ARQ_CLIENTES, COLUNAS_CLIENTES, recurso="clientes", acao=acao)
 
 
 def carregar_contatos() -> pd.DataFrame:
     return carregar_csv_github(ARQ_CONTATOS, COLUNAS_CONTATOS)
 
 
-def salvar_contatos(df: pd.DataFrame):
-    salvar_csv_github(df, ARQ_CONTATOS, COLUNAS_CONTATOS)
+def salvar_contatos(df: pd.DataFrame, *, acao="editar"):
+    return salvar_csv_github(df, ARQ_CONTATOS, COLUNAS_CONTATOS, recurso="contatos", acao=acao)
 
 
 def carregar_interacoes() -> pd.DataFrame:
     return carregar_csv_github(ARQ_INTERACOES, COLUNAS_INTERACOES)
 
 
-def salvar_interacoes(df: pd.DataFrame):
-    salvar_csv_github(df, ARQ_INTERACOES, COLUNAS_INTERACOES)
+def salvar_interacoes(df: pd.DataFrame, *, acao="editar"):
+    return salvar_csv_github(df, ARQ_INTERACOES, COLUNAS_INTERACOES, recurso="interacoes", acao=acao)
 
 
 def _normalizar_dataframe_crm(df: pd.DataFrame, colunas: list[str]) -> pd.DataFrame:
@@ -187,6 +195,9 @@ def cadastrar_interacao_composta(
     resultado_interacoes: ResultadoLeituraCSV,
     snapshot_comum,
 ):
+    if not pode(modulo="crm", recurso="interacoes", acao="criar"):
+        return _resultado_interacao_invalida("Operação não autorizada.")
+
     if not cadastro_interacao_liberado(
         resultado_clientes,
         resultado_interacoes,
@@ -256,7 +267,7 @@ def cadastrar_cliente(dados: dict):
     novo.update(dados)
 
     df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
-    salvar_clientes(df)
+    return salvar_clientes(df, acao="criar")
 
 
 def atualizar_cliente(id_cliente: str, dados: dict):
@@ -278,7 +289,7 @@ def atualizar_cliente(id_cliente: str, dados: dict):
 
     df.loc[idx, "updated_at"] = agora_iso()
 
-    salvar_clientes(df)
+    return salvar_clientes(df, acao="editar")
 
 
 def cadastrar_contato(dados: dict):
@@ -293,7 +304,7 @@ def cadastrar_contato(dados: dict):
     novo.update(dados)
 
     df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
-    salvar_contatos(df)
+    return salvar_contatos(df, acao="criar")
 
 
 def atualizar_contato(id_contato: str, dados: dict):
@@ -315,7 +326,7 @@ def atualizar_contato(id_contato: str, dados: dict):
 
     df.loc[idx, "updated_at"] = agora_iso()
 
-    salvar_contatos(df)
+    return salvar_contatos(df, acao="editar")
 
 
 def cadastrar_interacao(dados: dict):
@@ -329,9 +340,11 @@ def cadastrar_interacao(dados: dict):
     novo.update(dados)
 
     df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
-    salvar_interacoes(df)
+    if not salvar_interacoes(df, acao="criar"):
+        return False
 
     atualizar_cliente_apos_interacao(dados)
+    return True
 
 
 def atualizar_cliente_apos_interacao(dados_interacao: dict):

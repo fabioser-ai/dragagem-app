@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from services.github import carregar_github, salvar_github
+from services.autorizacao import pode
 
 # =========================
 # ARQUIVOS
@@ -18,6 +19,9 @@ REPO = st.secrets["REPO"]
 # FUNÇÕES AUXILIARES
 # =========================
 def salvar_rascunho_orcamento(dados):
+    if not pode(modulo="orcamento", recurso="orcamento", acao="editar"):
+        st.error("Operação não autorizada.")
+        return False
     try:
         df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
     except Exception:
@@ -41,6 +45,7 @@ def salvar_rascunho_orcamento(dados):
         df = pd.concat([df, pd.DataFrame([dados])], ignore_index=True)
 
     salvar_github(df, ARQ_OBRAS, TOKEN, REPO)
+    return True
 
 
 def obter(dados, chave, padrao=None):

@@ -9,6 +9,9 @@ from tests.test_dados_crud_seguro import dados
 
 
 class TestAtestadosPersistenciaSegura(unittest.TestCase):
+    def setUp(self):
+        dados.pode = Mock(return_value=True)
+
     def resultado(self, status, sha=None, arquivo="teste.csv"):
         return ResultadoLeituraCSV(status=status, dados=pd.DataFrame(), arquivo=arquivo, sha=sha)
 
