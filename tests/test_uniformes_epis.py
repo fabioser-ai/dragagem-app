@@ -158,8 +158,8 @@ class TestUniformesEpis(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn('tela == "uniformes_epis"', app)
-        self.assertIn('pode_acessar_modulo("uniformes_epis")', menu)
-        self.assertIn('pode_acessar_modulo("uniformes_epis")', pagina)
+        self.assertIn('pode_acessar("uniformes_epis")', menu)
+        self.assertIn('pode_acessar("uniformes_epis")', pagina)
         for arquivo in [
             "uniformes_epis_itens.csv",
             "uniformes_epis_compras.csv",

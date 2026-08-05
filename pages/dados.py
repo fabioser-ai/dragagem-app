@@ -3,6 +3,7 @@ import pandas as pd
 import uuid
 from datetime import date
 from services.github import StatusLeitura, carregar_github, salvar_github
+from services.autorizacao import pode
 from services.dados_persistencia import (
     carregar_cadastro_resultado,
     salvar_cadastro_seguro,
@@ -96,7 +97,14 @@ def _salvar_cadastro(
     resultado_leitura,
     mensagem_sucesso,
     mensagem_falha,
+    *,
+    recurso="cadastros",
+    acao="editar",
 ):
+    if not pode(modulo="dados", recurso=recurso, acao=acao):
+        st.error("Operação não autorizada.")
+        return None
+
     resultado = salvar_cadastro_seguro(
         df,
         arquivo,
@@ -181,6 +189,7 @@ def crud(arquivo, colunas, titulo, chave):
                 resultado_leitura,
                 "Atualizado com sucesso!",
                 "Erro ao atualizar cadastro.",
+                acao="editar",
             )
 
         if col2.button("Excluir", key=f"del_{chave}", use_container_width=True, disabled=not escrita_liberada):
@@ -192,6 +201,7 @@ def crud(arquivo, colunas, titulo, chave):
                 resultado_leitura,
                 "Removido!",
                 "Erro ao remover cadastro.",
+                acao="excluir",
             )
 
     st.divider()
@@ -217,6 +227,7 @@ def crud(arquivo, colunas, titulo, chave):
             resultado_leitura,
             "Adicionado com sucesso!",
             "Erro ao adicionar cadastro.",
+            acao="criar",
         )
 
 
@@ -230,12 +241,18 @@ def escrita_liberada(resultado_leitura):
     return resultado_leitura.pode_sobrescrever or resultado_leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE
 
 
-def _salvar_atestados_seguro(df, resultado_leitura, sucesso, falha):
-    return _salvar_cadastro(df, ARQ_ATESTADOS, COLUNAS_ATESTADOS, resultado_leitura, sucesso, falha)
+def _salvar_atestados_seguro(df, resultado_leitura, sucesso, falha, *, acao="editar"):
+    return _salvar_cadastro(
+        df, ARQ_ATESTADOS, COLUNAS_ATESTADOS, resultado_leitura, sucesso, falha,
+        recurso="atestados", acao=acao,
+    )
 
 
-def _salvar_servicos_seguro(df, resultado_leitura, sucesso, falha):
-    return _salvar_cadastro(df, ARQ_ATESTADOS_SERVICOS, COLUNAS_ATESTADOS_SERVICOS, resultado_leitura, sucesso, falha)
+def _salvar_servicos_seguro(df, resultado_leitura, sucesso, falha, *, acao="editar"):
+    return _salvar_cadastro(
+        df, ARQ_ATESTADOS_SERVICOS, COLUNAS_ATESTADOS_SERVICOS, resultado_leitura, sucesso, falha,
+        recurso="atestados", acao=acao,
+    )
 
 
 def preparar_exclusao_composta(df_atestados, df_servicos, id_atestado):
@@ -261,6 +278,10 @@ def exclusao_composta_liberada(
 
 
 def _publicar_exclusao_composta(df_atestados, df_servicos):
+    if not pode(modulo="dados", recurso="atestados", acao="excluir"):
+        st.error("Operação não autorizada.")
+        return None
+
     resultado = publicar_csvs_em_commit(
         [
             AlteracaoArquivoCSV(ARQ_ATESTADOS, df_atestados),
@@ -530,8 +551,8 @@ def render_atestados():
                             df_atestados.at[idx, "descricao"] = descricao
                             df_atestados.at[idx, "observacoes"] = observacoes
 
-                            resultado = _salvar_atestados_seguro(df_atestados, resultado_atestados, "Atestado atualizado com sucesso!", "Erro ao atualizar atestado.")
-                            if resultado.sucesso:
+                            resultado = _salvar_atestados_seguro(df_atestados, resultado_atestados, "Atestado atualizado com sucesso!", "Erro ao atualizar atestado.", acao="editar")
+                            if resultado is not None and resultado.sucesso:
                                 del st.session_state.atestado_em_edicao
 
     with aba2:
@@ -573,7 +594,7 @@ def render_atestados():
                     ignore_index=True
                 )
 
-                _salvar_atestados_seguro(df_atestados, resultado_atestados, "Atestado cadastrado com sucesso!", "Erro ao cadastrar atestado.")
+                _salvar_atestados_seguro(df_atestados, resultado_atestados, "Atestado cadastrado com sucesso!", "Erro ao cadastrar atestado.", acao="criar")
 
     with aba3:
         st.write("Adicionar serviços vinculados")
@@ -623,7 +644,7 @@ def render_atestados():
                         ignore_index=True
                     )
 
-                    _salvar_servicos_seguro(df_servicos, resultado_servicos, "Serviço vinculado com sucesso!", "Erro ao cadastrar serviço.")
+                    _salvar_servicos_seguro(df_servicos, resultado_servicos, "Serviço vinculado com sucesso!", "Erro ao cadastrar serviço.", acao="criar")
 
             st.divider()
             st.write("Serviços já vinculados")
@@ -656,7 +677,7 @@ def render_atestados():
                         df_servicos["id_servico"] != id_servico
                     ].reset_index(drop=True)
 
-                    _salvar_servicos_seguro(df_servicos, resultado_servicos, "Serviço excluído.", "Erro ao excluir serviço.")
+                    _salvar_servicos_seguro(df_servicos, resultado_servicos, "Serviço excluído.", "Erro ao excluir serviço.", acao="excluir")
 
 
 def render():

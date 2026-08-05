@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from services.auth import exigir_admin
+from services.autorizacao import pode, possui_perfil, possui_privilegio_administrativo
 from services.github import (
     carregar_github,
     salvar_github,
@@ -338,6 +339,10 @@ def render_nova_despesa():
         st.success(f"Arquivo selecionado: {comprovante.name}")
 
     if st.button("Enviar prestação de contas", use_container_width=True, key="btn_enviar_prestacao"):
+        if not pode(modulo="prestacao_contas", recurso="despesa", acao="criar"):
+            st.error("Operação não autorizada.")
+            return
+
         if valor <= 0:
             st.error("Informe um valor válido.")
             return
@@ -586,6 +591,9 @@ def render_todas_despesas():
         use_container_width=True,
         key=f"btn_aprovar_{idx_escolhido}",
     ):
+        if not possui_privilegio_administrativo():
+            st.error("Operação não autorizada.")
+            return
         df.loc[idx_escolhido, "Status"] = "Aprovado"
         df.loc[idx_escolhido, "Aprovado_Por"] = str(st.session_state.get("usuario", ""))
         df.loc[idx_escolhido, "Data_Aprovacao"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -602,6 +610,9 @@ def render_todas_despesas():
         use_container_width=True,
         key=f"btn_reprovar_{idx_escolhido}",
     ):
+        if not possui_privilegio_administrativo():
+            st.error("Operação não autorizada.")
+            return
         df.loc[idx_escolhido, "Status"] = "Reprovado"
         df.loc[idx_escolhido, "Aprovado_Por"] = str(st.session_state.get("usuario", ""))
         df.loc[idx_escolhido, "Data_Aprovacao"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -618,6 +629,9 @@ def render_todas_despesas():
         use_container_width=True,
         key=f"btn_pago_{idx_escolhido}",
     ):
+        if not possui_privilegio_administrativo():
+            st.error("Operação não autorizada.")
+            return
         df.loc[idx_escolhido, "Status"] = "Pago"
         df.loc[idx_escolhido, "Aprovado_Por"] = str(st.session_state.get("usuario", ""))
         df.loc[idx_escolhido, "Data_Aprovacao"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -662,6 +676,10 @@ def render_tipos_despesa():
     )
 
     if st.button("Adicionar tipo", use_container_width=True, key="btn_add_tipo_despesa"):
+        if not possui_privilegio_administrativo():
+            st.error("Operação não autorizada.")
+            return
+
         if not novo_tipo.strip():
             st.error("Informe o tipo.")
             return
@@ -710,9 +728,7 @@ def render_tipos_despesa():
 def render():
     st.title("Prestação de Contas")
 
-    perfil = st.session_state.get("perfil", "")
-
-    if perfil == "funcionario":
+    if possui_perfil("funcionario"):
         aba_nova, aba_minhas = st.tabs(
             ["Nova Despesa", "Minhas Despesas"]
         )
@@ -723,7 +739,7 @@ def render():
         with aba_minhas:
             render_minhas_despesas()
 
-    elif perfil == "admin":
+    elif possui_privilegio_administrativo():
         aba_todas, aba_nova, aba_minhas, aba_tipos = st.tabs(
             ["Todas as Despesas", "Nova Despesa", "Minhas Despesas", "Tipos de Despesa"]
         )
@@ -753,7 +769,7 @@ def render():
 
     st.divider()
 
-    if perfil == "funcionario":
+    if possui_perfil("funcionario"):
         if st.button("Sair", use_container_width=True, key="btn_sair_funcionario_prestacao"):
             from services.auth import logout
             logout()
@@ -761,4 +777,3 @@ def render():
         if st.button("⬅ Voltar", use_container_width=True, key="btn_voltar_prestacao"):
             st.session_state.tela = "menu"
             st.rerun()
-

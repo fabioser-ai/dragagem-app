@@ -1,11 +1,8 @@
 import pandas as pd
 import streamlit as st
 
-from services.permissoes import (
-    carregar_permissoes_resultado,
-    eh_superadmin,
-    salvar_permissoes_seguro,
-)
+from services.autorizacao import usuario_superadmin
+from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 
 
 MODULOS_DISPONIVEIS = [
@@ -73,6 +70,10 @@ def _mostrar_erro_leitura(resultado):
 
 
 def _salvar_alteracao(df, sha_esperado, mensagem_sucesso):
+    if not usuario_superadmin():
+        st.error("Alteração não autorizada.")
+        return False
+
     resultado = salvar_permissoes_seguro(
         df,
         sha_esperado=sha_esperado,
@@ -81,6 +82,7 @@ def _salvar_alteracao(df, sha_esperado, mensagem_sucesso):
     if resultado.sucesso:
         st.success(mensagem_sucesso)
         st.rerun()
+        return True
 
     detalhes = resultado.erro or "O GitHub não confirmou a gravação."
 
@@ -88,13 +90,14 @@ def _salvar_alteracao(df, sha_esperado, mensagem_sucesso):
         detalhes = f"{detalhes} (HTTP {resultado.http_status})"
 
     st.error(f"Alteração não salva. {detalhes}")
+    return False
 
 
 def render():
     st.title("Administração")
     st.caption("Gestão de permissões de usuários do sistema FOS.")
 
-    if not eh_superadmin():
+    if not usuario_superadmin():
         st.error("Acesso restrito ao SuperAdmin.")
         st.stop()
 

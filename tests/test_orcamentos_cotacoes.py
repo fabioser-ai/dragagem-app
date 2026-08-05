@@ -367,7 +367,8 @@ class TestPersistenciaSomenteDocumento(unittest.TestCase):
     @patch(
         "modulos.orcamentos.persistencia.github_repositorio.publicar_arquivos_em_commit"
     )
-    def test_publica_somente_json_da_versao_no_commit(self, publicar):
+    @patch("modulos.orcamentos.persistencia.github_repositorio.pode", return_value=True)
+    def test_publica_somente_json_da_versao_no_commit(self, autorizar, publicar):
         publicar.return_value = ResultadoPersistenciaMultiArquivo(
             StatusPersistenciaMultiArquivo.SUCESSO,
             branch="main",

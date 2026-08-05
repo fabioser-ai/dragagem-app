@@ -11,6 +11,7 @@ from modulos.orcamentos.persistencia.indice import (
 )
 from modulos.orcamentos.persistencia.serializacao import desserializar_versao, serializar_versao
 from services.github import DEFAULT_REQUEST_TIMEOUT
+from services.autorizacao import pode
 from services.persistencia_multi_arquivo import (
     AlteracaoArquivoConteudo, StatusPersistenciaMultiArquivo, publicar_arquivos_em_commit,
 )
@@ -91,6 +92,11 @@ class RepositorioOrcamentosGitHub:
         self, orcamento: Orcamento, versao: VersaoOrcamento,
         indice_atual: str, snapshot_esperado: str,
     ):
+        if not pode(modulo="orcamento", recurso="orcamento", acao="editar"):
+            return ResultadoPersistencia(
+                StatusPersistencia.REQUISICAO_INVALIDA,
+                erro="Operação não autorizada.",
+            )
         indice = desserializar_indice(indice_atual)
         if not indice.sucesso:
             return ResultadoPersistencia(StatusPersistencia.DADO_CORROMPIDO, erro=indice.erro)
@@ -124,6 +130,11 @@ class RepositorioOrcamentosGitHub:
         self, orcamento: Orcamento, versao: VersaoOrcamento, snapshot_esperado: str
     ):
         """Persiste somente o JSON quando o resumo do índice não foi alterado."""
+        if not pode(modulo="orcamento", recurso="orcamento", acao="editar"):
+            return ResultadoPersistencia(
+                StatusPersistencia.REQUISICAO_INVALIDA,
+                erro="Operação não autorizada.",
+            )
         try:
             caminho = caminho_versao(str(orcamento.id), str(versao.id))
             documento = serializar_versao(orcamento, versao)

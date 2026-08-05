@@ -159,7 +159,8 @@ class TestAudit053PersistenciaIntegrada(unittest.TestCase):
         "modulos.orcamentos.persistencia.github_repositorio."
         "publicar_arquivos_em_commit"
     )
-    def test_snapshot_divergente_recusa_sobrescrita(self, publicar):
+    @patch("modulos.orcamentos.persistencia.github_repositorio.pode", return_value=True)
+    def test_snapshot_divergente_recusa_sobrescrita(self, autorizar, publicar):
         publicar.return_value = ResultadoPersistenciaMultiArquivo(
             StatusPersistenciaMultiArquivo.CONFLITO,
             "main",

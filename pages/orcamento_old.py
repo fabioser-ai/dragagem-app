@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from services.github import carregar_github, salvar_github
+from services.autorizacao import pode
 
 # =========================
 # ARQUIVOS
@@ -90,6 +91,9 @@ def etapa0():
     if st.button("Continuar", key="cont_etapa0"):
 
         if novo_cliente:
+            if not pode(modulo="orcamento", recurso="clientes", acao="criar"):
+                st.error("Operação não autorizada.")
+                return
             cliente_final = novo_cliente
             df_clientes.loc[len(df_clientes)] = [novo_cliente]
             salvar_github(df_clientes, ARQ_CLIENTES, TOKEN, REPO)

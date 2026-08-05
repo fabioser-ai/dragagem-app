@@ -41,6 +41,7 @@ def resultado_leitura(status, arquivo, dados):
 
 class TestInteracaoAtomicaCRM(unittest.TestCase):
     def setUp(self):
+        repositorio.pode = Mock(return_value=True)
         self.snapshot = SnapshotBranch("main", "commit-base", "tree-base")
         self.clientes = pd.DataFrame(
             [

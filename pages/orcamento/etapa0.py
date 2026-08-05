@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from services.github import carregar_github, salvar_github
+from services.autorizacao import pode
 
 ARQ_CLIENTES = "data/clientes.csv"
 ARQ_MAT = "data/materiais.csv"
@@ -40,6 +41,9 @@ def gerar_codigo():
 # SALVAR RASCUNHO
 # =========================
 def salvar_rascunho(dados):
+    if not pode(modulo="orcamento", recurso="orcamento", acao="editar"):
+        st.error("Operação não autorizada.")
+        return False
 
     try:
         df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
@@ -59,6 +63,7 @@ def salvar_rascunho(dados):
         df = pd.concat([df, pd.DataFrame([dados])], ignore_index=True)
 
     salvar_github(df, ARQ_OBRAS, TOKEN, REPO)
+    return True
 
 # =========================
 # ETAPA 0
@@ -198,6 +203,9 @@ def etapa0():
     if st.button("Continuar"):
 
         if novo_cliente:
+            if not pode(modulo="orcamento", recurso="clientes", acao="criar"):
+                st.error("Operação não autorizada.")
+                return
             cliente_final = novo_cliente
             df_clientes.loc[len(df_clientes)] = [novo_cliente]
             salvar_github(df_clientes, ARQ_CLIENTES, TOKEN, REPO)

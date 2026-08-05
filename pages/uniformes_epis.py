@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from services.github import StatusLeitura
-from services.permissoes import pode_acessar_modulo, pode_executar
+from services.autorizacao import pode, pode_acessar
 from services.uniformes_epis import (
     ARQ_COMPRAS,
     ARQ_ENTREGAS,
@@ -47,6 +47,10 @@ def _detalhes(resultado):
 
 
 def _salvar(df, arquivo, colunas, resultado_leitura, mensagem):
+    if not pode(modulo="uniformes_epis", recurso="cadastros", acao="editar"):
+        st.error("Operação não autorizada.")
+        return False
+
     token, repo = _configuracao()
     resultado = salvar_base(
         df, arquivo, colunas, token, repo, resultado_leitura
@@ -54,8 +58,10 @@ def _salvar(df, arquivo, colunas, resultado_leitura, mensagem):
     if resultado.sucesso:
         st.success(mensagem)
         st.rerun()
+        return True
     else:
         st.error(_detalhes(resultado))
+        return False
 
 
 def _rotulo_item(linha):
@@ -751,7 +757,7 @@ def _render_historicos(
 
 
 def render():
-    if not pode_acessar_modulo("uniformes_epis"):
+    if not pode_acessar("uniformes_epis"):
         st.error("Você não possui permissão para acessar Uniformes e EPIs.")
         return
 
@@ -785,9 +791,7 @@ def render():
         itens, compras, movimentacoes, entregas
     )
     posses = calcular_posse_funcionarios(itens, entregas)
-    pode_editar = pode_executar(
-        "uniformes_epis", recurso="cadastros", permissao="editar"
-    )
+    pode_editar = pode(modulo="uniformes_epis", recurso="cadastros", acao="editar")
 
     (
         resumo,

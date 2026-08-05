@@ -135,8 +135,8 @@ def verificar_login():
 
 
 def exigir_admin():
-    from services.permissoes import eh_administrador_sistema
+    from services.autorizacao import possui_privilegio_administrativo
 
-    if not eh_administrador_sistema():
+    if not possui_privilegio_administrativo():
         st.error("Acesso restrito ao administrador.")
         st.stop()

@@ -118,7 +118,7 @@ class TestFronteiraCentralAutorizacao(unittest.TestCase):
         streamlit.error = Mock()
         streamlit.stop = Mock()
         with patch.object(
-            permissoes, "eh_administrador_sistema", return_value=True
+            autorizacao, "possui_privilegio_administrativo", return_value=True
         ):
             auth.exigir_admin()
         streamlit.error.assert_not_called()

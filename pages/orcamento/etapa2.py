@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from services.github import carregar_github, salvar_github
+from services.autorizacao import pode
 
 ARQ_SAL = "data/salarios.csv"
 ARQ_OBRAS = "data/orcamentos.csv"
@@ -16,6 +17,9 @@ def formatar_real(valor):
 
 
 def salvar_rascunho_orcamento(dados):
+    if not pode(modulo="orcamento", recurso="orcamento", acao="editar"):
+        st.error("Operação não autorizada.")
+        return False
     try:
         df = carregar_github(ARQ_OBRAS, TOKEN, REPO)
     except Exception:
@@ -61,6 +65,7 @@ def salvar_rascunho_orcamento(dados):
         df = pd.concat([df, pd.DataFrame([dados_limpos])], ignore_index=True)
 
     salvar_github(df, ARQ_OBRAS, TOKEN, REPO)
+    return True
 
 
 def preparar_df_equipe(df):
