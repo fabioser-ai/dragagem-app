@@ -2436,51 +2436,54 @@ c6cda4ca-6c03-5de9-badc-65ee1e742de1,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Instal
 9f47c453-2ede-549c-ac8a-9cb06f302f4f,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Carga manual de entulho em caminhão basculante,m²,"51,37",Item: 43
 fdf5fbed-37cb-5870-89bf-2bd3e432a171,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Transporte de material para bota fora,m²,"51,37",Item: 44
 7b1116d2-489a-5dd8-a4ae-e5f1fde0cfbc,58166ad5-8e44-53f6-bf44-f90de5b3eda2,Limpeza geral da obra,m²,"171,00",Item: 45
-f8c8a73c-7785-44c8-9529-107feb57d007,b4a3eef1-968c-46bb-83ac-e023f98da188,"Escavação manual, profundidade até 1,50 m",m³,"8,93",Item: 1
-99d0349a-70df-4aec-afb4-7aa0feb3c65b,b4a3eef1-968c-46bb-83ac-e023f98da188,Apiloamento para simples regularização,m²,"4,24",Item: 2
-d370ef0f-569e-4b93-b13e-5465b8daf2a6,b4a3eef1-968c-46bb-83ac-e023f98da188,Lastro de concreto 5 cm,m²,"4,24",Item: 3
-43973d03-3415-4bee-a92d-c0889adf1408,b4a3eef1-968c-46bb-83ac-e023f98da188,Aterro interno apiloado,m³,"11,72",Item: 4
-fdfea25b-c40c-46f6-9f3f-be3280fdb24f,b4a3eef1-968c-46bb-83ac-e023f98da188,Perfil de PVC rígido seção NBR 6499,m,"161,00",Item: 5
-ff3282be-d038-4989-8317-473ca966fe51,b4a3eef1-968c-46bb-83ac-e023f98da188,Emenda com anéis soldados para estanqueidade,un,2,Item: 6
-2daa0c4a-16de-455b-99ce-4ec150d79519,b4a3eef1-968c-46bb-83ac-e023f98da188,Forma de madeira maciça,m²,"5,52",Item: 7
-77e9d532-4d51-4a9a-9f7b-84f8c8d0be91,b4a3eef1-968c-46bb-83ac-e023f98da188,Aço CA-50,kg,"411,40",Item: 8
-7fea8c09-9c91-4fb8-8d98-b377810412fe,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto dosado FCK 20 MPa,m³,"22,80",Item: 9
-1749629b-381e-4b76-9b00-d8b8420b2c92,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto dosado FCK 25 MPa,m³,"11,61",Item: 10
-bc91fa75-ab30-4fca-a1e3-af4ec26c348b,b4a3eef1-968c-46bb-83ac-e023f98da188,Estrutura pré-moldada de concreto,m³,"23,36",Item: 11
-dbc43c04-72ef-448b-ae11-9dc4888832c6,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto incluindo revestimentos,m³,"11,14",Item: 12
-ecc4b65c-f78d-4efa-8137-a5af9b6238d9,b4a3eef1-968c-46bb-83ac-e023f98da188,Alvenaria de blocos de concreto,m²,"23,00",Item: 13
-05984f6d-7a91-4cbe-a00c-5f0e9efcd86f,b4a3eef1-968c-46bb-83ac-e023f98da188,Concreto grout para parede autoportante,m³,"40,96",Item: 14
-0abbda95-e10f-43c2-bf0c-d8e870667ca6,b4a3eef1-968c-46bb-83ac-e023f98da188,Argamassa estrutural,m³,"10,22",Item: 15
-92a65d34-251a-4437-b7dd-76b3a05425ac,b4a3eef1-968c-46bb-83ac-e023f98da188,Porta comum lisa inclusive pintura,m²,"1,68",Item: 16
-d9574125-b624-40c1-831b-6861763185c9,b4a3eef1-968c-46bb-83ac-e023f98da188,Batente de madeira para portas,cj,1,Item: 17
-8c872317-f591-4181-9889-298b3b989a1e,b4a3eef1-968c-46bb-83ac-e023f98da188,Folha de madeira para porta,cj,1,Item: 18
-07157b69-75d9-4002-9904-ae66430f000e,b4a3eef1-968c-46bb-83ac-e023f98da188,Fechadura completa tipo gorge,jogo,1,Item: 19
-ee727ca0-e28b-441d-ad43-10169327de55,b4a3eef1-968c-46bb-83ac-e023f98da188,"Dobradiça 3½\" × 3\"",un,3,Item: 20
-6b07cbd6-1a58-47bc-a347-30e198968592,b4a3eef1-968c-46bb-83ac-e023f98da188,Telha tecnologia CFS ondulada,m²,"54,29",Item: 21
-b6dcb3e7-ee31-4969-aef8-97f679d6edea,b4a3eef1-968c-46bb-83ac-e023f98da188,Cumeeira normal telha tecnologia,m,"24,30",Item: 22
-1f99eb92-3ef5-402e-b280-6cef978c8dc0,b4a3eef1-968c-46bb-83ac-e023f98da188,Telha de cimento amianto,m²,"3,68",Item: 23
-e3168271-0bbd-483d-ac8e-8dece0ae009c,b4a3eef1-968c-46bb-83ac-e023f98da188,Eletroduto galvanizado,m,8,Item: 24
-7fd2f583-fd76-4ffa-8df3-e53d02ed44fe,b4a3eef1-968c-46bb-83ac-e023f98da188,Eletroduto PVC,m,2,Item: 25
-b8924b0f-63c4-43f5-995c-1fe2bcd4d1e9,b4a3eef1-968c-46bb-83ac-e023f98da188,Embutido incandescente,un,1,Item: 26
-9238482c-f98d-410b-818f-75e20342e9d0,b4a3eef1-968c-46bb-83ac-e023f98da188,Tomada bipolar termomagnética,un,2,Item: 27
-abd47520-9a45-4cb2-a666-e856d916f847,b4a3eef1-968c-46bb-83ac-e023f98da188,Tomada tripolar termomagnética,un,1,Item: 28
-fc564198-07eb-439c-9ec2-b59d8dfb3127,b4a3eef1-968c-46bb-83ac-e023f98da188,Caixa de alumínio,un,1,Item: 29
-fe872faa-9215-4a7a-9701-090305ed146c,b4a3eef1-968c-46bb-83ac-e023f98da188,Fio de isolamento,m,244,Item: 30
-f7bded43-98f3-475e-b374-8e86ee4a3ca0,b4a3eef1-968c-46bb-83ac-e023f98da188,Tomada simples embutir,un,1,Item: 31
-70b5af78-3682-4236-96d7-acfaf23edcd6,b4a3eef1-968c-46bb-83ac-e023f98da188,Uso geral vapor de sódio,un,8,Item: 32
-30175e92-1ef7-47df-b713-dd45398091df,b4a3eef1-968c-46bb-83ac-e023f98da188,Barracão galvanizado,m,167,Item: 33
-09989b3c-9a6f-4e48-ba6e-80429b6850fb,b4a3eef1-968c-46bb-83ac-e023f98da188,Terra simples,un,6,Item: 34
-63b9174c-805e-43ef-b959-bfe355edf52d,b4a3eef1-968c-46bb-83ac-e023f98da188,Conexão exotérmica em estrutura metálica,un,12,Item: 35
-ed32951e-01b8-42eb-8d40-1df64d7a7b7d,b4a3eef1-968c-46bb-83ac-e023f98da188,Poste de ferro reto engastado,un,4,Item: 36
-a6bf7b12-7693-45cd-bfc5-f40726cf40b8,b4a3eef1-968c-46bb-83ac-e023f98da188,Chapisco,m²,46,Item: 37
-fa891bd9-4530-4e6f-827b-323b2306047c,b4a3eef1-968c-46bb-83ac-e023f98da188,Emboço,m²,46,Item: 38
-b4318e63-a741-4ed5-8c17-dc1af782cd36,b4a3eef1-968c-46bb-83ac-e023f98da188,Reboco,m²,46,Item: 39
-61ba078a-1e8a-45ed-b963-24bc7424c112,b4a3eef1-968c-46bb-83ac-e023f98da188,Revestimento azulejos,m²,"15,36",Item: 40
-149d08c0-805c-47ea-b27a-3d6b6ba546dc,b4a3eef1-968c-46bb-83ac-e023f98da188,Demolição piso de concreto simples,m³,"15,36",Item: 41
-f5757a35-cc3e-4597-9c74-a4f6c61359db,b4a3eef1-968c-46bb-83ac-e023f98da188,Lastro de pedra britada,m²,"270,80",Item: 42
-d95b5135-01bb-474f-b25d-a5563bc1d309,b4a3eef1-968c-46bb-83ac-e023f98da188,Piso cimentado com requadro,m²,"270,80",Item: 43
-03382492-5a48-4555-9d28-5181fca30de4,b4a3eef1-968c-46bb-83ac-e023f98da188,Tela de arame galvanizado,m²,"15,36",Item: 44
-5f885185-9cf8-4a92-afa2-430b1120fd50,b4a3eef1-968c-46bb-83ac-e023f98da188,Retirada de entulho,m³,"15,36",Item: 45
-f388c085-0b48-4ca5-a1c8-b512611caa54,b4a3eef1-968c-46bb-83ac-e023f98da188,CONCRETO DOSADO E LANÇADO FCK=20 MPA,M3,"0,00",Código documental: 02.05.14
-e03722e3-8700-4102-bbae-fb8e5b80d7f0,b4a3eef1-968c-46bb-83ac-e023f98da188,FD-16 FECHAMENTO PARA DIVISA H=230 CM - BROCA (REV CHAPISCO FINO),M,"0,00",Código documental: 16.01.16
-e310f17d-4ad0-49d5-bbf4-92882154d1a9,b4a3eef1-968c-46bb-83ac-e023f98da188,SERVIÇOS - CIVIL,MV,"0,00",Código documental: 16.18.01
+4498c0db-9936-4d94-b2d5-30ba41b6da48,b4a3eef1-968c-46bb-83ac-e023f98da188,ESCAVACAO MANUAL - PROFUNDIDADE ATE 1.80 M,M3,"98,93",Código documental: 02.01.01
+d8c2f93d-96cb-447b-a03d-82263a92f098,b4a3eef1-968c-46bb-83ac-e023f98da188,APILOAMENTO PARA SIMPLES REGULARIZACAO,M2,"94,24",Código documental: 02.01.10
+0bd9c363-0428-4bfd-b905-d4c23ebacf19,b4a3eef1-968c-46bb-83ac-e023f98da188,LASTRO DE CONCRETO - 5 CM,M2,"94,24",Código documental: 02.01.15
+d8bab1a7-4d7c-468c-8f44-6c970f1b5f3c,b4a3eef1-968c-46bb-83ac-e023f98da188,ATERRO INTERNO APILOADO,M3,"110,72",Código documental: 02.01.25
+e025141f-a3b5-4bb3-9589-238e07994026,b4a3eef1-968c-46bb-83ac-e023f98da188,ESTACA PRE-MOLD CONC SECAO MIN 289 CM2 P/ATE 20 TF,M,"161,00",Código documental: 02.02.52
+9b5670ef-8270-4cec-8b6d-b2d007fc67ab,b4a3eef1-968c-46bb-83ac-e023f98da188,EMENDA COM ANEIS SOLDADOS PARA ESTACA,UN,"20,00",Código documental: 02.02.95
+0a328ed0-814d-4736-b537-206a6842c09e,b4a3eef1-968c-46bb-83ac-e023f98da188,FORMA DE MADEIRA MACICA,M2,"117,10",Código documental: 02.03.01
+2e86c8c3-52ba-4c2d-a13d-e3a46f9da406,b4a3eef1-968c-46bb-83ac-e023f98da188,ACO CA 50 (A OU B) FYK= 500 MPA,KG,"1.478,40",Código documental: 02.04.02
+7514818a-e840-422c-bb0b-15d7b329ace6,b4a3eef1-968c-46bb-83ac-e023f98da188,CONCRETO DOSADO E LANCADO FCK= 20 MPA,M3,"0,00",Código documental: 02.05.14
+6d9b713f-c429-43a0-90e5-759242d42bf4,b4a3eef1-968c-46bb-83ac-e023f98da188,CONCRETO DOSADO E LANCADO FCK=25MPA,M3,"14,77",Código documental: 02.05.18
+b159117c-a83b-4a45-a2e9-302a7005a761,b4a3eef1-968c-46bb-83ac-e023f98da188,FORNECIMENTO E MONTAGEM DE ESTRUTURA PRE-MOLDADA DE CONCRETO,M3,"23,36",Código documental: 03.03.98
+4a217a59-97f3-47f8-89a2-c26201e28386,b4a3eef1-968c-46bb-83ac-e023f98da188,DE CONCRETO INCLUINDO REVESTIMENTOS (MANUAL),M3,"11,14",Código documental: 03.50.01
+bab3bad0-a1a1-4c12-bfdf-c617c6a57808,b4a3eef1-968c-46bb-83ac-e023f98da188,ALVENARIA DE BLOCOS DE CONCRETO E=14CM,M2,"63,96",Código documental: 04.01.31
+299746ab-27da-4dc5-9023-9c670dd0e4cf,b4a3eef1-968c-46bb-83ac-e023f98da188,CONCRETO GROUT PARA PAREDE AUTO PORTANTE,M3,"0,40",Código documental: 04.01.45
+d7922228-4bec-478b-bdaa-ce3734d35039,b4a3eef1-968c-46bb-83ac-e023f98da188,"DE ALVENARIAS EM GERAL E ELEMENTOS VAZADOS, INCL REVESTIMENTOS",M3,"10,22",Código documental: 04.50.01
+4739c401-4774-4e55-875b-042e922cf16f,b4a3eef1-968c-46bb-83ac-e023f98da188,PORTA COMPENS LISA IMBUIA P/ PINTURA,M2,"1,68",Código documental: 05.80.01
+70837c3e-bb5f-43b9-8e5f-de525ec0378c,b4a3eef1-968c-46bb-83ac-e023f98da188,BATENTE DE MADEIRA PARA PORTAS DE 1 FOLHA COM BANDEIRA,CJ,"1,00",Código documental: 05.80.21
+17042efd-b052-42e2-b016-40368193cc59,b4a3eef1-968c-46bb-83ac-e023f98da188,"FECHADURA COMPLETA, TIPO GORGE DE EMBUTIR",JG,"1,00",Código documental: 05.80.71
+ed26cd7a-fe7f-4325-9e3a-b167ad3b4461,b4a3eef1-968c-46bb-83ac-e023f98da188,"DOBRADICA DE 3 1/2"" X 3"" EM ACO LAMINADO",UN,"3,00",Código documental: 05.80.81
+6cfc3d45-5b08-445c-ac52-45e8b94014f8,b4a3eef1-968c-46bb-83ac-e023f98da188,DE ESQUADRIAS METALICAS,M2,"1,50",Código documental: 06.60.01
+8cb95a3d-55a0-436d-8eca-012ba7f722d0,b4a3eef1-968c-46bb-83ac-e023f98da188,TELHA TECNOLOGIA CRFS ONDULADA E=6MM,M2,"545,29",Código documental: 07.03.90
+2e6d73c4-4d7d-47d8-977f-40815d45676a,b4a3eef1-968c-46bb-83ac-e023f98da188,CUMEEIRA NORMAL P/ TELHA TECNOLOGIA CRFS ONDULADA,M,"24,30",Código documental: 07.04.07
+2ec328ee-ea7e-40a7-a85b-fa8e2a3f3931,b4a3eef1-968c-46bb-83ac-e023f98da188,"DE TELHA DE CIMENTO-AMIANTO, PLASTICO OU ALUMINIO",M2,"3,68",Código documental: 07.70.55
+10146f6f-8531-4b49-b25a-4e261d62e7c4,b4a3eef1-968c-46bb-83ac-e023f98da188,"ELETROD ACO GALV QUENTE (NBR 5624) 20 MM (3/4"") - INCL CONEXOES",M,"68,00",Código documental: 09.05.02
+d43eeebb-7acd-4454-9dac-8c99c9462315,b4a3eef1-968c-46bb-83ac-e023f98da188,"ELETROD ACO GALV QUENTE (NBR 5624) 25 MM (1"") - INCL CONEXOES",M,"8,00",Código documental: 09.05.03
+31dedff3-7961-478a-b007-27967db79278,b4a3eef1-968c-46bb-83ac-e023f98da188,DISJUNTOR BIPOLAR TERMOMAGNETICO 2X10A A 2X50A,UN,"2,00",Código documental: 09.05.70
+b253abbf-05c1-41b7-89e3-c3bfd62cef2d,b4a3eef1-968c-46bb-83ac-e023f98da188,DISJUNTOR UNIPOLAR TERMOMAGNETICO 1X10A A 1X30A,UN,"1,00",Código documental: 09.05.73
+2062966b-ae5d-42d9-bd02-aa12007080b9,b4a3eef1-968c-46bb-83ac-e023f98da188,CAIXA DE PASSAGEM A PROVA DE UMIDADE EM ALUMINIO 20X20X10CM,UN,"1,00",Código documental: 09.06.37
+91a59d43-1c5f-4bc7-87f8-446f71a8f255,b4a3eef1-968c-46bb-83ac-e023f98da188,"FIO DE 2,50 MM2 - 750 V DE ISOLACAO",M,"244,00",Código documental: 09.07.04
+bea4bf2a-e59d-4231-876e-ffa1bd334fd8,b4a3eef1-968c-46bb-83ac-e023f98da188,TOMADA SIMPLES DE EMBUTIR DE 110/220V USO GERAL-ELETRODUTO DE PVC,UN,"1,00",Código documental: 09.08.77
+b164c357-e207-45d7-b33f-bab4748eb3ab,b4a3eef1-968c-46bb-83ac-e023f98da188,IL-56 PROJETOR P/ VAPOR DE SODIO 250W,UN,"8,00",Código documental: 09.11.73
+161e022b-c42d-4603-ad44-92fad2fd9e9f,b4a3eef1-968c-46bb-83ac-e023f98da188,"BARRA CHATA ACO GALVANIZADO (3/4""X1/8"") - CAPTOR P/ PARA RAIOS",M,"167,00",Código documental: 09.13.15
+8ca3cfb1-19a9-4d88-a129-72cc294859c9,b4a3eef1-968c-46bb-83ac-e023f98da188,"BARRA CHATA ACO GALVANIZADO (3/4""X1/8"") - DESCIDA P/ PARA RAIO",M,"66,00",Código documental: 09.13.18
+4bfede83-7c9a-4a11-8888-a02e9f554190,b4a3eef1-968c-46bb-83ac-e023f98da188,TERRA SIMPLES - 1 HASTE,UN,"6,00",Código documental: 09.13.27
+8f87f194-bfac-43df-8398-6b79eeb1e957,b4a3eef1-968c-46bb-83ac-e023f98da188,CONEXAO EXOTERMICA EM ESTRUTURA METALICA,UN,"12,00",Código documental: 09.13.34
+ca223537-6afb-4198-b4ef-3ab62b73b888,b4a3eef1-968c-46bb-83ac-e023f98da188,DE POSTE DE FERRO RETO ENGASTADO NO SOLO,UN,"4,00",Código documental: 09.64.21
+28d56986-02d5-4e98-9025-76553f90104b,b4a3eef1-968c-46bb-83ac-e023f98da188,CHAPISCO,M2,"133,15",Código documental: 12.01.01
+732a3d1c-12a8-44f5-890b-b4c8189e438c,b4a3eef1-968c-46bb-83ac-e023f98da188,"""EMBOCO",M2,"133,15",Código documental: 12.01.05
+9ead64ed-37af-489c-873c-69a503862c6b,b4a3eef1-968c-46bb-83ac-e023f98da188,REBOCO,M2,"133,15",Código documental: 12.02.07
+adda79d0-37e5-4a93-85a5-0877f603c551,b4a3eef1-968c-46bb-83ac-e023f98da188,"DE REVEST DE AZULEJOS, PASTILHAS E LADRILHOS INCL ARG ASSENTAMENTO",M2,"10,03",Código documental: 12.50.02
+f1606b24-712b-458f-a9c0-e7259ac20fc3,b4a3eef1-968c-46bb-83ac-e023f98da188,DEMOLICAO PISO DE CONCRETO SIMPLES CAPEADO,M3,"28,72",Código documental: 13.50.01
+e62235bf-e823-4b2d-b637-731a9022af68,b4a3eef1-968c-46bb-83ac-e023f98da188,DEMOLICAO PISO GRANIL LADR HID/CER CACOS INCLUSIVE BASE,M2,"6,49",Código documental: 13.50.02
+28d305e6-8149-431d-abdd-a1873dd884b7,b4a3eef1-968c-46bb-83ac-e023f98da188,CAIACAO,M2,"213,36",Código documental: 15.04.01
+1f0fddbc-f554-4552-b9a4-4e2c5e6f447b,b4a3eef1-968c-46bb-83ac-e023f98da188,FD-16 FECHAMENTO PARA DIVISA H=230 CM - BROCA (REV CHAPISCO FINO),M,"0,00",Código documental: 16.01.16
+39d62422-e0b4-4298-ac61-fcb0d2bc5b35,b4a3eef1-968c-46bb-83ac-e023f98da188,CONCRETO DESEMPENADO COM REQUADRO DE 1.80 M ESPESSURA DE 6 CM,M2,"270,80",Código documental: 16.02.07
+e39a258b-5583-469e-b28d-300d641c5512,b4a3eef1-968c-46bb-83ac-e023f98da188,LASTRO DE PEDRA BRITADA - 5CM,M2,"270,80",Código documental: 16.02.71
+b1ba57fb-2b09-4a66-89c8-15c50b64be21,b4a3eef1-968c-46bb-83ac-e023f98da188,"TAPUME MOVEL VERTICAL - H=2,20M",M,"16,00",Código documental: 16.06.60
+420746d9-6c0c-41eb-8fed-ab3a7a7f9908,b4a3eef1-968c-46bb-83ac-e023f98da188,SERVICOS - CIVIL,MV,"0,00",Código documental: 16.18.01
+2830fc73-0fe0-445f-8826-92117900498f,b4a3eef1-968c-46bb-83ac-e023f98da188,DE TUBO DE F G P/ SUST DE TELA ALAMBR INCL BASE FIXACAO,UN,"110,30",Código documental: 16.50.01
+60f944d4-bbfa-4525-b37c-a8f0fbd40827,b4a3eef1-968c-46bb-83ac-e023f98da188,DE TELA DE ARAME GALVANIZADO,M2,"40,40",Código documental: 16.50.02
+4b16f585-4e6c-4453-ae6f-5a617879781e,b4a3eef1-968c-46bb-83ac-e023f98da188,RETIRADA DE ENTULHO,M3,"145,11",Código documental: 16.80.98
