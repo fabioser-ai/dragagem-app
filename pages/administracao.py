@@ -4,6 +4,7 @@ import streamlit as st
 from services.autorizacao import pode_gerenciar_administracao
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
+from services.rbac_shadow import diagnosticar_usuarios
 from services.roles import (
     carregar_roles_permissoes_resultado,
     carregar_roles_resultado,
@@ -435,6 +436,58 @@ def _render_usuarios_roles():
     st.divider()
 
 
+def _render_diagnostico_rbac():
+    st.subheader("DIAGNÓSTICO RBAC")
+    st.caption(
+        "Modo sombra: compara permissões sem liberar ou bloquear qualquer operação."
+    )
+    leituras = {
+        "usuarios": carregar_usuarios_operacionais_resultado(),
+        "associacoes": carregar_usuarios_roles_resultado(),
+        "roles": carregar_roles_resultado(),
+        "matriz": carregar_roles_permissoes_resultado(),
+        "catalogo": carregar_catalogo_resultado(),
+        "atuais": carregar_permissoes_resultado(),
+    }
+    if not all(item.leitura_confirmada for item in leituras.values()):
+        st.error("Diagnóstico indisponível: todas as fontes exigem leitura confirmada.")
+        st.divider()
+        return
+
+    diagnosticos = diagnosticar_usuarios(
+        usuarios=leituras["usuarios"].dados,
+        associacoes=leituras["associacoes"].dados,
+        roles=leituras["roles"].dados,
+        roles_permissoes=leituras["matriz"].dados,
+        catalogo_permissoes=leituras["catalogo"].dados,
+        permissoes_atuais=leituras["atuais"].dados,
+    )
+    if not diagnosticos:
+        st.info("Nenhum usuário operacional disponível para comparação.")
+        st.divider()
+        return
+
+    linhas = [{
+        "Usuário": item.nome or item.login,
+        "Login": item.login,
+        "Roles": ", ".join(item.roles) or "—",
+        "Permissões atuais": "\n".join(item.permissoes_atuais) or "—",
+        "Permissões RBAC": "\n".join(item.permissoes_rbac) or "—",
+        "RBAC a mais": "\n".join(item.rbac_a_mais) or "—",
+        "RBAC a menos": "\n".join(item.rbac_a_menos) or "—",
+        "Diferenças": "; ".join(item.ocorrencias) or "Nenhuma",
+        "Status": item.status,
+    } for item in diagnosticos]
+    st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
+    divergentes = sum(item.status != "IGUAL" for item in diagnosticos)
+    st.caption(
+        f"{len(diagnosticos)} usuário(s) comparado(s); "
+        f"{divergentes} diagnóstico(s) diferente(s) de IGUAL."
+    )
+    st.info("Esta seção é exclusivamente diagnóstica e não permite alterações.")
+    st.divider()
+
+
 def render():
     st.title("Administração")
     st.caption("Gestão de permissões de usuários do sistema FOS.")
@@ -447,6 +500,7 @@ def render():
     _render_roles()
     _render_usuarios_operacionais()
     _render_usuarios_roles()
+    _render_diagnostico_rbac()
 
     resultado_leitura = carregar_permissoes_resultado()
     df = resultado_leitura.dados
