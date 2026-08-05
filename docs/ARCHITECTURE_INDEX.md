@@ -44,6 +44,7 @@ A migrar incrementalmente.
 - Permissões
 - [Usuários operacionais — AUTH-001](AUTH001_USUARIOS_OPERACIONAIS.md)
 - [Catálogo de Roles — RBAC-001](RBAC001_CATALOGO_ROLES.md)
+- [Catálogo canônico de permissões — RBAC-002](RBAC002_CATALOGO_PERMISSOES.md)
 
 ## Módulos
 
