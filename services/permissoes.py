@@ -116,6 +116,10 @@ def eh_superadmin():
     return _normalizar(perfil_global()) == "superadmin"
 
 
+def eh_administrador_sistema():
+    return _normalizar(perfil_global()) in {"admin", "superadmin"}
+
+
 def permissoes_usuario(usuario=None):
     if usuario is None:
         usuario = usuario_logado()

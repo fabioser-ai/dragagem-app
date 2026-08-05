@@ -13,23 +13,18 @@ if not verificar_login():
 
 aplicar_estilo_global()
 
+from services.autorizacao import pode_acessar_rota
+
 if "tela" not in st.session_state:
     st.session_state.tela = "menu"
 
 
-if st.session_state.get("perfil") == "funcionario":
-    telas_permitidas_funcionario = {
-        "menu",
-        "prestacao_contas",
-        "carregando_medicoes",
-        "medicoes",
-    }
-
-    if st.session_state.tela not in telas_permitidas_funcionario:
-        st.session_state.tela = "menu"
-
-
 tela = st.session_state.tela
+
+if not pode_acessar_rota(tela):
+    st.session_state.tela = "menu"
+    st.error("Você não possui permissão para acessar esta área.")
+    st.stop()
 
 if tela == "menu":
     from pages import menu
@@ -96,9 +91,8 @@ elif tela == "uniformes_epis":
 
 elif tela == "novo_orcamento":
     from modulos.orcamentos.apresentacao import entrada as novo_orcamento
-    from services.permissoes import pode_acessar_modulo
 
-    novo_orcamento.render(autorizado=pode_acessar_modulo("orcamento"))
+    novo_orcamento.render(autorizado=True)
 
 elif tela == "obras":
     import pandas as pd
@@ -151,8 +145,9 @@ elif tela == "orcamento3":
     etapa3()
 
 else:
-    st.session_state.tela = "menu"
-    st.rerun()
+    # Toda rota conhecida está declarada na fronteira central e no roteador.
+    st.error("Rota indisponível.")
+    st.stop()
 
 
 # O menu já foi enviado ao navegador antes da escrita remota do log.

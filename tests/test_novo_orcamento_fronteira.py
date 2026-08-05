@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch
 ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "app.py"
 MENU = ROOT / "pages" / "menu.py"
+AUTORIZACAO = ROOT / "services" / "autorizacao.py"
 
 
 def rotas_do_app():
@@ -102,8 +103,10 @@ class TestFronteiraNovoOrcamento(unittest.TestCase):
 
     def test_rota_nova_e_guarda_de_permissao_estao_no_roteador(self):
         fonte = APP.read_text(encoding="utf-8")
+        fronteira = AUTORIZACAO.read_text(encoding="utf-8")
         self.assertIn("novo_orcamento", rotas_do_app())
-        self.assertIn('pode_acessar_modulo("orcamento")', fonte)
+        self.assertIn('"novo_orcamento": "orcamento"', fronteira)
+        self.assertIn("if not pode_acessar_rota(tela):", fonte)
         self.assertIn("novo_orcamento.render", fonte)
 
     def test_menu_exibe_nova_entrada_sob_mesma_permissao(self):
