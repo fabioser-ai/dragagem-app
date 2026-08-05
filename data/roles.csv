@@ -1,0 +1,7 @@
+role_id,codigo,nome,descricao,ativo,versao,criado_em,criado_por,atualizado_em,atualizado_por
+6dfd17e6-4c4d-4a79-bc29-802010f57788,FUNCIONARIO,Funcionário,Acesso operacional básico,sim,1,2026-08-05T00:00:00+00:00,sistema,2026-08-05T00:00:00+00:00,sistema
+cc551f91-9585-478e-bbb8-96092c66d498,ENCARREGADO,Encarregado,Operação e acompanhamento de equipe,sim,1,2026-08-05T00:00:00+00:00,sistema,2026-08-05T00:00:00+00:00,sistema
+4ae8befd-2f3f-4d40-96c3-0f41f5a36de5,APROVADOR,Aprovador,Aprovações operacionais explícitas,sim,1,2026-08-05T00:00:00+00:00,sistema,2026-08-05T00:00:00+00:00,sistema
+dd9524ef-e1b9-4ac8-a468-885dd4cc6fce,ENGENHARIA,Engenharia,Atividades técnicas de engenharia,sim,1,2026-08-05T00:00:00+00:00,sistema,2026-08-05T00:00:00+00:00,sistema
+34760418-2346-436a-aabe-5488769c40b4,FINANCEIRO,Financeiro,Atividades financeiras operacionais,sim,1,2026-08-05T00:00:00+00:00,sistema,2026-08-05T00:00:00+00:00,sistema
+d6434336-0f02-4674-b4e7-d338e8bb44a6,RH,Recursos Humanos,Atividades de recursos humanos,sim,1,2026-08-05T00:00:00+00:00,sistema,2026-08-05T00:00:00+00:00,sistema

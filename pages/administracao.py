@@ -3,6 +3,12 @@ import streamlit as st
 
 from services.autorizacao import pode_gerenciar_administracao
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
+from services.roles import (
+    carregar_roles_permissoes_resultado,
+    carregar_roles_resultado,
+    criar_role,
+    editar_role,
+)
 from services.usuarios_operacionais import (
     PERFIS_PERMITIDOS,
     carregar_usuarios_operacionais_resultado,
@@ -107,6 +113,86 @@ def _informar_operacao(resultado):
         st.error(resultado.mensagem)
 
 
+def _render_roles():
+    st.subheader("Roles")
+    st.caption(
+        "Catálogo RBAC reutilizável. Roles ainda não estão conectadas a usuários."
+    )
+    leitura = carregar_roles_resultado()
+    leitura_permissoes = carregar_roles_permissoes_resultado()
+    liberada = leitura.pode_sobrescrever
+    if not liberada:
+        st.error("Alterações bloqueadas: a leitura do catálogo de Roles não foi confirmada.")
+
+    roles = leitura.dados.copy()
+    if roles.empty:
+        st.info("Nenhuma Role cadastrada.")
+    else:
+        roles["estado"] = roles["ativo"].map(
+            {"sim": "🟢 Ativa", "nao": "⚪ Inativa"}
+        ).fillna("⚠️ Estado inválido")
+        st.dataframe(
+            roles[[
+                "codigo", "nome", "descricao", "estado", "versao",
+                "criado_em", "criado_por", "atualizado_em", "atualizado_por",
+            ]],
+            use_container_width=True,
+        )
+
+    with st.expander("Criar Role"):
+        with st.form("form_role_nova"):
+            codigo = st.text_input("Código da Role")
+            nome = st.text_input("Nome da Role")
+            descricao = st.text_area("Descrição da Role")
+            criar = st.form_submit_button("Criar Role inativa", disabled=not liberada)
+        if criar:
+            _informar_operacao(criar_role(
+                leitura=leitura, codigo=codigo, nome=nome, descricao=descricao,
+            ))
+
+    if not roles.empty:
+        opcoes = {
+            f"{row['codigo']} — {row['nome']} ({row['ativo']})": row["role_id"]
+            for _, row in roles.iterrows()
+        }
+        selecionada = st.selectbox("Selecionar Role", list(opcoes))
+        role_id = opcoes[selecionada]
+        atual = roles[roles["role_id"] == role_id].iloc[0]
+        with st.form("form_role_edicao"):
+            st.text_input("Código imutável", value=atual["codigo"], disabled=True)
+            nome_edicao = st.text_input("Nome", value=atual["nome"])
+            descricao_edicao = st.text_area("Descrição", value=atual["descricao"])
+            ativo_edicao = st.selectbox(
+                "Estado", ("nao", "sim"),
+                index=0 if atual["ativo"] != "sim" else 1,
+            )
+            atualizar = st.form_submit_button("Salvar Role", disabled=not liberada)
+        if atualizar:
+            _informar_operacao(editar_role(
+                leitura=leitura, role_id=role_id, nome=nome_edicao,
+                descricao=descricao_edicao, ativo=ativo_edicao,
+            ))
+
+        st.markdown("#### Permissões da Role")
+        if not leitura_permissoes.leitura_confirmada:
+            st.error("Não foi possível confirmar a leitura do catálogo de permissões das Roles.")
+        else:
+            permissoes = leitura_permissoes.dados
+            vinculadas = permissoes[
+                permissoes["role_id"].astype(str) == str(role_id)
+            ]
+            if vinculadas.empty:
+                st.info("Esta Role ainda não possui permissões.")
+            else:
+                st.dataframe(
+                    vinculadas[["modulo", "recurso", "acao", "efeito"]],
+                    use_container_width=True,
+                )
+
+    st.info("Roles não podem ser excluídas; somente ativadas ou inativadas.")
+    st.divider()
+
+
 def _render_usuarios_operacionais():
     st.subheader("Usuários operacionais")
     st.caption(
@@ -196,6 +282,7 @@ def render():
         st.error("Acesso restrito à custódia administrativa.")
         st.stop()
 
+    _render_roles()
     _render_usuarios_operacionais()
 
     resultado_leitura = carregar_permissoes_resultado()

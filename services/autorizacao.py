@@ -185,6 +185,11 @@ def pode_gerenciar_usuarios_operacionais():
     return pode_gerenciar_administracao()
 
 
+def pode_gerenciar_roles():
+    """Restringe o catálogo RBAC à custódia administrativa homologada."""
+    return pode_gerenciar_administracao()
+
+
 def possui_perfil(perfil):
     """Centraliza consultas de identidade que não representam uma permissão."""
     return autenticado() and str(perfil_global()).strip().lower() == str(perfil).strip().lower()
