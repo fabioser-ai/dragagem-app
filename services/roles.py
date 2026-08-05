@@ -83,6 +83,49 @@ def normalizar_codigo(valor):
     return texto if _CODIGO.fullmatch(texto) else None
 
 
+def validar_roles_permissoes(dados, catalogo_roles, catalogo_permissoes):
+    """Valida a matriz documental sem calcular ou conceder acesso a usuários."""
+    matriz = _df(dados, COLUNAS_PERMISSOES)
+    roles_ativos = _df(catalogo_roles, COLUNAS_ROLES)
+    roles_ativos = roles_ativos[
+        roles_ativos["ativo"].astype(str).str.strip().str.casefold() == "sim"
+    ]
+    ids_roles = set(roles_ativos["role_id"].astype(str))
+
+    permissoes = pd.DataFrame() if catalogo_permissoes is None else catalogo_permissoes.copy()
+    for coluna in ("modulo", "recurso", "acao", "sensibilidade", "ativo"):
+        if coluna not in permissoes.columns:
+            permissoes[coluna] = ""
+    permissoes = permissoes[
+        permissoes["ativo"].astype(str).str.strip().str.casefold() == "sim"
+    ]
+    chaves_permissoes = {
+        (str(linha.modulo), str(linha.recurso), str(linha.acao))
+        for linha in permissoes.itertuples(index=False)
+    }
+    criticas = {
+        (str(linha.modulo), str(linha.recurso), str(linha.acao))
+        for linha in permissoes.itertuples(index=False)
+        if str(linha.sensibilidade).strip().casefold() == "crítica"
+    }
+
+    erros = []
+    identidades = ["role_id", "modulo", "recurso", "acao"]
+    for indice, linha in matriz.iterrows():
+        chave = (str(linha["modulo"]), str(linha["recurso"]), str(linha["acao"]))
+        if str(linha["role_id"]) not in ids_roles:
+            erros.append(f"role_inexistente:{indice}")
+        if chave not in chaves_permissoes:
+            erros.append(f"permissao_inexistente:{indice}")
+        if chave in criticas or chave[0] == "administracao":
+            erros.append(f"permissao_critica_proibida:{indice}")
+        if str(linha["efeito"]).strip().casefold() not in EFEITOS:
+            erros.append(f"efeito_invalido:{indice}")
+    for indice in matriz.index[matriz.duplicated(identidades, keep=False)]:
+        erros.append(f"duplicidade:{indice}")
+    return erros
+
+
 def _codigo_protegido(codigo):
     return codigo.replace("_", "") in {item.replace("_", "") for item in _ROLES_PROTEGIDAS}
 

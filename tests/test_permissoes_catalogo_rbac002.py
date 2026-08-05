@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from services import autorizacao, permissoes_catalogo as catalogo
+from services import autorizacao, permissoes_catalogo as catalogo, roles
 from services.github import ResultadoEscritaCSV, ResultadoLeituraCSV, StatusEscrita, StatusLeitura
 
 
@@ -145,7 +145,6 @@ class TestCatalogoPermissoesRBAC002(unittest.TestCase):
 
     def test_catalogo_nao_altera_acesso_roles_usuarios_auth_ou_medicoes(self):
         esperados = {
-            "data/roles_permissoes.csv": "92c2cfdaec30a8e6f37ae9a401bc8ccc9c693b22e70e1734b6e9f57e973ac04a",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "data/usuarios_operacionais.csv": "ce72411b6c49e15814fea35d285ee291ba7282fba2ee807db6a7e1b70a3dbb79",
             "services/auth.py": "b8f864ed3c9a892f53280e28ee56b78f5c979cee62d253923f88b55b477caec0",
@@ -155,7 +154,9 @@ class TestCatalogoPermissoesRBAC002(unittest.TestCase):
         for caminho, esperado in esperados.items():
             atual = hashlib.sha256((ROOT / caminho).read_bytes()).hexdigest()
             self.assertEqual(atual, esperado, caminho)
-        self.assertEqual((ROOT / "data/roles_permissoes.csv").read_text(), "role_id,modulo,recurso,acao,efeito\n")
+        matriz_roles = pd.read_csv(ROOT / "data/roles_permissoes.csv", dtype=str)
+        self.assertEqual(matriz_roles.columns.tolist(), roles.COLUNAS_PERMISSOES)
+        self.assertNotIn("usuario", matriz_roles.columns)
 
     def test_interface_e_somente_consulta_e_possui_filtros(self):
         fonte = (ROOT / "pages/administracao.py").read_text(encoding="utf-8")

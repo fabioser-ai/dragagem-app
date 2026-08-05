@@ -1,1 +1,10 @@
 role_id,modulo,recurso,acao,efeito
+6dfd17e6-4c4d-4a79-bc29-802010f57788,prestacao_contas,despesa,criar,allow
+4ae8befd-2f3f-4d40-96c3-0f41f5a36de5,prestacao_contas,decisao_despesa,aprovar,allow
+dd9524ef-e1b9-4ac8-a468-885dd4cc6fce,dados,atestado,criar,allow
+dd9524ef-e1b9-4ac8-a468-885dd4cc6fce,dados,atestado,editar,allow
+dd9524ef-e1b9-4ac8-a468-885dd4cc6fce,dados,local_trabalho,criar,allow
+dd9524ef-e1b9-4ac8-a468-885dd4cc6fce,obras,obra,visualizar,allow
+34760418-2346-436a-aabe-5488769c40b4,prestacao_contas,pagamento,editar,allow
+34760418-2346-436a-aabe-5488769c40b4,prestacao_contas,tipo_despesa,visualizar,allow
+34760418-2346-436a-aabe-5488769c40b4,prestacao_contas,tipo_despesa,criar,allow
