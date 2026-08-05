@@ -139,10 +139,12 @@ class TestCatalogoERegressoesRBAC003(unittest.TestCase):
             & (catalogo["acao"] == "criar")
         ].iloc[0]
         self.assertEqual(local["estado_protecao"], "completa")
+        matriz_roles = pd.read_csv(ROOT / "data/roles_permissoes.csv", dtype=str)
         self.assertEqual(
-            (ROOT / "data/roles_permissoes.csv").read_text(encoding="utf-8"),
-            "role_id,modulo,recurso,acao,efeito\n",
+            matriz_roles.columns.tolist(),
+            ["role_id", "modulo", "recurso", "acao", "efeito"],
         )
+        self.assertNotIn("usuario", matriz_roles.columns)
 
     def test_ferias_mantem_revalidacao_central_e_recurso_legado(self):
         fonte = (ROOT / "pages/ferias.py").read_text(encoding="utf-8")

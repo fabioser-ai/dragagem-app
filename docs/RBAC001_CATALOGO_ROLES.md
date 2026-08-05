@@ -30,8 +30,9 @@ As ações válidas nesta fase são apenas: `visualizar`, `criar`, `editar`,
 ## Roles institucionais iniciais
 
 O catálogo nasce com seis Roles: `FUNCIONARIO`, `ENCARREGADO`, `APROVADOR`,
-`ENGENHARIA`, `FINANCEIRO` e `RH`. O catálogo de permissões nasce vazio; assim,
-nenhuma Role concede acesso por sua simples existência.
+`ENGENHARIA`, `FINANCEIRO` e `RH`. No RBAC-004, o catálogo de permissões passou
+a registrar as concessões institucionais iniciais, ainda sem vínculo a usuários
+ou participação no cálculo efetivo de acesso.
 
 Roles novas são criadas inativas. O UUID e o código são imutáveis. Edições
 incrementam a versão. Não há exclusão física, somente ativação e inativação.
@@ -51,7 +52,7 @@ permanece fora do catálogo de Roles.
 
 - Nenhum usuário utiliza Roles neste passo.
 - O catálogo ainda não participa do login ou do cálculo de permissões.
-- As permissões das Roles são apenas visualizadas e permanecem vazias.
+- As permissões das Roles são apenas documentais e não alteram acesso efetivo.
 - As permissões atuais em `data/permissoes_usuarios.csv` continuam sendo a fonte vigente.
 - Conflitos, precedência, herança e escopo por obra não existem nesta fase.
-- RBAC-002 deverá criar o vínculo usuário → Role sem promover migração implícita.
+- O vínculo usuário → Role continuará sendo tratado em etapa própria, sem migração implícita.
