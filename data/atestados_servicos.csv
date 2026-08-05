@@ -2487,3 +2487,24 @@ b1ba57fb-2b09-4a66-89c8-15c50b64be21,b4a3eef1-968c-46bb-83ac-e023f98da188,"TAPUM
 2830fc73-0fe0-445f-8826-92117900498f,b4a3eef1-968c-46bb-83ac-e023f98da188,DE TUBO DE F G P/ SUST DE TELA ALAMBR INCL BASE FIXACAO,UN,"110,30",Código documental: 16.50.01
 60f944d4-bbfa-4525-b37c-a8f0fbd40827,b4a3eef1-968c-46bb-83ac-e023f98da188,DE TELA DE ARAME GALVANIZADO,M2,"40,40",Código documental: 16.50.02
 4b16f585-4e6c-4453-ae6f-5a617879781e,b4a3eef1-968c-46bb-83ac-e023f98da188,RETIRADA DE ENTULHO,M3,"145,11",Código documental: 16.80.98
+99ec2ce1-840d-45ed-8e47-a5c907ab1c67,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,"Instalação de canteiro de obras com utilização de container metálico para almoxarifado, escritório, sanitário e vestiário.",vb,"1,00",Item documental: 1.1 | Grupo documental: SERVIÇOS PRELIMINARES
+07cebf7c-1b0c-4405-a137-8204e6691b39,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Serviços de topografia para locação de obra,Vb,"1,00",Item documental: 1.2 | Grupo documental: SERVIÇOS PRELIMINARES
+6106b87d-7231-4843-b9b1-cd6554fcf3f6,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Demolição de piso em concreto armado com utilização de martelete pneumático,m³,"4,50",Item documental: 2.1 | Grupo documental: Construção de Bases civis
+d40085f5-c4f9-4299-9016-fd2839734c42,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,"Escavação manual de vala até 2,00m profundidade",m³,"10,00",Item documental: 2.2 | Grupo documental: Construção de Bases civis
+e613ec3b-895b-4995-8672-c544e08bdc29,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Lastro de brita,m³,"1,50",Item documental: 2.3 | Grupo documental: Construção de Bases civis
+85ef2b6e-8932-4de5-993a-0b32410b7703,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Fôrma de madeira em tábuas e compensado plastificado,m²,"25,20",Item documental: 2.4 | Grupo documental: Construção de Bases civis
+27b9af72-357e-41a4-ac95-1df61b511655,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Armadura de aço CA-50,kg,"210,00",Item documental: 2.5 | Grupo documental: Construção de Bases civis
+da750851-df83-441c-ba78-ec71ac4e616f,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Fornecimento e aplicação de grout,m³,"2,80",Item documental: 2.6 | Grupo documental: Construção de Bases civis
+a7ccd3b3-661b-4b0a-b3f6-4b625b9bf95a,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Confecção e instalação de nichos para fixação de insertes metálicos,un,"136,00",Item documental: 2.7 | Grupo documental: Construção de Bases civis
+9bb5330e-b035-4e06-8af1-fbd209c21aa3,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Reaterro apiloado,m³,"8,00",Item documental: 2.8 | Grupo documental: Construção de Bases civis
+41f047ff-50d5-4d98-a9fa-54e72d0fc35c,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Piso em concreto fck 18 Mpa,m³,"3,90",Item documental: 2.9 | Grupo documental: Construção de Bases civis
+2d217efc-2db9-401e-ad57-ccc199c47844,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Demolição de piso em concreto armado com utilização de martelete pneumático,m³,"1,30","Item documental: 3.1 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+db97c21b-7d18-487a-a5d3-d835b854f3fd,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,"Escavação manual de vala até 2,00m profundidade",m³,"2,60","Item documental: 3.2 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+03d8ce0c-27fd-4cdf-bb6f-be2e0710b112,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Lastro de brita,m³,"0,32","Item documental: 3.3 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+dc36a31d-1b57-4a7f-847d-a106a9119dec,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Fôrma de madeira em tábuas e compensado plastificado,m²,"12,00","Item documental: 3.4 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+72a503b0-ac8f-4011-bc81-c22c71b4271d,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Armadura de aço CA-50,kg,"93,00","Item documental: 3.5 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+22029e58-a973-4af6-b9cf-695bc5532723,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Fornecimento e aplicação de grout,m³,"1,00","Item documental: 3.6 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+b1f3b261-f562-4f49-a7d7-0d373c4f0a02,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Reaterro apiloado,m³,"1,60","Item documental: 3.7 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+9ca88665-a561-4add-bfff-3b56af23a12f,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Piso em concreto fck 18 Mpa,m³,"0,52","Item documental: 3.8 | Grupo documental: Construção de canaleta para escoamento pluvial (8,65m)"
+29375102-03ae-4987-8048-ecc346ca8bc0,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Carga manual de entulho,m³,"25,00",Item documental: 4.1 | Grupo documental: Descarte de entulho
+b8f098e4-0256-444e-ba9b-c681117f4bb3,d1877f47-9c3b-47e0-8f3a-e5cc5395e683,Transporte mecanizado de entulho,m³,"25,00",Item documental: 4.2 | Grupo documental: Descarte de entulho
