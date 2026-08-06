@@ -22,7 +22,10 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertNotIn('perfil == "superadmin"', self.fonte)
 
     def test_navegacao_prioriza_usuario_e_separa_areas(self):
-        self.assertIn('"USUÁRIOS", "ROLES", "PERMISSÕES", "DIAGNÓSTICO", "AVANÇADO"', self.fonte)
+        self.assertIn(
+            '"USUÁRIOS", "ROLES", "PERMISSÕES RBAC", "DIAGNÓSTICO", "ACESSO ATUAL"',
+            self.fonte,
+        )
         render = self.fonte[self.fonte.index("def render():"):]
         self.assertLess(render.index("_render_usuarios()"), render.index("_render_roles()"))
         self.assertIn("def _render_permissoes_legadas", self.fonte)
@@ -63,9 +66,9 @@ class TestUXAcesso001(unittest.TestCase):
 
     def test_shadow_distingue_acesso_atual_e_calculado_em_linguagem_clara(self):
         self.assertIn("O cálculo por Roles está em modo de diagnóstico", self.fonte)
-        self.assertIn("Acesso efetivo atual", self.fonte)
-        self.assertIn("Acesso calculado pelas funções", self.fonte)
-        self.assertIn("O acesso por Roles concederia", self.fonte)
+        self.assertIn("Permissões atuais — em uso hoje", self.fonte)
+        self.assertIn("Permissões pelas Roles — em preparação", self.fonte)
+        self.assertIn("O novo modelo concederia", self.fonte)
         self.assertIn("O acesso atual possui, mas as Roles não concedem", self.fonte)
         self.assertEqual(
             administracao._status_diagnostico("DIVERGENTE"),
@@ -75,6 +78,50 @@ class TestUXAcesso001(unittest.TestCase):
             administracao._rotulo_chave("prestacao_contas / despesa / criar"),
             "Prestação de Contas — Despesa: Criar",
         )
+
+    def test_ajuda_geral_explica_os_dois_modelos_e_credenciais(self):
+        for texto in (
+            "Como funciona o controle de acesso?",
+            "Hoje, o acesso real ainda é definido pelo modelo atual",
+            "APP_USERS",
+            "Usuários operacionais",
+            "Roles",
+            "Permissões efetivas atuais",
+            "Permissões pelas Roles",
+            "Diagnóstico (Shadow Mode)",
+            "Nenhum e-mail, senha ou convite é gerado atualmente",
+        ):
+            self.assertIn(texto, self.fonte)
+
+    def test_modelo_atual_e_novo_rbac_sao_separados_visualmente(self):
+        self.assertIn("ACESSO EM USO HOJE", self.fonte)
+        self.assertIn("NOVO MODELO POR ROLES — EM PREPARAÇÃO", self.fonte)
+        self.assertIn("Modelo de acesso em uso hoje", self.fonte)
+        self.assertIn("As Roles ainda não alteram o acesso real", self.fonte)
+        self.assertIn("Habilitar alterações nas permissões efetivas atuais", self.fonte)
+        self.assertIn("Modo consulta", self.fonte)
+
+    def test_resumo_nao_confunde_cadastro_role_e_entrada(self):
+        for rotulo in (
+            '"Cadastro"', '"Entrada no APP"', '"Credencial"', '"Roles"',
+            '"Acesso real"', '"Novo RBAC"',
+        ):
+            self.assertIn(rotulo, self.fonte)
+        self.assertIn("Cadastro ativo não significa login disponível", self.fonte)
+        self.assertIn("Role atribuída não significa acesso liberado", self.fonte)
+
+    def test_campos_tecnicos_principais_possuem_explicacao(self):
+        for explicacao in (
+            "Identificador interno e imutável do cadastro. Não é o login.",
+            "ainda não autenticam com este login.",
+            "Classificação cadastral inicial. Não substitui as Roles",
+            "Indica se o cadastro operacional está ativo",
+            "Indica se existe credencial operacional funcional",
+            "campo reservado para o futuro ciclo de credenciais",
+            "Permissões presentes nas Roles, mas ainda ausentes no acesso atual.",
+            "Permissões em uso hoje que não aparecem nas Roles atribuídas.",
+        ):
+            self.assertIn(explicacao, self.fonte)
 
     def test_falha_de_leitura_bloqueia_ficha_e_acoes(self):
         self.assertIn("Leitura bloqueada", self.fonte)
