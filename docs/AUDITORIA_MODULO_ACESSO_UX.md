@@ -2,11 +2,17 @@
 
 ## 1. Resumo executivo
 
-**Commit efetivamente inspecionado:** `8a67f0a7375383fb73b36c6182fa5c543215fc54`.
-O SHA é posterior ao baseline informado (`22e2a016...`) e, conforme a missão,
-foi tratado como fonte da verdade. Entre ambos há somente quatro commits de
+**Commit originalmente inspecionado:** `8a67f0a7375383fb73b36c6182fa5c543215fc54`.
+O SHA era posterior ao baseline informado (`22e2a016...`) e, conforme a missão,
+foi tratado como fonte da verdade. Entre ambos havia somente quatro commits de
 dados: um registro de acesso, criação e ativação legítimas de um usuário
-operacional e uma associação Usuário → Role. Nenhuma lógica foi alterada.
+operacional e uma associação Usuário → Role. Nenhuma lógica havia sido alterada.
+
+**Estado atual revalidado:** `eab1de32a967ba368615b7c9c9277bf0deeeda5c`,
+merge do TEST-FIX-001 (PR #83). A mudança posterior corrige exclusivamente a
+estratégia de três testes; não altera código funcional, autenticação, RBAC,
+interface ou dados. Por isso, as conclusões técnicas e de UX desta auditoria
+permanecem válidas.
 
 O cadastro operacional, a ativação, a associação de Role e o diagnóstico em
 modo sombra funcionam e persistem com controle de concorrência. Porém, o usuário
@@ -311,14 +317,38 @@ mas não demonstra que o serviço sob teste evitou mutação. Desde AUTH-001, o
 arquivo é operacional e mutável por definição. Criação e ativação legítimas
 alteram o hash sem alterar schema, autenticação, permissão efetiva ou Medições.
 
-### Estado atual comprovado
+### Estado observado durante a auditoria original
 
-- Não há correção na `main`: os commits após o baseline alteram somente dados.
+- Naquele momento ainda não havia correção na `main`.
 - Compilação: aprovada.
 - `unittest`: 644 executados, 641 aprovados e exatamente 3 falhas.
 - `pytest`: 651 executados + 367 subtests; 648 aprovados e exatamente 3 falhas.
-- Nas três falhas, valor esperado e atual divergem apenas para
-  `data/usuarios_operacionais.csv`.
+- As falhas eram falsos positivos de regressão causados por hashes fixos de
+  bases operacionais mutáveis. A criação/ativação do usuário alterou
+  `data/usuarios_operacionais.csv`, e a associação de Role alterou
+  `data/usuarios_roles.csv` legitimamente.
+
+### Correção posterior — TEST-FIX-001
+
+O TEST-FIX-001, homologado na PR #83 e integrado pelo commit
+`eab1de32a967ba368615b7c9c9277bf0deeeda5c`, substituiu os hashes fixos das
+bases mutáveis por três controles complementares:
+
+1. validação do schema e das colunas obrigatórias;
+2. captura dos bytes imediatamente antes da execução do componente testado;
+3. confirmação de que os bytes permanecem idênticos após a execução.
+
+Hashes continuam sendo utilizados para artefatos realmente estáveis. A
+correção não alterou comportamento funcional do módulo de acesso, usuários,
+Roles, autorização, autenticação, CSVs ou Secrets.
+
+### Estado atual homologado
+
+- Compilação: aprovada.
+- `unittest`: 644 de 644 aprovados.
+- `pytest`: 651 de 651 aprovados, além de 367 subtests.
+- GitHub Actions da correção: 2 de 2 aprovadas.
+- A `main` está integralmente verde.
 
 ### Estratégia correta recomendada
 
@@ -335,25 +365,28 @@ alteram o hash sem alterar schema, autenticação, permissão efetiva ou Mediç�
    para `usuarios_operacionais.csv`.
 5. Não atualizar o hash para o valor atual: isso apenas adiaria a próxima falha.
 
-**Missão recomendada:** `TEST-REG-001 — Remover hash fixo de base operacional`,
-limitada aos três testes, sem alterar código funcional ou CSV.
+**Missão concluída:** o trabalho recomendado foi executado como TEST-FIX-001,
+limitado aos três testes, sem alterar código funcional ou CSV.
 
 ### Por que os e-mails de falha aparentemente cessaram
 
-O repositório comprova que os workflows são disparados por `push` na `main`
-(`.github/workflows/testes.yml:3-10`; `.github/workflows/tests.yml:3-8`) e que a
-suíte local continua falhando. O arquivo `testes.yml` também cancela execuções
-anteriores concorrentes (`.github/workflows/testes.yml:15-17`). Porém, regras de
+Durante a auditoria original, o repositório comprovava que os workflows eram
+disparados por `push` na `main` (`.github/workflows/testes.yml:3-10`;
+`.github/workflows/tests.yml:3-8`) e a suíte local ainda reproduzia as três
+falhas. O arquivo `testes.yml` também cancela execuções anteriores concorrentes
+(`.github/workflows/testes.yml:15-17`). Porém, regras de
 notificação por e-mail, agrupamento e supressão de alertas são configurações
 externas do GitHub e não estão no repositório. Portanto, **não é possível concluir
 que os testes voltaram a passar porque os e-mails cessaram**. A explicação pode
 envolver cancelamento, agrupamento ou preferências de notificação, mas isso não
-foi verificado e não deve ser tratado como fato.
+foi verificado e não deve ser tratado como fato. Posteriormente, o TEST-FIX-001
+restaurou de forma comprovada as duas suítes e as duas Actions; esse resultado é
+independente do comportamento das notificações.
 
 ## 11. Roadmap recomendado em Baby Steps
 
-1. **TEST-REG-001 — testes de base mutável.** Corrigir somente os três testes e
-   restaurar CI verde.
+1. **TEST-FIX-001 — testes de base mutável (concluído).** Três testes corrigidos
+   e CI restaurado, sem mudança funcional.
 2. **UX-ACESSO-001 — organização orientada pela pessoa.** Reorganizar a página,
    sem mudar regras, dados ou autorização.
 3. **AUTH-002 — fundação de credenciais.** Definir armazenamento com hash,
