@@ -30,6 +30,29 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertLess(render.index("_render_usuarios()"), render.index("_render_roles()"))
         self.assertIn("def _render_permissoes_legadas", self.fonte)
 
+    def test_cabecalho_retorna_pelo_fluxo_atual_e_oferece_documentacao(self):
+        trecho = self.fonte[self.fonte.index("def render():"):]
+        self.assertIn("← Voltar ao menu inicial", trecho)
+        self.assertIn('st.session_state.tela = "menu"', trecho)
+        self.assertIn("st.rerun()", trecho)
+        self.assertIn('st.title("Administração de acesso")', trecho)
+        self.assertIn("Gerencie pessoas, funções e permissões do APP.", trecho)
+        self.assertIn('st.expander("Mais informações")', self.fonte)
+
+    def test_documentacao_interna_cobre_finalidade_fluxo_limites_e_glossario(self):
+        for texto in (
+            "Use este módulo para cadastrar pessoas",
+            "Fluxo recomendado",
+            "O que ainda não está disponível",
+            "Glossário",
+            "Cadastro:",
+            "Credencial:",
+            "Role:",
+            "Permissão:",
+            "Shadow Mode:",
+        ):
+            self.assertIn(texto, self.fonte)
+
     def test_ficha_consolidada_reune_identidade_estado_roles_acesso_e_auditoria(self):
         for secao in (
             "### Identidade", "### Estado", "### Funções atribuídas ao usuário",
@@ -109,6 +132,40 @@ class TestUXAcesso001(unittest.TestCase):
             self.assertIn(rotulo, self.fonte)
         self.assertIn("Cadastro ativo não significa login disponível", self.fonte)
         self.assertIn("Role atribuída não significa acesso liberado", self.fonte)
+        self.assertIn("Por que estes estados aparecem?", self.fonte)
+        self.assertIn("nenhuma credencial operacional foi criada para esta pessoa", self.fonte)
+        self.assertIn("o novo modelo concederia permissão", self.fonte)
+
+    def test_ficha_tem_navegacao_interna_sem_duplicar_seletor(self):
+        for secao in (
+            "Visão geral", "Funções", "Acesso", "Histórico", "Detalhes técnicos",
+        ):
+            self.assertIn(secao, self.fonte)
+        self.assertEqual(self.fonte.count('key="usuario_ficha"'), 1)
+        self.assertIn("Navegue pela ficha sem selecionar a pessoa novamente", self.fonte)
+
+    def test_tabelas_obrigatorias_possuem_tooltips_por_coluna(self):
+        self.assertIn("AJUDA_COLUNAS", self.fonte)
+        self.assertIn("column_config=", self.fonte)
+        for coluna in (
+            "Usuário", "Login", "Perfil-base", "Cadastro", "Credencial",
+            "Troca de senha", "Role / função", "Estado da Role",
+            "Permissões atuais", "Permissões pelas Roles",
+            "O novo modelo concederia",
+            "O acesso atual possui, mas as Roles não concedem",
+            "Status da comparação", "Criado por", "Atualizado por",
+            "Criado em", "Atualizado em",
+        ):
+            self.assertIn(f'"{coluna}":', self.fonte)
+
+    def test_consulta_e_padrao_e_edicao_exige_acao_explicita(self):
+        self.assertIn("Habilitar alterações nas permissões efetivas atuais", self.fonte)
+        self.assertIn("escrita_liberada = persistencia_liberada and edicao_habilitada", self.fonte)
+        self.assertIn('with st.expander("Editar dados")', self.fonte)
+        self.assertIn("Ativar usuário", self.fonte)
+        self.assertIn("Inativar usuário", self.fonte)
+        self.assertIn("Atribuir ou reativar função", self.fonte)
+        self.assertIn("Retirar função", self.fonte)
 
     def test_campos_tecnicos_principais_possuem_explicacao(self):
         for explicacao in (

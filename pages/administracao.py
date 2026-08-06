@@ -172,8 +172,42 @@ def _status_diagnostico(status):
     }.get(str(status), str(status))
 
 
+AJUDA_COLUNAS = {
+    "Usuário": "Pessoa à qual a informação se refere. Não define credencial ou acesso por si só.",
+    "Login": "Nome que identifica a pessoa. Para usuários operacionais, ainda não autentica no APP.",
+    "Perfil-base": "Classificação cadastral inicial. Não substitui Roles nem concede acesso.",
+    "Cadastro": "Estado do registro operacional. Ativo ainda não significa entrada disponível.",
+    "Credencial": "Indica se existe credencial operacional funcional. Ela ainda não foi implementada.",
+    "Troca de senha": "Campo reservado ao futuro ciclo de credenciais; hoje não possui efeito.",
+    "Role / função": "Função institucional atribuível. No Shadow Mode, não altera o acesso real.",
+    "Estado da Role": "Indica se a Role pode ser usada em novas associações; não é acesso efetivo.",
+    "Permissões atuais": "Autorizações efetivamente usadas hoje pelo APP.",
+    "Permissões pelas Roles": "Autorizações que o novo modelo calcularia; ainda não têm efeito real.",
+    "O novo modelo concederia": "Permissões das Roles ausentes no acesso efetivo atual.",
+    "O acesso atual possui, mas as Roles não concedem": "Permissões efetivas não cobertas pelas Roles atribuídas.",
+    "Status da comparação": "Resultado da comparação entre o acesso atual e o cálculo em Shadow Mode.",
+    "Criado por": "Usuário administrativo que criou o registro.",
+    "Atualizado por": "Usuário administrativo responsável pela última alteração.",
+    "Criado em": "Data e hora de criação do registro.",
+    "Atualizado em": "Data e hora da última alteração.",
+}
+
+
+def _config_colunas(*nomes):
+    return {
+        nome: st.column_config.TextColumn(nome, help=AJUDA_COLUNAS[nome])
+        for nome in nomes if nome in AJUDA_COLUNAS
+    }
+
+
 def _render_ajuda_controle_acesso():
-    with st.expander("ℹ️ Como funciona o controle de acesso?"):
+    with st.expander("Mais informações"):
+        st.markdown("### Administração de acesso")
+        st.markdown("#### Como funciona o controle de acesso?")
+        st.write(
+            "Use este módulo para cadastrar pessoas, organizar funções, consultar "
+            "o acesso atual e comparar o novo modelo RBAC antes de sua ativação."
+        )
         st.info(
             "Hoje, o acesso real ainda é definido pelo modelo atual. O novo modelo "
             "de usuários operacionais, Roles e permissões está em preparação e "
@@ -199,6 +233,27 @@ def _render_ajuda_controle_acesso():
 - **Diagnóstico (Shadow Mode):** compara os dois modelos e não altera o acesso.
 - **Credenciais:** ainda não foram implementadas para usuários operacionais.
   Nenhum e-mail, senha ou convite é gerado atualmente.
+
+**Fluxo recomendado**
+
+1. Cadastre a pessoa — o cadastro nasce inativo e sem credencial.
+2. Revise os dados e ative o registro operacional.
+3. Atribua uma Role institucional.
+4. Consulte o Shadow Mode para comparar o cálculo com o acesso atual.
+5. Não considere o acesso migrado: a autorização efetiva continua no modelo atual.
+
+**O que ainda não está disponível**
+
+Login operacional, senha, convite, primeiro acesso, reset, ativação do RBAC e
+migração automática de permissões ainda não foram implementados.
+
+**Glossário**
+
+- **Cadastro:** registro da pessoa no novo modelo.
+- **Credencial:** mecanismo que permitiria autenticar; ainda não existe para o cadastro operacional.
+- **Role:** função institucional que agrupa permissões.
+- **Permissão:** decisão sobre o que pode ser feito em um recurso.
+- **Shadow Mode:** comparação sem efeito na autorização.
 """
         )
 
@@ -258,6 +313,13 @@ def _render_catalogo_permissoes():
         ]],
         use_container_width=True,
         hide_index=True,
+        column_config={
+            "modulo": st.column_config.TextColumn("Módulo", help="Área funcional à qual a capacidade pertence."),
+            "recurso": st.column_config.TextColumn("Recurso", help="Objeto protegido dentro do módulo."),
+            "acao": st.column_config.TextColumn("Ação", help="Operação administrativa representada pela permissão."),
+            "sensibilidade": st.column_config.TextColumn("Sensibilidade", help="Classificação documental do impacto da capacidade."),
+            "estado_protecao": st.column_config.TextColumn("Proteção", help="Estado comprovado da guarda no código atual."),
+        },
     )
     st.divider()
 
@@ -302,7 +364,7 @@ def _render_roles():
                 "criado_em", "criado_por", "atualizado_em", "atualizado_por",
             ]].rename(columns={
                 "codigo": "Código", "nome": "Role / função", "descricao": "Finalidade",
-                "estado": "Estado", "usuários vinculados": "Pessoas vinculadas",
+                "estado": "Estado da Role", "usuários vinculados": "Pessoas vinculadas",
                 "permissões": "Permissões calculadas", "versao": "Versão",
                 "criado_em": "Criada em", "criado_por": "Criada por",
                 "atualizado_em": "Atualizada em", "atualizado_por": "Atualizada por",
@@ -315,6 +377,17 @@ def _render_roles():
             exibicao_roles,
             use_container_width=True,
             hide_index=True,
+            column_config={
+                **_config_colunas("Role / função", "Estado da Role", "Criada por", "Atualizada por"),
+                "Pessoas vinculadas": st.column_config.NumberColumn(
+                    "Pessoas vinculadas", help="Quantidade de associações ativas; não significa acesso liberado."
+                ),
+                "Permissões calculadas": st.column_config.NumberColumn(
+                    "Permissões calculadas", help="Capacidades documentadas na Role; ainda sem efeito real."
+                ),
+                "Criada em": st.column_config.TextColumn("Criada em", help=AJUDA_COLUNAS["Criado em"]),
+                "Atualizada em": st.column_config.TextColumn("Atualizada em", help=AJUDA_COLUNAS["Atualizado em"]),
+            },
         )
 
     with st.expander("Criar Role"):
@@ -365,6 +438,13 @@ def _render_roles():
                 st.dataframe(
                     vinculadas[["modulo", "recurso", "acao", "efeito"]],
                     use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "modulo": st.column_config.TextColumn("Módulo", help="Área funcional protegida."),
+                        "recurso": st.column_config.TextColumn("Recurso", help="Objeto ao qual a permissão se aplica."),
+                        "acao": st.column_config.TextColumn("Ação", help="Operação agrupada pela Role."),
+                        "efeito": st.column_config.TextColumn("Efeito", help="Decisão documental allow/deny; ainda não participa da autorização."),
+                    },
                 )
                 st.caption(
                     "Esta função não concede administração do sistema, custódia, "
@@ -471,11 +551,7 @@ def _render_identidade_usuario(usuario, leitura_usuarios):
         "Login identifica o cadastro, mas ainda não autentica. Perfil-base é uma "
         "classificação cadastral e não concede acesso nem substitui as Roles."
     )
-    with st.expander("Detalhes técnicos da identidade"):
-        st.caption("Identificador interno e imutável do cadastro. Não é o login.")
-        st.code(str(usuario["usuario_id"]), language=None)
-
-    with st.expander("Editar dados cadastrais"):
+    with st.expander("Editar dados"):
         with st.form(f"form_usuario_edicao_{usuario['usuario_id']}"):
             st.text_input(
                 "Login reservado", value=usuario["login"], disabled=True,
@@ -537,6 +613,12 @@ def _render_roles_usuario(usuario, leituras):
                 "atualizado_por": "Alterada por",
             }),
             use_container_width=True, hide_index=True,
+            column_config={
+                "Função": st.column_config.TextColumn("Role / função", help=AJUDA_COLUNAS["Role / função"]),
+                "Estado": st.column_config.TextColumn("Estado da Role", help=AJUDA_COLUNAS["Estado da Role"]),
+                "Última alteração": st.column_config.TextColumn("Última alteração", help=AJUDA_COLUNAS["Atualizado em"]),
+                "Alterada por": st.column_config.TextColumn("Alterada por", help=AJUDA_COLUNAS["Atualizado por"]),
+            },
         )
 
     roles_ativas = roles[roles["ativo"].astype(str).str.casefold() == "sim"]
@@ -594,6 +676,17 @@ def _render_roles_usuario(usuario, leituras):
                 role_id=opcoes_retirada[retirada],
             ))
     st.info("Uma função atribuída ainda não altera o acesso real do usuário.")
+
+    if not ativas.empty:
+        nomes_ativas = [
+            nomes.get(row["role_id"], {}).get("codigo", row["role_id"])
+            for _, row in ativas.iterrows()
+        ]
+        st.caption(
+            "Estado desta pessoa: " + ", ".join(nomes_ativas)
+            + (" está atribuída." if len(nomes_ativas) == 1 else " estão atribuídas.")
+            + " Essas funções seriam usadas pelo novo modelo, mas ainda não concedem acesso real."
+        )
 
 
 def _render_acesso_usuario(usuario, leituras):
@@ -680,6 +773,64 @@ def _render_resumo_usuario(usuario, leituras):
         "Cadastro ativo não significa que a pessoa pode entrar. Role atribuída "
         "não significa acesso liberado."
     )
+    st.markdown("#### Por que estes estados aparecem?")
+    st.write(
+        "- **Cadastro:** "
+        + ("o registro operacional está ativo. Isso ainda não permite login."
+           if ativo else "o registro operacional está inativo e não pode receber nova função.")
+    )
+    st.write(
+        "- **Entrada no APP:** indisponível porque usuários operacionais ainda não "
+        "autenticam no APP."
+    )
+    st.write(
+        "- **Credencial:** "
+        + ("o cadastro informa uma credencial configurada."
+           if credencial else "nenhuma credencial operacional foi criada para esta pessoa.")
+    )
+    st.write(
+        f"- **Roles:** {len(roles_ativas)} função(ões) ativa(s) atribuída(s). "
+        "Elas ainda não concedem acesso real."
+    )
+    if diagnostico.status == "IGUAL":
+        st.write("- **Novo RBAC:** o cálculo coincide com o acesso atual.")
+    else:
+        motivos = []
+        if diagnostico.rbac_a_mais:
+            motivos.append(
+                "o novo modelo concederia permissão que não existe no acesso atual"
+            )
+        if diagnostico.rbac_a_menos:
+            motivos.append(
+                "o acesso atual possui permissão que as Roles não concedem"
+            )
+        st.write(
+            "- **Novo RBAC:** há diferenças porque "
+            + " e ".join(motivos or ["existem ocorrências técnicas na comparação"])
+            + "."
+        )
+
+
+def _render_detalhes_usuario(usuario, associacoes):
+    st.markdown("### Detalhes técnicos")
+    st.caption("Identificador interno e imutável do cadastro. Não é o login.")
+    st.code(str(usuario["usuario_id"]), language=None)
+    st.write(f"**Perfil-base:** {usuario['perfil_base']}")
+    st.caption(
+        "Classificação cadastral inicial. Não substitui as Roles e não concede acesso por si só."
+    )
+    st.write(f"**Credencial configurada:** {usuario['credencial_configurada'] or 'não'}")
+    st.write(f"**Exige troca de senha:** {usuario['exige_troca_senha'] or 'não'}")
+    st.caption(
+        "Os campos de credencial e troca de senha estão reservados ao futuro ciclo "
+        "de autenticação operacional e ainda não possuem efeito funcional."
+    )
+    historico = associacoes[
+        associacoes["usuario_id"].astype(str) == str(usuario["usuario_id"])
+    ]
+    if not historico.empty:
+        with st.expander("Dados técnicos das associações"):
+            st.dataframe(historico, use_container_width=True, hide_index=True)
 
 
 def _render_auditoria_usuario(usuario, associacoes):
@@ -745,7 +896,18 @@ def _render_usuarios():
         "nome": "Nome", "login": "Login", "matricula": "Matrícula",
         "ativo": "Estado",
     })
-    st.dataframe(resumo, use_container_width=True, hide_index=True)
+    st.caption(
+        "Entenda as colunas: Login identifica o cadastro, mas ainda não autentica; "
+        "Estado informa apenas se o registro operacional está ativo."
+    )
+    st.dataframe(
+        resumo, use_container_width=True, hide_index=True,
+        column_config={
+            "Nome": st.column_config.TextColumn("Usuário", help=AJUDA_COLUNAS["Usuário"]),
+            "Login": st.column_config.TextColumn("Login", help=AJUDA_COLUNAS["Login"]),
+            "Estado": st.column_config.TextColumn("Cadastro", help=AJUDA_COLUNAS["Cadastro"]),
+        },
+    )
 
     opcoes = {
         f"{row['nome']} — {row['login']} — {'ativo' if str(row['ativo']).casefold() == 'sim' else 'inativo'}": row["usuario_id"]
@@ -757,16 +919,28 @@ def _render_usuarios():
 
     st.divider()
     st.header(usuario["nome"] or usuario["login"])
+    st.caption(f"Login: {usuario['login']} · Matrícula: {usuario['matricula']}")
     _render_resumo_usuario(usuario, leituras)
-    _render_identidade_usuario(usuario, leituras["usuarios"])
-    st.markdown("### Estado")
-    _render_estado_usuario(usuario, leituras["usuarios"])
+    secao = st.radio(
+        "Seção da ficha",
+        ("Visão geral", "Funções", "Acesso", "Histórico", "Detalhes técnicos"),
+        horizontal=True,
+        key=f"secao_ficha_{usuario_id}",
+        help="Navegue pela ficha sem selecionar a pessoa novamente.",
+    )
     st.divider()
-    _render_roles_usuario(usuario, leituras)
-    st.divider()
-    _render_acesso_usuario(usuario, leituras)
-    st.divider()
-    _render_auditoria_usuario(usuario, leituras["associacoes"].dados)
+    if secao == "Visão geral":
+        _render_identidade_usuario(usuario, leituras["usuarios"])
+        st.markdown("### Estado e ações principais")
+        _render_estado_usuario(usuario, leituras["usuarios"])
+    elif secao == "Funções":
+        _render_roles_usuario(usuario, leituras)
+    elif secao == "Acesso":
+        _render_acesso_usuario(usuario, leituras)
+    elif secao == "Histórico":
+        _render_auditoria_usuario(usuario, leituras["associacoes"].dados)
+    else:
+        _render_detalhes_usuario(usuario, leituras["associacoes"].dados)
     st.info(
         "Contas protegidas permanecem exclusivamente em APP_USERS e não são "
         "editáveis nesta interface. A exclusão física não está disponível."
@@ -819,7 +993,33 @@ def _render_diagnostico_rbac():
         ) or "—",
         "Status": _status_diagnostico(item.status),
     } for item in diagnosticos]
-    st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
+    st.caption(
+        "Passe o cursor sobre os cabeçalhos para entender o efeito atual de cada coluna."
+    )
+    st.dataframe(
+        pd.DataFrame(linhas), use_container_width=True, hide_index=True,
+        column_config={
+            "Usuário": st.column_config.TextColumn("Usuário", help=AJUDA_COLUNAS["Usuário"]),
+            "Login": st.column_config.TextColumn("Login", help=AJUDA_COLUNAS["Login"]),
+            "Roles": st.column_config.TextColumn("Role / função", help=AJUDA_COLUNAS["Role / função"]),
+            "Permissões atuais": st.column_config.NumberColumn(
+                "Permissões atuais", help=AJUDA_COLUNAS["Permissões atuais"]
+            ),
+            "Permissões pelas Roles": st.column_config.NumberColumn(
+                "Permissões pelas Roles", help=AJUDA_COLUNAS["Permissões pelas Roles"]
+            ),
+            "O novo modelo concederia": st.column_config.TextColumn(
+                "O novo modelo concederia", help=AJUDA_COLUNAS["O novo modelo concederia"]
+            ),
+            "O acesso atual possui, mas as Roles não concedem": st.column_config.TextColumn(
+                "O acesso atual possui, mas as Roles não concedem",
+                help=AJUDA_COLUNAS["O acesso atual possui, mas as Roles não concedem"],
+            ),
+            "Status": st.column_config.TextColumn(
+                "Status da comparação", help=AJUDA_COLUNAS["Status da comparação"]
+            ),
+        },
+    )
     divergentes = sum(item.status != "IGUAL" for item in diagnosticos)
     st.caption(
         f"{len(diagnosticos)} usuário(s) comparado(s); "
@@ -858,7 +1058,17 @@ def _render_permissoes_legadas():
             "Escopo da obra indica onde a autorização vale; 'todas' significa "
             "ausência de restrição por obra. Ativa informa se a regra está em uso."
         )
-        st.dataframe(exibicao, use_container_width=True, hide_index=True)
+        st.dataframe(
+            exibicao, use_container_width=True, hide_index=True,
+            column_config={
+                "Usuário": st.column_config.TextColumn("Usuário", help=AJUDA_COLUNAS["Usuário"]),
+                "Módulo": st.column_config.TextColumn("Módulo", help="Área funcional autorizada por esta regra efetiva."),
+                "Recurso": st.column_config.TextColumn("Recurso", help="Objeto sobre o qual a autorização efetiva se aplica."),
+                "Permissão": st.column_config.TextColumn("Permissão", help=AJUDA_COLUNAS["Permissões atuais"]),
+                "Escopo da obra": st.column_config.TextColumn("Escopo da obra", help="Obra específica ou 'todas' quando não há restrição por obra."),
+                "Ativa": st.column_config.TextColumn("Ativa", help="Indica se a regra participa da autorização efetiva atual."),
+            },
+        )
 
     st.divider()
 
@@ -986,8 +1196,12 @@ def _render_permissoes_legadas():
 
 
 def render():
-    st.title("Administração")
-    st.caption("Identidade, funções e acesso dos usuários do sistema FOS.")
+    if st.button("← Voltar ao menu inicial", key="administracao_voltar_menu"):
+        st.session_state.tela = "menu"
+        st.rerun()
+
+    st.title("Administração de acesso")
+    st.caption("Gerencie pessoas, funções e permissões do APP.")
 
     if not pode_gerenciar_administracao():
         st.error("Acesso restrito à custódia administrativa.")

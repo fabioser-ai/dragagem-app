@@ -30,9 +30,10 @@ A Administração passa a possuir cinco áreas:
 
 ## Ajuda e separação dos modelos
 
-Um controle visível, **Como funciona o controle de acesso?**, explica os conceitos
-sem exigir documentação externa. A interface também apresenta dois contextos
-visuais distintos:
+O cabeçalho apresenta **Mais informações** como documentação interna do módulo.
+Ela explica finalidade, limites, fluxo recomendado, diferenças entre cadastro,
+credencial, Role e permissão, convivência dos dois modelos, próximos passos e um
+glossário curto. A interface também apresenta dois contextos visuais distintos:
 
 - **ACESSO EM USO HOJE:** APP_USERS autentica as contas protegidas e as
   permissões efetivas atuais controlam a autorização;
@@ -49,11 +50,28 @@ operacionais. O modelo atual não é escondido nem apresentado como já substitu
 
 ## Jornada principal
 
-`Selecionar pessoa → identidade → estado → funções → acesso → auditoria`
+`Voltar ao menu ou selecionar pessoa → visão geral → funções → acesso → histórico → detalhes técnicos`
 
 A seleção do usuário é única. Busca, filtro e lista resumida precedem a ficha.
 As ações de edição, ativação, inativação, atribuição e retirada permanecem no
-contexto da pessoa selecionada.
+contexto da pessoa selecionada. O cabeçalho usa o mesmo mecanismo de navegação
+do APP (`session_state.tela = "menu"`) para retornar ao menu inicial, sem criar rota.
+
+## Padrão visual administrativo
+
+A página utiliza conceitualmente um padrão Object Page, sem dependência externa:
+
+- cabeçalho do módulo com retorno, título, descrição e documentação interna;
+- cabeçalho do usuário selecionado com nome, login e matrícula;
+- cards/métricas para estados principais;
+- navegação interna horizontal com uma seção visível por vez;
+- consulta separada da edição;
+- detalhes técnicos recolhidos;
+- tabelas reservadas para listas, históricos, catálogos e comparações.
+
+Não foi adicionado framework visual, tema global ou CSS. Os componentes nativos
+do Streamlit preservam o empilhamento em telas estreitas, mas a experiência mobile
+continua pendente de teste físico.
 
 ## Ficha consolidada
 
@@ -61,6 +79,14 @@ O topo da ficha resume cadastro, entrada no APP, credencial, quantidade de Roles
 fonte do acesso real e estado comparativo do novo RBAC. As ajudas deixam explícito
 que cadastro ativo não significa entrada disponível e Role atribuída não significa
 acesso liberado.
+
+Além do significado conceitual, a ficha deriva explicações do estado concreto:
+
+- cadastro ativo/inativo é explicado a partir do registro selecionado;
+- ausência de entrada e credencial é vinculada à inexistência de autenticação operacional;
+- quantidade de Roles é calculada pelas associações ativas;
+- divergência descreve se o RBAC concederia a mais, a menos ou ambos;
+- funções atribuídas são nomeadas sem sugerir efeito real.
 
 - **Identidade:** nome, login, matrícula, e-mail cadastral, perfil-base e UUID
   recolhido em detalhe técnico.
@@ -86,6 +112,8 @@ acesso liberado.
   de senha possuem explicações contextuais.
 - A consulta das permissões atuais começa com edição desabilitada; qualquer
   alteração exige habilitação explícita.
+- Tabelas administrativas usam `column_config` e `help` nos cabeçalhos não
+  autoexplicativos, com legenda próxima quando necessário.
 
 ## Segurança preservada
 
@@ -103,18 +131,16 @@ Medições.
 
 ## Roteiro de homologação visual
 
-1. Sem conhecimento prévio, confirmar se é possível entender qual modelo controla
-   o acesso hoje.
-2. Abrir **Como funciona o controle de acesso?** e confirmar que a ajuda é fácil
-   de localizar e explica por que APP_USERS ainda aparece.
-3. Na aba USUÁRIOS, localizar o usuário TESTE por busca ou seleção.
-4. Distinguir cadastro ativo de pessoa capaz de entrar no APP.
-5. Conferir identidade, e-mail apenas cadastral e explicações dos campos.
-6. Entender o que uma Role representa e confirmar que ela não libera acesso.
-7. Conferir permissões atuais e permissões pelas Roles em contextos distintos.
-8. Verificar se a divergência é compreensível sem interpretar chaves técnicas.
-9. Conferir se as colunas são compreensíveis sem documentação externa.
-10. Confirmar que a tela ficou mais clara sem ficar excessivamente carregada.
+1. Confirmar que existe botão claro para voltar ao menu e que o retorno funciona.
+2. Confirmar que **Mais informações** está visível no cabeçalho.
+3. Entender a finalidade do módulo sem documentação externa.
+4. Compreender cada coluna pelo tooltip ou ajuda próxima.
+5. Entender por que cada estado da pessoa selecionada está como está.
+6. Confirmar que os estados principais aparecem em cards, fora das tabelas.
+7. Avaliar se a interface parece uma aplicação administrativa, não uma planilha.
+8. Confirmar que consulta e edição estão claramente separadas.
+9. Confirmar que a tela não promete credencial, e-mail ou acesso inexistente.
+10. Avaliar a responsividade no desktop e registrar que aparelho real ainda será testado.
 
 A homologação visual depende do proprietário após a publicação do Draft PR.
 
