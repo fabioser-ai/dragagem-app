@@ -4,7 +4,7 @@ import streamlit as st
 from services.autorizacao import pode_gerenciar_administracao
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
-from services.rbac_shadow import diagnosticar_usuarios
+from services.rbac_shadow import calcular_usuario, diagnosticar_usuarios
 from services.roles import (
     carregar_roles_permissoes_resultado,
     carregar_roles_resultado,
@@ -120,6 +120,58 @@ def _informar_operacao(resultado):
         st.error(resultado.mensagem)
 
 
+ROTULOS_ACOES = {
+    "visualizar": "Visualizar",
+    "criar": "Criar",
+    "editar": "Editar",
+    "excluir": "Excluir",
+    "aprovar": "Aprovar",
+    "cancelar": "Cancelar",
+    "administrar": "Administrar",
+    "lancar": "Lançar",
+    "todos": "Todas as ações",
+}
+ROTULOS_MODULOS = {
+    "prestacao_contas": "Prestação de Contas",
+    "uniformes_epis": "Uniformes e EPIs",
+    "ferias": "Férias e Folgas",
+    "orcamento": "Orçamento",
+    "medicoes": "Medições",
+    "dados": "Dados",
+    "obras": "Obras",
+    "crm": "CRM",
+}
+ROTULOS_RECURSOS = {
+    "decisao_despesa": "Decisão de despesa",
+    "tipo_despesa": "Tipo de despesa",
+    "local_trabalho": "Local de trabalho",
+}
+
+
+def _rotulo_chave(chave):
+    partes = [parte.strip() for parte in str(chave or "").split("/")]
+    if len(partes) != 3:
+        return str(chave or "")
+    modulo, recurso, acao = partes
+    modulo = ROTULOS_MODULOS.get(modulo.casefold(), modulo.replace("_", " ").title())
+    recurso = ROTULOS_RECURSOS.get(recurso.casefold(), recurso.replace("_", " ").title())
+    acao = ROTULOS_ACOES.get(acao.casefold(), acao.replace("_", " ").title())
+    return f"{modulo} — {recurso}: {acao}"
+
+
+def _linhas_permissoes(permissoes):
+    return [_rotulo_chave(item) for item in permissoes]
+
+
+def _status_diagnostico(status):
+    return {
+        "IGUAL": "O acesso atual coincide com o calculado pelas Roles",
+        "DIVERGENTE": "Há diferenças entre o acesso atual e o calculado pelas Roles",
+        "SEM ROLE": "O usuário ainda não possui função atribuída",
+        "ROLE VAZIA": "A função atribuída ainda não possui permissões",
+    }.get(str(status), str(status))
+
+
 def _render_catalogo_permissoes():
     st.subheader("CATÁLOGO DE PERMISSÕES")
     st.caption(
@@ -182,10 +234,12 @@ def _render_catalogo_permissoes():
 def _render_roles():
     st.subheader("Roles")
     st.caption(
-        "Catálogo RBAC reutilizável. Roles ainda não estão conectadas a usuários."
+        "Funções institucionais reutilizáveis. Elas podem ser atribuídas, mas "
+        "ainda não alteram o acesso efetivo."
     )
     leitura = carregar_roles_resultado()
     leitura_permissoes = carregar_roles_permissoes_resultado()
+    leitura_associacoes = carregar_usuarios_roles_resultado()
     liberada = leitura.pode_sobrescrever
     if not liberada:
         st.error("Alterações bloqueadas: a leitura do catálogo de Roles não foi confirmada.")
@@ -194,12 +248,26 @@ def _render_roles():
     if roles.empty:
         st.info("Nenhuma Role cadastrada.")
     else:
+        associacoes_ativas = leitura_associacoes.dados[
+            leitura_associacoes.dados["ativo"].astype(str).str.casefold() == "sim"
+        ] if leitura_associacoes.leitura_confirmada else pd.DataFrame()
+        permissoes = (
+            leitura_permissoes.dados
+            if leitura_permissoes.leitura_confirmada else pd.DataFrame()
+        )
+        roles["usuários vinculados"] = roles["role_id"].map(
+            associacoes_ativas.groupby("role_id").size() if not associacoes_ativas.empty else {}
+        ).fillna(0).astype(int)
+        roles["permissões"] = roles["role_id"].map(
+            permissoes.groupby("role_id").size() if not permissoes.empty else {}
+        ).fillna(0).astype(int)
         roles["estado"] = roles["ativo"].map(
             {"sim": "🟢 Ativa", "nao": "⚪ Inativa"}
         ).fillna("⚠️ Estado inválido")
         st.dataframe(
             roles[[
-                "codigo", "nome", "descricao", "estado", "versao",
+                "codigo", "nome", "descricao", "estado",
+                "usuários vinculados", "permissões", "versao",
                 "criado_em", "criado_por", "atualizado_em", "atualizado_por",
             ]],
             use_container_width=True,
@@ -248,192 +316,335 @@ def _render_roles():
                 permissoes["role_id"].astype(str) == str(role_id)
             ]
             if vinculadas.empty:
-                st.info("Esta Role ainda não possui permissões.")
+                st.info("Esta Role está vazia e ainda não calcula permissões.")
             else:
                 st.dataframe(
                     vinculadas[["modulo", "recurso", "acao", "efeito"]],
                     use_container_width=True,
+                )
+                st.caption(
+                    "Esta função não concede administração do sistema, custódia, "
+                    "superadmin ou gestão de contas protegidas."
                 )
 
     st.info("Roles não podem ser excluídas; somente ativadas ou inativadas.")
     st.divider()
 
 
-def _render_usuarios_operacionais():
-    st.subheader("Usuários operacionais")
-    st.caption(
-        "Base interna separada. Estes usuários ainda não podem autenticar no APP."
-    )
-    leitura = carregar_usuarios_operacionais_resultado()
-    liberada = leitura.pode_sobrescrever
-    if not liberada:
-        st.error(
-            "Alterações bloqueadas: a leitura da base operacional não foi confirmada."
+def _render_criacao_usuario(leitura):
+    with st.expander("Criar novo usuário operacional"):
+        st.info(
+            "O e-mail é apenas cadastral. Nenhum convite será enviado, nenhuma "
+            "senha será gerada e o cadastro será criado inicialmente inativo."
         )
-
-    exibicao = leitura.dados.copy()
-    if exibicao.empty:
-        st.info("Nenhum usuário operacional cadastrado.")
-    else:
-        exibicao["estado"] = exibicao["ativo"].map(
-            {"sim": "🟢 Operacional ativo", "nao": "⚪ Operacional inativo"}
-        ).fillna("⚠️ Estado inválido")
-        st.dataframe(
-            exibicao[[
-                "login", "nome", "matricula", "perfil_base", "estado",
-                "credencial_configurada", "criado_em", "criado_por",
-                "atualizado_em", "atualizado_por",
-            ]],
-            use_container_width=True,
-        )
-
-    with st.expander("Cadastrar usuário operacional"):
         with st.form("form_usuario_operacional_novo"):
-            login = st.text_input("Login")
-            nome = st.text_input("Nome")
-            matricula = st.text_input("Matrícula")
-            email = st.text_input("E-mail")
-            perfil = st.selectbox("Perfil base", PERFIS_PERMITIDOS, index=0)
-            enviar = st.form_submit_button("Cadastrar inativo", disabled=not liberada)
+            login = st.text_input("Login *")
+            nome = st.text_input("Nome *")
+            matricula = st.text_input("Matrícula *")
+            email = st.text_input("E-mail cadastral *")
+            perfil = st.selectbox("Perfil base *", PERFIS_PERMITIDOS, index=0)
+            enviar = st.form_submit_button(
+                "Criar usuário inativo", disabled=not leitura.pode_sobrescrever
+            )
         if enviar:
-            _informar_operacao(criar_usuario(
+            resultado = criar_usuario(
                 leitura=leitura, login=login, nome=nome, matricula=matricula,
                 email=email, perfil_base=perfil,
-            ))
+            )
+            if resultado.sucesso:
+                st.success(
+                    "Usuário criado como inativo. Próximos passos: revisar o "
+                    "cadastro, ativar e atribuir uma função. Nenhum e-mail foi enviado."
+                )
+                st.rerun()
+            else:
+                st.error(resultado.mensagem)
 
-    if not exibicao.empty:
-        opcoes = {
-            f"{row['login']} — {row['nome']} ({row['ativo']})": row["usuario_id"]
-            for _, row in exibicao.iterrows()
-        }
-        selecionado = st.selectbox("Editar usuário operacional", list(opcoes))
-        usuario_id = opcoes[selecionado]
-        atual = exibicao[exibicao["usuario_id"] == usuario_id].iloc[0]
-        with st.form("form_usuario_operacional_edicao"):
-            st.text_input("Login reservado", value=atual["login"], disabled=True)
-            nome_edicao = st.text_input("Nome", value=atual["nome"])
-            matricula_edicao = st.text_input("Matrícula", value=atual["matricula"])
-            email_edicao = st.text_input("E-mail", value=atual["email"])
-            perfil_edicao = st.selectbox(
-                "Perfil base", PERFIS_PERMITIDOS,
-                index=(
-                    PERFIS_PERMITIDOS.index(atual["perfil_base"])
-                    if atual["perfil_base"] in PERFIS_PERMITIDOS else 0
-                ),
-            )
-            ativo_edicao = st.selectbox(
-                "Estado", ("nao", "sim"),
-                index=0 if atual["ativo"] != "sim" else 1,
-            )
-            atualizar = st.form_submit_button("Salvar alteração", disabled=not liberada)
-        if atualizar:
+
+def _render_estado_usuario(usuario, leitura_usuarios):
+    ativo = str(usuario["ativo"]).strip().casefold() == "sim"
+    col_estado, col_login, col_credencial = st.columns(3)
+    col_estado.metric("Estado do cadastro", "Ativo" if ativo else "Inativo")
+    col_login.metric("Pode entrar no APP?", "Não")
+    col_credencial.metric("Credencial configurada", "Não")
+    st.warning(
+        "Este usuário operacional ainda não pode entrar no APP. Ativação e "
+        "atribuição de função não criam credencial nem alteram o login atual."
+    )
+    st.caption(
+        f"Exige troca de senha: {usuario['exige_troca_senha'] or 'não'} — "
+        "este campo ainda não possui fluxo funcional."
+    )
+
+    if ativo:
+        confirmar = st.checkbox(
+            "Confirmo a inativação deste cadastro operacional.",
+            key=f"confirmar_inativacao_{usuario['usuario_id']}",
+        )
+        if st.button(
+            "Inativar usuário", disabled=not confirmar or not leitura_usuarios.pode_sobrescrever,
+            key=f"inativar_{usuario['usuario_id']}",
+        ):
             _informar_operacao(editar_usuario(
-                leitura=leitura, usuario_id=usuario_id, nome=nome_edicao,
-                matricula=matricula_edicao, email=email_edicao,
-                perfil_base=perfil_edicao, ativo=ativo_edicao,
+                leitura=leitura_usuarios, usuario_id=usuario["usuario_id"],
+                nome=usuario["nome"], matricula=usuario["matricula"],
+                email=usuario["email"], perfil_base=usuario["perfil_base"], ativo="nao",
+            ))
+        st.caption(
+            "Inativar este cadastro ainda não revoga uma sessão de APP_USERS, "
+            "pois usuários operacionais ainda não autenticam."
+        )
+    elif st.button(
+        "Ativar usuário", disabled=not leitura_usuarios.pode_sobrescrever,
+        key=f"ativar_{usuario['usuario_id']}",
+    ):
+        _informar_operacao(editar_usuario(
+            leitura=leitura_usuarios, usuario_id=usuario["usuario_id"],
+            nome=usuario["nome"], matricula=usuario["matricula"],
+            email=usuario["email"], perfil_base=usuario["perfil_base"], ativo="sim",
+        ))
+
+
+def _render_identidade_usuario(usuario, leitura_usuarios):
+    st.markdown("### Identidade")
+    col1, col2 = st.columns(2)
+    col1.write(f"**Nome:** {usuario['nome']}")
+    col1.write(f"**Login:** {usuario['login']}")
+    col1.write(f"**Matrícula:** {usuario['matricula']}")
+    col2.write(f"**E-mail cadastral:** {usuario['email']}")
+    col2.write(f"**Perfil-base:** {usuario['perfil_base']}")
+    col2.caption("O e-mail é apenas cadastral; nenhum convite será enviado.")
+    with st.expander("Detalhes técnicos da identidade"):
+        st.code(str(usuario["usuario_id"]), language=None)
+
+    with st.expander("Editar dados cadastrais"):
+        with st.form(f"form_usuario_edicao_{usuario['usuario_id']}"):
+            st.text_input("Login reservado", value=usuario["login"], disabled=True)
+            nome = st.text_input("Nome", value=usuario["nome"])
+            matricula = st.text_input("Matrícula", value=usuario["matricula"])
+            email = st.text_input("E-mail cadastral", value=usuario["email"])
+            perfil = st.selectbox(
+                "Perfil base", PERFIS_PERMITIDOS,
+                index=(PERFIS_PERMITIDOS.index(usuario["perfil_base"])
+                       if usuario["perfil_base"] in PERFIS_PERMITIDOS else 0),
+            )
+            salvar = st.form_submit_button(
+                "Salvar dados", disabled=not leitura_usuarios.pode_sobrescrever
+            )
+        if salvar:
+            _informar_operacao(editar_usuario(
+                leitura=leitura_usuarios, usuario_id=usuario["usuario_id"],
+                nome=nome, matricula=matricula, email=email,
+                perfil_base=perfil, ativo=usuario["ativo"],
             ))
 
+
+def _render_roles_usuario(usuario, leituras):
+    st.markdown("### Funções atribuídas ao usuário")
+    associacoes = leituras["associacoes"].dados.copy()
+    roles = leituras["roles"].dados.copy()
+    matriz = leituras["matriz"].dados.copy()
+    usuario_id = str(usuario["usuario_id"])
+    historico = associacoes[
+        associacoes["usuario_id"].astype(str) == usuario_id
+    ].copy()
+    nomes = roles.set_index("role_id").to_dict("index") if not roles.empty else {}
+
+    if historico.empty:
+        st.info("Este usuário ainda não possui funções atribuídas.")
+    else:
+        historico["Função"] = historico["role_id"].map(
+            lambda role_id: nomes.get(role_id, {}).get("nome", "Função não localizada")
+        )
+        historico["Código"] = historico["role_id"].map(
+            lambda role_id: nomes.get(role_id, {}).get("codigo", role_id)
+        )
+        historico["Estado"] = historico["ativo"].map(
+            {"sim": "Ativa", "nao": "Retirada — histórico preservado"}
+        ).fillna("Estado desconhecido")
+        st.dataframe(
+            historico[["Função", "Código", "Estado", "atualizado_em", "atualizado_por"]],
+            use_container_width=True, hide_index=True,
+        )
+
+    roles_ativas = roles[roles["ativo"].astype(str).str.casefold() == "sim"]
+    if str(usuario["ativo"]).casefold() != "sim":
+        st.info("Usuário inativo não pode receber nova função.")
+    elif roles_ativas.empty:
+        st.info("Não há funções ativas disponíveis.")
+    else:
+        opcoes = {
+            f"{row['nome']} ({row['codigo']})": row["role_id"]
+            for _, row in roles_ativas.iterrows()
+        }
+        escolhida = st.selectbox(
+            "Função disponível", list(opcoes), key=f"role_ficha_{usuario_id}"
+        )
+        role_id = opcoes[escolhida]
+        role = roles_ativas[roles_ativas["role_id"].astype(str) == str(role_id)].iloc[0]
+        permissoes = matriz[matriz["role_id"].astype(str) == str(role_id)]
+        st.write(f"**Objetivo:** {role['descricao'] or role['nome']}")
+        st.write(f"**Permissões documentais:** {len(permissoes)}")
+        if permissoes.empty:
+            st.info("Esta função está vazia e não calcula permissões.")
+        else:
+            st.caption("Resumo: " + "; ".join(
+                _rotulo_chave(f"{row['modulo']} / {row['recurso']} / {row['acao']}")
+                for _, row in permissoes.iterrows()
+            ))
+        if st.button("Atribuir ou reativar função", key=f"atribuir_{usuario_id}_{role_id}"):
+            _informar_operacao(atribuir_role(
+                leitura=leituras["associacoes"], leitura_usuarios=leituras["usuarios"],
+                leitura_roles=leituras["roles"], usuario_id=usuario_id, role_id=role_id,
+            ))
+
+    ativas = historico[historico["ativo"].astype(str).str.casefold() == "sim"]
+    if not ativas.empty:
+        opcoes_retirada = {
+            f"{nomes.get(row['role_id'], {}).get('nome', row['role_id'])}": row["role_id"]
+            for _, row in ativas.iterrows()
+        }
+        retirada = st.selectbox(
+            "Função ativa para retirada", list(opcoes_retirada),
+            key=f"retirar_role_{usuario_id}",
+        )
+        confirmar = st.checkbox(
+            "Confirmo a retirada. O histórico será preservado.",
+            key=f"confirmar_retirada_{usuario_id}",
+        )
+        if st.button(
+            "Retirar função", disabled=not confirmar,
+            key=f"retirar_{usuario_id}_{opcoes_retirada[retirada]}",
+        ):
+            _informar_operacao(retirar_role(
+                leitura=leituras["associacoes"], leitura_usuarios=leituras["usuarios"],
+                leitura_roles=leituras["roles"], usuario_id=usuario_id,
+                role_id=opcoes_retirada[retirada],
+            ))
+    st.info("Uma função atribuída ainda não altera o acesso real do usuário.")
+
+
+def _render_acesso_usuario(usuario, leituras):
+    st.markdown("### Acesso e diagnóstico")
+    diagnostico = calcular_usuario(
+        usuario=usuario, associacoes=leituras["associacoes"].dados,
+        roles=leituras["roles"].dados,
+        roles_permissoes=leituras["matriz"].dados,
+        catalogo_permissoes=leituras["catalogo"].dados,
+        permissoes_atuais=leituras["atuais"].dados,
+    )
+    st.info(_status_diagnostico(diagnostico.status))
+    st.warning(
+        "O cálculo por Roles está em modo de diagnóstico e ainda não altera o acesso real."
+    )
+    col_atual, col_roles = st.columns(2)
+    with col_atual:
+        st.markdown("#### Acesso efetivo atual")
+        linhas = _linhas_permissoes(diagnostico.permissoes_atuais)
+        st.write("\n".join(f"- {item}" for item in linhas) if linhas else "Nenhum")
+    with col_roles:
+        st.markdown("#### Acesso calculado pelas funções")
+        linhas = _linhas_permissoes(diagnostico.permissoes_rbac)
+        st.write("\n".join(f"- {item}" for item in linhas) if linhas else "Nenhum")
+    if diagnostico.rbac_a_mais:
+        st.markdown("**O acesso por Roles concederia:**")
+        st.write("\n".join(f"- {item}" for item in _linhas_permissoes(diagnostico.rbac_a_mais)))
+    if diagnostico.rbac_a_menos:
+        st.markdown("**O acesso atual possui, mas as Roles não concedem:**")
+        st.write("\n".join(f"- {item}" for item in _linhas_permissoes(diagnostico.rbac_a_menos)))
+    with st.expander("Detalhes técnicos do diagnóstico"):
+        st.write("Status técnico:", diagnostico.status)
+        st.write("Ocorrências:", list(diagnostico.ocorrencias) or ["Nenhuma"])
+
+
+def _render_auditoria_usuario(usuario, associacoes):
+    st.markdown("### Auditoria")
+    st.write(f"**Criado em:** {usuario['criado_em'] or 'não informado'}")
+    st.write(f"**Criado por:** {usuario['criado_por'] or 'não informado'}")
+    st.write(f"**Última atualização:** {usuario['atualizado_em'] or 'não informada'}")
+    st.write(f"**Atualizado por:** {usuario['atualizado_por'] or 'não informado'}")
+    historico = associacoes[
+        associacoes["usuario_id"].astype(str) == str(usuario["usuario_id"])
+    ]
+    if not historico.empty:
+        with st.expander("Histórico técnico das funções"):
+            st.dataframe(historico, use_container_width=True, hide_index=True)
+
+
+def _render_usuarios():
+    st.subheader("Pessoas e acesso")
+    st.caption("Selecione uma pessoa para administrar cadastro, funções e acesso no mesmo contexto.")
+    leituras = {
+        "usuarios": carregar_usuarios_operacionais_resultado(),
+        "associacoes": carregar_usuarios_roles_resultado(),
+        "roles": carregar_roles_resultado(),
+        "matriz": carregar_roles_permissoes_resultado(),
+        "catalogo": carregar_catalogo_resultado(),
+        "atuais": carregar_permissoes_resultado(),
+    }
+    _render_criacao_usuario(leituras["usuarios"])
+    if not all(item.leitura_confirmada for item in leituras.values()):
+        st.error(
+            "Leitura bloqueada. A ficha e suas ações só ficam disponíveis quando "
+            "todas as fontes de identidade e acesso são confirmadas."
+        )
+        return
+
+    usuarios = leituras["usuarios"].dados.copy()
+    if usuarios.empty:
+        st.info("Nenhum usuário operacional cadastrado.")
+        return
+
+    filtro = st.radio("Mostrar", ("Todos", "Ativos", "Inativos"), horizontal=True)
+    filtrados = usuarios
+    if filtro == "Ativos":
+        filtrados = usuarios[usuarios["ativo"].astype(str).str.casefold() == "sim"]
+    elif filtro == "Inativos":
+        filtrados = usuarios[usuarios["ativo"].astype(str).str.casefold() != "sim"]
+    busca = st.text_input("Buscar por nome, login ou matrícula")
+    if busca.strip():
+        termo = busca.strip().casefold()
+        mascara = filtrados[["nome", "login", "matricula"]].astype(str).apply(
+            lambda coluna: coluna.str.casefold().str.contains(termo, regex=False)
+        ).any(axis=1)
+        filtrados = filtrados[mascara]
+    if filtrados.empty:
+        st.info("Nenhum usuário corresponde aos filtros.")
+        return
+
+    resumo = filtrados[["nome", "login", "matricula", "ativo"]].copy()
+    resumo["ativo"] = resumo["ativo"].map(
+        {"sim": "Ativo", "nao": "Inativo"}
+    ).fillna("Estado desconhecido")
+    resumo = resumo.rename(columns={
+        "nome": "Nome", "login": "Login", "matricula": "Matrícula",
+        "ativo": "Estado",
+    })
+    st.dataframe(resumo, use_container_width=True, hide_index=True)
+
+    opcoes = {
+        f"{row['nome']} — {row['login']} — {'ativo' if str(row['ativo']).casefold() == 'sim' else 'inativo'}": row["usuario_id"]
+        for _, row in filtrados.iterrows()
+    }
+    escolhido = st.selectbox("Usuário selecionado", list(opcoes), key="usuario_ficha")
+    usuario_id = opcoes[escolhido]
+    usuario = usuarios[usuarios["usuario_id"].astype(str) == str(usuario_id)].iloc[0]
+
+    st.divider()
+    st.header(usuario["nome"] or usuario["login"])
+    _render_identidade_usuario(usuario, leituras["usuarios"])
+    st.markdown("### Estado")
+    _render_estado_usuario(usuario, leituras["usuarios"])
+    st.divider()
+    _render_roles_usuario(usuario, leituras)
+    st.divider()
+    _render_acesso_usuario(usuario, leituras)
+    st.divider()
+    _render_auditoria_usuario(usuario, leituras["associacoes"].dados)
     st.info(
         "Contas protegidas permanecem exclusivamente em APP_USERS e não são "
         "editáveis nesta interface. A exclusão física não está disponível."
     )
-    st.divider()
-
-
-def _render_usuarios_roles():
-    st.subheader("ROLES DOS USUÁRIOS")
-    st.caption("Estas associações ainda não alteram o acesso efetivo do usuário.")
-    leitura = carregar_usuarios_roles_resultado()
-    leitura_usuarios = carregar_usuarios_operacionais_resultado()
-    leitura_roles = carregar_roles_resultado()
-    leitura_permissoes = carregar_roles_permissoes_resultado()
-    liberada = all(item.pode_sobrescrever for item in (
-        leitura, leitura_usuarios, leitura_roles,
-    ))
-    if not liberada:
-        st.error("Alterações bloqueadas: usuários, Roles e associações exigem leitura confirmada.")
-        st.divider()
-        return
-
-    usuarios = leitura_usuarios.dados.copy()
-    roles = leitura_roles.dados.copy()
-    associacoes = leitura.dados.copy()
-    if usuarios.empty:
-        st.info("Nenhum usuário operacional disponível para associação.")
-        st.divider()
-        return
-
-    opcoes_usuarios = {
-        f"{row['nome']} — {row['login']} — matrícula {row['matricula']} ({row['ativo']})": row["usuario_id"]
-        for _, row in usuarios.iterrows()
-    }
-    escolhido = st.selectbox("Usuário operacional", list(opcoes_usuarios), key="usuario_role_usuario")
-    usuario_id = opcoes_usuarios[escolhido]
-    usuario = usuarios[usuarios["usuario_id"] == usuario_id].iloc[0]
-    st.write(
-        f"**Nome:** {usuario['nome']}  |  **Login:** {usuario['login']}  |  "
-        f"**Matrícula:** {usuario['matricula']}  |  **Ativo:** {usuario['ativo']}"
-    )
-
-    historico = associacoes[associacoes["usuario_id"].astype(str) == str(usuario_id)].copy()
-    if historico.empty:
-        st.info("Este usuário ainda não possui histórico de Roles.")
-    else:
-        nomes = roles.set_index("role_id")["codigo"].to_dict()
-        historico["role"] = historico["role_id"].map(nomes).fillna("Role não localizada")
-        st.dataframe(
-            historico[[
-                "role", "ativo", "criado_em", "criado_por",
-                "atualizado_em", "atualizado_por",
-            ]], use_container_width=True, hide_index=True,
-        )
-
-    roles_ativas = roles[roles["ativo"].astype(str).str.casefold() == "sim"]
-    if str(usuario["ativo"]).casefold() == "sim" and not roles_ativas.empty:
-        opcoes_roles = {
-            f"{row['codigo']} — {row['nome']}": row["role_id"]
-            for _, row in roles_ativas.iterrows()
-        }
-        role_escolhida = st.selectbox("Role ativa", list(opcoes_roles), key="usuario_role_role")
-        role_id = opcoes_roles[role_escolhida]
-        col_atribuir, col_retirar = st.columns(2)
-        if col_atribuir.button("Atribuir ou reativar Role", use_container_width=True):
-            _informar_operacao(atribuir_role(
-                leitura=leitura, leitura_usuarios=leitura_usuarios,
-                leitura_roles=leitura_roles, usuario_id=usuario_id, role_id=role_id,
-            ))
-        if col_retirar.button("Retirar Role", use_container_width=True):
-            _informar_operacao(retirar_role(
-                leitura=leitura, leitura_usuarios=leitura_usuarios,
-                leitura_roles=leitura_roles, usuario_id=usuario_id, role_id=role_id,
-            ))
-        if leitura_permissoes.leitura_confirmada:
-            permissoes = leitura_permissoes.dados
-            vinculadas = permissoes[permissoes["role_id"].astype(str) == str(role_id)]
-            st.markdown("#### Permissões documentais da Role")
-            if vinculadas.empty:
-                st.info("Esta Role é válida e está vazia.")
-            else:
-                st.dataframe(
-                    vinculadas[["modulo", "recurso", "acao", "efeito"]],
-                    use_container_width=True, hide_index=True,
-                )
-    else:
-        st.info("Usuário inativo não pode receber nova Role; associações existentes podem ser consultadas e retiradas.")
-        ativas = historico[historico["ativo"].astype(str).str.casefold() == "sim"]
-        if not ativas.empty:
-            opcoes_retirada = {
-                roles.set_index("role_id")["codigo"].to_dict().get(row["role_id"], row["role_id"]): row["role_id"]
-                for _, row in ativas.iterrows()
-            }
-            selecionada = st.selectbox("Role ativa para retirada", list(opcoes_retirada), key="usuario_role_retirada")
-            if st.button("Retirar Role ativa", use_container_width=True):
-                _informar_operacao(retirar_role(
-                    leitura=leitura, leitura_usuarios=leitura_usuarios,
-                    leitura_roles=leitura_roles, usuario_id=usuario_id,
-                    role_id=opcoes_retirada[selecionada],
-                ))
-    st.divider()
 
 
 def _render_diagnostico_rbac():
@@ -471,12 +682,15 @@ def _render_diagnostico_rbac():
         "Usuário": item.nome or item.login,
         "Login": item.login,
         "Roles": ", ".join(item.roles) or "—",
-        "Permissões atuais": "\n".join(item.permissoes_atuais) or "—",
-        "Permissões RBAC": "\n".join(item.permissoes_rbac) or "—",
-        "RBAC a mais": "\n".join(item.rbac_a_mais) or "—",
-        "RBAC a menos": "\n".join(item.rbac_a_menos) or "—",
-        "Diferenças": "; ".join(item.ocorrencias) or "Nenhuma",
-        "Status": item.status,
+        "Qtd. acesso atual": len(item.permissoes_atuais),
+        "Qtd. calculada": len(item.permissoes_rbac),
+        "O acesso por Roles concederia": "\n".join(
+            _linhas_permissoes(item.rbac_a_mais)
+        ) or "—",
+        "O acesso atual possui, mas as Roles não concedem": "\n".join(
+            _linhas_permissoes(item.rbac_a_menos)
+        ) or "—",
+        "Status": _status_diagnostico(item.status),
     } for item in diagnosticos]
     st.dataframe(pd.DataFrame(linhas), use_container_width=True, hide_index=True)
     divergentes = sum(item.status != "IGUAL" for item in diagnosticos)
@@ -488,20 +702,12 @@ def _render_diagnostico_rbac():
     st.divider()
 
 
-def render():
-    st.title("Administração")
-    st.caption("Gestão de permissões de usuários do sistema FOS.")
-
-    if not pode_gerenciar_administracao():
-        st.error("Acesso restrito à custódia administrativa.")
-        st.stop()
-
-    _render_catalogo_permissoes()
-    _render_roles()
-    _render_usuarios_operacionais()
-    _render_usuarios_roles()
-    _render_diagnostico_rbac()
-
+def _render_permissoes_legadas():
+    st.subheader("Permissões efetivas legadas")
+    st.caption(
+        "Área técnica. Estas permissões continuam sendo a fonte do acesso "
+        "efetivo enquanto o RBAC permanece em modo de diagnóstico."
+    )
     resultado_leitura = carregar_permissoes_resultado()
     df = resultado_leitura.dados
     escrita_liberada = resultado_leitura.pode_sobrescrever
@@ -509,7 +715,7 @@ def render():
     if not escrita_liberada:
         _mostrar_erro_leitura(resultado_leitura)
 
-    st.subheader("Permissões cadastradas")
+    st.markdown("#### Permissões cadastradas")
 
     if df.empty:
         if escrita_liberada:
@@ -521,7 +727,7 @@ def render():
 
     st.divider()
 
-    st.subheader("Adicionar nova permissão")
+    st.markdown("#### Adicionar nova permissão")
 
     with st.form("form_nova_permissao"):
         usuario = st.text_input("Usuário")
@@ -587,7 +793,7 @@ def render():
 
     st.divider()
 
-    st.subheader("Remover / desativar permissões")
+    st.markdown("#### Remover / desativar permissões")
 
     if not df.empty:
         opcoes = [
@@ -634,3 +840,29 @@ def render():
                     resultado_leitura.sha,
                     "Permissão excluída.",
                 )
+
+
+def render():
+    st.title("Administração")
+    st.caption("Identidade, funções e acesso dos usuários do sistema FOS.")
+
+    if not pode_gerenciar_administracao():
+        st.error("Acesso restrito à custódia administrativa.")
+        st.stop()
+
+    usuarios, roles, permissoes, diagnostico, avancado = st.tabs([
+        "USUÁRIOS", "ROLES", "PERMISSÕES", "DIAGNÓSTICO", "AVANÇADO",
+    ])
+    with usuarios:
+        _render_usuarios()
+    with roles:
+        _render_roles()
+    with permissoes:
+        _render_catalogo_permissoes()
+    with diagnostico:
+        _render_diagnostico_rbac()
+    with avancado:
+        st.info(
+            "Área técnica e legada. O uso cotidiano deve começar pela ficha do usuário."
+        )
+        _render_permissoes_legadas()
