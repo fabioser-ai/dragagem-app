@@ -167,7 +167,13 @@ class TestShadowModeRBAC006(unittest.TestCase):
         interface = (ROOT / "pages/administracao.py").read_text(encoding="utf-8")
         docs = (ROOT / "docs/RBAC006_SHADOW_MODE.md").read_text(encoding="utf-8")
         self.assertIn('st.subheader("DIAGNÓSTICO RBAC")', interface)
-        self.assertNotIn("st.form", interface[interface.index("def _render_diagnostico_rbac"):interface.index("def render")])
+        self.assertNotIn(
+            "st.form",
+            interface[
+                interface.index("def _render_diagnostico_rbac"):
+                interface.index("def _render_permissoes_legadas")
+            ],
+        )
         self.assertIn(
             "O Shadow Mode calcula permissões, mas não participa da autorização do APP.",
             docs,
