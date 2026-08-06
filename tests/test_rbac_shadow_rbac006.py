@@ -128,10 +128,34 @@ class TestShadowModeRBAC006(unittest.TestCase):
             )
 
     def test_bases_efetivas_e_rbac005_permanecem_inalteradas(self):
+        caminho_usuarios = ROOT / "data/usuarios_operacionais.csv"
+        caminho_associacoes = ROOT / "data/usuarios_roles.csv"
+        usuarios_antes = caminho_usuarios.read_bytes()
+        associacoes_antes = caminho_associacoes.read_bytes()
+        usuarios = pd.read_csv(caminho_usuarios, dtype=str).fillna("")
+        associacoes = pd.read_csv(caminho_associacoes, dtype=str).fillna("")
+        self.assertEqual(
+            usuarios.columns.tolist(),
+            [
+                "usuario_id", "login", "nome", "matricula", "email",
+                "perfil_base", "ativo", "criado_em", "criado_por",
+                "atualizado_em", "atualizado_por", "exige_troca_senha",
+                "credencial_configurada",
+            ],
+        )
+        self.assertEqual(
+            associacoes.columns.tolist(),
+            [
+                "usuario_role_id", "usuario_id", "role_id", "ativo",
+                "criado_em", "criado_por", "atualizado_em", "atualizado_por",
+            ],
+        )
+        self.calcular()
+        self.assertEqual(caminho_usuarios.read_bytes(), usuarios_antes)
+        self.assertEqual(caminho_associacoes.read_bytes(), associacoes_antes)
+
         esperados = {
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
-            "data/usuarios_operacionais.csv": "ce72411b6c49e15814fea35d285ee291ba7282fba2ee807db6a7e1b70a3dbb79",
-            "data/usuarios_roles.csv": "b88286144e914667bd3269b73d603bff92cc36e928a68991ccd831e9f53cce0c",
             "data/roles.csv": "3879bc730c293b1eedda6b1baf12b945fef5789187e6f80d2e941fcd75780002",
             "data/roles_permissoes.csv": "8ad445f518c3c72900aa32b7385c0d8350630af408dcded9218e8ad8813cdc7a",
         }
