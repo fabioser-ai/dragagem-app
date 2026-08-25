@@ -1,8 +1,4 @@
-"""Modelo e persistência segura dos usuários operacionais do AUTH-001.
-
-Estes registros não participam da autenticação. APP_USERS continua sendo a
-única origem de contas autenticáveis nesta etapa.
-"""
+"""Identidade e persistência dos usuários operacionais (AUTH-001/002)."""
 
 import json
 import re

@@ -119,6 +119,7 @@ def ler_csv_github(
     token,
     repo,
     timeout=DEFAULT_REQUEST_TIMEOUT,
+    ref=None,
 ):
     """Lê um CSV do GitHub e retorna um resultado explícito e classificado.
 
@@ -131,7 +132,10 @@ def ler_csv_github(
     headers = {"Authorization": f"token {token}"}
 
     try:
-        response = requests.get(url, headers=headers, timeout=timeout)
+        kwargs = {"headers": headers, "timeout": timeout}
+        if ref is not None:
+            kwargs["params"] = {"ref": ref}
+        response = requests.get(url, **kwargs)
     except (requests.Timeout, requests.ConnectionError) as exc:
         return _resultado_leitura(
             status=StatusLeitura.FALHA_TEMPORARIA,

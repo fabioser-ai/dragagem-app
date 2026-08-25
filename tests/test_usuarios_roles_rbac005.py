@@ -193,7 +193,7 @@ class TestUsuariosRolesRBAC005(unittest.TestCase):
 
     def test_associacao_nao_altera_acesso_auth_matrizes_ou_medicoes(self):
         esperados = {
-            "services/auth.py": "b8f864ed3c9a892f53280e28ee56b78f5c979cee62d253923f88b55b477caec0",
+            "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
             "services/permissoes.py": "f586e6897dcec87e65479bd6a13fd25da42cb4eb44f3dca7d3240c5865244746",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "data/roles_permissoes.csv": "8ad445f518c3c72900aa32b7385c0d8350630af408dcded9218e8ad8813cdc7a",

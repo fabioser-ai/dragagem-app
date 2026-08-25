@@ -161,7 +161,7 @@ class TestCatalogoPermissoesRBAC002(unittest.TestCase):
 
         esperados = {
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
-            "services/auth.py": "b8f864ed3c9a892f53280e28ee56b78f5c979cee62d253923f88b55b477caec0",
+            "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
             "pages/medicoes.py": "f23a8cf9d1c7e01f94a93447c1f924dbc2dfd80b1bb904a1a9ff3e64e496257f",
             "modulos/medicoes/permissoes.py": "a72195e98268a7b76f220a6b0873816e1d46363cd015c5fe673e02f175ea7643",
         }

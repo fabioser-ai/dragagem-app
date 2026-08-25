@@ -2,6 +2,11 @@ import pandas as pd
 import streamlit as st
 
 from services.autorizacao import pode_gerenciar_administracao
+from services.credenciais_operacionais import (
+    carregar_credenciais_resultado,
+    configurar_credencial,
+    diagnosticar_credencial,
+)
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
 from services.rbac_shadow import calcular_usuario, diagnosticar_usuarios
@@ -174,10 +179,10 @@ def _status_diagnostico(status):
 
 AJUDA_COLUNAS = {
     "Usuário": "Pessoa à qual a informação se refere. Não define credencial ou acesso por si só.",
-    "Login": "Nome que identifica a pessoa. Para usuários operacionais, ainda não autentica no APP.",
+    "Login": "Nome que identifica a pessoa e pode autenticar após ativação e configuração da credencial.",
     "Perfil-base": "Classificação cadastral inicial. Não substitui Roles nem concede acesso.",
     "Cadastro": "Estado do registro operacional. Ativo ainda não significa entrada disponível.",
-    "Credencial": "Indica se existe credencial operacional funcional. Ela ainda não foi implementada.",
+    "Credencial": "Indica se existe credencial operacional bcrypt configurada.",
     "Troca de senha": "Campo reservado ao futuro ciclo de credenciais; hoje não possui efeito.",
     "Role / função": "Função institucional atribuível. No Shadow Mode, não altera o acesso real.",
     "Estado da Role": "Indica se a Role pode ser usada em novas associações; não é acesso efetivo.",
@@ -225,32 +230,33 @@ def _render_ajuda_controle_acesso():
 **NOVO MODELO POR ROLES — EM PREPARAÇÃO**
 
 - **Usuários operacionais:** representam pessoas cadastradas no novo modelo. Podem
-  ser ativadas e associadas a Roles, mas ainda não possuem login funcional.
+  autenticar quando ativas e com credencial configurada.
 - **Roles:** representam funções institucionais e agrupam permissões. Não concedem
   acesso real enquanto o RBAC estiver em modo de diagnóstico.
 - **Permissões pelas Roles:** representam o acesso que o novo modelo calcularia;
   ainda não liberam nem bloqueiam operações.
 - **Diagnóstico (Shadow Mode):** compara os dois modelos e não altera o acesso.
-- **Credenciais:** ainda não foram implementadas para usuários operacionais.
-  Nenhum e-mail, senha ou convite é gerado atualmente.
+- **Credenciais:** são hashes bcrypt separados da identidade. Nenhum e-mail ou
+  convite é gerado atualmente e a senha original não pode ser recuperada.
 
 **Fluxo recomendado**
 
 1. Cadastre a pessoa — o cadastro nasce inativo e sem credencial.
 2. Revise os dados e ative o registro operacional.
 3. Atribua uma Role institucional.
-4. Consulte o Shadow Mode para comparar o cálculo com o acesso atual.
-5. Não considere o acesso migrado: a autorização efetiva continua no modelo atual.
+4. Configure a credencial inicial.
+5. Consulte o Shadow Mode para comparar o cálculo com o acesso atual.
+6. Não considere o acesso migrado: a autorização efetiva continua no modelo atual.
 
 **O que ainda não está disponível**
 
-Login operacional, senha, convite, primeiro acesso, reset, ativação do RBAC e
+Convite, recuperação por e-mail, troca obrigatória, MFA, ativação do RBAC e
 migração automática de permissões ainda não foram implementados.
 
 **Glossário**
 
 - **Cadastro:** registro da pessoa no novo modelo.
-- **Credencial:** mecanismo que permitiria autenticar; ainda não existe para o cadastro operacional.
+- **Credencial:** hash seguro que permite autenticar um cadastro operacional ativo.
 - **Role:** função institucional que agrupa permissões.
 - **Permissão:** decisão sobre o que pode ser feito em um recurso.
 - **Shadow Mode:** comparação sem efeito na autorização.
@@ -464,8 +470,8 @@ def _render_criacao_usuario(leitura):
         with st.form("form_usuario_operacional_novo"):
             login = st.text_input(
                 "Login *",
-                help=("Nome utilizado para identificar a pessoa. Usuários operacionais "
-                      "ainda não autenticam com este login."),
+                help=("Nome utilizado para identificar a pessoa e autenticar após "
+                      "ativação e configuração da credencial."),
             )
             nome = st.text_input("Nome *")
             matricula = st.text_input("Matrícula *")
@@ -493,21 +499,51 @@ def _render_criacao_usuario(leitura):
                 st.error(resultado.mensagem)
 
 
-def _render_estado_usuario(usuario, leitura_usuarios):
+def _render_estado_usuario(usuario, leitura_usuarios, leitura_credenciais):
     ativo = str(usuario["ativo"]).strip().casefold() == "sim"
+    estado_credencial = diagnosticar_credencial(usuario, leitura_credenciais)
+    credencial = estado_credencial.disponivel
+    marcador = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    rotulo_credencial = (
+        "Sim" if credencial else
+        "Indeterminado" if estado_credencial.codigo == "leitura_nao_confirmada" else
+        "Inconsistente" if marcador else "Não"
+    )
     col_estado, col_login, col_credencial = st.columns(3)
     col_estado.metric("Estado do cadastro", "Ativo" if ativo else "Inativo")
-    col_login.metric("Pode entrar no APP?", "Não")
-    col_credencial.metric("Credencial configurada", "Não")
-    st.warning(
-        "Este usuário operacional ainda não pode entrar no APP. Ativação e "
-        "atribuição de função não criam credencial nem alteram o login atual."
+    col_login.metric("Pode entrar no APP?", "Sim" if ativo and credencial else "Indisponível")
+    col_credencial.metric("Credencial configurada", rotulo_credencial)
+    st.info(
+        "A entrada operacional exige cadastro ativo e credencial válida. As "
+        "permissões efetivas continuam no modelo atual; Roles permanecem em Shadow Mode."
     )
     st.caption(
         f"Exige troca de senha: {usuario['exige_troca_senha'] or 'não'} — "
-        "campo reservado para o futuro ciclo de credenciais; ainda não possui "
-        "efeito funcional."
+        "campo reservado para o futuro ciclo de credenciais; a troca obrigatória "
+        "permanece fora do escopo desta etapa."
     )
+    if marcador and not credencial:
+        st.warning(
+            "A credencial observável está indisponível ou inconsistente. "
+            "Revise ou reconfigure a credencial antes de liberar o acesso."
+        )
+
+    with st.expander("Configurar ou redefinir credencial"):
+        st.caption("A senha será transformada em hash bcrypt e nunca poderá ser exibida novamente.")
+        with st.form(f"form_credencial_{usuario['usuario_id']}"):
+            senha = st.text_input("Nova senha", type="password")
+            confirmacao = st.text_input("Confirmar nova senha", type="password")
+            salvar = st.form_submit_button(
+                "Configurar credencial",
+                disabled=not leitura_usuarios.pode_sobrescrever or not leitura_credenciais.leitura_confirmada,
+            )
+        if salvar:
+            if not senha or senha != confirmacao:
+                st.error("As senhas informadas não coincidem ou estão vazias.")
+            else:
+                _informar_operacao(configurar_credencial(
+                    usuario_id=usuario["usuario_id"], senha=senha
+                ))
 
     if ativo:
         confirmar = st.checkbox(
@@ -524,8 +560,8 @@ def _render_estado_usuario(usuario, leitura_usuarios):
                 email=usuario["email"], perfil_base=usuario["perfil_base"], ativo="nao",
             ))
         st.caption(
-            "Inativar este cadastro ainda não revoga uma sessão de APP_USERS, "
-            "pois usuários operacionais ainda não autenticam."
+            "A inativação impede novos logins operacionais. Sessões já abertas "
+            "expiram pelo contrato atual ou devem ser encerradas pelo usuário."
         )
     elif st.button(
         "Ativar usuário", disabled=not leitura_usuarios.pode_sobrescrever,
@@ -548,15 +584,15 @@ def _render_identidade_usuario(usuario, leitura_usuarios):
     col2.write(f"**Perfil-base:** {usuario['perfil_base']}")
     col2.caption("O e-mail é apenas cadastral; nenhum convite será enviado.")
     st.caption(
-        "Login identifica o cadastro, mas ainda não autentica. Perfil-base é uma "
+        "Login identifica o cadastro e pode autenticar com credencial válida. Perfil-base é uma "
         "classificação cadastral e não concede acesso nem substitui as Roles."
     )
     with st.expander("Editar dados"):
         with st.form(f"form_usuario_edicao_{usuario['usuario_id']}"):
             st.text_input(
                 "Login reservado", value=usuario["login"], disabled=True,
-                help=("Nome utilizado para identificar a pessoa. Usuários operacionais "
-                      "ainda não autenticam com este login."),
+                help=("Nome utilizado para identificar a pessoa e autenticar após "
+                      "ativação e configuração da credencial."),
             )
             nome = st.text_input("Nome", value=usuario["nome"])
             matricula = st.text_input("Matrícula", value=usuario["matricula"])
@@ -740,21 +776,26 @@ def _render_resumo_usuario(usuario, leituras):
         & (associacoes["ativo"].astype(str).str.casefold() == "sim")
     ]
     ativo = str(usuario["ativo"]).strip().casefold() == "sim"
-    credencial = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    estado_credencial = diagnosticar_credencial(usuario, leituras["credenciais"])
+    credencial = estado_credencial.disponivel
+    marcador = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    rotulo_credencial = (
+        "Configurada" if credencial else
+        "Indeterminada" if estado_credencial.codigo == "leitura_nao_confirmada" else
+        "Inconsistente" if marcador else "Não configurada"
+    )
     primeira_linha = st.columns(3)
     primeira_linha[0].metric(
         "Cadastro", "Ativo" if ativo else "Inativo",
-        help=("Indica se o cadastro operacional está ativo. Atualmente isso não "
-              "significa que a pessoa consiga entrar no APP."),
+        help="Indica se o cadastro operacional está apto a autenticar.",
     )
     primeira_linha[1].metric(
-        "Entrada no APP", "Indisponível",
-        help="Cadastro ativo não significa login disponível.",
+        "Entrada no APP", "Disponível" if ativo and credencial else "Indisponível",
+        help="Exige cadastro ativo e credencial configurada.",
     )
     primeira_linha[2].metric(
-        "Credencial", "Configurada" if credencial else "Não configurada",
-        help=("Indica se existe credencial operacional funcional. Atualmente permanece "
-              "como não, pois a autenticação operacional ainda não foi implementada."),
+        "Credencial", rotulo_credencial,
+        help="Indica se existe credencial operacional bcrypt configurada.",
     )
     segunda_linha = st.columns(3)
     segunda_linha[0].metric(
@@ -770,23 +811,24 @@ def _render_resumo_usuario(usuario, leituras):
         help="Compara o modelo atual com as Roles; não altera o acesso.",
     )
     st.caption(
-        "Cadastro ativo não significa que a pessoa pode entrar. Role atribuída "
+        "Cadastro ativo e credencial configurada permitem autenticar. Role atribuída "
         "não significa acesso liberado."
     )
     st.markdown("#### Por que estes estados aparecem?")
     st.write(
         "- **Cadastro:** "
-        + ("o registro operacional está ativo. Isso ainda não permite login."
+        + ("o registro operacional está ativo e pode autenticar se possuir credencial."
            if ativo else "o registro operacional está inativo e não pode receber nova função.")
     )
     st.write(
-        "- **Entrada no APP:** indisponível porque usuários operacionais ainda não "
-        "autenticam no APP."
+        "- **Entrada no APP:** "
+        + ("disponível pelo ciclo operacional." if ativo and credencial
+           else "indisponível até que cadastro e credencial estejam válidos.")
     )
     st.write(
         "- **Credencial:** "
-        + ("o cadastro informa uma credencial configurada."
-           if credencial else "nenhuma credencial operacional foi criada para esta pessoa.")
+        + ("a identidade e a credencial observável estão consistentes."
+           if credencial else "a credencial não está disponível de forma consistente.")
     )
     st.write(
         f"- **Roles:** {len(roles_ativas)} função(ões) ativa(s) atribuída(s). "
@@ -822,8 +864,8 @@ def _render_detalhes_usuario(usuario, associacoes):
     st.write(f"**Credencial configurada:** {usuario['credencial_configurada'] or 'não'}")
     st.write(f"**Exige troca de senha:** {usuario['exige_troca_senha'] or 'não'}")
     st.caption(
-        "Os campos de credencial e troca de senha estão reservados ao futuro ciclo "
-        "de autenticação operacional e ainda não possuem efeito funcional."
+        "A credencial já participa da autenticação operacional. A troca obrigatória "
+        "permanece reservada a uma missão futura."
     )
     historico = associacoes[
         associacoes["usuario_id"].astype(str) == str(usuario["usuario_id"])
@@ -852,6 +894,7 @@ def _render_usuarios():
     st.caption("Selecione uma pessoa para administrar cadastro, funções e acesso no mesmo contexto.")
     leituras = {
         "usuarios": carregar_usuarios_operacionais_resultado(),
+        "credenciais": carregar_credenciais_resultado(),
         "associacoes": carregar_usuarios_roles_resultado(),
         "roles": carregar_roles_resultado(),
         "matriz": carregar_roles_permissoes_resultado(),
@@ -859,7 +902,11 @@ def _render_usuarios():
         "atuais": carregar_permissoes_resultado(),
     }
     _render_criacao_usuario(leituras["usuarios"])
-    if not all(item.leitura_confirmada for item in leituras.values()):
+    fontes_obrigatorias = (
+        leituras[chave] for chave in
+        ("usuarios", "associacoes", "roles", "matriz", "catalogo", "atuais")
+    )
+    if not all(item.leitura_confirmada for item in fontes_obrigatorias):
         st.error(
             "Leitura bloqueada. A ficha e suas ações só ficam disponíveis quando "
             "todas as fontes de identidade e acesso são confirmadas."
@@ -897,8 +944,8 @@ def _render_usuarios():
         "ativo": "Estado",
     })
     st.caption(
-        "Entenda as colunas: Login identifica o cadastro, mas ainda não autentica; "
-        "Estado informa apenas se o registro operacional está ativo."
+        "Entenda as colunas: Login identifica o cadastro; a entrada também exige "
+        "estado ativo e credencial configurada."
     )
     st.dataframe(
         resumo, use_container_width=True, hide_index=True,
@@ -932,7 +979,7 @@ def _render_usuarios():
     if secao == "Visão geral":
         _render_identidade_usuario(usuario, leituras["usuarios"])
         st.markdown("### Estado e ações principais")
-        _render_estado_usuario(usuario, leituras["usuarios"])
+        _render_estado_usuario(usuario, leituras["usuarios"], leituras["credenciais"])
     elif secao == "Funções":
         _render_roles_usuario(usuario, leituras)
     elif secao == "Acesso":
