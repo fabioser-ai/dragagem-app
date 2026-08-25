@@ -1,3 +1,3 @@
 usuario_id,login,nome,matricula,email,perfil_base,ativo,criado_em,criado_por,atualizado_em,atualizado_por,exige_troca_senha,credencial_configurada
-533b443c-6f6e-4a1f-942c-2026a3258695,teste,TESTE,XXXXXXX,fabioserafini@fosengenharia.com.br,funcionario,sim,2026-08-05T21:07:21.730015+00:00,Fabio,2026-08-05T21:11:58.556439+00:00,Fabio,nao,nao
+533b443c-6f6e-4a1f-942c-2026a3258695,teste,TESTE,XXXXXXX,fabioserafini@fosengenharia.com.br,funcionario,sim,2026-08-05T21:07:21.730015+00:00,Fabio,2026-08-25T19:11:08.378456+00:00,Fabio,nao,sim
 2a50dc6b-0a32-41ba-8a7a-6d77636a5758,fabioserafini@fosengenharia.com.br,TEST1,ZZZZZ,fabioserafini@fosengenharia.com.br,user,sim,2026-08-06T17:59:48.106251+00:00,Fabio,2026-08-06T18:00:13.152745+00:00,Fabio,nao,nao
