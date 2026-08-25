@@ -65,17 +65,17 @@ class TestUXAcesso001(unittest.TestCase):
         ):
             self.assertIn(campo, self.fonte)
 
-    def test_mensagens_nao_prometem_credencial_convite_ou_autenticacao(self):
+    def test_mensagens_auth002_nao_prometem_convite_ou_recuperacao(self):
         for mensagem in (
             "O e-mail é apenas cadastral",
             "Nenhum convite será enviado",
             "senha será gerada",
-            "ainda não pode entrar no APP",
-            "não criam credencial",
+            "Configurar ou redefinir credencial",
+            "hash bcrypt",
             "Nenhum e-mail foi enviado",
         ):
             self.assertIn(mensagem, self.fonte)
-        for proibido in ("enviar_email", "smtp", "criar_credencial", "gerar_senha"):
+        for proibido in ("enviar_email", "smtp", "gerar_senha", "recuperar_senha"):
             self.assertNotIn(proibido, self.fonte.casefold())
 
     def test_roles_permanecem_documentais_e_historico_e_preservado(self):
@@ -112,7 +112,7 @@ class TestUXAcesso001(unittest.TestCase):
             "Permissões efetivas atuais",
             "Permissões pelas Roles",
             "Diagnóstico (Shadow Mode)",
-            "Nenhum e-mail, senha ou convite é gerado atualmente",
+            "a senha original não pode ser recuperada",
         ):
             self.assertIn(texto, self.fonte)
 
@@ -130,7 +130,7 @@ class TestUXAcesso001(unittest.TestCase):
             '"Acesso real"', '"Novo RBAC"',
         ):
             self.assertIn(rotulo, self.fonte)
-        self.assertIn("Cadastro ativo não significa login disponível", self.fonte)
+        self.assertIn("Cadastro ativo e credencial configurada permitem autenticar", self.fonte)
         self.assertIn("Role atribuída não significa acesso liberado", self.fonte)
         self.assertIn("Por que estes estados aparecem?", self.fonte)
         self.assertIn("nenhuma credencial operacional foi criada para esta pessoa", self.fonte)
@@ -170,10 +170,10 @@ class TestUXAcesso001(unittest.TestCase):
     def test_campos_tecnicos_principais_possuem_explicacao(self):
         for explicacao in (
             "Identificador interno e imutável do cadastro. Não é o login.",
-            "ainda não autenticam com este login.",
+            "pode autenticar após ativação e configuração da credencial",
             "Classificação cadastral inicial. Não substitui as Roles",
-            "Indica se o cadastro operacional está ativo",
-            "Indica se existe credencial operacional funcional",
+            "Indica se o cadastro operacional está apto a autenticar",
+            "Indica se existe credencial operacional bcrypt configurada",
             "campo reservado para o futuro ciclo de credenciais",
             "Permissões presentes nas Roles, mas ainda ausentes no acesso atual.",
             "Permissões em uso hoje que não aparecem nas Roles atribuídas.",
@@ -188,7 +188,7 @@ class TestUXAcesso001(unittest.TestCase):
 
     def test_autenticacao_dados_rbac_e_medicoes_permanecem_inalterados(self):
         esperados = {
-            "services/auth.py": "b8f864ed3c9a892f53280e28ee56b78f5c979cee62d253923f88b55b477caec0",
+            "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
             "services/autorizacao.py": "3062e25a6d1a6afce9ee0d1a3cc9832a0edc111f3e1378cc4de29bbf23e59b66",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "data/roles_permissoes.csv": "8ad445f518c3c72900aa32b7385c0d8350630af408dcded9218e8ad8813cdc7a",

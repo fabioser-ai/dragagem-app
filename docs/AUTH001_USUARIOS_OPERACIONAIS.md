@@ -7,7 +7,8 @@ pela autenticação atual. `SYSTEM_OWNER_ID` permanece a única fonte canônica 
 propriedade. O AUTH-001 cria uma base separada,
 `data/usuarios_operacionais.csv`, administrada somente pela autoridade central.
 
-**Usuários operacionais cadastrados neste AUTH-001 ainda não podem autenticar no APP.**
+O AUTH-002 complementa este modelo com credenciais bcrypt separadas e login
+operacional, sem alterar `APP_USERS`; consulte `AUTH002_AUTENTICACAO_OPERACIONAL.md`.
 
 ## Identidade e dados
 

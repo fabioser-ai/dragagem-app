@@ -18,6 +18,38 @@ def carregar_usuarios():
         return {}
 
 
+def _carregar_usuarios_confirmado():
+    try:
+        bruto = st.secrets["APP_USERS"]
+        usuarios = json.loads(bruto) if isinstance(bruto, str) else bruto
+        return usuarios if isinstance(usuarios, dict) else None
+    except Exception:
+        return None
+
+
+def _autenticar_operacional(usuario, senha, usuarios_protegidos):
+    """Autentica a base operacional; qualquer ambiguidade resulta em negação."""
+    try:
+        from services.credenciais_operacionais import autenticar_usuario_operacional
+
+        return autenticar_usuario_operacional(
+            login=usuario, senha=senha, usuarios_protegidos=usuarios_protegidos
+        )
+    except Exception:
+        return None
+
+
+def _abrir_sessao(*, usuario, perfil, matricula, nome):
+    st.session_state["autenticado"] = True
+    st.session_state["usuario"] = usuario
+    st.session_state["perfil"] = perfil
+    st.session_state["matricula"] = matricula
+    st.session_state["nome"] = nome
+    st.session_state["ultimo_acesso"] = time.time()
+    st.session_state["tela"] = "menu"
+    _agendar_log(usuario, perfil, "login")
+
+
 def inicializar_auth():
     padroes = {
         "autenticado": False,
@@ -115,21 +147,30 @@ def verificar_login():
     if not entrar:
         return False
 
-    usuarios = carregar_usuarios()
-    if usuario not in usuarios or senha != usuarios[usuario]["password"]:
+    usuarios_confirmados = _carregar_usuarios_confirmado()
+    usuarios = usuarios_confirmados or {}
+    protegidos_normalizados = {
+        str(login).strip().casefold() for login in usuarios
+    }
+    dados_usuario = None
+    if usuario in usuarios and senha == usuarios[usuario].get("password"):
+        dados_usuario = {
+            "usuario": usuario,
+            "perfil": usuarios[usuario].get("role", "user"),
+            "matricula": usuarios[usuario].get("matricula", ""),
+            "nome": usuarios[usuario].get("nome", usuario),
+        }
+    elif (
+        usuarios_confirmados is not None
+        and str(usuario).strip().casefold() not in protegidos_normalizados
+    ):
+        dados_usuario = _autenticar_operacional(usuario, senha, usuarios)
+
+    if dados_usuario is None:
         st.error("Usuário ou senha incorretos. Atenção a maiúsculas e minúsculas.")
         return False
 
-    dados_usuario = usuarios[usuario]
-    perfil = dados_usuario.get("role", "user")
-    st.session_state.autenticado = True
-    st.session_state.usuario = usuario
-    st.session_state.perfil = perfil
-    st.session_state.matricula = dados_usuario.get("matricula", "")
-    st.session_state.nome = dados_usuario.get("nome", usuario)
-    st.session_state.ultimo_acesso = time.time()
-    st.session_state.tela = "menu"
-    _agendar_log(usuario, perfil, "login")
+    _abrir_sessao(**dados_usuario)
 
     # Continua no mesmo ciclo: não há rerun entre a confirmação e o menu.
     area_login.empty()
