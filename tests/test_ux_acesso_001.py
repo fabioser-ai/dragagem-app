@@ -133,7 +133,7 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertIn("Cadastro ativo e credencial configurada permitem autenticar", self.fonte)
         self.assertIn("Role atribuída não significa acesso liberado", self.fonte)
         self.assertIn("Por que estes estados aparecem?", self.fonte)
-        self.assertIn("nenhuma credencial operacional foi criada para esta pessoa", self.fonte)
+        self.assertIn("a credencial não está disponível de forma consistente", self.fonte)
         self.assertIn("o novo modelo concederia permissão", self.fonte)
 
     def test_ficha_tem_navegacao_interna_sem_duplicar_seletor(self):

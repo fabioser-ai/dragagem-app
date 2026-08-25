@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import re
 
 import bcrypt
 import pandas as pd
@@ -28,6 +29,7 @@ COLUNAS = [
 ]
 ALGORITMO = "bcrypt"
 BRANCH_PADRAO = "main"
+_HASH_BCRYPT = re.compile(r"^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$")
 
 
 @dataclass(frozen=True)
@@ -36,6 +38,46 @@ class ResultadoCredencial:
     codigo: str
     mensagem: str
     escrita: object = None
+
+
+@dataclass(frozen=True)
+class DiagnosticoCredencial:
+    disponivel: bool
+    codigo: str
+
+
+def hash_bcrypt_estruturalmente_valido(password_hash):
+    """Valida somente o formato público do hash; não tenta validar uma senha."""
+    return bool(
+        isinstance(password_hash, str)
+        and _HASH_BCRYPT.fullmatch(password_hash.strip())
+    )
+
+
+def diagnosticar_credencial(usuario, leitura_credenciais):
+    """Determina o estado observável da credencial para diagnóstico administrativo."""
+    try:
+        if str(usuario["credencial_configurada"]).strip().casefold() != "sim":
+            return DiagnosticoCredencial(False, "nao_configurada")
+        if not leitura_credenciais.leitura_confirmada:
+            return DiagnosticoCredencial(False, "leitura_nao_confirmada")
+
+        usuario_id = str(usuario["usuario_id"])
+        registros = _df(leitura_credenciais.dados)
+        registros = registros[
+            registros["usuario_id"].astype(str) == usuario_id
+        ]
+        if len(registros) != 1:
+            return DiagnosticoCredencial(False, "registro_inconsistente")
+
+        credencial = registros.iloc[0]
+        if str(credencial["algoritmo"]).strip().casefold() != ALGORITMO:
+            return DiagnosticoCredencial(False, "algoritmo_invalido")
+        if not hash_bcrypt_estruturalmente_valido(str(credencial["password_hash"])):
+            return DiagnosticoCredencial(False, "hash_invalido")
+        return DiagnosticoCredencial(True, "disponivel")
+    except Exception:
+        return DiagnosticoCredencial(False, "estado_inconsistente")
 
 
 def _df(dados=None):

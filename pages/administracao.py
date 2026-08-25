@@ -5,6 +5,7 @@ from services.autorizacao import pode_gerenciar_administracao
 from services.credenciais_operacionais import (
     carregar_credenciais_resultado,
     configurar_credencial,
+    diagnosticar_credencial,
 )
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
@@ -500,11 +501,18 @@ def _render_criacao_usuario(leitura):
 
 def _render_estado_usuario(usuario, leitura_usuarios, leitura_credenciais):
     ativo = str(usuario["ativo"]).strip().casefold() == "sim"
-    credencial = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    estado_credencial = diagnosticar_credencial(usuario, leitura_credenciais)
+    credencial = estado_credencial.disponivel
+    marcador = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    rotulo_credencial = (
+        "Sim" if credencial else
+        "Indeterminado" if estado_credencial.codigo == "leitura_nao_confirmada" else
+        "Inconsistente" if marcador else "Não"
+    )
     col_estado, col_login, col_credencial = st.columns(3)
     col_estado.metric("Estado do cadastro", "Ativo" if ativo else "Inativo")
-    col_login.metric("Pode entrar no APP?", "Sim" if ativo and credencial else "Não")
-    col_credencial.metric("Credencial configurada", "Sim" if credencial else "Não")
+    col_login.metric("Pode entrar no APP?", "Sim" if ativo and credencial else "Indisponível")
+    col_credencial.metric("Credencial configurada", rotulo_credencial)
     st.info(
         "A entrada operacional exige cadastro ativo e credencial válida. As "
         "permissões efetivas continuam no modelo atual; Roles permanecem em Shadow Mode."
@@ -514,6 +522,11 @@ def _render_estado_usuario(usuario, leitura_usuarios, leitura_credenciais):
         "campo reservado para o futuro ciclo de credenciais; a troca obrigatória "
         "permanece fora do escopo desta etapa."
     )
+    if marcador and not credencial:
+        st.warning(
+            "A credencial observável está indisponível ou inconsistente. "
+            "Revise ou reconfigure a credencial antes de liberar o acesso."
+        )
 
     with st.expander("Configurar ou redefinir credencial"):
         st.caption("A senha será transformada em hash bcrypt e nunca poderá ser exibida novamente.")
@@ -763,7 +776,14 @@ def _render_resumo_usuario(usuario, leituras):
         & (associacoes["ativo"].astype(str).str.casefold() == "sim")
     ]
     ativo = str(usuario["ativo"]).strip().casefold() == "sim"
-    credencial = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    estado_credencial = diagnosticar_credencial(usuario, leituras["credenciais"])
+    credencial = estado_credencial.disponivel
+    marcador = str(usuario["credencial_configurada"]).strip().casefold() == "sim"
+    rotulo_credencial = (
+        "Configurada" if credencial else
+        "Indeterminada" if estado_credencial.codigo == "leitura_nao_confirmada" else
+        "Inconsistente" if marcador else "Não configurada"
+    )
     primeira_linha = st.columns(3)
     primeira_linha[0].metric(
         "Cadastro", "Ativo" if ativo else "Inativo",
@@ -774,7 +794,7 @@ def _render_resumo_usuario(usuario, leituras):
         help="Exige cadastro ativo e credencial configurada.",
     )
     primeira_linha[2].metric(
-        "Credencial", "Configurada" if credencial else "Não configurada",
+        "Credencial", rotulo_credencial,
         help="Indica se existe credencial operacional bcrypt configurada.",
     )
     segunda_linha = st.columns(3)
@@ -807,8 +827,8 @@ def _render_resumo_usuario(usuario, leituras):
     )
     st.write(
         "- **Credencial:** "
-        + ("o cadastro informa uma credencial configurada."
-           if credencial else "nenhuma credencial operacional foi criada para esta pessoa.")
+        + ("a identidade e a credencial observável estão consistentes."
+           if credencial else "a credencial não está disponível de forma consistente.")
     )
     st.write(
         f"- **Roles:** {len(roles_ativas)} função(ões) ativa(s) atribuída(s). "
@@ -882,7 +902,11 @@ def _render_usuarios():
         "atuais": carregar_permissoes_resultado(),
     }
     _render_criacao_usuario(leituras["usuarios"])
-    if not all(item.leitura_confirmada for item in leituras.values()):
+    fontes_obrigatorias = (
+        leituras[chave] for chave in
+        ("usuarios", "associacoes", "roles", "matriz", "catalogo", "atuais")
+    )
+    if not all(item.leitura_confirmada for item in fontes_obrigatorias):
         st.error(
             "Leitura bloqueada. A ficha e suas ações só ficam disponíveis quando "
             "todas as fontes de identidade e acesso são confirmadas."

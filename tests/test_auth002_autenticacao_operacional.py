@@ -68,6 +68,46 @@ class TestCredenciaisAUTH002(unittest.TestCase):
         self.assertTrue(cred.verificar_hash("segredo", self.hash))
         self.assertFalse(cred.verificar_hash("errada", self.hash))
 
+    def diagnosticar(self, *, usuario=None, dados=None, status=StatusLeitura.SUCESSO_COM_DADOS):
+        identidade = dict(USUARIO)
+        identidade.update(usuario or {})
+        base = self.credenciais if dados is None else dados
+        resultado = leitura(cred.ARQUIVO, base, status)
+        return cred.diagnosticar_credencial(identidade, resultado)
+
+    def test_diagnostico_marcador_sim_e_credencial_valida_disponivel(self):
+        resultado = self.diagnosticar()
+        self.assertTrue(resultado.disponivel)
+        self.assertEqual(resultado.codigo, "disponivel")
+
+    def test_diagnostico_marcador_sim_e_credencial_ausente_inconsistente(self):
+        resultado = self.diagnosticar(dados=cred._df())
+        self.assertFalse(resultado.disponivel)
+        self.assertEqual(resultado.codigo, "registro_inconsistente")
+
+    def test_diagnostico_falha_de_leitura_nao_afirma_disponibilidade(self):
+        resultado = self.diagnosticar(status=StatusLeitura.FALHA_TEMPORARIA)
+        self.assertFalse(resultado.disponivel)
+        self.assertEqual(resultado.codigo, "leitura_nao_confirmada")
+
+    def test_diagnostico_credencial_duplicada_inconsistente(self):
+        duplicada = pd.concat([self.credenciais, self.credenciais], ignore_index=True)
+        resultado = self.diagnosticar(dados=duplicada)
+        self.assertFalse(resultado.disponivel)
+        self.assertEqual(resultado.codigo, "registro_inconsistente")
+
+    def test_diagnostico_hash_corrompido_inconsistente(self):
+        corrompida = self.credenciais.copy()
+        corrompida.at[0, "password_hash"] = "hash-corrompido"
+        resultado = self.diagnosticar(dados=corrompida)
+        self.assertFalse(resultado.disponivel)
+        self.assertEqual(resultado.codigo, "hash_invalido")
+
+    def test_diagnostico_marcador_nao_ignora_registro_residual(self):
+        resultado = self.diagnosticar(usuario={"credencial_configurada": "nao"})
+        self.assertFalse(resultado.disponivel)
+        self.assertEqual(resultado.codigo, "nao_configurada")
+
     def test_login_operacional_constroi_dados_da_sessao(self):
         self.assertEqual(self.autenticar(), {
             "usuario": "operador", "perfil": "funcionario",
