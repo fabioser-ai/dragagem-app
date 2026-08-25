@@ -22,12 +22,11 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertNotIn('perfil == "superadmin"', self.fonte)
 
     def test_navegacao_prioriza_usuario_e_separa_areas(self):
-        self.assertIn(
-            '"USUÁRIOS", "ROLES", "PERMISSÕES RBAC", "DIAGNÓSTICO", "ACESSO ATUAL"',
-            self.fonte,
-        )
+        for area in ("Pessoas", "Acessos", "Roles", "Diagnóstico", "Auditoria"):
+            self.assertIn(f'("{area}",', self.fonte)
         render = self.fonte[self.fonte.index("def render():"):]
-        self.assertLess(render.index("_render_usuarios()"), render.index("_render_roles()"))
+        self.assertIn("_render_inicio_administracao()", render)
+        self.assertIn("_render_area_acessos()", render)
         self.assertIn("def _render_permissoes_legadas", self.fonte)
 
     def test_cabecalho_retorna_pelo_fluxo_atual_e_oferece_documentacao(self):
@@ -35,8 +34,8 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertIn("← Voltar ao menu inicial", trecho)
         self.assertIn('st.session_state.tela = "menu"', trecho)
         self.assertIn("st.rerun()", trecho)
-        self.assertIn('st.title("Administração de acesso")', trecho)
-        self.assertIn("Gerencie pessoas, funções e permissões do APP.", trecho)
+        self.assertIn('st.title("Administração")', trecho)
+        self.assertIn("Gerencie pessoas, acessos, funções e histórico em um só lugar.", trecho)
         self.assertIn('st.expander("Mais informações")', self.fonte)
 
     def test_documentacao_interna_cobre_finalidade_fluxo_limites_e_glossario(self):
@@ -119,30 +118,29 @@ class TestUXAcesso001(unittest.TestCase):
     def test_modelo_atual_e_novo_rbac_sao_separados_visualmente(self):
         self.assertIn("ACESSO EM USO HOJE", self.fonte)
         self.assertIn("NOVO MODELO POR ROLES — EM PREPARAÇÃO", self.fonte)
-        self.assertIn("Modelo de acesso em uso hoje", self.fonte)
+        self.assertIn("ACESSO REAL ATUAL", self.fonte)
         self.assertIn("As Roles ainda não alteram o acesso real", self.fonte)
         self.assertIn("Habilitar alterações nas permissões efetivas atuais", self.fonte)
         self.assertIn("Modo consulta", self.fonte)
 
     def test_resumo_nao_confunde_cadastro_role_e_entrada(self):
-        for rotulo in (
-            '"Cadastro"', '"Entrada no APP"', '"Credencial"', '"Roles"',
-            '"Acesso real"', '"Novo RBAC"',
-        ):
+        for rotulo in ('"Cadastro"', '"Entrada no APP"', '"Credencial"'):
             self.assertIn(rotulo, self.fonte)
         self.assertIn("Cadastro ativo e credencial configurada permitem autenticar", self.fonte)
-        self.assertIn("Role atribuída não significa acesso liberado", self.fonte)
-        self.assertIn("Por que estes estados aparecem?", self.fonte)
-        self.assertIn("a credencial não está disponível de forma consistente", self.fonte)
-        self.assertIn("o novo modelo concederia permissão", self.fonte)
+        self.assertIn("Uma função atribuída ainda não altera o acesso real", self.fonte)
+        self.assertIn("Entenda estes estados", self.fonte)
+        self.assertIn("A credencial observável está indisponível ou inconsistente", self.fonte)
+        self.assertIn("O novo modelo concederia", self.fonte)
 
     def test_ficha_tem_navegacao_interna_sem_duplicar_seletor(self):
-        for secao in (
-            "Visão geral", "Funções", "Acesso", "Histórico", "Detalhes técnicos",
-        ):
-            self.assertIn(secao, self.fonte)
+        trecho = self.fonte[
+            self.fonte.index("def _render_usuarios():"):
+            self.fonte.index("def _render_diagnostico_rbac():")
+        ]
         self.assertEqual(self.fonte.count('key="usuario_ficha"'), 1)
-        self.assertIn("Navegue pela ficha sem selecionar a pessoa novamente", self.fonte)
+        self.assertNotIn("_render_roles_usuario", trecho)
+        self.assertNotIn("_render_acesso_usuario", trecho)
+        self.assertNotIn("_render_auditoria_usuario", trecho)
 
     def test_tabelas_obrigatorias_possuem_tooltips_por_coluna(self):
         self.assertIn("AJUDA_COLUNAS", self.fonte)

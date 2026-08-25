@@ -7,6 +7,7 @@ from services.credenciais_operacionais import (
     configurar_credencial,
     diagnosticar_credencial,
 )
+from services.log import carregar_logs_resultado
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
 from services.rbac_shadow import calcular_usuario, diagnosticar_usuarios
@@ -79,6 +80,58 @@ PERMISSOES_DISPONIVEIS = [
     "excluir",
     "todos",
 ]
+
+AREA_ADMINISTRACAO = "administracao_area"
+AREAS_ADMINISTRACAO = (
+    ("Pessoas", "Cadastrar e administrar usuários"),
+    ("Acessos", "Controlar o que cada pessoa pode fazer hoje"),
+    ("Roles", "Administrar funções institucionais"),
+    ("Diagnóstico", "Comparar o acesso atual com o modelo por Roles"),
+    ("Auditoria", "Consultar histórico e eventos"),
+)
+
+
+def _abrir_area(nome):
+    st.session_state[AREA_ADMINISTRACAO] = nome
+    st.rerun()
+
+
+def _voltar_administracao():
+    st.session_state[AREA_ADMINISTRACAO] = None
+    st.rerun()
+
+
+def _render_inicio_administracao():
+    st.header("O que você deseja fazer?")
+    st.caption("Escolha uma área. Cada uma reúne somente as tarefas relacionadas.")
+    for indice in range(0, len(AREAS_ADMINISTRACAO), 2):
+        colunas = st.columns(2)
+        for coluna, (nome, descricao) in zip(
+            colunas, AREAS_ADMINISTRACAO[indice:indice + 2]
+        ):
+            with coluna:
+                st.markdown(f"### {nome}")
+                st.write(descricao)
+                if st.button(
+                    f"Abrir {nome}", key=f"abrir_area_{nome.casefold()}",
+                    use_container_width=True,
+                ):
+                    _abrir_area(nome)
+
+    with st.expander("Entenda a organização"):
+        st.write(
+            "Pessoas cuida do cadastro e da entrada no APP. Acessos mostra o que "
+            "vale hoje. Roles organiza funções institucionais. Diagnóstico concentra "
+            "o Shadow Mode e informações técnicas. Auditoria mostra o histórico existente."
+        )
+    _render_ajuda_controle_acesso()
+
+
+def _cabecalho_area(titulo, objetivo):
+    if st.button("← Voltar para Administração", key=f"voltar_administracao_{titulo}"):
+        _voltar_administracao()
+    st.header(titulo)
+    st.caption(objetivo)
 
 
 def _mostrar_erro_leitura(resultado):
@@ -175,6 +228,24 @@ def _status_diagnostico(status):
         "SEM ROLE": "O usuário ainda não possui função atribuída",
         "ROLE VAZIA": "A função atribuída ainda não possui permissões",
     }.get(str(status), str(status))
+
+
+def _resumo_modulos_acesso(df, usuario):
+    modulos = [item for item in MODULOS_DISPONIVEIS if item != "todos"]
+    if df.empty or not str(usuario).strip():
+        return (), tuple(modulos)
+    regras = df[
+        (df["usuario"].astype(str).str.strip().str.casefold() == str(usuario).strip().casefold())
+        & (df["ativo"].astype(str).str.strip().str.casefold().isin(
+            ("sim", "s", "true", "1", "ativo")
+        ))
+    ]
+    declarados = set(regras["modulo"].astype(str).str.strip().str.casefold())
+    permitidos = modulos if "todos" in declarados else [
+        modulo for modulo in modulos if modulo in declarados
+    ]
+    negados = [modulo for modulo in modulos if modulo not in permitidos]
+    return tuple(permitidos), tuple(negados)
 
 
 AJUDA_COLUNAS = {
@@ -763,18 +834,6 @@ def _render_acesso_usuario(usuario, leituras):
 
 
 def _render_resumo_usuario(usuario, leituras):
-    diagnostico = calcular_usuario(
-        usuario=usuario, associacoes=leituras["associacoes"].dados,
-        roles=leituras["roles"].dados,
-        roles_permissoes=leituras["matriz"].dados,
-        catalogo_permissoes=leituras["catalogo"].dados,
-        permissoes_atuais=leituras["atuais"].dados,
-    )
-    associacoes = leituras["associacoes"].dados
-    roles_ativas = associacoes[
-        (associacoes["usuario_id"].astype(str) == str(usuario["usuario_id"]))
-        & (associacoes["ativo"].astype(str).str.casefold() == "sim")
-    ]
     ativo = str(usuario["ativo"]).strip().casefold() == "sim"
     estado_credencial = diagnosticar_credencial(usuario, leituras["credenciais"])
     credencial = estado_credencial.disponivel
@@ -797,59 +856,14 @@ def _render_resumo_usuario(usuario, leituras):
         "Credencial", rotulo_credencial,
         help="Indica se existe credencial operacional bcrypt configurada.",
     )
-    segunda_linha = st.columns(3)
-    segunda_linha[0].metric(
-        "Roles", len(roles_ativas),
-        help="Role atribuída não significa acesso liberado.",
-    )
-    segunda_linha[1].metric(
-        "Acesso real", "Modelo atual",
-        help="As permissões efetivas atuais continuam controlando o acesso.",
-    )
-    segunda_linha[2].metric(
-        "Novo RBAC", "Igual" if diagnostico.status == "IGUAL" else "Divergente",
-        help="Compara o modelo atual com as Roles; não altera o acesso.",
-    )
     st.caption(
-        "Cadastro ativo e credencial configurada permitem autenticar. Role atribuída "
-        "não significa acesso liberado."
+        "Cadastro ativo e credencial configurada permitem autenticar. "
+        "O que a pessoa pode fazer é administrado separadamente em Acessos."
     )
-    st.markdown("#### Por que estes estados aparecem?")
-    st.write(
-        "- **Cadastro:** "
-        + ("o registro operacional está ativo e pode autenticar se possuir credencial."
-           if ativo else "o registro operacional está inativo e não pode receber nova função.")
-    )
-    st.write(
-        "- **Entrada no APP:** "
-        + ("disponível pelo ciclo operacional." if ativo and credencial
-           else "indisponível até que cadastro e credencial estejam válidos.")
-    )
-    st.write(
-        "- **Credencial:** "
-        + ("a identidade e a credencial observável estão consistentes."
-           if credencial else "a credencial não está disponível de forma consistente.")
-    )
-    st.write(
-        f"- **Roles:** {len(roles_ativas)} função(ões) ativa(s) atribuída(s). "
-        "Elas ainda não concedem acesso real."
-    )
-    if diagnostico.status == "IGUAL":
-        st.write("- **Novo RBAC:** o cálculo coincide com o acesso atual.")
-    else:
-        motivos = []
-        if diagnostico.rbac_a_mais:
-            motivos.append(
-                "o novo modelo concederia permissão que não existe no acesso atual"
-            )
-        if diagnostico.rbac_a_menos:
-            motivos.append(
-                "o acesso atual possui permissão que as Roles não concedem"
-            )
+    with st.expander("Entenda estes estados"):
         st.write(
-            "- **Novo RBAC:** há diferenças porque "
-            + " e ".join(motivos or ["existem ocorrências técnicas na comparação"])
-            + "."
+            "Cadastro informa se a identidade está ativa. Credencial confirma se há "
+            "um registro bcrypt observável e consistente. Entrada no APP exige os dois."
         )
 
 
@@ -890,26 +904,17 @@ def _render_auditoria_usuario(usuario, associacoes):
 
 
 def _render_usuarios():
-    st.subheader("Pessoas e acesso")
-    st.caption("Selecione uma pessoa para administrar cadastro, funções e acesso no mesmo contexto.")
+    st.subheader("Quem usa o APP?")
+    st.caption("Cadastre uma pessoa ou abra uma ficha para cuidar de seus dados e credencial.")
     leituras = {
         "usuarios": carregar_usuarios_operacionais_resultado(),
         "credenciais": carregar_credenciais_resultado(),
-        "associacoes": carregar_usuarios_roles_resultado(),
-        "roles": carregar_roles_resultado(),
-        "matriz": carregar_roles_permissoes_resultado(),
-        "catalogo": carregar_catalogo_resultado(),
-        "atuais": carregar_permissoes_resultado(),
     }
     _render_criacao_usuario(leituras["usuarios"])
-    fontes_obrigatorias = (
-        leituras[chave] for chave in
-        ("usuarios", "associacoes", "roles", "matriz", "catalogo", "atuais")
-    )
-    if not all(item.leitura_confirmada for item in fontes_obrigatorias):
+    if not leituras["usuarios"].leitura_confirmada:
         st.error(
             "Leitura bloqueada. A ficha e suas ações só ficam disponíveis quando "
-            "todas as fontes de identidade e acesso são confirmadas."
+            "a fonte de identidade é confirmada."
         )
         return
 
@@ -968,26 +973,10 @@ def _render_usuarios():
     st.header(usuario["nome"] or usuario["login"])
     st.caption(f"Login: {usuario['login']} · Matrícula: {usuario['matricula']}")
     _render_resumo_usuario(usuario, leituras)
-    secao = st.radio(
-        "Seção da ficha",
-        ("Visão geral", "Funções", "Acesso", "Histórico", "Detalhes técnicos"),
-        horizontal=True,
-        key=f"secao_ficha_{usuario_id}",
-        help="Navegue pela ficha sem selecionar a pessoa novamente.",
-    )
     st.divider()
-    if secao == "Visão geral":
-        _render_identidade_usuario(usuario, leituras["usuarios"])
-        st.markdown("### Estado e ações principais")
-        _render_estado_usuario(usuario, leituras["usuarios"], leituras["credenciais"])
-    elif secao == "Funções":
-        _render_roles_usuario(usuario, leituras)
-    elif secao == "Acesso":
-        _render_acesso_usuario(usuario, leituras)
-    elif secao == "Histórico":
-        _render_auditoria_usuario(usuario, leituras["associacoes"].dados)
-    else:
-        _render_detalhes_usuario(usuario, leituras["associacoes"].dados)
+    _render_identidade_usuario(usuario, leituras["usuarios"])
+    st.markdown("### Estado e ações principais")
+    _render_estado_usuario(usuario, leituras["usuarios"], leituras["credenciais"])
     st.info(
         "Contas protegidas permanecem exclusivamente em APP_USERS e não são "
         "editáveis nesta interface. A exclusão física não está disponível."
@@ -1076,28 +1065,56 @@ def _render_diagnostico_rbac():
     st.divider()
 
 
-def _render_permissoes_legadas():
-    st.subheader("Modelo de acesso em uso hoje")
+def _render_permissoes_legadas(usuario_inicial=""):
+    st.subheader("ACESSO REAL ATUAL")
     st.caption(
         "Estas são as permissões efetivas atuais e continuam sendo a fonte da "
         "autorização enquanto o RBAC permanece em modo de diagnóstico."
     )
     resultado_leitura = carregar_permissoes_resultado()
     df = resultado_leitura.dados
+    df_exibicao = df
+    if usuario_inicial and not df.empty:
+        df_exibicao = df[
+            df["usuario"].astype(str).str.casefold() == usuario_inicial.casefold()
+        ]
     persistencia_liberada = resultado_leitura.pode_sobrescrever
 
     if not persistencia_liberada:
         _mostrar_erro_leitura(resultado_leitura)
 
+    if usuario_inicial and persistencia_liberada:
+        permitidos, negados = _resumo_modulos_acesso(df, usuario_inicial)
+        col_permitidos, col_negados = st.columns(2)
+        col_permitidos.success(
+            "**Módulos permitidos**\n\n" + (
+                "\n".join(f"- {ROTULOS_MODULOS.get(item, item.title())}" for item in permitidos)
+                if permitidos else "Nenhum"
+            )
+        )
+        col_negados.error(
+            "**Módulos sem acesso**\n\n" + (
+                "\n".join(f"- {ROTULOS_MODULOS.get(item, item.title())}" for item in negados)
+                if negados else "Nenhum"
+            )
+        )
+        st.caption(
+            "Resumo calculado somente pelas permissões efetivas ativas. "
+            "Contas protegidas de APP_USERS permanecem fora desta manutenção."
+        )
+
     st.markdown("#### Permissões cadastradas")
 
-    if df.empty:
+    if df_exibicao.empty:
         if persistencia_liberada:
-            st.info("Nenhuma permissão cadastrada ainda.")
+            st.info(
+                "Esta pessoa não possui permissões efetivas cadastradas."
+                if usuario_inicial else "Nenhuma permissão cadastrada ainda."
+            )
         else:
             st.info("A lista não está disponível porque a leitura não foi confirmada.")
     else:
-        exibicao = df.rename(columns={
+        exibicao = df_exibicao.rename(columns={
             "usuario": "Usuário", "modulo": "Módulo", "recurso": "Recurso",
             "permissao": "Permissão", "obra_id": "Escopo da obra", "ativo": "Ativa",
         })
@@ -1130,7 +1147,7 @@ def _render_permissoes_legadas():
     st.markdown("#### Adicionar nova permissão")
 
     with st.form("form_nova_permissao"):
-        usuario = st.text_input("Usuário")
+        usuario = st.text_input("Usuário", value=usuario_inicial)
 
         modulo = st.selectbox(
             "Módulo",
@@ -1195,10 +1212,10 @@ def _render_permissoes_legadas():
 
     st.markdown("#### Remover / desativar permissões")
 
-    if not df.empty:
+    if not df_exibicao.empty:
         opcoes = [
             f"{i} | {row['usuario']} | {row['modulo']} | {row['recurso']} | {row['permissao']} | {row['obra_id']} | {row['ativo']}"
-            for i, row in df.iterrows()
+            for i, row in df_exibicao.iterrows()
         ]
 
         escolha = st.selectbox(
@@ -1242,43 +1259,166 @@ def _render_permissoes_legadas():
                 )
 
 
+def _selecionar_usuario(usuarios, key, incluir_todos=False):
+    opcoes = {}
+    if incluir_todos:
+        opcoes["Todos os usuários"] = None
+    for _, usuario in usuarios.sort_values(["nome", "login"]).iterrows():
+        estado = "ativo" if str(usuario["ativo"]).casefold() == "sim" else "inativo"
+        opcoes[f"{usuario['nome']} — {usuario['login']} — {estado}"] = usuario["usuario_id"]
+    if not opcoes:
+        return None
+    escolha = st.selectbox("Selecionar pessoa", list(opcoes), key=key)
+    usuario_id = opcoes[escolha]
+    if usuario_id is None:
+        return None
+    return usuarios[
+        usuarios["usuario_id"].astype(str) == str(usuario_id)
+    ].iloc[0]
+
+
+def _render_area_acessos():
+    leitura = carregar_usuarios_operacionais_resultado()
+    usuario = None
+    if leitura.leitura_confirmada and not leitura.dados.empty:
+        usuario = _selecionar_usuario(
+            leitura.dados, "usuario_acesso_real", incluir_todos=True
+        )
+    elif not leitura.leitura_confirmada:
+        st.warning(
+            "Não foi possível confirmar a lista de pessoas. O acesso atual ainda "
+            "pode ser consultado sem filtro."
+        )
+    login = "" if usuario is None else str(usuario["login"])
+    if usuario is not None:
+        st.write(f"**Pessoa:** {usuario['nome']} · Login: {login}")
+    _render_permissoes_legadas(login)
+
+
+def _render_associacoes_roles():
+    st.subheader("Função de uma pessoa")
+    st.caption("Selecione uma pessoa para atribuir ou retirar sua função institucional.")
+    leituras = {
+        "usuarios": carregar_usuarios_operacionais_resultado(),
+        "associacoes": carregar_usuarios_roles_resultado(),
+        "roles": carregar_roles_resultado(),
+        "matriz": carregar_roles_permissoes_resultado(),
+    }
+    if not all(item.leitura_confirmada for item in leituras.values()):
+        st.error("Associações indisponíveis: as fontes necessárias não foram confirmadas.")
+        return
+    if leituras["usuarios"].dados.empty:
+        st.info("Nenhuma pessoa cadastrada.")
+        return
+    usuario = _selecionar_usuario(leituras["usuarios"].dados, "usuario_roles")
+    _render_roles_usuario(usuario, leituras)
+
+
+def _render_area_roles():
+    st.info("Modelo por Roles em preparação — ainda não altera o acesso real.")
+    tarefa = st.radio(
+        "O que você quer fazer?",
+        ("Função de uma pessoa", "Catálogo de Roles"),
+        horizontal=True,
+        key="tarefa_roles",
+    )
+    if tarefa == "Função de uma pessoa":
+        _render_associacoes_roles()
+    else:
+        _render_roles()
+
+
+def _render_diagnostico_individual():
+    if st.checkbox("Analisar uma pessoa em detalhes", key="abrir_diagnostico_individual"):
+        leituras = {
+            "usuarios": carregar_usuarios_operacionais_resultado(),
+            "associacoes": carregar_usuarios_roles_resultado(),
+            "roles": carregar_roles_resultado(),
+            "matriz": carregar_roles_permissoes_resultado(),
+            "catalogo": carregar_catalogo_resultado(),
+            "atuais": carregar_permissoes_resultado(),
+        }
+        if not all(item.leitura_confirmada for item in leituras.values()):
+            st.error("Detalhamento indisponível: as fontes não foram confirmadas.")
+            return
+        if leituras["usuarios"].dados.empty:
+            st.info("Nenhuma pessoa cadastrada.")
+            return
+        usuario = _selecionar_usuario(
+            leituras["usuarios"].dados, "usuario_diagnostico_individual"
+        )
+        _render_acesso_usuario(usuario, leituras)
+        _render_detalhes_usuario(usuario, leituras["associacoes"].dados)
+
+
+def _render_area_diagnostico():
+    _render_diagnostico_rbac()
+    _render_diagnostico_individual()
+    with st.expander("Catálogo técnico de permissões"):
+        _render_catalogo_permissoes()
+
+
+def _render_area_auditoria():
+    st.info(
+        "Esta área organiza a rastreabilidade já existente. Nenhum novo sistema "
+        "de auditoria foi criado."
+    )
+    leitura_usuarios = carregar_usuarios_operacionais_resultado()
+    leitura_associacoes = carregar_usuarios_roles_resultado()
+    if not leitura_usuarios.leitura_confirmada or not leitura_associacoes.leitura_confirmada:
+        st.error("Auditoria indisponível: as fontes necessárias não foram confirmadas.")
+        return
+    if leitura_usuarios.dados.empty:
+        st.info("Nenhuma pessoa cadastrada.")
+        return
+    usuario = _selecionar_usuario(leitura_usuarios.dados, "usuario_auditoria")
+    _render_auditoria_usuario(usuario, leitura_associacoes.dados)
+    st.markdown("### Eventos de acesso")
+    leitura_logs = carregar_logs_resultado()
+    if not leitura_logs.leitura_confirmada:
+        st.warning("Não foi possível confirmar a leitura dos eventos de acesso.")
+        return
+    eventos = leitura_logs.dados[
+        leitura_logs.dados["usuario"].astype(str).str.strip().str.casefold()
+        == str(usuario["login"]).strip().casefold()
+    ].copy()
+    if eventos.empty:
+        st.info("Nenhum evento de acesso localizado para esta pessoa.")
+        return
+    eventos = eventos.sort_values("data_hora", ascending=False).rename(columns={
+        "data_hora": "Data e hora", "usuario": "Usuário",
+        "perfil": "Perfil", "acao": "Evento",
+    })
+    st.dataframe(eventos, use_container_width=True, hide_index=True)
+
+
 def render():
     if st.button("← Voltar ao menu inicial", key="administracao_voltar_menu"):
+        st.session_state[AREA_ADMINISTRACAO] = None
         st.session_state.tela = "menu"
         st.rerun()
 
-    st.title("Administração de acesso")
-    st.caption("Gerencie pessoas, funções e permissões do APP.")
+    st.title("Administração")
+    st.caption("Gerencie pessoas, acessos, funções e histórico em um só lugar.")
 
     if not pode_gerenciar_administracao():
         st.error("Acesso restrito à custódia administrativa.")
         st.stop()
 
-    _render_ajuda_controle_acesso()
-    col_atual, col_novo = st.columns(2)
-    col_atual.info(
-        "**ACESSO EM USO HOJE**\n\nAPP_USERS autentica as contas protegidas e "
-        "as permissões efetivas atuais controlam a autorização."
-    )
-    col_novo.warning(
-        "**NOVO MODELO POR ROLES — EM PREPARAÇÃO**\n\nUsuários operacionais, "
-        "Roles e Shadow Mode ainda não alteram o acesso real."
-    )
+    area = st.session_state.get(AREA_ADMINISTRACAO)
+    if area not in {nome for nome, _ in AREAS_ADMINISTRACAO}:
+        _render_inicio_administracao()
+        return
 
-    usuarios, roles, permissoes, diagnostico, avancado = st.tabs([
-        "USUÁRIOS", "ROLES", "PERMISSÕES RBAC", "DIAGNÓSTICO", "ACESSO ATUAL",
-    ])
-    with usuarios:
+    objetivos = dict(AREAS_ADMINISTRACAO)
+    _cabecalho_area(area, objetivos[area])
+    if area == "Pessoas":
         _render_usuarios()
-    with roles:
-        _render_roles()
-    with permissoes:
-        _render_catalogo_permissoes()
-    with diagnostico:
-        _render_diagnostico_rbac()
-    with avancado:
-        st.info(
-            "Modelo efetivo em uso hoje. A consulta é segura; alterações exigem "
-            "habilitação explícita dentro da seção."
-        )
-        _render_permissoes_legadas()
+    elif area == "Acessos":
+        _render_area_acessos()
+    elif area == "Roles":
+        _render_area_roles()
+    elif area == "Diagnóstico":
+        _render_area_diagnostico()
+    else:
+        _render_area_auditoria()
