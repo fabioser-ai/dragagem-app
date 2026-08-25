@@ -36,9 +36,10 @@ stop shop.
 | Detalhes técnicos de identidade e associação | Diagnóstico → análise individual |
 | Catálogo canônico de permissões | Diagnóstico → Catálogo técnico |
 | Metadados de criação/alteração e histórico de funções | Auditoria |
+| Eventos de login/logout já existentes em `log_acessos.csv` | Auditoria |
 
-Nenhuma capacidade existente foi removida. O histórico disponível continua sendo
-o histórico já persistido nas identidades e associações de Roles; não foi criado
+Nenhuma capacidade existente foi removida. A área apenas consulta o histórico já
+persistido nas identidades, associações de Roles e eventos de acesso; não foi criado
 um novo sistema de logs.
 
 ## Invariantes

@@ -7,6 +7,7 @@ from services.credenciais_operacionais import (
     configurar_credencial,
     diagnosticar_credencial,
 )
+from services.log import carregar_logs_resultado
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
 from services.rbac_shadow import calcular_usuario, diagnosticar_usuarios
@@ -1372,6 +1373,23 @@ def _render_area_auditoria():
         return
     usuario = _selecionar_usuario(leitura_usuarios.dados, "usuario_auditoria")
     _render_auditoria_usuario(usuario, leitura_associacoes.dados)
+    st.markdown("### Eventos de acesso")
+    leitura_logs = carregar_logs_resultado()
+    if not leitura_logs.leitura_confirmada:
+        st.warning("Não foi possível confirmar a leitura dos eventos de acesso.")
+        return
+    eventos = leitura_logs.dados[
+        leitura_logs.dados["usuario"].astype(str).str.strip().str.casefold()
+        == str(usuario["login"]).strip().casefold()
+    ].copy()
+    if eventos.empty:
+        st.info("Nenhum evento de acesso localizado para esta pessoa.")
+        return
+    eventos = eventos.sort_values("data_hora", ascending=False).rename(columns={
+        "data_hora": "Data e hora", "usuario": "Usuário",
+        "perfil": "Perfil", "acao": "Evento",
+    })
+    st.dataframe(eventos, use_container_width=True, hide_index=True)
 
 
 def render():

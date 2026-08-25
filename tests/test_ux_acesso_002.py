@@ -1,10 +1,14 @@
 import hashlib
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import pandas as pd
 
 from pages import administracao
+from services import log as log_service
+from services.github import StatusLeitura
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -108,6 +112,45 @@ class TestUXAcesso002(unittest.TestCase):
         self.assertIn("Nenhum novo sistema", trecho)
         self.assertIn("de auditoria foi criado", trecho)
         self.assertIn("Histórico técnico das funções", self.fonte)
+        self.assertIn("carregar_logs_resultado()", trecho)
+        self.assertIn("Eventos de acesso", trecho)
+
+    def test_leitura_de_eventos_existentes_e_somente_consulta(self):
+        origem = SimpleNamespace(
+            leitura_confirmada=True,
+            dados=pd.DataFrame([{
+                "data_hora": "2026-08-25 10:00:00", "usuario": "teste",
+                "perfil": "funcionario", "acao": "login",
+            }]),
+            status=StatusLeitura.SUCESSO_COM_DADOS,
+            arquivo=log_service.ARQUIVO_LOG,
+            http_status=200,
+            sha="abc",
+            erro=None,
+        )
+        with patch.object(log_service, "ler_csv_github", return_value=origem), patch.object(
+            log_service.st, "secrets", {"GITHUB_TOKEN": "x", "REPO": "org/repo"}
+        ):
+            resultado = log_service.carregar_logs_resultado()
+        self.assertTrue(resultado.leitura_confirmada)
+        self.assertEqual(resultado.dados.iloc[0]["acao"], "login")
+
+    def test_falha_na_leitura_de_eventos_nao_inventa_historico(self):
+        origem = SimpleNamespace(
+            leitura_confirmada=False,
+            dados=pd.DataFrame(),
+            status=StatusLeitura.FALHA_TEMPORARIA,
+            arquivo=log_service.ARQUIVO_LOG,
+            http_status=500,
+            sha=None,
+            erro="falha",
+        )
+        with patch.object(log_service, "ler_csv_github", return_value=origem), patch.object(
+            log_service.st, "secrets", {"GITHUB_TOKEN": "x", "REPO": "org/repo"}
+        ):
+            resultado = log_service.carregar_logs_resultado()
+        self.assertFalse(resultado.leitura_confirmada)
+        self.assertTrue(resultado.dados.empty)
 
     def test_auth_app_users_autorizacao_e_shadow_permanecem_intactos(self):
         esperados = {

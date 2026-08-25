@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from services.github import (
+    ResultadoLeituraCSV,
     StatusLeitura,
     ler_csv_github,
     salvar_csv_github,
@@ -25,6 +26,27 @@ def _dataframe_log(df):
             df[coluna] = ""
 
     return df[COLUNAS_LOG]
+
+
+def carregar_logs_resultado():
+    resultado = ler_csv_github(
+        ARQUIVO_LOG,
+        st.secrets["GITHUB_TOKEN"],
+        st.secrets["REPO"],
+    )
+    dados = (
+        _dataframe_log(resultado.dados)
+        if resultado.leitura_confirmada
+        else pd.DataFrame(columns=COLUNAS_LOG)
+    )
+    return ResultadoLeituraCSV(
+        status=resultado.status,
+        dados=dados,
+        arquivo=resultado.arquivo,
+        http_status=resultado.http_status,
+        sha=resultado.sha,
+        erro=resultado.erro,
+    )
 
 
 def registrar_log(usuario, perfil, acao):
