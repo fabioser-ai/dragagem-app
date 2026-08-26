@@ -7,6 +7,35 @@ from services.autorizacao import (
     pode_recuperar_administracao,
     recuperar_administracao,
 )
+from services.rbac_authority import listar_permissoes
+
+
+def _rotulo_funcao_usuario():
+    """Apresenta a autoridade atual sem reutilizar o perfil legado como função."""
+    perfil = str(st.session_state.get("perfil", "") or "").strip().casefold()
+    if perfil in {"admin", "superadmin"}:
+        return "Administrador do sistema"
+
+    usuario = str(st.session_state.get("usuario", "") or "").strip()
+    if not usuario:
+        return "Nenhuma função atribuída"
+
+    try:
+        permissoes = listar_permissoes(usuario=usuario)
+    except Exception:
+        permissoes = []
+
+    roles = sorted({
+        str(item.get("role", "") or "").strip()
+        for item in permissoes
+        if str(item.get("role", "") or "").strip()
+    })
+    if not roles:
+        return "Nenhuma função atribuída"
+
+    nomes = [codigo.replace("_", " ").title() for codigo in roles]
+    prefixo = "Função" if len(nomes) == 1 else "Funções"
+    return f"{prefixo}: {', '.join(nomes)}"
 
 
 def render_card(titulo, descricao, botao, tela_destino):
@@ -172,7 +201,7 @@ def render():
             f"""
             <div class="user-bar">
                 Usuário: {st.session_state.get("usuario", "-")} &nbsp;&nbsp;|&nbsp;&nbsp;
-                Perfil: {st.session_state.get("perfil", "-")}
+                {_rotulo_funcao_usuario()}
             </div>
             """,
             unsafe_allow_html=True,
