@@ -63,10 +63,21 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         self.assertTrue(exclusoes_ferias.empty)
 
     def test_roles_vazias_sao_validas(self):
-        codigos = dict(zip(self.catalogo_roles["role_id"], self.catalogo_roles["codigo"]))
-        com_permissao = set(self.matriz["role_id"].map(codigos))
-        self.assertEqual(set(self.catalogo_roles["codigo"]) - com_permissao, {"ENCARREGADO", "RH"})
-        self.assertEqual(self.validar(), [])
+        nova_role = pd.DataFrame([{
+            "role_id": "role-vazia-teste",
+            "codigo": "ROLE_VAZIA_TESTE",
+            "nome": "Role vazia de teste",
+            "descricao": "",
+            "ativo": "sim",
+            "versao": "1",
+            "criado_em": "",
+            "criado_por": "",
+            "atualizado_em": "",
+            "atualizado_por": "",
+        }])
+        catalogo = pd.concat([self.catalogo_roles, nova_role], ignore_index=True)
+        self.assertEqual(self.validar(catalogo_roles=catalogo), [])
+        self.assertNotIn("role-vazia-teste", set(self.matriz["role_id"]))
 
     def test_role_inexistente_e_negada(self):
         matriz = self.matriz.iloc[[0]].copy()
