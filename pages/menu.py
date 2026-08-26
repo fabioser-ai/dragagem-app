@@ -241,9 +241,9 @@ def render():
 
         if pode_acessar("ferias"):
             render_card(
-                "Férias",
-                "Controle interno de períodos aquisitivos, vencimentos e programação.",
-                "ABRIR FÉRIAS",
+                "Férias e Folgas",
+                "Controle de períodos aquisitivos, programação de férias, folgas, vencimentos e histórico.",
+                "ABRIR FÉRIAS E FOLGAS",
                 "ferias",
             )
             modulos_renderizados += 1
