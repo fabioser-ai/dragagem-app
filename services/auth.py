@@ -11,6 +11,11 @@ CHAVE_LOG_PENDENTE = "_log_acesso_pendente"
 CHAVE_RECUPERACAO_ADMIN = "_custodia_admin_recuperada"
 
 
+class _AutenticacaoOperacionalIndisponivel:
+    dados = None
+    indisponivel = True
+
+
 def carregar_usuarios():
     try:
         return json.loads(st.secrets["APP_USERS"])
@@ -30,13 +35,13 @@ def _carregar_usuarios_confirmado():
 def _autenticar_operacional(usuario, senha, usuarios_protegidos):
     """Autentica a base operacional; qualquer ambiguidade resulta em negação."""
     try:
-        from services.credenciais_operacionais import autenticar_usuario_operacional
+        from services.credenciais_operacionais import autenticar_usuario_operacional_resultado
 
-        return autenticar_usuario_operacional(
+        return autenticar_usuario_operacional_resultado(
             login=usuario, senha=senha, usuarios_protegidos=usuarios_protegidos
         )
     except Exception:
-        return None
+        return _AutenticacaoOperacionalIndisponivel()
 
 
 def _abrir_sessao(*, usuario, perfil, matricula, nome):
@@ -153,6 +158,7 @@ def verificar_login():
         str(login).strip().casefold() for login in usuarios
     }
     dados_usuario = None
+    autenticacao_operacional_indisponivel = usuarios_confirmados is None
     if usuario in usuarios and senha == usuarios[usuario].get("password"):
         dados_usuario = {
             "usuario": usuario,
@@ -164,10 +170,24 @@ def verificar_login():
         usuarios_confirmados is not None
         and str(usuario).strip().casefold() not in protegidos_normalizados
     ):
-        dados_usuario = _autenticar_operacional(usuario, senha, usuarios)
+        resultado_operacional = _autenticar_operacional(usuario, senha, usuarios)
+        if hasattr(resultado_operacional, "dados"):
+            dados_usuario = resultado_operacional.dados
+            autenticacao_operacional_indisponivel = bool(
+                getattr(resultado_operacional, "indisponivel", False)
+            )
+        else:
+            # Compatibilidade defensiva com integrações legadas/mocks.
+            dados_usuario = resultado_operacional
 
     if dados_usuario is None:
-        st.error("Usuário ou senha incorretos. Atenção a maiúsculas e minúsculas.")
+        if autenticacao_operacional_indisponivel:
+            st.error(
+                "Não foi possível validar seu acesso neste momento. "
+                "Tente novamente em alguns minutos."
+            )
+        else:
+            st.error("Usuário ou senha incorretos. Atenção a maiúsculas e minúsculas.")
         return False
 
     _abrir_sessao(**dados_usuario)
