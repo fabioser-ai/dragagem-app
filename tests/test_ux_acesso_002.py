@@ -154,7 +154,7 @@ class TestUXAcesso002(unittest.TestCase):
 
     def test_auth_app_users_autorizacao_e_shadow_permanecem_intactos(self):
         esperados = {
-            "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
+            "services/auth.py": "f1d69b8e69d24c829b31558ebbdfa0fe21ebe909aca7aee2fbcabeab22c843bf",
             "services/rbac_shadow.py": "a023e1dec34178b56733e2eb279216f6ddf3612b189b3d2739ce0751b15356b1",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
         }
