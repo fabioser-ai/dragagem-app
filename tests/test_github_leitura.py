@@ -9,10 +9,11 @@ from services.github import StatusLeitura, ler_csv_github
 
 
 class RespostaFake:
-    def __init__(self, status_code, payload=None, json_error=None):
+    def __init__(self, status_code, payload=None, json_error=None, headers=None):
         self.status_code = status_code
         self._payload = payload
         self._json_error = json_error
+        self.headers = headers or {}
 
     def json(self):
         if self._json_error is not None:
@@ -104,12 +105,46 @@ class TestLerCsvGithub(unittest.TestCase):
         self.assertFalse(resultado.pode_sobrescrever)
 
     @patch("services.github.requests.get")
-    def test_429_e_conflito_ou_limite(self, get):
-        get.return_value = RespostaFake(429, {})
+    def test_403_com_quota_esgotada_e_rate_limit_primario(self, get):
+        get.return_value = RespostaFake(403, {}, headers={
+            "X-RateLimit-Limit": "5000",
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": "1787742000",
+        })
 
         resultado = self.chamar()
 
-        self.assertEqual(resultado.status, StatusLeitura.CONFLITO_OU_LIMITE)
+        self.assertEqual(resultado.status, StatusLeitura.RATE_LIMIT_PRIMARIO)
+        self.assertEqual(resultado.rate_limit_limit, 5000)
+        self.assertEqual(resultado.rate_limit_remaining, 0)
+        self.assertEqual(resultado.rate_limit_reset, 1787742000)
+
+    @patch("services.github.requests.get")
+    def test_403_com_retry_after_e_rate_limit_secundario(self, get):
+        get.return_value = RespostaFake(403, {}, headers={"Retry-After": "60"})
+
+        resultado = self.chamar()
+
+        self.assertEqual(resultado.status, StatusLeitura.RATE_LIMIT_SECUNDARIO)
+        self.assertEqual(resultado.retry_after, 60)
+
+    @patch("services.github.requests.get")
+    def test_403_sem_sinal_de_rate_limit_e_nao_autorizado(self, get):
+        get.return_value = RespostaFake(403, {}, headers={"X-GitHub-Request-Id": "id"})
+
+        resultado = self.chamar()
+
+        self.assertEqual(resultado.status, StatusLeitura.NAO_AUTORIZADO)
+        self.assertIsNone(resultado.rate_limit_remaining)
+
+    @patch("services.github.requests.get")
+    def test_429_e_rate_limit_secundario(self, get):
+        get.return_value = RespostaFake(429, {}, headers={"Retry-After": "30"})
+
+        resultado = self.chamar()
+
+        self.assertEqual(resultado.status, StatusLeitura.RATE_LIMIT_SECUNDARIO)
+        self.assertEqual(resultado.retry_after, 30)
         self.assertFalse(resultado.pode_sobrescrever)
 
     @patch("services.github.requests.get")
