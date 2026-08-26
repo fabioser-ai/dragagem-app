@@ -115,7 +115,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         matriz.loc[:, "efeito"] = "talvez"
         self.assertIn("efeito_invalido:0", self.validar(matriz=matriz))
 
-    def test_nenhuma_permissao_nova_foi_criada(self):
+    def test_expansao_ciclo_vida_e_exata_e_catalogada(self):
         chaves_catalogo = set(
             self.catalogo_permissoes[["modulo", "recurso", "acao"]].itertuples(
                 index=False, name=None
@@ -125,7 +125,8 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
             self.matriz[["modulo", "recurso", "acao"]].itertuples(index=False, name=None)
         )
         self.assertTrue(chaves_matriz <= chaves_catalogo)
-        self.assertEqual(len(self.catalogo_permissoes), 61)
+        self.assertEqual(len(self.catalogo_permissoes), 62)
+        self.assertIn(("ferias", "ciclo_vida", "alterar"), chaves_catalogo)
 
     def test_proprietario_superadmin_e_pessoas_permanecem_fora_do_rbac(self):
         codigos = set(self.catalogo_roles["codigo"])
@@ -136,7 +137,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         self.assertNotIn("email", colunas)
         self.assertNotIn("system_owner_id", {c.casefold() for c in colunas})
 
-    def test_autenticacao_usuarios_catalogo_e_permissoes_vigentes_inalterados(self):
+    def test_autenticacao_usuarios_catalogo_e_permissoes_vigentes_preservados_exceto_expansao_autorizada(self):
         caminho_usuarios = ROOT / "data/usuarios_operacionais.csv"
         usuarios_antes = caminho_usuarios.read_bytes()
         usuarios = carregar("data/usuarios_operacionais.csv")
@@ -155,7 +156,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         esperados = {
             "services/auth.py": "f1d69b8e69d24c829b31558ebbdfa0fe21ebe909aca7aee2fbcabeab22c843bf",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
-            "data/permissoes_catalogo.csv": "e2d3471e08dc7abfe13c9d46d95cd70a38cb712757a95dc2eb3efcb584908376",
+            "data/permissoes_catalogo.csv": "8dab78e4ec738c25ecade3593cc15eab8d77e3aa63aa1533f7b45f0afcc9f435",
         }
         for caminho, esperado in esperados.items():
             self.assertEqual(
