@@ -58,6 +58,12 @@ def _salvar(df, cfg, leitura, acao):
     return False
 
 
+def _normalizar_para_edicao(df, colunas):
+    normalizado = df[colunas].copy()
+    normalizado = normalizado.where(pd.notna(normalizado), "")
+    return normalizado.astype(str)
+
+
 def _render_crud(cfg, chave):
     recurso = cfg["recurso"]
     if not _permitido(recurso, "visualizar"):
@@ -73,7 +79,7 @@ def _render_crud(cfg, chave):
     for coluna in cfg["colunas"]:
         if coluna not in df.columns:
             df[coluna] = ""
-    df = df[cfg["colunas"]].fillna("")
+    df = _normalizar_para_edicao(df, cfg["colunas"])
 
     st.subheader(cfg["titulo"])
     st.dataframe(df, use_container_width=True, hide_index=True)
