@@ -20,7 +20,7 @@ class TestDadosHubEdicaoDtype(unittest.TestCase):
         normalizado = normalizado.where(pd.notna(normalizado), "").astype(str)
         normalizado.at[0, "Valor_Hora"] = "150,00"
         self.assertEqual(normalizado.at[0, "Valor_Hora"], "150,00")
-        self.assertEqual(str(normalizado["Valor_Hora"].dtype), "object")
+        self.assertEqual(str(normalizado["Valor_Hora"].dtype), "str")
 
 
 if __name__ == "__main__":
