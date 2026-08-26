@@ -131,7 +131,7 @@ class TestCatalogoERegressoesRBAC003(unittest.TestCase):
         estados = catalogo["estado_protecao"].value_counts().to_dict()
         self.assertEqual(
             estados,
-            {"completa": 32, "parcial": 23, "específica de Medições": 6},
+            {"completa": 33, "parcial": 23, "específica de Medições": 6},
         )
         local = catalogo[
             (catalogo["modulo"] == "dados")
