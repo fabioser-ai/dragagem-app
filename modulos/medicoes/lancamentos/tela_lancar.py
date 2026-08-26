@@ -6,9 +6,9 @@ from modulos.medicoes.repositorio import (
 )
 
 from modulos.medicoes.lancamentos.repositorio import (
-    carregar_usuarios_obras,
     listar_locais_por_obra,
 )
+from services.autorizacao import listar_obras_permitidas
 
 from modulos.medicoes.lancamentos.servicos import criar_lancamento_trabalho
 
@@ -53,55 +53,14 @@ def _filtrar_obras_por_usuario(obras):
         )
         return obras.iloc[0:0].copy(), email_usuario, ""
 
-    usuarios_obras = carregar_usuarios_obras()
-
-    if usuarios_obras.empty:
-        st.warning("Nenhum vínculo usuário/obra cadastrado.")
+    obras_permitidas = listar_obras_permitidas(
+        modulo="medicoes", recurso="lancamento", acao="criar"
+    )
+    if not obras_permitidas:
+        st.warning("O usuário não possui obra liberada para lançamento.")
         return obras.iloc[0:0].copy(), email_usuario, ""
-
-    usuarios_obras = usuarios_obras.fillna("").copy()
-
-    for coluna in [
-        "usuario_id",
-        "email",
-        "nome",
-        "perfil_medicao",
-        "ativo",
-        "obra_id",
-    ]:
-        if coluna not in usuarios_obras.columns:
-            usuarios_obras[coluna] = ""
-
-        usuarios_obras[coluna] = (
-            usuarios_obras[coluna]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-        )
-
-    vinculos = usuarios_obras[
-        (
-            (usuarios_obras["usuario_id"] == email_usuario)
-            | (usuarios_obras["email"] == email_usuario)
-            | (usuarios_obras["nome"] == email_usuario)
-        )
-        & (
-            usuarios_obras["ativo"].isin(
-                ["sim", "s", "true", "1", "ativo"]
-            )
-        )
-    ].copy()
-
-    if vinculos.empty:
-        st.warning(f"O usuário {email_usuario} não possui obra ativa vinculada.")
-        return obras.iloc[0:0].copy(), email_usuario, ""
-
-    perfil = vinculos["perfil_medicao"].iloc[0].strip().lower()
-
-    if perfil in ["admin", "aprovador"]:
-        return obras.copy(), email_usuario, perfil
-
-    obras_permitidas = vinculos["obra_id"].dropna().astype(str).tolist()
+    if "todas" in obras_permitidas:
+        return obras.copy(), email_usuario, "rbac"
 
     obras_filtradas = obras[
         obras["obra_id"]
@@ -111,7 +70,7 @@ def _filtrar_obras_por_usuario(obras):
         .isin(obras_permitidas)
     ].copy()
 
-    return obras_filtradas, email_usuario, perfil
+    return obras_filtradas, email_usuario, "rbac"
 
 
 def _filtrar_servicos_ativos(servicos_obra):

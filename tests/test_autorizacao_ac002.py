@@ -24,6 +24,7 @@ class TestAutoridadeUnicaAC002(unittest.TestCase):
         if not hasattr(autorizacao.st, "session_state"):
             autorizacao.st.session_state = SessionState()
         autorizacao.st.session_state.clear()
+        autorizacao.st.secrets = {"AUTHORIZATION_MODE": "LEGACY"}
 
     def autenticar(self, perfil="user", usuario="usuario"):
         autorizacao.st.session_state.update(

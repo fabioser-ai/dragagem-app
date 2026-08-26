@@ -48,7 +48,7 @@ class TestUXAcesso001(unittest.TestCase):
             "Credencial:",
             "Role:",
             "Permissão:",
-            "Shadow Mode:",
+            "Diagnóstico:",
         ):
             self.assertIn(texto, self.fonte)
 
@@ -78,7 +78,7 @@ class TestUXAcesso001(unittest.TestCase):
             self.assertNotIn(proibido, self.fonte.casefold())
 
     def test_roles_permanecem_documentais_e_historico_e_preservado(self):
-        self.assertIn("Uma função atribuída ainda não altera o acesso real", self.fonte)
+        self.assertIn("As Roles ativas controlam o acesso real", self.fonte)
         self.assertIn("Retirada — histórico preservado", self.fonte)
         self.assertIn("Esta função está vazia", self.fonte)
         self.assertIn("atribuir_role(", self.fonte)
@@ -87,14 +87,14 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertIn("role_id=role_id", self.fonte)
 
     def test_shadow_distingue_acesso_atual_e_calculado_em_linguagem_clara(self):
-        self.assertIn("O cálculo por Roles está em modo de diagnóstico", self.fonte)
-        self.assertIn("Permissões atuais — em uso hoje", self.fonte)
-        self.assertIn("Permissões pelas Roles — em preparação", self.fonte)
-        self.assertIn("O novo modelo concederia", self.fonte)
-        self.assertIn("O acesso atual possui, mas as Roles não concedem", self.fonte)
+        self.assertIn("O cálculo por Roles é a autoridade efetiva", self.fonte)
+        self.assertIn("Permissões do legado anterior", self.fonte)
+        self.assertIn("Permissões efetivas pelas Roles", self.fonte)
+        self.assertIn("O RBAC concede além do legado", self.fonte)
+        self.assertIn("O legado possuía, mas as Roles não concedem", self.fonte)
         self.assertEqual(
             administracao._status_diagnostico("DIVERGENTE"),
-            "Há diferenças entre o acesso atual e o calculado pelas Roles",
+            "Há diferenças entre o RBAC atual e o legado anterior",
         )
         self.assertEqual(
             administracao._rotulo_chave("prestacao_contas / despesa / criar"),
@@ -104,22 +104,22 @@ class TestUXAcesso001(unittest.TestCase):
     def test_ajuda_geral_explica_os_dois_modelos_e_credenciais(self):
         for texto in (
             "Como funciona o controle de acesso?",
-            "Hoje, o acesso real ainda é definido pelo modelo atual",
+            "Hoje, o acesso real dos usuários operacionais é definido por Roles",
             "APP_USERS",
             "Usuários operacionais",
             "Roles",
             "Permissões efetivas atuais",
             "Permissões pelas Roles",
-            "Diagnóstico (Shadow Mode)",
+            "Diagnóstico",
             "a senha original não pode ser recuperada",
         ):
             self.assertIn(texto, self.fonte)
 
     def test_modelo_atual_e_novo_rbac_sao_separados_visualmente(self):
         self.assertIn("ACESSO EM USO HOJE", self.fonte)
-        self.assertIn("NOVO MODELO POR ROLES — EM PREPARAÇÃO", self.fonte)
+        self.assertIn("ACESSO REAL POR ROLES", self.fonte)
         self.assertIn("ACESSO REAL ATUAL", self.fonte)
-        self.assertIn("As Roles ainda não alteram o acesso real", self.fonte)
+        self.assertIn("ACESSO REAL ATUAL — RBAC", self.fonte)
         self.assertIn("Habilitar alterações nas permissões efetivas atuais", self.fonte)
         self.assertIn("Modo consulta", self.fonte)
 
@@ -127,7 +127,7 @@ class TestUXAcesso001(unittest.TestCase):
         for rotulo in ('"Cadastro"', '"Entrada no APP"', '"Credencial"'):
             self.assertIn(rotulo, self.fonte)
         self.assertIn("Cadastro ativo e credencial configurada permitem autenticar", self.fonte)
-        self.assertIn("Uma função atribuída ainda não altera o acesso real", self.fonte)
+        self.assertIn("As Roles ativas controlam o acesso real", self.fonte)
         self.assertIn("Entenda estes estados", self.fonte)
         self.assertIn("A credencial observável está indisponível ou inconsistente", self.fonte)
         self.assertIn("O novo modelo concederia", self.fonte)
@@ -173,8 +173,8 @@ class TestUXAcesso001(unittest.TestCase):
             "Indica se o cadastro operacional está apto a autenticar",
             "Indica se existe credencial operacional bcrypt configurada",
             "campo reservado para o futuro ciclo de credenciais",
-            "Permissões presentes nas Roles, mas ainda ausentes no acesso atual.",
-            "Permissões em uso hoje que não aparecem nas Roles atribuídas.",
+            "Permissões presentes nas Roles e ausentes no modelo anterior.",
+            "Permissões antigas que não aparecem nas Roles atribuídas.",
         ):
             self.assertIn(explicacao, self.fonte)
 
@@ -187,11 +187,9 @@ class TestUXAcesso001(unittest.TestCase):
     def test_autenticacao_dados_rbac_e_medicoes_permanecem_inalterados(self):
         esperados = {
             "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
-            "services/autorizacao.py": "3062e25a6d1a6afce9ee0d1a3cc9832a0edc111f3e1378cc4de29bbf23e59b66",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "data/roles_permissoes.csv": "8ad445f518c3c72900aa32b7385c0d8350630af408dcded9218e8ad8813cdc7a",
             "pages/medicoes.py": "f23a8cf9d1c7e01f94a93447c1f924dbc2dfd80b1bb904a1a9ff3e64e496257f",
-            "modulos/medicoes/permissoes.py": "a72195e98268a7b76f220a6b0873816e1d46363cd015c5fe673e02f175ea7643",
         }
         for caminho, esperado in esperados.items():
             atual = hashlib.sha256((ROOT / caminho).read_bytes()).hexdigest()

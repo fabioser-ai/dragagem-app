@@ -42,7 +42,7 @@ def roles(*linhas):
 
 class TestUsuariosRolesRBAC005(unittest.TestCase):
     def setUp(self):
-        ur.st.secrets = {"GITHUB_TOKEN": "token", "REPO": "org/repo", "APP_USERS": {"fabio": {}}}
+        ur.st.secrets = {"GITHUB_TOKEN": "token", "REPO": "org/repo", "APP_USERS": {"fabio": {}}, "AUTHORIZATION_MODE": "LEGACY"}
         ur.st.session_state = {"autenticado": True, "usuario": "fabio"}
         self.vazia = leitura(pd.DataFrame(columns=ur.COLUNAS), ur.ARQUIVO, "sha-assoc")
         self.usuarios = leitura(usuario(), "data/usuarios_operacionais.csv", "sha-u")

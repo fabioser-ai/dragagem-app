@@ -69,7 +69,7 @@ class TestUXAcesso002(unittest.TestCase):
 
     def test_acessos_exibe_e_mantem_somente_autoridade_real(self):
         trecho = self.trecho("def _render_area_acessos():", "def _render_associacoes_roles():")
-        self.assertIn("_render_permissoes_legadas(login)", trecho)
+        self.assertIn("rbac_authority.listar_permissoes(usuario=login)", trecho)
         self.assertIn("ACESSO REAL ATUAL", self.fonte)
         self.assertIn("carregar_permissoes_resultado()", self.fonte)
         self.assertIn("salvar_permissoes_seguro", self.fonte)
@@ -95,7 +95,7 @@ class TestUXAcesso002(unittest.TestCase):
         self.assertIn("Catálogo de Roles", trecho)
         self.assertIn("_render_associacoes_roles()", trecho)
         self.assertIn("_render_roles()", trecho)
-        self.assertIn("ainda não altera o acesso real", trecho)
+        self.assertIn("Roles ativas controlam o acesso real", trecho)
         self.assertIn("atribuir_role(", self.fonte)
         self.assertIn("retirar_role(", self.fonte)
 
@@ -104,7 +104,7 @@ class TestUXAcesso002(unittest.TestCase):
         self.assertIn("_render_diagnostico_rbac()", trecho)
         self.assertIn("_render_diagnostico_individual()", trecho)
         self.assertIn("_render_catalogo_permissoes()", trecho)
-        self.assertIn("Shadow Mode compara", self.fonte)
+        self.assertIn("Compara o RBAC em uso", self.fonte)
 
     def test_auditoria_preserva_historico_existente_sem_criar_novo_sistema(self):
         trecho = self.trecho("def _render_area_auditoria():", "def render():")
@@ -155,7 +155,6 @@ class TestUXAcesso002(unittest.TestCase):
     def test_auth_app_users_autorizacao_e_shadow_permanecem_intactos(self):
         esperados = {
             "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
-            "services/autorizacao.py": "3062e25a6d1a6afce9ee0d1a3cc9832a0edc111f3e1378cc4de29bbf23e59b66",
             "services/rbac_shadow.py": "a023e1dec34178b56733e2eb279216f6ddf3612b189b3d2739ce0751b15356b1",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
         }

@@ -1,7 +1,7 @@
 """Autoridade central de identidade e autorização do APP FOS.
 
-Os módulos informam o contexto da decisão; somente esta camada interpreta a
-sessão e delega a avaliação das permissões persistidas ao modelo legado.
+Os módulos informam o contexto da decisão; somente esta camada seleciona a
+autoridade configurada e interpreta a sessão.
 """
 
 import re
@@ -16,6 +16,7 @@ from services.permissoes import (
     pode_acessar_modulo,
     pode_executar,
 )
+from services import rbac_authority
 
 
 ROTAS_POR_MODULO = {
@@ -45,6 +46,12 @@ ROTAS_FUNCIONARIO = {
 
 SECRET_PROPRIETARIO = "SYSTEM_OWNER_ID"
 CHAVE_RECUPERACAO_ADMIN = "_custodia_admin_recuperada"
+CHAVE_ULTIMA_DECISAO = "_ultima_decisao_autorizacao"
+SECRET_MODO_AUTORIZACAO = "AUTHORIZATION_MODE"
+MODO_RBAC = "RBAC"
+MODO_LEGACY = "LEGACY"
+# TEMPORARY_OWNER_BYPASS: REMOVER APÓS HOMOLOGAÇÃO DO RBAC.
+TEMPORARY_OWNER_BYPASS = True
 _PADRAO_IDENTIDADE = re.compile(r"^[A-Za-z0-9_.@+-]{1,128}$")
 
 
@@ -168,16 +175,45 @@ def usuario_superadmin():
     return autenticado() and eh_superadmin()
 
 
+def modo_autorizacao():
+    """Aceita somente modos exclusivos; ausência configura o corte para RBAC."""
+    try:
+        valor = st.secrets.get(SECRET_MODO_AUTORIZACAO, MODO_RBAC)
+    except Exception:
+        valor = MODO_RBAC
+    normalizado = str(valor or "").strip().upper()
+    return normalizado if normalizado in {MODO_RBAC, MODO_LEGACY} else None
+
+
+def temporary_owner_bypass():
+    """Cabo de segurança exclusivo da identidade canônica protegida."""
+    return bool(TEMPORARY_OWNER_BYPASS and usuario_proprietario())
+
+
+def _registrar_decisao(decisao, *, modulo, recurso, acao, obra_id):
+    st.session_state[CHAVE_ULTIMA_DECISAO] = {
+        "usuario": str(st.session_state.get("usuario") or ""),
+        "modulo": str(modulo or ""), "recurso": str(recurso or ""),
+        "acao": str(acao or ""), "obra_id": str(obra_id or ""),
+        "permitido": bool(decisao.permitido), "codigo": decisao.codigo,
+        "roles": tuple(decisao.roles), "origens": tuple(decisao.origens),
+    }
+
+
 def possui_privilegio_administrativo():
-    """Reconhece admin operacional e superadmin, preservando sua distinção."""
-    return autenticado() and (
-        eh_administrador_sistema() or recuperacao_administrativa_ativa()
-    )
+    """No corte RBAC, somente o proprietário canônico mantém bypass administrativo."""
+    if not autenticado():
+        return False
+    if modo_autorizacao() == MODO_LEGACY:
+        return eh_administrador_sistema() or recuperacao_administrativa_ativa()
+    return temporary_owner_bypass()
 
 
 def pode_gerenciar_administracao():
-    """Restringe a gestão de permissões ao superadmin ou proprietário recuperado."""
-    return usuario_superadmin() or recuperacao_administrativa_ativa()
+    """Custódia temporária exclusiva do proprietário durante a migração RBAC."""
+    if modo_autorizacao() == MODO_LEGACY:
+        return usuario_superadmin() or recuperacao_administrativa_ativa()
+    return temporary_owner_bypass()
 
 
 def pode_gerenciar_usuarios_operacionais():
@@ -206,22 +242,49 @@ def possui_perfil(perfil):
 
 
 def pode_acessar(modulo):
-    """Decide o acesso global a um módulo, com negação por padrão."""
-    return autenticado() and pode_acessar_modulo(modulo)
+    """Decide acesso de módulo usando uma única autoridade por vez."""
+    if not autenticado():
+        return False
+    if temporary_owner_bypass():
+        return True
+    modo = modo_autorizacao()
+    if modo == MODO_LEGACY:
+        return pode_acessar_modulo(modulo)
+    if modo != MODO_RBAC:
+        return False
+    decisao = rbac_authority.avaliar_modulo(
+        usuario=st.session_state.get("usuario", ""), modulo=modulo,
+    )
+    _registrar_decisao(
+        decisao, modulo=modulo, recurso="*", acao="*", obra_id=None,
+    )
+    return decisao.permitido
 
 
 def pode(*, modulo, recurso="todos", acao="todos", obra_id=None):
-    """Decide uma autorização de ação/recurso/obra pela fonte de verdade atual."""
+    """Decide por RBAC ou rollback legado, sem fallback entre os modos."""
     if not autenticado():
         return False
-    return bool(
-        pode_executar(
+    if temporary_owner_bypass():
+        return True
+    modo = modo_autorizacao()
+    if modo == MODO_LEGACY:
+        return bool(pode_executar(
             modulo,
             recurso=recurso,
             permissao=acao,
             obra_id="todas" if obra_id is None else obra_id,
-        )
+        ))
+    if modo != MODO_RBAC:
+        return False
+    decisao = rbac_authority.avaliar(
+        usuario=st.session_state.get("usuario", ""), modulo=modulo,
+        recurso=recurso, acao=acao, obra_id=obra_id,
     )
+    _registrar_decisao(
+        decisao, modulo=modulo, recurso=recurso, acao=acao, obra_id=obra_id,
+    )
+    return decisao.permitido
 
 
 def pode_operar_obra(*, modulo, obra_id, recurso="todos", acao="todos"):
@@ -232,10 +295,20 @@ def pode_operar_obra(*, modulo, obra_id, recurso="todos", acao="todos"):
 
 
 def listar_obras_permitidas(*, modulo, recurso="todos", acao="todos"):
-    """Expõe o recorte legado por obra sem duplicar sua interpretação."""
+    """Lista escopos pela autoridade exclusiva configurada."""
     if not autenticado():
         return []
-    return obras_permitidas(modulo, recurso=recurso, permissao=acao)
+    if temporary_owner_bypass():
+        return ["todas"]
+    modo = modo_autorizacao()
+    if modo == MODO_LEGACY:
+        return obras_permitidas(modulo, recurso=recurso, permissao=acao)
+    if modo != MODO_RBAC:
+        return []
+    return rbac_authority.listar_obras(
+        usuario=st.session_state.get("usuario", ""), modulo=modulo,
+        recurso=recurso, acao=acao,
+    )
 
 
 def pode_acessar_rota(tela):
@@ -247,7 +320,7 @@ def pode_acessar_rota(tela):
     if not tela:
         return False
 
-    if possui_perfil("funcionario") and tela not in ROTAS_FUNCIONARIO:
+    if modo_autorizacao() == MODO_LEGACY and possui_perfil("funcionario") and tela not in ROTAS_FUNCIONARIO:
         return False
 
     if tela == "menu":
