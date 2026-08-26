@@ -2,7 +2,10 @@ import hashlib
 import unittest
 from pathlib import Path
 
+import pandas as pd
+
 from pages import administracao
+from services import roles
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -184,16 +187,19 @@ class TestUXAcesso001(unittest.TestCase):
         self.assertIn("disabled=not leitura.pode_sobrescrever", self.fonte)
         self.assertIn("disabled=not confirmar", self.fonte)
 
-    def test_autenticacao_dados_rbac_e_medicoes_permanecem_inalterados(self):
+    def test_autenticacao_legado_e_medicoes_permanecem_inalterados_e_matriz_valida(self):
         esperados = {
             "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
-            "data/roles_permissoes.csv": "8ad445f518c3c72900aa32b7385c0d8350630af408dcded9218e8ad8813cdc7a",
             "pages/medicoes.py": "f23a8cf9d1c7e01f94a93447c1f924dbc2dfd80b1bb904a1a9ff3e64e496257f",
         }
         for caminho, esperado in esperados.items():
             atual = hashlib.sha256((ROOT / caminho).read_bytes()).hexdigest()
             self.assertEqual(atual, esperado, caminho)
+        catalogo_roles = pd.read_csv(ROOT / "data/roles.csv", dtype=str).fillna("")
+        catalogo_permissoes = pd.read_csv(ROOT / "data/permissoes_catalogo.csv", dtype=str).fillna("")
+        matriz = pd.read_csv(ROOT / "data/roles_permissoes.csv", dtype=str).fillna("")
+        self.assertEqual(roles.validar_roles_permissoes(matriz, catalogo_roles, catalogo_permissoes), [])
         self.assertNotIn("SYSTEM_OWNER_ID", self.fonte)
 
     def test_bases_operacionais_so_sao_referenciadas_pelos_servicos_existentes(self):
