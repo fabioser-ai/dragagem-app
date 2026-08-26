@@ -21,7 +21,7 @@ MODULOS = {
     "crm", "uniformes_epis", "obras", "orcamento",
 }
 ACOES = {
-    "visualizar", "criar", "editar", "excluir", "aprovar", "cancelar", "administrar",
+    "visualizar", "criar", "editar", "excluir", "aprovar", "cancelar", "administrar", "alterar",
 }
 SENSIBILIDADES = {"baixa", "média", "alta", "crítica"}
 ESTADOS_PROTECAO = {
