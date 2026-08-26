@@ -76,6 +76,91 @@ def carregar_roles_permissoes_resultado():
     return _resultado_leitura(ARQUIVO_PERMISSOES, COLUNAS_PERMISSOES)
 
 
+def salvar_roles_permissoes(*, leitura, leitura_roles, catalogo_permissoes, role_id, chaves_allow):
+    """Substitui somente os ``allow`` de uma Role, preservando denies existentes.
+
+    A lista recebida pela UX contém tuplas ``(modulo, recurso, acao)``. Cada chave
+    precisa existir e estar ativa no catálogo canônico. Permissões críticas e o
+    módulo Administração permanecem proibidos pelo validador central.
+    """
+    if not pode_gerenciar_roles():
+        return ResultadoRole(False, "nao_autorizado", "Alteração não autorizada.")
+    if not leitura.pode_sobrescrever:
+        return ResultadoRole(False, "leitura_nao_confirmada", "Leitura da matriz de Roles não confirmada.")
+    if not leitura_roles.leitura_confirmada:
+        return ResultadoRole(False, "roles_nao_confirmadas", "Leitura do catálogo de Roles não confirmada.")
+    if catalogo_permissoes is None:
+        return ResultadoRole(False, "catalogo_nao_confirmado", "Catálogo canônico não confirmado.")
+
+    roles = _df(leitura_roles.dados, COLUNAS_ROLES)
+    encontradas = roles[roles["role_id"].astype(str) == str(role_id)]
+    if len(encontradas) != 1:
+        return ResultadoRole(False, "role_nao_encontrada", "Role não encontrada.")
+    role = encontradas.iloc[0]
+    if str(role["ativo"]).strip().casefold() != "sim":
+        return ResultadoRole(False, "role_inativa", "Ative a Role antes de editar suas permissões.")
+
+    catalogo = pd.DataFrame() if catalogo_permissoes is None else catalogo_permissoes.copy()
+    for coluna in ("modulo", "recurso", "acao", "sensibilidade", "ativo"):
+        if coluna not in catalogo.columns:
+            catalogo[coluna] = ""
+    ativos = catalogo[catalogo["ativo"].astype(str).str.strip().str.casefold() == "sim"]
+    permitidas = {
+        (str(row.modulo), str(row.recurso), str(row.acao))
+        for row in ativos.itertuples(index=False)
+        if str(row.modulo).strip().casefold() != "administracao"
+        and str(getattr(row, "sensibilidade", "")).strip().casefold() != "crítica"
+    }
+
+    normalizadas = set()
+    for chave in chaves_allow or ():
+        if not isinstance(chave, (tuple, list)) or len(chave) != 3:
+            return ResultadoRole(False, "permissao_invalida", "Permissão inválida recebida pelo editor.")
+        normalizada = tuple(str(item).strip() for item in chave)
+        if normalizada not in permitidas:
+            return ResultadoRole(False, "permissao_proibida", "Uma ou mais permissões não podem ser atribuídas a esta Role.")
+        normalizadas.add(normalizada)
+
+    atual = _df(leitura.dados, COLUNAS_PERMISSOES)
+    outras = atual[atual["role_id"].astype(str) != str(role_id)].copy()
+    denies = atual[
+        (atual["role_id"].astype(str) == str(role_id))
+        & (atual["efeito"].astype(str).str.strip().str.casefold() == "deny")
+    ].copy()
+    novos = pd.DataFrame([
+        {
+            "role_id": str(role_id),
+            "modulo": modulo,
+            "recurso": recurso,
+            "acao": acao,
+            "efeito": "allow",
+        }
+        for modulo, recurso, acao in sorted(normalizadas)
+    ], columns=COLUNAS_PERMISSOES)
+    proposta = pd.concat([outras, denies, novos], ignore_index=True)
+    erros = validar_roles_permissoes(proposta, roles, catalogo)
+    if erros:
+        return ResultadoRole(False, "matriz_invalida", "; ".join(erros))
+
+    # Revalidação imediatamente antes da escrita remota.
+    if not pode_gerenciar_roles():
+        return ResultadoRole(False, "nao_autorizado", "Alteração não autorizada.")
+    autor = str(st.session_state.get("usuario") or "")
+    codigo = str(role.get("codigo") or role_id)
+    escrita = salvar_csv_github(
+        _df(proposta, COLUNAS_PERMISSOES), ARQUIVO_PERMISSOES,
+        st.secrets["GITHUB_TOKEN"], st.secrets["REPO"],
+        sha_esperado=leitura.sha,
+        mensagem=f"Update Role permissions: {codigo} by {autor}",
+    )
+    return ResultadoRole(
+        escrita.sucesso,
+        "salvo" if escrita.sucesso else "falha_persistencia",
+        "Permissões da Role salvas." if escrita.sucesso else (escrita.erro or "Permissões da Role não salvas."),
+        escrita,
+    )
+
+
 def normalizar_codigo(valor):
     texto = unicodedata.normalize("NFKD", str(valor or "").strip())
     texto = "".join(c for c in texto if not unicodedata.combining(c)).upper()

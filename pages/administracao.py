@@ -17,6 +17,7 @@ from services.roles import (
     carregar_roles_resultado,
     criar_role,
     editar_role,
+    salvar_roles_permissoes,
 )
 from services.usuarios_operacionais import (
     PERFIS_PERMITIDOS,
@@ -399,6 +400,116 @@ def _render_catalogo_permissoes():
     st.divider()
 
 
+def _render_editor_permissoes_role(*, role, leitura_roles, leitura_permissoes, leitura_catalogo):
+    role_id = str(role["role_id"])
+    st.markdown("#### Permissões da Role")
+    st.caption(
+        "Marque as capacidades que esta função deve conceder. Alterações aqui mudam o acesso real no modo RBAC."
+    )
+
+    if str(role["ativo"]).strip().casefold() != "sim":
+        st.info("Ative a Role antes de editar suas permissões.")
+        return
+    if not leitura_permissoes.pode_sobrescrever:
+        st.error("Edição bloqueada: a leitura da matriz de permissões não foi confirmada.")
+        return
+    if not leitura_catalogo.leitura_confirmada:
+        st.error("Edição bloqueada: o catálogo canônico de permissões não foi confirmado.")
+        return
+
+    matriz = leitura_permissoes.dados.copy()
+    vinculadas = matriz[matriz["role_id"].astype(str) == role_id].copy()
+    allows = vinculadas[
+        vinculadas["efeito"].astype(str).str.strip().str.casefold() == "allow"
+    ]
+    denies = vinculadas[
+        vinculadas["efeito"].astype(str).str.strip().str.casefold() == "deny"
+    ]
+    atuais = {
+        (str(row.modulo), str(row.recurso), str(row.acao))
+        for row in allows.itertuples(index=False)
+    }
+
+    catalogo = leitura_catalogo.dados.copy()
+    editavel = catalogo[
+        (catalogo["ativo"].astype(str).str.strip().str.casefold() == "sim")
+        & (catalogo["modulo"].astype(str).str.strip().str.casefold() != "administracao")
+        & (catalogo["sensibilidade"].astype(str).str.strip().str.casefold() != "crítica")
+    ].copy()
+    if editavel.empty:
+        st.warning("O catálogo não possui permissões editáveis para Roles comuns.")
+        return
+
+    selecionadas = set()
+    for modulo in sorted(editavel["modulo"].astype(str).unique()):
+        grupo = editavel[editavel["modulo"].astype(str) == modulo].copy()
+        st.markdown(f"**{ROTULOS_MODULOS.get(modulo, modulo.replace('_', ' ').title())}**")
+        opcoes = {}
+        for _, item in grupo.iterrows():
+            chave = (str(item["modulo"]), str(item["recurso"]), str(item["acao"]))
+            nome = str(item.get("nome") or "").strip() or _rotulo_chave(" / ".join(chave))
+            descricao = str(item.get("descricao") or "").strip()
+            rotulo = f"{nome} — {descricao}" if descricao else nome
+            opcoes[rotulo] = chave
+        padrao = [rotulo for rotulo, chave in opcoes.items() if chave in atuais]
+        escolhidas = st.multiselect(
+            "Capacidades concedidas",
+            list(opcoes),
+            default=padrao,
+            key=f"role_permissoes_{role_id}_{modulo}",
+            label_visibility="collapsed",
+        )
+        selecionadas.update(opcoes[rotulo] for rotulo in escolhidas)
+
+    adicionadas = sorted(selecionadas - atuais)
+    removidas = sorted(atuais - selecionadas)
+    if adicionadas or removidas:
+        st.markdown("**Alterações pendentes**")
+        if adicionadas:
+            st.success("Adicionar:\n" + "\n".join(f"- {_rotulo_chave(' / '.join(item))}" for item in adicionadas))
+        if removidas:
+            st.warning("Remover:\n" + "\n".join(f"- {_rotulo_chave(' / '.join(item))}" for item in removidas))
+    else:
+        st.caption("Nenhuma alteração pendente.")
+
+    if not denies.empty:
+        st.info(
+            f"Existem {len(denies)} regra(s) deny nesta Role. Elas serão preservadas e não são editadas nesta tela simples."
+        )
+
+    confirmar = st.checkbox(
+        "Confirmo que esta alteração modifica o acesso real dos usuários que possuem esta Role.",
+        key=f"confirmar_permissoes_role_{role_id}",
+        disabled=not (adicionadas or removidas),
+    )
+    if st.button(
+        "Salvar permissões",
+        key=f"salvar_permissoes_role_{role_id}",
+        disabled=not (adicionadas or removidas) or not confirmar,
+        use_container_width=True,
+    ):
+        _informar_operacao(salvar_roles_permissoes(
+            leitura=leitura_permissoes,
+            leitura_roles=leitura_roles,
+            catalogo_permissoes=leitura_catalogo.dados,
+            role_id=role_id,
+            chaves_allow=selecionadas,
+        ))
+
+    with st.expander("Ver matriz técnica atual"):
+        if vinculadas.empty:
+            st.write("Nenhuma permissão cadastrada.")
+        else:
+            st.dataframe(
+                vinculadas[["modulo", "recurso", "acao", "efeito"]],
+                use_container_width=True,
+                hide_index=True,
+            )
+        st.caption(
+            "Esta função não concede administração do sistema, custódia, superadmin ou gestão de contas protegidas."
+        )
+
+
 def _render_roles():
     st.subheader("Modelo por Roles — acesso real")
     st.caption(
@@ -407,6 +518,7 @@ def _render_roles():
     st.success("As Roles ativas controlam o acesso real no modo RBAC.")
     leitura = carregar_roles_resultado()
     leitura_permissoes = carregar_roles_permissoes_resultado()
+    leitura_catalogo = carregar_catalogo_resultado()
     leitura_associacoes = carregar_usuarios_roles_resultado()
     liberada = leitura.pode_sobrescrever
     if not liberada:
@@ -457,7 +569,7 @@ def _render_roles():
                     "Pessoas vinculadas", help="Quantidade de associações ativas; não significa acesso liberado."
                 ),
                 "Permissões calculadas": st.column_config.NumberColumn(
-                    "Permissões calculadas", help="Capacidades documentadas na Role; ainda sem efeito real."
+                    "Permissões calculadas", help="Capacidades concedidas pela Role no acesso real RBAC."
                 ),
                 "Criada em": st.column_config.TextColumn("Criada em", help=AJUDA_COLUNAS["Criado em"]),
                 "Atualizada em": st.column_config.TextColumn("Atualizada em", help=AJUDA_COLUNAS["Atualizado em"]),
@@ -498,32 +610,12 @@ def _render_roles():
                 descricao=descricao_edicao, ativo=ativo_edicao,
             ))
 
-        st.markdown("#### Permissões da Role")
-        if not leitura_permissoes.leitura_confirmada:
-            st.error("Não foi possível confirmar a leitura do catálogo de permissões das Roles.")
-        else:
-            permissoes = leitura_permissoes.dados
-            vinculadas = permissoes[
-                permissoes["role_id"].astype(str) == str(role_id)
-            ]
-            if vinculadas.empty:
-                st.info("Esta Role está vazia e ainda não calcula permissões.")
-            else:
-                st.dataframe(
-                    vinculadas[["modulo", "recurso", "acao", "efeito"]],
-                    use_container_width=True,
-                    hide_index=True,
-                    column_config={
-                        "modulo": st.column_config.TextColumn("Módulo", help="Área funcional protegida."),
-                        "recurso": st.column_config.TextColumn("Recurso", help="Objeto ao qual a permissão se aplica."),
-                        "acao": st.column_config.TextColumn("Ação", help="Operação agrupada pela Role."),
-                        "efeito": st.column_config.TextColumn("Efeito", help="Decisão allow/deny aplicada pela autoridade RBAC."),
-                    },
-                )
-                st.caption(
-                    "Esta função não concede administração do sistema, custódia, "
-                    "superadmin ou gestão de contas protegidas."
-                )
+        _render_editor_permissoes_role(
+            role=atual,
+            leitura_roles=leitura,
+            leitura_permissoes=leitura_permissoes,
+            leitura_catalogo=leitura_catalogo,
+        )
 
     st.info("Roles não podem ser excluídas; somente ativadas ou inativadas.")
     st.divider()
