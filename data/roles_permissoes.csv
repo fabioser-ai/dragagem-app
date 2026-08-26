@@ -17,7 +17,9 @@ d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,contato,visualizar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,interacao,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,interacao,visualizar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,dados,atestado,visualizar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,dados,salario,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,dados,salario,visualizar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ciclo_vida,alterar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ferias,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ferias,editar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ferias,excluir,allow
@@ -25,7 +27,6 @@ d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,folga,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,folga,editar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,folga,excluir,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,registro,visualizar,allow
-d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ciclo_vida,alterar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,uniformes_epis,baixa,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,uniformes_epis,compra,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,uniformes_epis,devolucao,criar,allow
