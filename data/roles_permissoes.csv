@@ -8,6 +8,15 @@ dd9524ef-e1b9-4ac8-a468-885dd4cc6fce,obras,obra,visualizar,allow
 34760418-2346-436a-aabe-5488769c40b4,prestacao_contas,pagamento,editar,allow
 34760418-2346-436a-aabe-5488769c40b4,prestacao_contas,tipo_despesa,visualizar,allow
 34760418-2346-436a-aabe-5488769c40b4,prestacao_contas,tipo_despesa,criar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,cliente,criar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,cliente,editar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,cliente,visualizar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,contato,criar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,contato,editar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,contato,visualizar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,interacao,criar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,crm,interacao,visualizar,allow
+d6434336-0f02-4674-b4e7-d338e8bb44a6,dados,atestado,visualizar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ferias,criar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ferias,editar,allow
 d6434336-0f02-4674-b4e7-d338e8bb44a6,ferias,ferias,excluir,allow
