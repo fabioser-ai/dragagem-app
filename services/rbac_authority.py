@@ -125,6 +125,36 @@ def _concessoes_validas(fontes, vinculos):
     return concessoes
 
 
+def _deny_aplicavel(deny, *, chave, escopo, exige_obra):
+    if deny["chave"] != chave or deny["efeito"] != "deny":
+        return False
+    if not exige_obra:
+        return True
+    return deny["escopo"] in {"todas", escopo}
+
+
+def _allow_efetivo(allow, concessoes):
+    """Um deny vence somente a mesma permissão no escopo aplicável."""
+    if allow["efeito"] != "allow":
+        return False
+    if allow["exige_obra"] and allow["escopo"] == "todas":
+        # Um deny específico deixa outras obras acessíveis; somente deny global
+        # elimina uma concessão global para fins de acesso ao módulo.
+        return not any(
+            item["chave"] == allow["chave"]
+            and item["efeito"] == "deny"
+            and item["escopo"] == "todas"
+            for item in concessoes
+        )
+    return not any(
+        _deny_aplicavel(
+            item, chave=allow["chave"], escopo=allow["escopo"],
+            exige_obra=allow["exige_obra"],
+        )
+        for item in concessoes
+    )
+
+
 def avaliar(*, usuario, modulo, recurso, acao, obra_id=None, fontes=None):
     fontes = _carregar_fontes() if fontes is None else fontes
     if not _fontes_validas(fontes):
@@ -178,9 +208,7 @@ def avaliar_modulo(*, usuario, modulo, fontes=None):
         item for item in _concessoes_validas(fontes, vinculos)
         if item["chave"][0] == _texto(modulo)
     ]
-    if any(item["efeito"] == "deny" for item in candidatas):
-        return DecisaoRBAC(False, "negada_explicitamente")
-    permitidas = [item for item in candidatas if item["efeito"] == "allow"]
+    permitidas = [item for item in candidatas if _allow_efetivo(item, candidatas)]
     if not permitidas:
         return DecisaoRBAC(False, "modulo_nao_concedido")
     roles = tuple(sorted({item["role"] for item in permitidas}))
@@ -196,14 +224,20 @@ def listar_obras(*, usuario, modulo, recurso, acao, fontes=None):
         return []
     _, vinculos = contexto
     chave = (_texto(modulo), _texto(recurso), _texto(acao))
-    itens = [
-        item for item in _concessoes_validas(fontes, vinculos)
-        if item["chave"] == chave and item["efeito"] == "allow"
-    ]
-    if any(item["efeito"] == "deny" for item in _concessoes_validas(fontes, vinculos) if item["chave"] == chave):
+    itens = [item for item in _concessoes_validas(fontes, vinculos) if item["chave"] == chave]
+    allows = [item for item in itens if item["efeito"] == "allow"]
+    denies = [item for item in itens if item["efeito"] == "deny"]
+    if any(item["escopo"] == "todas" for item in denies):
         return []
-    escopos = sorted({item["escopo"] for item in itens})
-    return ["todas"] if "todas" in escopos else escopos
+    negados = sorted({item["escopo"] for item in denies})
+    if any(item["escopo"] == "todas" for item in allows):
+        # Representa de modo explícito o conjunto "todas, exceto ...".
+        return ["todas", *(f"!{escopo}" for escopo in negados)]
+    permitidos = sorted({
+        item["escopo"] for item in allows
+        if item["escopo"] not in set(negados)
+    })
+    return permitidos
 
 
 def listar_permissoes(*, usuario, fontes=None):

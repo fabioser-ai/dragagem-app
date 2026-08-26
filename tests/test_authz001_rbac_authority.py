@@ -26,6 +26,18 @@ def fontes(*, identidade_ativa="sim", associacoes=None, roles=None, matriz=None,
 
 
 class TestAutoridadeRBAC(unittest.TestCase):
+    def fontes_escopos(self, associacoes, efeitos):
+        roles = []
+        matriz = []
+        for indice, (escopo, efeito) in enumerate(zip(associacoes, efeitos), 1):
+            role_id = f"r{indice}"
+            roles.append({"role_id": role_id, "codigo": role_id.upper(), "ativo": "sim"})
+            matriz.append({"role_id": role_id, "modulo": "medicoes", "recurso": "lancamento", "acao": "criar", "efeito": efeito})
+        return fontes(
+            associacoes=[{"usuario_id": "u1", "role_id": f"r{i}", "obra_id": escopo, "ativo": "sim"} for i, escopo in enumerate(associacoes, 1)],
+            roles=roles, matriz=matriz,
+        )
+
     def test_sem_role_nega(self):
         f = fontes(associacoes=[])
         f["associacoes"] = pd.DataFrame(columns=["usuario_id", "role_id", "obra_id", "ativo"])
@@ -60,6 +72,55 @@ class TestAutoridadeRBAC(unittest.TestCase):
             {"role_id": "r1", "modulo": "medicoes", "recurso": "lancamento", "acao": "criar", "efeito": "deny"},
         ])
         self.assertEqual(rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=f).codigo, "negada_explicitamente")
+
+    def test_listar_obras_allow_a_deny_b_preserva_a(self):
+        f = self.fontes_escopos(["obra-a", "obra-b"], ["allow", "deny"])
+        self.assertEqual(rbac.listar_obras(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=f), ["obra-a"])
+
+    def test_allow_e_deny_na_mesma_obra_deny_vence(self):
+        f = self.fontes_escopos(["obra-a", "obra-a"], ["allow", "deny"])
+        self.assertEqual(rbac.listar_obras(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=f), [])
+        self.assertFalse(rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", obra_id="obra-a", fontes=f).permitido)
+
+    def test_allow_e_deny_em_acoes_distintas_mantem_modulo(self):
+        f = fontes(
+            matriz=[
+                {"role_id": "r1", "modulo": "prestacao_contas", "recurso": "despesa", "acao": "visualizar", "efeito": "allow"},
+                {"role_id": "r1", "modulo": "prestacao_contas", "recurso": "despesa", "acao": "excluir", "efeito": "deny"},
+            ],
+            catalogo=[
+                {"modulo": "prestacao_contas", "recurso": "despesa", "acao": "visualizar", "escopo_obra": "nao", "ativo": "sim"},
+                {"modulo": "prestacao_contas", "recurso": "despesa", "acao": "excluir", "escopo_obra": "nao", "ativo": "sim"},
+            ],
+        )
+        self.assertTrue(rbac.avaliar_modulo(usuario="teste", modulo="prestacao_contas", fontes=f).permitido)
+        self.assertTrue(rbac.avaliar(usuario="teste", modulo="prestacao_contas", recurso="despesa", acao="visualizar", fontes=f).permitido)
+        self.assertFalse(rbac.avaliar(usuario="teste", modulo="prestacao_contas", recurso="despesa", acao="excluir", fontes=f).permitido)
+
+    def test_somente_denies_no_modulo_nega(self):
+        f = self.fontes_escopos(["obra-a"], ["deny"])
+        self.assertFalse(rbac.avaliar_modulo(usuario="teste", modulo="medicoes", fontes=f).permitido)
+
+    def test_listagem_e_avaliacao_concordam_por_escopo(self):
+        f = self.fontes_escopos(["obra-a", "obra-b"], ["allow", "deny"])
+        listadas = rbac.listar_obras(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=f)
+        for obra in ("obra-a", "obra-b", "obra-c"):
+            esperado = obra in listadas
+            obtido = rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", obra_id=obra, fontes=f).permitido
+            self.assertEqual(obtido, esperado, obra)
+
+    def test_interacoes_todas_allow_e_deny(self):
+        allow_global = self.fontes_escopos(["todas"], ["allow"])
+        self.assertEqual(rbac.listar_obras(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=allow_global), ["todas"])
+
+        todas_menos_a = self.fontes_escopos(["todas", "obra-a"], ["allow", "deny"])
+        self.assertEqual(rbac.listar_obras(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=todas_menos_a), ["todas", "!obra-a"])
+        self.assertFalse(rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", obra_id="obra-a", fontes=todas_menos_a).permitido)
+        self.assertTrue(rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", obra_id="obra-b", fontes=todas_menos_a).permitido)
+
+        deny_global = self.fontes_escopos(["todas", "obra-a"], ["deny", "allow"])
+        self.assertEqual(rbac.listar_obras(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=deny_global), [])
+        self.assertFalse(rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", obra_id="obra-a", fontes=deny_global).permitido)
 
     def test_inativo_desconhecido_fonte_invalida_negam(self):
         self.assertFalse(rbac.avaliar(usuario="teste", modulo="medicoes", recurso="lancamento", acao="criar", fontes=fontes(identidade_ativa="nao")).permitido)

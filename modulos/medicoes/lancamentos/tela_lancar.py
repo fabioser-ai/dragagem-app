@@ -59,15 +59,19 @@ def _filtrar_obras_por_usuario(obras):
     if not obras_permitidas:
         st.warning("O usuário não possui obra liberada para lançamento.")
         return obras.iloc[0:0].copy(), email_usuario, ""
+    exclusoes = {item[1:] for item in obras_permitidas if item.startswith("!")}
     if "todas" in obras_permitidas:
-        return obras.copy(), email_usuario, "rbac"
+        obras_filtradas = obras[
+            ~obras["obra_id"].astype(str).str.strip().str.lower().isin(exclusoes)
+        ].copy()
+        return obras_filtradas, email_usuario, "rbac"
 
     obras_filtradas = obras[
         obras["obra_id"]
         .astype(str)
         .str.strip()
         .str.lower()
-        .isin(obras_permitidas)
+        .isin([item for item in obras_permitidas if not item.startswith("!")])
     ].copy()
 
     return obras_filtradas, email_usuario, "rbac"

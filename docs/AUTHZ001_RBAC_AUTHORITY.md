@@ -21,6 +21,20 @@ da Role a todas as obras; outro valor restringe todas as permissões daquela
 associação à obra indicada quando a permissão do catálogo exige obra. A mesma
 pessoa pode possuir a mesma Role em escopos diferentes e múltiplas Roles ativas.
 
+### Precedência allow/deny
+
+O efeito é resolvido por permissão e por escopo:
+
+- `deny` vence `allow` para a mesma combinação módulo/recurso/ação e obra;
+- `deny obra A` não interfere em `allow obra B`;
+- `deny` de uma ação não contamina outra ação do mesmo módulo;
+- `allow todas + deny obra A` significa todas as obras exceto A;
+- `deny todas + allow obra A` continua negado, pois o deny global se aplica a A;
+- o módulo aparece quando existe ao menos uma capacidade allow efetiva.
+
+Na API de listagem, “todas, exceto A” é representado por `["todas",
+"!obra-a"]`. Consumidores devem aplicar as exclusões antes de liberar registros.
+
 ## Inventário de impacto
 
 | Área | Decisão anterior | Decisão nova | Risco principal | Cobertura |
