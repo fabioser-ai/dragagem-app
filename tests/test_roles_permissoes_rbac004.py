@@ -140,7 +140,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         ]
         self.assertEqual(
             salario_rh[["acao", "efeito"]].values.tolist(),
-            [["criar", "allow"], ["visualizar", "allow"]],
+            [["criar", "allow"], ["editar", "allow"], ["visualizar", "allow"]],
         )
 
     def test_proprietario_superadmin_e_pessoas_permanecem_fora_do_rbac(self):
