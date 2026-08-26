@@ -5,13 +5,10 @@ from pages.crm.repositorio import (
     carregar_contatos,
     carregar_interacoes,
 )
-
-from pages.crm.navegacao import menu_crm
-
+from pages.crm.navegacao import render_fluxo, render_landing
 from pages.crm.etapa1_clientes import tela_clientes
 from pages.crm.etapa2_contatos import tela_contatos
 from pages.crm.etapa3_interacoes import tela_interacoes
-
 from pages.crm.utils import preparar_dataframe_para_exibicao
 
 
@@ -23,7 +20,6 @@ def tela_consulta_geral():
     interacoes = carregar_interacoes()
 
     col1, col2, col3 = st.columns(3)
-
     col1.metric("Clientes", len(clientes))
     col2.metric("Contatos", len(contatos))
     col3.metric("Interações", len(interacoes))
@@ -36,14 +32,13 @@ def tela_consulta_geral():
 
     busca = st.text_input(
         "Busca rápida",
-        placeholder="Empresa, cidade, responsável, necessidade..."
+        placeholder="Empresa, cidade, responsável, necessidade...",
     )
 
     df = clientes.copy()
 
     if busca:
         termo = busca.lower().strip()
-
         mascara = (
             df["nome_empresa"].fillna("").str.lower().str.contains(termo, na=False)
             | df["cidade"].fillna("").str.lower().str.contains(termo, na=False)
@@ -52,7 +47,6 @@ def tela_consulta_geral():
             | df["necessidade_cliente"].fillna("").str.lower().str.contains(termo, na=False)
             | df["observacoes_gerais"].fillna("").str.lower().str.contains(termo, na=False)
         )
-
         df = df[mascara]
 
     st.dataframe(
@@ -77,36 +71,45 @@ def tela_consulta_geral():
 
 
 def crm():
-
     col1, col2 = st.columns([6, 1])
 
     with col1:
         st.title("CRM FOS")
-        st.caption(
-            "Relacionamento comercial, prospecção e histórico de contatos."
-        )
+        st.caption("Relacionamento comercial, prospecção e histórico de contatos.")
 
     with col2:
         st.write("")
         st.write("")
-
         if st.button("⬅ MENU", use_container_width=True):
+            st.session_state.crm_fluxo = None
+            st.session_state.crm_pagina = None
             st.session_state.tela = "menu"
             st.rerun()
 
     st.markdown("---")
 
-    pagina = menu_crm()
+    if "crm_fluxo" not in st.session_state:
+        st.session_state.crm_fluxo = None
+    if "crm_pagina" not in st.session_state:
+        st.session_state.crm_pagina = None
+
+    fluxo = st.session_state.crm_fluxo
+    if not fluxo:
+        render_landing()
+        return
+
+    pagina = render_fluxo(fluxo)
+    if not pagina:
+        return
+
+    st.markdown("---")
 
     if pagina == "clientes":
         tela_clientes()
-
     elif pagina == "contatos":
         tela_contatos()
-
     elif pagina == "interacoes":
         tela_interacoes()
-
     elif pagina == "consulta":
         tela_consulta_geral()
 

@@ -37,38 +37,31 @@ def get_github_config():
 
 def carregar_csv_github(caminho: str, colunas: list[str]) -> pd.DataFrame:
     token, repo = get_github_config()
-
     try:
         df = carregar_github(caminho, token, repo)
     except Exception as e:
         st.error(f"Erro ao carregar arquivo do GitHub: {caminho}")
         st.exception(e)
         return dataframe_vazio(colunas)
-
     if df is None or df.empty:
         df = dataframe_vazio(colunas)
-
     for coluna in colunas:
         if coluna not in df.columns:
             df[coluna] = ""
-
-    df = df[colunas]
-    return df.fillna("").astype(str)
+    return df[colunas].fillna("").astype(str)
 
 
 def salvar_csv_github(
-    df: pd.DataFrame, caminho: str, colunas: list[str], *, recurso="cadastros", acao="editar"
+    df: pd.DataFrame, caminho: str, colunas: list[str], *, recurso="cliente", acao="editar"
 ):
     if not pode(modulo="crm", recurso=recurso, acao=acao):
         st.error("Operação não autorizada.")
         return False
 
     token, repo = get_github_config()
-
     for coluna in colunas:
         if coluna not in df.columns:
             df[coluna] = ""
-
     df = df[colunas].fillna("").astype(str)
 
     try:
@@ -80,12 +73,7 @@ def salvar_csv_github(
             mensagem_commit=f"Atualiza CRM: {caminho}",
         )
     except TypeError:
-        salvar_github(
-            df,
-            caminho,
-            token,
-            repo,
-        )
+        salvar_github(df, caminho, token, repo)
     except Exception as e:
         st.error(f"Erro ao salvar arquivo no GitHub: {caminho}")
         st.exception(e)
@@ -98,7 +86,7 @@ def carregar_clientes() -> pd.DataFrame:
 
 
 def salvar_clientes(df: pd.DataFrame, *, acao="editar"):
-    return salvar_csv_github(df, ARQ_CLIENTES, COLUNAS_CLIENTES, recurso="clientes", acao=acao)
+    return salvar_csv_github(df, ARQ_CLIENTES, COLUNAS_CLIENTES, recurso="cliente", acao=acao)
 
 
 def carregar_contatos() -> pd.DataFrame:
@@ -106,7 +94,7 @@ def carregar_contatos() -> pd.DataFrame:
 
 
 def salvar_contatos(df: pd.DataFrame, *, acao="editar"):
-    return salvar_csv_github(df, ARQ_CONTATOS, COLUNAS_CONTATOS, recurso="contatos", acao=acao)
+    return salvar_csv_github(df, ARQ_CONTATOS, COLUNAS_CONTATOS, recurso="contato", acao=acao)
 
 
 def carregar_interacoes() -> pd.DataFrame:
@@ -114,32 +102,27 @@ def carregar_interacoes() -> pd.DataFrame:
 
 
 def salvar_interacoes(df: pd.DataFrame, *, acao="editar"):
-    return salvar_csv_github(df, ARQ_INTERACOES, COLUNAS_INTERACOES, recurso="interacoes", acao=acao)
+    return salvar_csv_github(df, ARQ_INTERACOES, COLUNAS_INTERACOES, recurso="interacao", acao=acao)
 
 
 def _normalizar_dataframe_crm(df: pd.DataFrame, colunas: list[str]) -> pd.DataFrame:
     if df is None:
         df = dataframe_vazio(colunas)
-
     df = df.copy()
-
     for coluna in colunas:
         if coluna not in df.columns:
             df[coluna] = ""
-
     return df[colunas].fillna("").astype(str)
 
 
 def carregar_csv_github_resultado(caminho: str, colunas: list[str]) -> ResultadoLeituraCSV:
     token, repo = get_github_config()
     resultado = ler_csv_github(caminho, token, repo)
-
     dados = (
         _normalizar_dataframe_crm(resultado.dados, colunas)
         if resultado.leitura_confirmada
         else dataframe_vazio(colunas)
     )
-
     return ResultadoLeituraCSV(
         status=resultado.status,
         dados=dados,
@@ -151,28 +134,16 @@ def carregar_csv_github_resultado(caminho: str, colunas: list[str]) -> Resultado
 
 
 def carregar_contexto_interacao_resultado():
-    resultado_clientes = carregar_csv_github_resultado(
-        ARQ_CLIENTES,
-        COLUNAS_CLIENTES,
-    )
-    resultado_interacoes = carregar_csv_github_resultado(
-        ARQ_INTERACOES,
-        COLUNAS_INTERACOES,
-    )
-
+    resultado_clientes = carregar_csv_github_resultado(ARQ_CLIENTES, COLUNAS_CLIENTES)
+    resultado_interacoes = carregar_csv_github_resultado(ARQ_INTERACOES, COLUNAS_INTERACOES)
     snapshot_comum = None
     if resultado_clientes.pode_sobrescrever and resultado_interacoes.pode_sobrescrever:
         token, repo = get_github_config()
         snapshot_comum = resolver_snapshot_branch(token, repo, "main")
-
     return resultado_clientes, resultado_interacoes, snapshot_comum
 
 
-def cadastro_interacao_liberado(
-    resultado_clientes,
-    resultado_interacoes,
-    snapshot_comum,
-):
+def cadastro_interacao_liberado(resultado_clientes, resultado_interacoes, snapshot_comum):
     return (
         resultado_clientes.pode_sobrescrever
         and resultado_interacoes.pode_sobrescrever
@@ -189,65 +160,36 @@ def _resultado_interacao_invalida(erro):
     )
 
 
-def cadastrar_interacao_composta(
-    dados: dict,
-    resultado_clientes: ResultadoLeituraCSV,
-    resultado_interacoes: ResultadoLeituraCSV,
-    snapshot_comum,
-):
-    if not pode(modulo="crm", recurso="interacoes", acao="criar"):
+def cadastrar_interacao_composta(dados: dict, resultado_clientes: ResultadoLeituraCSV, resultado_interacoes: ResultadoLeituraCSV, snapshot_comum):
+    if not pode(modulo="crm", recurso="interacao", acao="criar"):
         return _resultado_interacao_invalida("Operação não autorizada.")
-
-    if not cadastro_interacao_liberado(
-        resultado_clientes,
-        resultado_interacoes,
-        snapshot_comum,
-    ):
-        return _resultado_interacao_invalida(
-            "As leituras e o snapshot comum não autorizaram o cadastro da interação."
-        )
+    if not cadastro_interacao_liberado(resultado_clientes, resultado_interacoes, snapshot_comum):
+        return _resultado_interacao_invalida("As leituras e o snapshot comum não autorizaram o cadastro da interação.")
 
     id_cliente = dados.get("id_cliente", "")
     clientes = resultado_clientes.dados.copy()
     idx_cliente = clientes.index[clientes["id_cliente"] == id_cliente]
-
     if len(idx_cliente) == 0:
-        return _resultado_interacao_invalida(
-            "O cliente selecionado não existe mais no snapshot observado."
-        )
+        return _resultado_interacao_invalida("O cliente selecionado não existe mais no snapshot observado.")
 
     interacoes = resultado_interacoes.dados.copy()
-    nova_interacao = {
-        "id_interacao": gerar_id(),
-        "created_at": agora_iso(),
-    }
+    nova_interacao = {"id_interacao": gerar_id(), "created_at": agora_iso()}
     nova_interacao.update(dados)
-    interacoes = pd.concat(
-        [interacoes, pd.DataFrame([nova_interacao])],
-        ignore_index=True,
-    )
+    interacoes = pd.concat([interacoes, pd.DataFrame([nova_interacao])], ignore_index=True)
     interacoes = _normalizar_dataframe_crm(interacoes, COLUNAS_INTERACOES)
 
     idx_cliente = idx_cliente[0]
     clientes.loc[idx_cliente, "ultimo_contato"] = dados.get("data_interacao", "")
     clientes.loc[idx_cliente, "proxima_acao"] = dados.get("proxima_acao", "")
-    clientes.loc[idx_cliente, "data_proxima_acao"] = dados.get(
-        "data_proxima_acao",
-        "",
-    )
-
+    clientes.loc[idx_cliente, "data_proxima_acao"] = dados.get("data_proxima_acao", "")
     if dados.get("responsavel"):
         clientes.loc[idx_cliente, "responsavel"] = dados.get("responsavel")
-
     clientes.loc[idx_cliente, "updated_at"] = agora_iso()
     clientes = _normalizar_dataframe_crm(clientes, COLUNAS_CLIENTES)
 
     token, repo = get_github_config()
     return publicar_csvs_em_commit(
-        [
-            AlteracaoArquivoCSV(ARQ_INTERACOES, interacoes),
-            AlteracaoArquivoCSV(ARQ_CLIENTES, clientes),
-        ],
+        [AlteracaoArquivoCSV(ARQ_INTERACOES, interacoes), AlteracaoArquivoCSV(ARQ_CLIENTES, clientes)],
         token,
         repo,
         "main",
@@ -257,118 +199,74 @@ def cadastrar_interacao_composta(
 
 def cadastrar_cliente(dados: dict):
     df = carregar_clientes()
-
-    novo = {
-        "id_cliente": gerar_id(),
-        "created_at": agora_iso(),
-        "updated_at": agora_iso(),
-    }
-
+    novo = {"id_cliente": gerar_id(), "created_at": agora_iso(), "updated_at": agora_iso()}
     novo.update(dados)
-
     df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
     return salvar_clientes(df, acao="criar")
 
 
 def atualizar_cliente(id_cliente: str, dados: dict):
     df = carregar_clientes()
-
     if df.empty:
         return
-
     idx = df.index[df["id_cliente"] == id_cliente]
-
     if len(idx) == 0:
         return
-
     idx = idx[0]
-
     for chave, valor in dados.items():
         if chave in df.columns:
             df.loc[idx, chave] = valor
-
     df.loc[idx, "updated_at"] = agora_iso()
-
     return salvar_clientes(df, acao="editar")
 
 
 def cadastrar_contato(dados: dict):
     df = carregar_contatos()
-
-    novo = {
-        "id_contato": gerar_id(),
-        "created_at": agora_iso(),
-        "updated_at": agora_iso(),
-    }
-
+    novo = {"id_contato": gerar_id(), "created_at": agora_iso(), "updated_at": agora_iso()}
     novo.update(dados)
-
     df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
     return salvar_contatos(df, acao="criar")
 
 
 def atualizar_contato(id_contato: str, dados: dict):
     df = carregar_contatos()
-
     if df.empty:
         return
-
     idx = df.index[df["id_contato"] == id_contato]
-
     if len(idx) == 0:
         return
-
     idx = idx[0]
-
     for chave, valor in dados.items():
         if chave in df.columns:
             df.loc[idx, chave] = valor
-
     df.loc[idx, "updated_at"] = agora_iso()
-
     return salvar_contatos(df, acao="editar")
 
 
 def cadastrar_interacao(dados: dict):
     df = carregar_interacoes()
-
-    novo = {
-        "id_interacao": gerar_id(),
-        "created_at": agora_iso(),
-    }
-
+    novo = {"id_interacao": gerar_id(), "created_at": agora_iso()}
     novo.update(dados)
-
     df = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
     if not salvar_interacoes(df, acao="criar"):
         return False
-
     atualizar_cliente_apos_interacao(dados)
     return True
 
 
 def atualizar_cliente_apos_interacao(dados_interacao: dict):
     id_cliente = dados_interacao.get("id_cliente", "")
-
     if not id_cliente:
         return
-
     clientes = carregar_clientes()
-
     idx = clientes.index[clientes["id_cliente"] == id_cliente]
-
     if len(idx) == 0:
         return
-
     idx = idx[0]
-
     clientes.loc[idx, "ultimo_contato"] = dados_interacao.get("data_interacao", "")
     clientes.loc[idx, "proxima_acao"] = dados_interacao.get("proxima_acao", "")
     clientes.loc[idx, "data_proxima_acao"] = dados_interacao.get("data_proxima_acao", "")
-
     if dados_interacao.get("responsavel"):
         clientes.loc[idx, "responsavel"] = dados_interacao.get("responsavel")
-
     clientes.loc[idx, "updated_at"] = agora_iso()
-
     salvar_clientes(clientes)
