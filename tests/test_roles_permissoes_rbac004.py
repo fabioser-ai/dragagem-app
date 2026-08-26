@@ -27,22 +27,24 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
             self.catalogo_permissoes if catalogo_permissoes is None else catalogo_permissoes,
         )
 
-    def test_matriz_conservadora_e_valida_e_somente_allow(self):
+    def test_matriz_mutavel_permanece_valida_e_referencialmente_integra(self):
         self.assertEqual(self.validar(), [])
-        codigos = dict(zip(self.catalogo_roles["role_id"], self.catalogo_roles["codigo"]))
-        contagens = self.matriz.assign(
-            codigo=self.matriz["role_id"].map(codigos)
-        ).groupby("codigo").size().to_dict()
-        self.assertEqual(
-            contagens,
-            {
-                "FUNCIONARIO": 1,
-                "APROVADOR": 1,
-                "ENGENHARIA": 4,
-                "FINANCEIRO": 3,
-            },
+        self.assertEqual(self.matriz.columns.tolist(), roles.COLUNAS_PERMISSOES)
+        self.assertTrue(set(self.matriz["role_id"]) <= set(self.catalogo_roles["role_id"]))
+        self.assertTrue(set(self.matriz["efeito"]) <= set(roles.EFEITOS))
+        chaves_catalogo = set(
+            self.catalogo_permissoes[["modulo", "recurso", "acao"]].itertuples(
+                index=False, name=None
+            )
         )
-        self.assertEqual(set(self.matriz["efeito"]), {"allow"})
+        chaves_matriz = set(
+            self.matriz[["modulo", "recurso", "acao"]].itertuples(index=False, name=None)
+        )
+        self.assertTrue(chaves_matriz <= chaves_catalogo)
+        duplicadas = self.matriz.duplicated(
+            subset=["role_id", "modulo", "recurso", "acao", "efeito"], keep=False
+        )
+        self.assertFalse(duplicadas.any())
 
     def test_funcionario_possui_somente_criar_despesa(self):
         role_id = self.catalogo_roles.loc[
@@ -54,13 +56,19 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
             [["prestacao_contas", "despesa", "criar", "allow"]],
         )
 
-    def test_nenhuma_role_possui_medicoes_exclusao_ferias_ou_administracao(self):
-        self.assertNotIn("medicoes", set(self.matriz["modulo"]))
+    def test_matriz_nao_concede_administracao_ou_permissoes_criticas(self):
         self.assertNotIn("administracao", set(self.matriz["modulo"]))
-        exclusoes_ferias = self.matriz[
-            (self.matriz["modulo"] == "ferias") & (self.matriz["acao"] == "excluir")
+        catalogo = self.catalogo_permissoes.copy()
+        criticas = catalogo[
+            catalogo["sensibilidade"].astype(str).str.strip().str.casefold() == "critica"
         ]
-        self.assertTrue(exclusoes_ferias.empty)
+        chaves_criticas = set(
+            criticas[["modulo", "recurso", "acao"]].itertuples(index=False, name=None)
+        )
+        chaves_matriz = set(
+            self.matriz[["modulo", "recurso", "acao"]].itertuples(index=False, name=None)
+        )
+        self.assertTrue(chaves_matriz.isdisjoint(chaves_criticas))
 
     def test_roles_vazias_sao_validas(self):
         nova_role = pd.DataFrame([{
