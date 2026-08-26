@@ -308,3 +308,4 @@ data_hora,usuario,perfil,acao
 2026-08-26 13:40:38,Fabio,superadmin,login
 2026-08-26 13:40:52,Fabio,superadmin,logout
 2026-08-26 13:41:03,teste,funcionario,login
+2026-08-26 13:42:47,teste,funcionario,logout
