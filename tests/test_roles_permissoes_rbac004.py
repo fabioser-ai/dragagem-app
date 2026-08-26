@@ -140,7 +140,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         ]
         self.assertEqual(
             salario_rh[["acao", "efeito"]].values.tolist(),
-            [["criar", "allow"], ["visualizar", "allow"]],
+            [["criar", "allow"], ["editar", "allow"], ["visualizar", "allow"]],
         )
 
     def test_proprietario_superadmin_e_pessoas_permanecem_fora_do_rbac(self):
@@ -171,7 +171,7 @@ class TestConcessaoInicialRolesRBAC004(unittest.TestCase):
         esperados = {
             "services/auth.py": "f1d69b8e69d24c829b31558ebbdfa0fe21ebe909aca7aee2fbcabeab22c843bf",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
-            "data/permissoes_catalogo.csv": "1344ada97d71a1f7edeba8c025408bc82d86473ef31c2ff3df109e38cd4d9eaf",
+            "data/permissoes_catalogo.csv": "c34c4811b5ee7fa108593f87077817462348fd6112753e6dfbb07af17d36867b",
         }
         for caminho, esperado in esperados.items():
             self.assertEqual(

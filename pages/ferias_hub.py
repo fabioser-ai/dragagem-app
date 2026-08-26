@@ -9,7 +9,10 @@ FLUXO_KEY = "ferias_folgas_fluxo"
 
 
 def _pode_visualizar(recurso: str) -> bool:
-    return pode(modulo="ferias", recurso=recurso, acao="visualizar")
+    # A leitura de Férias e Folgas é canonicamente representada por
+    # ferias/registro/visualizar. As ações específicas continuam segregadas
+    # em ferias/ferias/* e ferias/folga/*.
+    return pode(modulo="ferias", recurso="registro", acao="visualizar")
 
 
 def _voltar_landing():

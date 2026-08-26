@@ -23,11 +23,12 @@ class TestFeriasFolgasLanding(unittest.TestCase):
         self.assertIn('"ABRIR FÉRIAS"', fonte)
         self.assertIn('"ABRIR FOLGAS"', fonte)
 
-    def test_cards_dependem_de_visualizacao_por_recurso(self):
+    def test_cards_dependem_da_permissao_canonica_de_leitura(self):
         fonte = (ROOT / "pages/ferias_hub.py").read_text(encoding="utf-8")
-        self.assertIn('_pode_visualizar("ferias")', fonte)
-        self.assertIn('_pode_visualizar("folga")', fonte)
-        self.assertIn('pode(modulo="ferias", recurso=recurso, acao="visualizar")', fonte)
+        self.assertIn("def _pode_visualizar(recurso: str) -> bool:", fonte)
+        self.assertIn('pode(modulo="ferias", recurso="registro", acao="visualizar")', fonte)
+        self.assertNotIn('recurso="ferias", acao="visualizar"', fonte)
+        self.assertNotIn('recurso="folga", acao="visualizar"', fonte)
 
     def test_fluxos_reutilizam_regras_legadas_sem_duplicar_motor(self):
         fonte = (ROOT / "pages/ferias_hub.py").read_text(encoding="utf-8")
