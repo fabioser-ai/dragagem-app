@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pandas as pd
 
@@ -9,12 +9,12 @@ from services.github import (
     StatusEscrita,
     StatusLeitura,
 )
-from services.log import ARQUIVO_LOG, COLUNAS_LOG, registrar_log
+from services.log import ARQUIVO_LOG, BRANCH_LOG, COLUNAS_LOG, carregar_logs_resultado, registrar_log
 
 
 class TestRegistrarLog(unittest.TestCase):
     @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
-    @patch("services.log.salvar_csv_github")
+    @patch("services.log._salvar_log_runtime")
     @patch("services.log.ler_csv_github")
     def test_sucesso_com_dados_acrescenta_registro_e_usa_sha(self, ler, salvar):
         ler.return_value = ResultadoLeituraCSV(
@@ -39,6 +39,7 @@ class TestRegistrarLog(unittest.TestCase):
         resultado = registrar_log("fabio", "superadmin", "logout")
 
         self.assertTrue(resultado.sucesso)
+        ler.assert_called_once_with(ARQUIVO_LOG, "token", "repo", ref=BRANCH_LOG)
         salvar.assert_called_once()
         chamada = salvar.call_args
         df_enviado = chamada.args[0]
@@ -50,7 +51,7 @@ class TestRegistrarLog(unittest.TestCase):
         self.assertNotIn("criar", chamada.kwargs)
 
     @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
-    @patch("services.log.salvar_csv_github")
+    @patch("services.log._salvar_log_runtime")
     @patch("services.log.ler_csv_github")
     def test_sucesso_vazio_atualiza_com_sha(self, ler, salvar):
         ler.return_value = ResultadoLeituraCSV(
@@ -71,7 +72,7 @@ class TestRegistrarLog(unittest.TestCase):
         self.assertEqual(chamada.kwargs["sha_esperado"], "sha-vazio")
 
     @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
-    @patch("services.log.salvar_csv_github")
+    @patch("services.log._salvar_log_runtime")
     @patch("services.log.ler_csv_github")
     def test_arquivo_inexistente_cria_explicitamente_sem_sha(self, ler, salvar):
         ler.return_value = ResultadoLeituraCSV(
@@ -95,7 +96,7 @@ class TestRegistrarLog(unittest.TestCase):
         self.assertEqual(len(chamada.args[0]), 1)
 
     @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
-    @patch("services.log.salvar_csv_github")
+    @patch("services.log._salvar_log_runtime")
     @patch("services.log.ler_csv_github")
     def test_falha_de_leitura_bloqueia_escrita(self, ler, salvar):
         falha = ResultadoLeituraCSV(
@@ -113,7 +114,7 @@ class TestRegistrarLog(unittest.TestCase):
         salvar.assert_not_called()
 
     @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
-    @patch("services.log.salvar_csv_github")
+    @patch("services.log._salvar_log_runtime")
     @patch("services.log.ler_csv_github")
     def test_normaliza_colunas_ausentes_sem_mudar_schema_final(self, ler, salvar):
         ler.return_value = ResultadoLeituraCSV(
@@ -133,6 +134,42 @@ class TestRegistrarLog(unittest.TestCase):
         self.assertEqual(df_enviado.columns.tolist(), COLUNAS_LOG)
         self.assertEqual(len(df_enviado), 2)
         self.assertEqual(df_enviado.iloc[0]["usuario"], "ana")
+
+    @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
+    @patch("services.log.ler_csv_github")
+    def test_consulta_de_auditoria_le_branch_runtime(self, ler):
+        ler.return_value = ResultadoLeituraCSV(
+            status=StatusLeitura.SUCESSO_VAZIO,
+            dados=pd.DataFrame(columns=COLUNAS_LOG),
+            arquivo=ARQUIVO_LOG,
+            sha="sha",
+        )
+
+        carregar_logs_resultado()
+
+        ler.assert_called_once_with(ARQUIVO_LOG, "token", "repo", ref=BRANCH_LOG)
+
+    @patch("services.log.st.secrets", {"GITHUB_TOKEN": "token", "REPO": "repo"})
+    @patch("services.log.requests.put")
+    def test_escrita_runtime_envia_branch_e_sha(self, put):
+        from services.log import _salvar_log_runtime
+
+        resposta = Mock(status_code=200)
+        resposta.json.return_value = {"content": {"sha": "novo-sha"}}
+        put.return_value = resposta
+        df = pd.DataFrame([{
+            "data_hora": "2026-08-26 14:00:00",
+            "usuario": "fabio",
+            "perfil": "superadmin",
+            "acao": "login",
+        }], columns=COLUNAS_LOG)
+
+        resultado = _salvar_log_runtime(df, sha_esperado="sha-antigo")
+
+        self.assertTrue(resultado.sucesso)
+        payload = put.call_args.kwargs["json"]
+        self.assertEqual(payload["branch"], BRANCH_LOG)
+        self.assertEqual(payload["sha"], "sha-antigo")
 
 
 if __name__ == "__main__":
