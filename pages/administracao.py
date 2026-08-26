@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from services.autorizacao import pode_gerenciar_administracao
+from services.autorizacao import MODO_LEGACY, modo_autorizacao, pode_gerenciar_administracao
 from services.credenciais_operacionais import (
     carregar_credenciais_resultado,
     configurar_credencial,
@@ -11,6 +11,7 @@ from services.log import carregar_logs_resultado
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
 from services.rbac_shadow import calcular_usuario, diagnosticar_usuarios
+from services import rbac_authority
 from services.roles import (
     carregar_roles_permissoes_resultado,
     carregar_roles_resultado,
@@ -122,7 +123,7 @@ def _render_inicio_administracao():
         st.write(
             "Pessoas cuida do cadastro e da entrada no APP. Acessos mostra o que "
             "vale hoje. Roles organiza funções institucionais. Diagnóstico concentra "
-            "o Shadow Mode e informações técnicas. Auditoria mostra o histórico existente."
+            "a comparação com o legado e informações técnicas. Auditoria mostra o histórico existente."
         )
     _render_ajuda_controle_acesso()
 
@@ -223,8 +224,8 @@ def _linhas_permissoes(permissoes):
 
 def _status_diagnostico(status):
     return {
-        "IGUAL": "O acesso atual coincide com o calculado pelas Roles",
-        "DIVERGENTE": "Há diferenças entre o acesso atual e o calculado pelas Roles",
+        "IGUAL": "O RBAC atual coincide com o legado anterior",
+        "DIVERGENTE": "Há diferenças entre o RBAC atual e o legado anterior",
         "SEM ROLE": "O usuário ainda não possui função atribuída",
         "ROLE VAZIA": "A função atribuída ainda não possui permissões",
     }.get(str(status), str(status))
@@ -255,13 +256,13 @@ AJUDA_COLUNAS = {
     "Cadastro": "Estado do registro operacional. Ativo ainda não significa entrada disponível.",
     "Credencial": "Indica se existe credencial operacional bcrypt configurada.",
     "Troca de senha": "Campo reservado ao futuro ciclo de credenciais; hoje não possui efeito.",
-    "Role / função": "Função institucional atribuível. No Shadow Mode, não altera o acesso real.",
+    "Role / função": "Função institucional que concede permissões no modo RBAC.",
     "Estado da Role": "Indica se a Role pode ser usada em novas associações; não é acesso efetivo.",
     "Permissões atuais": "Autorizações efetivamente usadas hoje pelo APP.",
-    "Permissões pelas Roles": "Autorizações que o novo modelo calcularia; ainda não têm efeito real.",
-    "O novo modelo concederia": "Permissões das Roles ausentes no acesso efetivo atual.",
-    "O acesso atual possui, mas as Roles não concedem": "Permissões efetivas não cobertas pelas Roles atribuídas.",
-    "Status da comparação": "Resultado da comparação entre o acesso atual e o cálculo em Shadow Mode.",
+    "Permissões pelas Roles": "Autorizações efetivas calculadas pelo RBAC.",
+    "O novo modelo concederia": "Permissões do RBAC ausentes no legado anterior.",
+    "O acesso atual possui, mas as Roles não concedem": "Permissões legadas não cobertas pelo RBAC atual.",
+    "Status da comparação": "Resultado da comparação entre RBAC e legado anterior.",
     "Criado por": "Usuário administrativo que criou o registro.",
     "Atualizado por": "Usuário administrativo responsável pela última alteração.",
     "Criado em": "Data e hora de criação do registro.",
@@ -282,12 +283,11 @@ def _render_ajuda_controle_acesso():
         st.markdown("#### Como funciona o controle de acesso?")
         st.write(
             "Use este módulo para cadastrar pessoas, organizar funções, consultar "
-            "o acesso atual e comparar o novo modelo RBAC antes de sua ativação."
+            "o acesso RBAC atual e compará-lo com o legado anterior."
         )
         st.info(
-            "Hoje, o acesso real ainda é definido pelo modelo atual. O novo modelo "
-            "de usuários operacionais, Roles e permissões está em preparação e "
-            "ainda não substitui a autorização existente."
+            "Hoje, o acesso real dos usuários operacionais é definido por Roles. "
+            "O modelo legado permanece disponível apenas para diagnóstico e rollback."
         )
         st.markdown(
             """
@@ -298,15 +298,13 @@ def _render_ajuda_controle_acesso():
   operacionais.
 - **Permissões efetivas atuais:** são as autorizações realmente usadas hoje pelo APP.
 
-**NOVO MODELO POR ROLES — EM PREPARAÇÃO**
+**ACESSO REAL POR ROLES**
 
 - **Usuários operacionais:** representam pessoas cadastradas no novo modelo. Podem
   autenticar quando ativas e com credencial configurada.
-- **Roles:** representam funções institucionais e agrupam permissões. Não concedem
-  acesso real enquanto o RBAC estiver em modo de diagnóstico.
-- **Permissões pelas Roles:** representam o acesso que o novo modelo calcularia;
-  ainda não liberam nem bloqueiam operações.
-- **Diagnóstico (Shadow Mode):** compara os dois modelos e não altera o acesso.
+- **Roles:** representam funções institucionais e agrupam permissões efetivas.
+- **Permissões pelas Roles:** representam o acesso real no modo RBAC.
+- **Diagnóstico:** compara o RBAC com o legado anterior sem alterar decisões.
 - **Credenciais:** são hashes bcrypt separados da identidade. Nenhum e-mail ou
   convite é gerado atualmente e a senha original não pode ser recuperada.
 
@@ -316,13 +314,13 @@ def _render_ajuda_controle_acesso():
 2. Revise os dados e ative o registro operacional.
 3. Atribua uma Role institucional.
 4. Configure a credencial inicial.
-5. Consulte o Shadow Mode para comparar o cálculo com o acesso atual.
-6. Não considere o acesso migrado: a autorização efetiva continua no modelo atual.
+5. Consulte Diagnóstico para comparar o RBAC com o legado anterior.
+6. Confirme em Acessos as permissões reais resultantes.
 
 **O que ainda não está disponível**
 
-Convite, recuperação por e-mail, troca obrigatória, MFA, ativação do RBAC e
-migração automática de permissões ainda não foram implementados.
+Convite, recuperação por e-mail, troca obrigatória, MFA e migração automática
+de permissões ainda não foram implementados.
 
 **Glossário**
 
@@ -330,7 +328,7 @@ migração automática de permissões ainda não foram implementados.
 - **Credencial:** hash seguro que permite autenticar um cadastro operacional ativo.
 - **Role:** função institucional que agrupa permissões.
 - **Permissão:** decisão sobre o que pode ser feito em um recurso.
-- **Shadow Mode:** comparação sem efeito na autorização.
+- **Diagnóstico:** comparação do RBAC efetivo com o legado anterior.
 """
         )
 
@@ -402,12 +400,11 @@ def _render_catalogo_permissoes():
 
 
 def _render_roles():
-    st.subheader("Modelo por Roles — em preparação")
+    st.subheader("Modelo por Roles — acesso real")
     st.caption(
-        "Funções institucionais reutilizáveis. Elas podem ser atribuídas, mas "
-        "ainda não alteram o acesso efetivo."
+        "Funções institucionais reutilizáveis que determinam o acesso efetivo no modo RBAC."
     )
-    st.warning("As Roles ainda não alteram o acesso real.")
+    st.success("As Roles ativas controlam o acesso real no modo RBAC.")
     leitura = carregar_roles_resultado()
     leitura_permissoes = carregar_roles_permissoes_resultado()
     leitura_associacoes = carregar_usuarios_roles_resultado()
@@ -448,7 +445,7 @@ def _render_roles():
             })
         st.caption(
             "Role é uma função institucional. Pessoas vinculadas indica quantos "
-            "cadastros possuem a função; permissões calculadas ainda não são acesso real."
+            "cadastros possuem a função; suas permissões participam do acesso real."
         )
         st.dataframe(
             exibicao_roles,
@@ -520,7 +517,7 @@ def _render_roles():
                         "modulo": st.column_config.TextColumn("Módulo", help="Área funcional protegida."),
                         "recurso": st.column_config.TextColumn("Recurso", help="Objeto ao qual a permissão se aplica."),
                         "acao": st.column_config.TextColumn("Ação", help="Operação agrupada pela Role."),
-                        "efeito": st.column_config.TextColumn("Efeito", help="Decisão documental allow/deny; ainda não participa da autorização."),
+                        "efeito": st.column_config.TextColumn("Efeito", help="Decisão allow/deny aplicada pela autoridade RBAC."),
                     },
                 )
                 st.caption(
@@ -586,7 +583,7 @@ def _render_estado_usuario(usuario, leitura_usuarios, leitura_credenciais):
     col_credencial.metric("Credencial configurada", rotulo_credencial)
     st.info(
         "A entrada operacional exige cadastro ativo e credencial válida. As "
-        "permissões efetivas continuam no modelo atual; Roles permanecem em Shadow Mode."
+        "as Roles e seus escopos determinam as permissões efetivas no modo RBAC."
     )
     st.caption(
         f"Exige troca de senha: {usuario['exige_troca_senha'] or 'não'} — "
@@ -690,7 +687,7 @@ def _render_roles_usuario(usuario, leituras):
     st.markdown("### Funções atribuídas ao usuário")
     st.caption(
         "Role é uma função institucional atribuída à pessoa. Reúne permissões, "
-        "mas ainda não altera o acesso real."
+        "e participa do acesso real no modo RBAC."
     )
     associacoes = leituras["associacoes"].dados.copy()
     roles = leituras["roles"].dados.copy()
@@ -742,6 +739,10 @@ def _render_roles_usuario(usuario, leituras):
             "Função disponível", list(opcoes), key=f"role_ficha_{usuario_id}"
         )
         role_id = opcoes[escolhida]
+        obra_id = st.text_input(
+            "Escopo da obra", value="todas", key=f"escopo_role_{usuario_id}_{role_id}",
+            help="Use 'todas' ou informe o identificador exato de uma obra.",
+        )
         role = roles_ativas[roles_ativas["role_id"].astype(str) == str(role_id)].iloc[0]
         permissoes = matriz[matriz["role_id"].astype(str) == str(role_id)]
         st.write(f"**Objetivo:** {role['descricao'] or role['nome']}")
@@ -757,12 +758,13 @@ def _render_roles_usuario(usuario, leituras):
             _informar_operacao(atribuir_role(
                 leitura=leituras["associacoes"], leitura_usuarios=leituras["usuarios"],
                 leitura_roles=leituras["roles"], usuario_id=usuario_id, role_id=role_id,
+                obra_id=obra_id,
             ))
 
     ativas = historico[historico["ativo"].astype(str).str.casefold() == "sim"]
     if not ativas.empty:
         opcoes_retirada = {
-            f"{nomes.get(row['role_id'], {}).get('nome', row['role_id'])}": row["role_id"]
+            f"{nomes.get(row['role_id'], {}).get('nome', row['role_id'])} · {row.get('obra_id') or 'todas'}": (row["role_id"], row.get("obra_id") or "todas")
             for _, row in ativas.iterrows()
         }
         retirada = st.selectbox(
@@ -775,14 +777,14 @@ def _render_roles_usuario(usuario, leituras):
         )
         if st.button(
             "Retirar função", disabled=not confirmar,
-            key=f"retirar_{usuario_id}_{opcoes_retirada[retirada]}",
+            key=f"retirar_{usuario_id}_{opcoes_retirada[retirada][0]}_{opcoes_retirada[retirada][1]}",
         ):
             _informar_operacao(retirar_role(
                 leitura=leituras["associacoes"], leitura_usuarios=leituras["usuarios"],
                 leitura_roles=leituras["roles"], usuario_id=usuario_id,
-                role_id=opcoes_retirada[retirada],
+                role_id=opcoes_retirada[retirada][0], obra_id=opcoes_retirada[retirada][1],
             ))
-    st.info("Uma função atribuída ainda não altera o acesso real do usuário.")
+    st.info("As Roles ativas controlam o acesso real no modo RBAC.")
 
     if not ativas.empty:
         nomes_ativas = [
@@ -792,7 +794,7 @@ def _render_roles_usuario(usuario, leituras):
         st.caption(
             "Estado desta pessoa: " + ", ".join(nomes_ativas)
             + (" está atribuída." if len(nomes_ativas) == 1 else " estão atribuídas.")
-            + " Essas funções seriam usadas pelo novo modelo, mas ainda não concedem acesso real."
+            + " Essas funções participam da autorização efetiva no modo RBAC."
         )
 
 
@@ -807,26 +809,26 @@ def _render_acesso_usuario(usuario, leituras):
     )
     st.info(_status_diagnostico(diagnostico.status))
     st.warning(
-        "O cálculo por Roles está em modo de diagnóstico e ainda não altera o acesso real."
+        "O cálculo por Roles é a autoridade efetiva no modo RBAC."
     )
     col_atual, col_roles = st.columns(2)
     with col_atual:
-        st.markdown("#### Permissões atuais — em uso hoje")
-        st.caption("Autorizações efetivas utilizadas atualmente pelo APP.")
+        st.markdown("#### Permissões do legado anterior")
+        st.caption("Referência histórica sem autoridade no modo RBAC.")
         linhas = _linhas_permissoes(diagnostico.permissoes_atuais)
         st.write("\n".join(f"- {item}" for item in linhas) if linhas else "Nenhum")
     with col_roles:
-        st.markdown("#### Permissões pelas Roles — em preparação")
-        st.caption("Autorizações que o novo modelo calcularia caso fosse ativado.")
+        st.markdown("#### Permissões efetivas pelas Roles")
+        st.caption("Autorizações calculadas pela autoridade RBAC.")
         linhas = _linhas_permissoes(diagnostico.permissoes_rbac)
         st.write("\n".join(f"- {item}" for item in linhas) if linhas else "Nenhum")
     if diagnostico.rbac_a_mais:
-        st.markdown("**O novo modelo concederia:**")
-        st.caption("Permissões presentes nas Roles, mas ainda ausentes no acesso atual.")
+        st.markdown("**O RBAC concede além do legado:**")
+        st.caption("Permissões presentes nas Roles e ausentes no modelo anterior.")
         st.write("\n".join(f"- {item}" for item in _linhas_permissoes(diagnostico.rbac_a_mais)))
     if diagnostico.rbac_a_menos:
-        st.markdown("**O acesso atual possui, mas as Roles não concedem:**")
-        st.caption("Permissões em uso hoje que não aparecem nas Roles atribuídas.")
+        st.markdown("**O legado possuía, mas as Roles não concedem:**")
+        st.caption("Permissões antigas que não aparecem nas Roles atribuídas.")
         st.write("\n".join(f"- {item}" for item in _linhas_permissoes(diagnostico.rbac_a_menos)))
     with st.expander("Detalhes técnicos do diagnóstico"):
         st.write("Status técnico:", diagnostico.status)
@@ -986,8 +988,8 @@ def _render_usuarios():
 def _render_diagnostico_rbac():
     st.subheader("DIAGNÓSTICO RBAC")
     st.caption(
-        "Shadow Mode compara o acesso em uso hoje com o modelo por Roles em "
-        "preparação, sem liberar ou bloquear qualquer operação."
+        "Compara o RBAC em uso com o modelo legado anterior. Esta consulta "
+        "não libera nem bloqueia qualquer operação."
     )
     leituras = {
         "usuarios": carregar_usuarios_operacionais_resultado(),
@@ -1066,10 +1068,10 @@ def _render_diagnostico_rbac():
 
 
 def _render_permissoes_legadas(usuario_inicial=""):
-    st.subheader("ACESSO REAL ATUAL")
+    st.subheader("MODELO LEGADO ANTERIOR")
     st.caption(
-        "Estas são as permissões efetivas atuais e continuam sendo a fonte da "
-        "autorização enquanto o RBAC permanece em modo de diagnóstico."
+        "Consulta somente leitura para diagnóstico e rollback. No modo RBAC, "
+        "estes registros não concedem acesso."
     )
     resultado_leitura = carregar_permissoes_resultado()
     df = resultado_leitura.dados
@@ -1139,6 +1141,7 @@ def _render_permissoes_legadas(usuario_inicial=""):
     edicao_habilitada = st.checkbox(
         "Habilitar alterações nas permissões efetivas atuais",
         help="Mantenha desmarcado para consultar sem risco de edição acidental.",
+        disabled=modo_autorizacao() != MODO_LEGACY,
     )
     escrita_liberada = persistencia_liberada and edicao_habilitada
     if not edicao_habilitada:
@@ -1282,7 +1285,7 @@ def _render_area_acessos():
     usuario = None
     if leitura.leitura_confirmada and not leitura.dados.empty:
         usuario = _selecionar_usuario(
-            leitura.dados, "usuario_acesso_real", incluir_todos=True
+            leitura.dados, "usuario_acesso_real"
         )
     elif not leitura.leitura_confirmada:
         st.warning(
@@ -1292,7 +1295,22 @@ def _render_area_acessos():
     login = "" if usuario is None else str(usuario["login"])
     if usuario is not None:
         st.write(f"**Pessoa:** {usuario['nome']} · Login: {login}")
-    _render_permissoes_legadas(login)
+    st.subheader("ACESSO REAL ATUAL — RBAC")
+    st.caption("Autoridade efetiva: Roles ativas e seus escopos de obra.")
+    if usuario is None:
+        st.info("Selecione uma pessoa para consultar seu acesso efetivo.")
+        return
+    permissoes = rbac_authority.listar_permissoes(usuario=login)
+    if not permissoes:
+        st.warning("Esta pessoa não possui permissões RBAC efetivas.")
+    else:
+        exibicao = pd.DataFrame(permissoes).rename(columns={
+            "chave": "Permissão", "role": "Role", "escopo": "Escopo",
+        })
+        exibicao["Permissão"] = exibicao["Permissão"].map(lambda x: " / ".join(x))
+        st.dataframe(exibicao[["Permissão", "Role", "Escopo"]], use_container_width=True, hide_index=True)
+    if modo_autorizacao() == MODO_LEGACY:
+        st.warning("Rollback LEGACY ativo: temporariamente, o modelo abaixo é a autoridade real.")
 
 
 def _render_associacoes_roles():
@@ -1315,7 +1333,7 @@ def _render_associacoes_roles():
 
 
 def _render_area_roles():
-    st.info("Modelo por Roles em preparação — ainda não altera o acesso real.")
+    st.info("Roles ativas controlam o acesso real. O escopo pode valer para todas ou para uma obra.")
     tarefa = st.radio(
         "O que você quer fazer?",
         ("Função de uma pessoa", "Catálogo de Roles"),
@@ -1352,10 +1370,13 @@ def _render_diagnostico_individual():
 
 
 def _render_area_diagnostico():
+    st.info("Comparação técnica entre o RBAC atual e o modelo legado anterior.")
     _render_diagnostico_rbac()
     _render_diagnostico_individual()
     with st.expander("Catálogo técnico de permissões"):
         _render_catalogo_permissoes()
+    with st.expander("Modelo legado anterior (somente leitura)"):
+        _render_permissoes_legadas()
 
 
 def _render_area_auditoria():

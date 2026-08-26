@@ -49,6 +49,7 @@ def rotas_do_roteador():
 class TestFronteiraCentralAutorizacao(unittest.TestCase):
     def setUp(self):
         streamlit.session_state.clear()
+        autorizacao.st.secrets = {"AUTHORIZATION_MODE": "LEGACY"}
 
     def autenticar(self, *, perfil="user", usuario="usuario"):
         streamlit.session_state.update(

@@ -146,7 +146,7 @@ class TestShadowModeRBAC006(unittest.TestCase):
         self.assertEqual(
             associacoes.columns.tolist(),
             [
-                "usuario_role_id", "usuario_id", "role_id", "ativo",
+                "usuario_role_id", "usuario_id", "role_id", "obra_id", "ativo",
                 "criado_em", "criado_por", "atualizado_em", "atualizado_por",
             ],
         )

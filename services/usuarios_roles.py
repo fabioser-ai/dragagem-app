@@ -14,7 +14,7 @@ from services.usuarios_operacionais import _logins_protegidos
 
 ARQUIVO = "data/usuarios_roles.csv"
 COLUNAS = [
-    "usuario_role_id", "usuario_id", "role_id", "ativo",
+    "usuario_role_id", "usuario_id", "role_id", "obra_id", "ativo",
     "criado_em", "criado_por", "atualizado_em", "atualizado_por",
 ]
 
@@ -101,7 +101,7 @@ def _persistir(dados, leitura):
     )
 
 
-def atribuir_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_id):
+def atribuir_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_id, obra_id="todas"):
     if not pode_gerenciar_usuarios_roles():
         return _erro("nao_autorizado", "Alteração não autorizada.")
     if not _leituras_validas(leitura, leitura_usuarios, leitura_roles):
@@ -112,10 +112,14 @@ def atribuir_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_
     )
     if erro:
         return erro
+    escopo = str(obra_id or "").strip()
+    if not escopo or any(c in escopo for c in "\r\n,;"):
+        return _erro("escopo_invalido", "Informe uma obra válida ou 'todas'.")
     dados = _df(leitura.dados)
     iguais = dados[
         (dados["usuario_id"].astype(str) == str(usuario_id))
         & (dados["role_id"].astype(str) == str(role_id))
+        & (dados["obra_id"].replace("", "todas").astype(str).str.casefold() == escopo.casefold())
     ]
     ativas = iguais[iguais["ativo"].astype(str).str.casefold() == "sim"]
     if not ativas.empty:
@@ -131,14 +135,14 @@ def atribuir_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_
     else:
         registro = {
             "usuario_role_id": str(uuid4()), "usuario_id": str(usuario_id),
-            "role_id": str(role_id), "ativo": "sim", "criado_em": agora,
+            "role_id": str(role_id), "obra_id": escopo, "ativo": "sim", "criado_em": agora,
             "criado_por": autor, "atualizado_em": agora, "atualizado_por": autor,
         }
         atualizado = pd.concat([atualizado, pd.DataFrame([registro])], ignore_index=True)
     return _persistir(atualizado, leitura)
 
 
-def retirar_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_id):
+def retirar_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_id, obra_id="todas"):
     if not pode_gerenciar_usuarios_roles():
         return _erro("nao_autorizado", "Alteração não autorizada.")
     if not _leituras_validas(leitura, leitura_usuarios, leitura_roles):
@@ -147,6 +151,7 @@ def retirar_role(*, leitura, leitura_usuarios, leitura_roles, usuario_id, role_i
     indices = dados.index[
         (dados["usuario_id"].astype(str) == str(usuario_id))
         & (dados["role_id"].astype(str) == str(role_id))
+        & (dados["obra_id"].replace("", "todas").astype(str).str.casefold() == str(obra_id or "todas").strip().casefold())
         & (dados["ativo"].astype(str).str.casefold() == "sim")
     ].tolist()
     if len(indices) != 1:

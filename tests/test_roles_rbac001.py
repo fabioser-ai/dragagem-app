@@ -180,6 +180,7 @@ class TestCatalogoRolesRBAC001(unittest.TestCase):
 class TestAutorizacaoRolesRBAC001(unittest.TestCase):
     def setUp(self):
         autorizacao.st.session_state.clear()
+        autorizacao.st.secrets = {"AUTHORIZATION_MODE": "LEGACY"}
 
     def test_guarda_central_preserva_superadmin_admin_e_proprietario(self):
         casos = (
