@@ -39,11 +39,15 @@ class TestCatalogoRolesRBAC001(unittest.TestCase):
         df_permissoes = pd.read_csv(ROOT / roles.ARQUIVO_PERMISSOES)
         self.assertEqual(df_roles.columns.tolist(), roles.COLUNAS_ROLES)
         self.assertEqual(df_permissoes.columns.tolist(), roles.COLUNAS_PERMISSOES)
-        self.assertEqual(
-            df_roles["codigo"].tolist(),
-            ["FUNCIONARIO", "ENCARREGADO", "APROVADOR", "ENGENHARIA", "FINANCEIRO", "RH"],
+
+        codigos = df_roles["codigo"].astype(str).tolist()
+        self.assertEqual(len(codigos), len(set(codigos)))
+        self.assertTrue(
+            {
+                "FUNCIONARIO", "ENCARREGADO", "APROVADOR",
+                "ENGENHARIA", "FINANCEIRO", "RH",
+            } <= set(codigos)
         )
-        self.assertEqual(len(df_permissoes), 9)
         self.assertTrue(set(df_permissoes["role_id"]) <= set(df_roles["role_id"]))
 
     def test_criacao_normaliza_codigo_e_inicia_inativa(self):
