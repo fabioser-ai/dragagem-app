@@ -193,7 +193,7 @@ class TestUsuariosRolesRBAC005(unittest.TestCase):
 
     def test_associacao_nao_altera_auth_legado_ou_medicoes(self):
         esperados = {
-            "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
+            "services/auth.py": "f1d69b8e69d24c829b31558ebbdfa0fe21ebe909aca7aee2fbcabeab22c843bf",
             "services/permissoes.py": "f586e6897dcec87e65479bd6a13fd25da42cb4eb44f3dca7d3240c5865244746",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "pages/medicoes.py": "f23a8cf9d1c7e01f94a93447c1f924dbc2dfd80b1bb904a1a9ff3e64e496257f",

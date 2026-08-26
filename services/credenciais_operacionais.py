@@ -9,7 +9,12 @@ import pandas as pd
 import streamlit as st
 
 from services.autorizacao import pode_gerenciar_usuarios_operacionais
-from services.github import ResultadoLeituraCSV, StatusLeitura, ler_csv_github
+from services.github import (
+    ResultadoLeituraCSV,
+    StatusLeitura,
+    ler_csv_github,
+    status_temporariamente_indisponivel,
+)
 from services.persistencia_multi_arquivo import (
     AlteracaoArquivoConteudo,
     publicar_arquivos_em_commit,
@@ -44,6 +49,16 @@ class ResultadoCredencial:
 class DiagnosticoCredencial:
     disponivel: bool
     codigo: str
+
+
+@dataclass(frozen=True)
+class ResultadoAutenticacaoOperacional:
+    dados: object = None
+    codigo: str = "credencial_invalida"
+
+    @property
+    def indisponivel(self):
+        return self.codigo.startswith("backend_")
 
 
 def hash_bcrypt_estruturalmente_valido(password_hash):
@@ -127,58 +142,77 @@ def carregar_credenciais_resultado(*, ref=None):
     return ResultadoLeituraCSV(
         resultado.status, dados, ARQUIVO, resultado.http_status,
         resultado.sha, resultado.erro,
+        resultado.rate_limit_limit, resultado.rate_limit_remaining,
+        resultado.rate_limit_reset, resultado.retry_after,
     )
 
 
-def autenticar_usuario_operacional(*, login, senha, usuarios_protegidos):
-    """Retorna dados de sessão ou ``None`` sem revelar a causa da negação."""
+def autenticar_usuario_operacional_resultado(*, login, senha, usuarios_protegidos):
+    """Distingue internamente credencial inválida de backend indisponível."""
     try:
         if not isinstance(usuarios_protegidos, dict):
-            return None
+            return ResultadoAutenticacaoOperacional(codigo="backend_configuracao")
         login_norm = str(login or "").strip().casefold()
         protegidos = {str(item).strip().casefold() for item in usuarios_protegidos}
         if not login_norm or login_norm in protegidos:
-            return None
+            return ResultadoAutenticacaoOperacional()
 
         usuarios = ler_csv_github(
             ARQUIVO_USUARIOS, st.secrets["GITHUB_TOKEN"], st.secrets["REPO"]
         )
         credenciais = carregar_credenciais_resultado()
         if not usuarios.leitura_confirmada or not credenciais.leitura_confirmada:
-            return None
+            falhas = [
+                item for item in (usuarios, credenciais)
+                if not item.leitura_confirmada
+            ]
+            if any(status_temporariamente_indisponivel(item.status) for item in falhas):
+                codigo = "backend_temporariamente_indisponivel"
+            elif any(item.status == StatusLeitura.NAO_AUTORIZADO for item in falhas):
+                codigo = "backend_nao_autorizado"
+            else:
+                codigo = "backend_leitura_nao_confirmada"
+            return ResultadoAutenticacaoOperacional(codigo=codigo)
         identidades = _df_usuarios(usuarios.dados)
         encontrados = identidades[
             identidades["login"].astype(str).str.strip().str.casefold() == login_norm
         ]
         if len(encontrados) != 1:
-            return None
+            return ResultadoAutenticacaoOperacional()
         identidade = encontrados.iloc[0]
         perfil = str(identidade["perfil_base"]).strip().casefold()
         if str(identidade["ativo"]).strip().casefold() != "sim":
-            return None
+            return ResultadoAutenticacaoOperacional()
         if str(identidade["credencial_configurada"]).strip().casefold() != "sim":
-            return None
+            return ResultadoAutenticacaoOperacional()
         if perfil not in PERFIS_PERMITIDOS:
-            return None
+            return ResultadoAutenticacaoOperacional()
 
         registros = credenciais.dados[
             credenciais.dados["usuario_id"].astype(str) == str(identidade["usuario_id"])
         ]
         if len(registros) != 1:
-            return None
+            return ResultadoAutenticacaoOperacional()
         credencial = registros.iloc[0]
         if str(credencial["algoritmo"]).strip().casefold() != ALGORITMO:
-            return None
+            return ResultadoAutenticacaoOperacional()
         if not verificar_hash(senha, str(credencial["password_hash"])):
-            return None
-        return {
+            return ResultadoAutenticacaoOperacional()
+        return ResultadoAutenticacaoOperacional(dados={
             "usuario": str(identidade["login"]),
             "perfil": perfil,
             "matricula": str(identidade["matricula"]),
             "nome": str(identidade["nome"]),
-        }
+        }, codigo="autenticado")
     except Exception:
-        return None
+        return ResultadoAutenticacaoOperacional(codigo="backend_erro_inesperado")
+
+
+def autenticar_usuario_operacional(*, login, senha, usuarios_protegidos):
+    """Interface compatível: retorna dados de sessão ou ``None``."""
+    return autenticar_usuario_operacional_resultado(
+        login=login, senha=senha, usuarios_protegidos=usuarios_protegidos,
+    ).dados
 
 
 def configurar_credencial(*, usuario_id, senha):

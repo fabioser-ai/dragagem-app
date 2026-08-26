@@ -137,6 +137,35 @@ class TestCredenciaisAUTH002(unittest.TestCase):
                 login="operador", senha="segredo", usuarios_protegidos={}
             ))
 
+    def test_resultado_interno_distingue_senha_de_backend_indisponivel(self):
+        invalida = cred.autenticar_usuario_operacional_resultado
+        with patch.object(
+            cred, "ler_csv_github",
+            return_value=leitura(cred.ARQUIVO_USUARIOS, self.usuarios),
+        ), patch.object(
+            cred, "carregar_credenciais_resultado",
+            return_value=leitura(cred.ARQUIVO, self.credenciais),
+        ):
+            resultado = invalida(
+                login="operador", senha="errada", usuarios_protegidos={}
+            )
+        self.assertEqual(resultado.codigo, "credencial_invalida")
+        self.assertFalse(resultado.indisponivel)
+
+        rate_limit = ResultadoLeituraCSV(
+            StatusLeitura.RATE_LIMIT_PRIMARIO, pd.DataFrame(),
+            cred.ARQUIVO_USUARIOS, http_status=403,
+            rate_limit_remaining=0,
+        )
+        with patch.object(cred, "ler_csv_github", return_value=rate_limit), patch.object(
+            cred, "carregar_credenciais_resultado", return_value=rate_limit,
+        ):
+            resultado = invalida(
+                login="operador", senha="qualquer", usuarios_protegidos={}
+            )
+        self.assertTrue(resultado.indisponivel)
+        self.assertEqual(resultado.codigo, "backend_temporariamente_indisponivel")
+
     def test_colisao_protegida_e_perfil_administrativo_negam(self):
         self.assertIsNone(self.autenticar(protegidos={" OPERADOR ": {}}))
         self.assertIsNone(self.autenticar(usuario={"perfil_base": "superadmin"}))

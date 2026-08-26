@@ -17,6 +17,8 @@ class StatusLeitura(str, Enum):
     SUCESSO_VAZIO = "sucesso_vazio"
     ARQUIVO_INEXISTENTE = "arquivo_inexistente"
     NAO_AUTORIZADO = "nao_autorizado"
+    RATE_LIMIT_PRIMARIO = "rate_limit_primario"
+    RATE_LIMIT_SECUNDARIO = "rate_limit_secundario"
     CONFLITO_OU_LIMITE = "conflito_ou_limite"
     FALHA_TEMPORARIA = "falha_temporaria"
     CONTEUDO_INVALIDO = "conteudo_invalido"
@@ -42,6 +44,10 @@ class ResultadoLeituraCSV:
     http_status: Optional[int] = None
     sha: Optional[str] = None
     erro: Optional[str] = None
+    rate_limit_limit: Optional[int] = None
+    rate_limit_remaining: Optional[int] = None
+    rate_limit_reset: Optional[int] = None
+    retry_after: Optional[int] = None
 
     @property
     def leitura_confirmada(self) -> bool:
@@ -84,6 +90,10 @@ def _resultado_leitura(
     http_status=None,
     sha=None,
     erro=None,
+    rate_limit_limit=None,
+    rate_limit_remaining=None,
+    rate_limit_reset=None,
+    retry_after=None,
 ):
     return ResultadoLeituraCSV(
         status=status,
@@ -92,7 +102,39 @@ def _resultado_leitura(
         http_status=http_status,
         sha=sha,
         erro=erro,
+        rate_limit_limit=rate_limit_limit,
+        rate_limit_remaining=rate_limit_remaining,
+        rate_limit_reset=rate_limit_reset,
+        retry_after=retry_after,
     )
+
+
+def _inteiro_header(headers, nome):
+    """Converte somente metadados numéricos públicos; nunca copia headers."""
+    try:
+        valor = headers.get(nome)
+        return int(valor) if valor is not None else None
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
+def _metadados_rate_limit(response):
+    headers = getattr(response, "headers", {}) or {}
+    return {
+        "rate_limit_limit": _inteiro_header(headers, "X-RateLimit-Limit"),
+        "rate_limit_remaining": _inteiro_header(headers, "X-RateLimit-Remaining"),
+        "rate_limit_reset": _inteiro_header(headers, "X-RateLimit-Reset"),
+        "retry_after": _inteiro_header(headers, "Retry-After"),
+    }
+
+
+def status_temporariamente_indisponivel(status):
+    return status in {
+        StatusLeitura.RATE_LIMIT_PRIMARIO,
+        StatusLeitura.RATE_LIMIT_SECUNDARIO,
+        StatusLeitura.FALHA_TEMPORARIA,
+        StatusLeitura.CONFLITO_OU_LIMITE,
+    }
 
 
 
@@ -156,6 +198,7 @@ def ler_csv_github(
         )
 
     http_status = response.status_code
+    metadados_rate_limit = _metadados_rate_limit(response)
 
     if http_status == 404:
         return _resultado_leitura(
@@ -164,15 +207,40 @@ def ler_csv_github(
             http_status=http_status,
         )
 
-    if http_status in (401, 403):
+    if http_status == 401:
         return _resultado_leitura(
             status=StatusLeitura.NAO_AUTORIZADO,
             arquivo=arquivo,
             http_status=http_status,
             erro="Leitura não autorizada pelo GitHub.",
+            **metadados_rate_limit,
         )
 
-    if http_status in (409, 422, 429):
+    if http_status == 403:
+        if metadados_rate_limit["rate_limit_remaining"] == 0:
+            status = StatusLeitura.RATE_LIMIT_PRIMARIO
+            erro = "Limite primário de leitura da GitHub API atingido."
+        elif metadados_rate_limit["retry_after"] is not None:
+            status = StatusLeitura.RATE_LIMIT_SECUNDARIO
+            erro = "Limite secundário temporário da GitHub API atingido."
+        else:
+            status = StatusLeitura.NAO_AUTORIZADO
+            erro = "Leitura não autorizada pelo GitHub."
+        return _resultado_leitura(
+            status=status, arquivo=arquivo, http_status=http_status,
+            erro=erro, **metadados_rate_limit,
+        )
+
+    if http_status == 429:
+        return _resultado_leitura(
+            status=StatusLeitura.RATE_LIMIT_SECUNDARIO,
+            arquivo=arquivo,
+            http_status=http_status,
+            erro="GitHub API temporariamente limitada.",
+            **metadados_rate_limit,
+        )
+
+    if http_status in (409, 422):
         return _resultado_leitura(
             status=StatusLeitura.CONFLITO_OU_LIMITE,
             arquivo=arquivo,

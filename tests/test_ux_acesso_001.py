@@ -182,14 +182,14 @@ class TestUXAcesso001(unittest.TestCase):
             self.assertIn(explicacao, self.fonte)
 
     def test_falha_de_leitura_bloqueia_ficha_e_acoes(self):
-        self.assertIn("Leitura bloqueada", self.fonte)
+        self.assertIn("não pôde ser confirmada", self.fonte)
         self.assertIn("all(item.leitura_confirmada", self.fonte)
         self.assertIn("disabled=not leitura.pode_sobrescrever", self.fonte)
         self.assertIn("disabled=not confirmar", self.fonte)
 
     def test_autenticacao_legado_e_medicoes_permanecem_inalterados_e_matriz_valida(self):
         esperados = {
-            "services/auth.py": "b7f39fb59dd3a9f31689a12f7b7718d5951ccb91f4ff96ad0a30ef5fd54bf06e",
+            "services/auth.py": "f1d69b8e69d24c829b31558ebbdfa0fe21ebe909aca7aee2fbcabeab22c843bf",
             "data/permissoes_usuarios.csv": "23b33a97d78c41f217e7bcdae397e5fcb555f72c344974adb3b1550cad2dca5e",
             "pages/medicoes.py": "f23a8cf9d1c7e01f94a93447c1f924dbc2dfd80b1bb904a1a9ff3e64e496257f",
         }

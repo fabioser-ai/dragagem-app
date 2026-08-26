@@ -52,6 +52,8 @@ def carregar_usuarios_operacionais_resultado():
     return ResultadoLeituraCSV(
         resultado.status, dados, ARQUIVO, resultado.http_status,
         resultado.sha, resultado.erro,
+        resultado.rate_limit_limit, resultado.rate_limit_remaining,
+        resultado.rate_limit_reset, resultado.retry_after,
     )
 
 
