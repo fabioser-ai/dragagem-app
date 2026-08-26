@@ -25,7 +25,7 @@ class TestFeriasFolgasLanding(unittest.TestCase):
 
     def test_cards_dependem_da_permissao_canonica_de_leitura(self):
         fonte = (ROOT / "pages/ferias_hub.py").read_text(encoding="utf-8")
-        self.assertIn("def _pode_visualizar():", fonte)
+        self.assertIn("def _pode_visualizar(recurso: str) -> bool:", fonte)
         self.assertIn('pode(modulo="ferias", recurso="registro", acao="visualizar")', fonte)
         self.assertNotIn('recurso="ferias", acao="visualizar"', fonte)
         self.assertNotIn('recurso="folga", acao="visualizar"', fonte)
