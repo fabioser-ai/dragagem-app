@@ -6,9 +6,16 @@ from pages.crm.repositorio import (
     carregar_interacoes,
 )
 from pages.crm.navegacao import render_fluxo, render_landing
-from pages.crm.etapa1_clientes import tela_clientes
-from pages.crm.etapa2_contatos import tela_contatos
-from pages.crm.etapa3_interacoes import tela_interacoes
+from pages.crm.fluxos_tarefa import (
+    novo_cliente,
+    novo_contato,
+    nova_interacao,
+    consultar_clientes,
+    consultar_contatos,
+    consultar_interacoes,
+    atualizar_cliente_tela,
+    atualizar_contato_tela,
+)
 from pages.crm.utils import preparar_dataframe_para_exibicao
 
 
@@ -70,6 +77,34 @@ def tela_consulta_geral():
     )
 
 
+def _render_pagina_por_fluxo(fluxo, pagina):
+    if fluxo == "novo":
+        if pagina == "clientes":
+            novo_cliente()
+        elif pagina == "contatos":
+            novo_contato()
+        elif pagina == "interacoes":
+            nova_interacao()
+        return
+
+    if fluxo == "consultar":
+        if pagina == "consulta":
+            tela_consulta_geral()
+        elif pagina == "clientes":
+            consultar_clientes()
+        elif pagina == "contatos":
+            consultar_contatos()
+        elif pagina == "interacoes":
+            consultar_interacoes()
+        return
+
+    if fluxo == "atualizar":
+        if pagina == "clientes":
+            atualizar_cliente_tela()
+        elif pagina == "contatos":
+            atualizar_contato_tela()
+
+
 def crm():
     col1, col2 = st.columns([6, 1])
 
@@ -103,15 +138,7 @@ def crm():
         return
 
     st.markdown("---")
-
-    if pagina == "clientes":
-        tela_clientes()
-    elif pagina == "contatos":
-        tela_contatos()
-    elif pagina == "interacoes":
-        tela_interacoes()
-    elif pagina == "consulta":
-        tela_consulta_geral()
+    _render_pagina_por_fluxo(fluxo, pagina)
 
 
 if __name__ == "__main__":
