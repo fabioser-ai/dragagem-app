@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from datetime import datetime
 
 from services.autorizacao import MODO_LEGACY, modo_autorizacao, pode_gerenciar_administracao
 from services.credenciais_operacionais import (
@@ -8,6 +9,7 @@ from services.credenciais_operacionais import (
     diagnosticar_credencial,
 )
 from services.log import carregar_logs_resultado
+from services.github import StatusLeitura
 from services.permissoes import carregar_permissoes_resultado, salvar_permissoes_seguro
 from services.permissoes_catalogo import carregar_catalogo_resultado
 from services.rbac_shadow import calcular_usuario, diagnosticar_usuarios
@@ -71,6 +73,43 @@ RECURSOS_POR_MODULO = {
         "todos",
     ],
 }
+
+
+def _render_diagnostico_leitura_github(resultado, *, fonte):
+    """Apresenta diagnóstico administrativo seguro, sem headers ou secrets."""
+    rate_limit = resultado.status in {
+        StatusLeitura.RATE_LIMIT_PRIMARIO,
+        StatusLeitura.RATE_LIMIT_SECUNDARIO,
+    }
+    if rate_limit:
+        st.error(
+            f"GitHub API temporariamente limitada. A leitura de {fonte} "
+            "não pôde ser confirmada."
+        )
+    elif resultado.status == StatusLeitura.NAO_AUTORIZADO:
+        st.error(
+            f"A GitHub API recusou a autorização para ler {fonte}. "
+            "Revise a configuração de acesso do APP."
+        )
+    else:
+        st.error(
+            f"A leitura de {fonte} não pôde ser confirmada neste momento."
+        )
+
+    with st.expander("Diagnóstico técnico da leitura"):
+        st.write(f"Classificação: {resultado.status.value}")
+        st.write(f"HTTP: {resultado.http_status or 'não disponível'}")
+        if resultado.rate_limit_limit is not None:
+            st.write(f"Limite informado: {resultado.rate_limit_limit}")
+        if resultado.rate_limit_remaining is not None:
+            st.write(f"Restante informado: {resultado.rate_limit_remaining}")
+        if resultado.rate_limit_reset is not None:
+            reset = datetime.fromtimestamp(
+                resultado.rate_limit_reset
+            ).astimezone().strftime("%d/%m/%Y %H:%M:%S %Z")
+            st.write(f"Previsão de liberação: {reset}")
+        if resultado.retry_after is not None:
+            st.write(f"Tentar novamente após: {resultado.retry_after} segundos")
 
 PERMISSOES_DISPONIVEIS = [
     "visualizar",
@@ -914,11 +953,14 @@ def _render_usuarios():
     }
     _render_criacao_usuario(leituras["usuarios"])
     if not leituras["usuarios"].leitura_confirmada:
-        st.error(
-            "Leitura bloqueada. A ficha e suas ações só ficam disponíveis quando "
-            "a fonte de identidade é confirmada."
+        _render_diagnostico_leitura_github(
+            leituras["usuarios"], fonte="usuários operacionais",
         )
         return
+    if not leituras["credenciais"].leitura_confirmada:
+        _render_diagnostico_leitura_github(
+            leituras["credenciais"], fonte="credenciais operacionais",
+        )
 
     usuarios = leituras["usuarios"].dados.copy()
     if usuarios.empty:
@@ -1001,6 +1043,9 @@ def _render_diagnostico_rbac():
     }
     if not all(item.leitura_confirmada for item in leituras.values()):
         st.error("Diagnóstico indisponível: todas as fontes exigem leitura confirmada.")
+        for nome, leitura in leituras.items():
+            if not leitura.leitura_confirmada:
+                _render_diagnostico_leitura_github(leitura, fonte=nome)
         st.divider()
         return
 
