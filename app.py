@@ -36,9 +36,9 @@ if tela == "menu":
     menu.render()
 
 elif tela == "dados":
-    from pages import dados
+    from pages import dados_hub
 
-    dados.render()
+    dados_hub.render()
 
 elif tela == "administracao":
     from pages import administracao

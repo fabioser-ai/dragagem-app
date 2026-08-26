@@ -34,8 +34,8 @@ class TestCatalogoPermissoesRBAC002(unittest.TestCase):
     def test_matriz_institucional_e_valida_unica_e_rastreavel(self):
         df = matriz()
         self.assertEqual(df.columns.tolist(), catalogo.COLUNAS)
-        self.assertEqual(len(df), 62)
-        self.assertEqual(df["permissao_id"].nunique(), 62)
+        self.assertEqual(len(df), 66)
+        self.assertEqual(df["permissao_id"].nunique(), 66)
         self.assertFalse(df.duplicated(["modulo", "recurso", "acao"]).any())
         self.assertEqual(catalogo.validar_catalogo(df), [])
         self.assertTrue((df["evidencia"].str.strip() != "").all())
