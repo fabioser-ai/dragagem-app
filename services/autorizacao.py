@@ -170,6 +170,11 @@ def autenticado():
     return bool(st.session_state.get("autenticado", False))
 
 
+def iniciar_execucao_autorizacao():
+    """Abre um novo ciclo de decisões com fontes RBAC frescas."""
+    rbac_authority.iniciar_execucao()
+
+
 def usuario_superadmin():
     """Reconhece o superadmin somente dentro de uma sessão autenticada."""
     return autenticado() and eh_superadmin()

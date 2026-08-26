@@ -13,7 +13,11 @@ if not verificar_login():
 
 aplicar_estilo_global()
 
-from services.autorizacao import pode_acessar_rota
+from services.autorizacao import iniciar_execucao_autorizacao, pode_acessar_rota
+
+# Cada execução/rerun recebe fontes RBAC novas; todas as decisões feitas abaixo
+# compartilham esse único snapshot consistente.
+iniciar_execucao_autorizacao()
 
 if "tela" not in st.session_state:
     st.session_state.tela = "menu"
