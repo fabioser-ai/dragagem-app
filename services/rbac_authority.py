@@ -26,6 +26,7 @@ COLUNAS_OBRIGATORIAS = {
     "matriz": {"role_id", "modulo", "recurso", "acao", "efeito"},
     "catalogo": {"modulo", "recurso", "acao", "escopo_obra", "ativo"},
 }
+CHAVE_SNAPSHOT_EXECUCAO = "_rbac_snapshot_execucao"
 
 
 @dataclass(frozen=True)
@@ -45,7 +46,20 @@ def _ativo(valor):
     return _texto(valor) in {"sim", "s", "true", "1", "ativo"}
 
 
-def _carregar_fontes():
+def iniciar_execucao():
+    """Invalida o snapshot anterior no início de cada execução Streamlit.
+
+    O snapshot não atravessa reruns: alterações administrativas persistidas e
+    mudanças externas são relidas na próxima interação relevante.
+    """
+    try:
+        st.session_state.pop(CHAVE_SNAPSHOT_EXECUCAO, None)
+    except Exception:
+        # Mantém compatibilidade com consumidores sem um runtime Streamlit.
+        pass
+
+
+def _ler_fontes():
     fontes = {}
     try:
         token = st.secrets["GITHUB_TOKEN"]
@@ -58,6 +72,19 @@ def _carregar_fontes():
     except Exception:
         return None
     return fontes
+
+
+def _carregar_fontes():
+    """Carrega uma vez e reutiliza as fontes somente na execução corrente."""
+    try:
+        estado = st.session_state
+    except Exception:
+        return _ler_fontes()
+    if CHAVE_SNAPSHOT_EXECUCAO not in estado:
+        # ``None`` também é memorizado: uma leitura ambígua permanece negada
+        # durante toda a execução, sem misturar fontes de instantes distintos.
+        estado[CHAVE_SNAPSHOT_EXECUCAO] = _ler_fontes()
+    return estado[CHAVE_SNAPSHOT_EXECUCAO]
 
 
 def _fontes_validas(fontes):
