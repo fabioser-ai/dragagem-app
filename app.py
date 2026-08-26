@@ -46,9 +46,9 @@ elif tela == "administracao":
     administracao.render()
 
 elif tela == "ferias":
-    from pages import ferias
+    from pages import ferias_hub
 
-    ferias.render()
+    ferias_hub.render()
 
 elif tela == "prestacao_contas":
     from pages import prestacao_contas
