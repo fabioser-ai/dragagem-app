@@ -1,5 +1,102 @@
 import streamlit as st
 
+from services.loading_fos import _LOGO_FOS
+
+
+def _renderizar_marca_login():
+    """Renderiza somente a identidade visual do login, sem tocar na autenticação."""
+    if st.session_state.get("autenticado"):
+        return
+
+    st.markdown(
+        f"""
+        <style>
+        .fos-login-brand {{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            padding: 2.6rem 0 1.4rem;
+            animation: fosLoginEnter .75s cubic-bezier(.2,.75,.25,1) both;
+        }}
+        .fos-login-symbol-wrap {{
+            position:relative;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:180px;
+            height:150px;
+            margin-bottom:.8rem;
+        }}
+        .fos-login-symbol-wrap::before {{
+            content:"";
+            position:absolute;
+            width:132px;
+            height:132px;
+            border-radius:50%;
+            background:rgba(169,80,53,.10);
+            filter:blur(1px);
+            animation:fosLoginHalo 3.8s ease-in-out infinite;
+        }}
+        .fos-login-symbol {{
+            position:relative;
+            z-index:1;
+            width:150px;
+            max-width:38vw;
+            filter: drop-shadow(0 12px 18px rgba(38,52,69,.13));
+            animation:fosLoginFloat 4.6s ease-in-out infinite;
+        }}
+        .fos-login-title {{
+            color:#263445;
+            font-size:2rem;
+            line-height:1.15;
+            font-weight:760;
+            letter-spacing:-.02em;
+            margin:.15rem 0 .45rem;
+        }}
+        .fos-login-subtitle {{
+            color:#718096;
+            font-size:1rem;
+            margin:0;
+        }}
+        @keyframes fosLoginEnter {{
+            from {{ opacity:0; transform:translateY(14px) scale(.985); }}
+            to {{ opacity:1; transform:translateY(0) scale(1); }}
+        }}
+        @keyframes fosLoginFloat {{
+            0%,100% {{ transform:translateY(0); }}
+            50% {{ transform:translateY(-6px); }}
+        }}
+        @keyframes fosLoginHalo {{
+            0%,100% {{ transform:scale(.92); opacity:.45; }}
+            50% {{ transform:scale(1.08); opacity:.9; }}
+        }}
+        @media (prefers-reduced-motion: reduce) {{
+            .fos-login-brand,
+            .fos-login-symbol,
+            .fos-login-symbol-wrap::before {{
+                animation:none !important;
+            }}
+        }}
+        </style>
+        <div class="fos-login-brand">
+            <div class="fos-login-symbol-wrap">
+                <img class="fos-login-symbol" src="{_LOGO_FOS}" alt="FOS Engenharia">
+            </div>
+            <div class="fos-login-title">Acesso ao APP FOS</div>
+            <p class="fos-login-subtitle">Sistema interno • FOS Engenharia LTDA</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# app.py importa este módulo antes de verificar_login(). Isso permite inserir a
+# identidade visual acima do formulário sem alterar services/auth.py, que é um
+# contrato protegido por testes de regressão.
+_renderizar_marca_login()
+
 
 def aplicar_estilo_global():
 
