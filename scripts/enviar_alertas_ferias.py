@@ -6,7 +6,11 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from services.github import carregar_github, salvar_github
+from services.dados_operacionais import (
+    ler_csv_operacional,
+    salvar_csv_operacional,
+)
+from services.github import StatusLeitura
 from services.email_service import enviar_email_smtp
 
 
@@ -25,6 +29,34 @@ COLUNAS_HISTORICO = [
     "Email_Destino",
     "Data_Envio",
 ]
+
+
+# Aliases preservados para compatibilidade com mocks existentes. Ambos operam
+# exclusivamente na branch data-operacional.
+carregar_github = ler_csv_operacional
+salvar_github = salvar_csv_operacional
+
+
+def confirmar_leitura_ferias(resultado):
+    if resultado.pode_sobrescrever:
+        return resultado.dados
+
+    detalhe = resultado.erro or resultado.status.value
+    raise RuntimeError(
+        f"Leitura de {ARQ_FERIAS} não confirmada; rotina abortada: {detalhe}"
+    )
+
+
+def confirmar_leitura_historico(resultado):
+    if resultado.pode_sobrescrever:
+        return resultado.dados
+    if resultado.status == StatusLeitura.ARQUIVO_INEXISTENTE:
+        return pd.DataFrame(columns=COLUNAS_HISTORICO)
+
+    detalhe = resultado.erro or resultado.status.value
+    raise RuntimeError(
+        f"Leitura de {ARQ_HISTORICO} não confirmada; rotina abortada: {detalhe}"
+    )
 
 
 def para_data(valor):
@@ -187,8 +219,11 @@ def main():
     print(f"E-mail destino: {email_destino}")
     print("--------------------------------------------------")
 
-    df_ferias = carregar_github(ARQ_FERIAS, token, repo)
-    df_historico = carregar_github(ARQ_HISTORICO, token, repo)
+    resultado_ferias = carregar_github(ARQ_FERIAS, token, repo)
+    df_ferias = confirmar_leitura_ferias(resultado_ferias)
+
+    resultado_historico = carregar_github(ARQ_HISTORICO, token, repo)
+    df_historico = confirmar_leitura_historico(resultado_historico)
 
     df_historico = normalizar_historico(df_historico)
 
@@ -321,12 +356,25 @@ def main():
 
     df_historico = normalizar_historico(df_historico)
 
-    salvar_github(
+    parametros_escrita = {}
+    if resultado_historico.status == StatusLeitura.ARQUIVO_INEXISTENTE:
+        parametros_escrita["criar"] = True
+    else:
+        parametros_escrita["sha_esperado"] = resultado_historico.sha
+
+    resultado_escrita = salvar_github(
         df_historico,
         ARQ_HISTORICO,
         token,
-        repo
+        repo,
+        **parametros_escrita,
     )
+
+    if not resultado_escrita.sucesso:
+        detalhe = resultado_escrita.erro or resultado_escrita.status.value
+        raise RuntimeError(
+            f"Falha ao atualizar {ARQ_HISTORICO} após o envio: {detalhe}"
+        )
 
     print("Histórico atualizado com sucesso.")
     print(f"{len(alertas_para_enviar)} alerta(s) enviado(s).")
