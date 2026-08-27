@@ -8,6 +8,7 @@ from services.dados_persistencia import (
     carregar_cadastro_resultado,
     salvar_cadastro_seguro,
 )
+from services.dados_operacionais import DATA_BRANCH
 from services.persistencia_multi_arquivo import (
     AlteracaoArquivoCSV,
     SnapshotBranch,
@@ -289,7 +290,7 @@ def _publicar_exclusao_composta(df_atestados, df_servicos):
         ],
         TOKEN,
         REPO,
-        "main",
+        DATA_BRANCH,
         "Excluir atestado e serviços vinculados",
     )
 
@@ -465,7 +466,7 @@ def render_atestados():
 
             with col_excluir:
                 snapshot_comum = (
-                    resolver_snapshot_branch(TOKEN, REPO, "main")
+                    resolver_snapshot_branch(TOKEN, REPO, DATA_BRANCH)
                     if escrita_atestados_liberada and escrita_servicos_liberada
                     else None
                 )

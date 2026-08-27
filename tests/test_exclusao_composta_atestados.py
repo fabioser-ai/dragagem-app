@@ -27,7 +27,10 @@ class TestExclusaoCompostaAtestados(unittest.TestCase):
         dados.st.success = Mock()
         dados.st.error = Mock()
         dados.st.rerun = Mock()
-        self.snapshot = SnapshotBranch("main", "commit-base", "tree-base")
+        self.pode_patcher = patch.object(dados, "pode", return_value=True)
+        self.pode_patcher.start()
+        self.addCleanup(self.pode_patcher.stop)
+        self.snapshot = SnapshotBranch(dados.DATA_BRANCH, "commit-base", "tree-base")
         self.atestados = leitura(StatusLeitura.SUCESSO_COM_DADOS, dados.ARQ_ATESTADOS)
         self.servicos = leitura(
             StatusLeitura.SUCESSO_COM_DADOS,
@@ -37,7 +40,7 @@ class TestExclusaoCompostaAtestados(unittest.TestCase):
     def resultado_publicacao(self, status, *, erro=None, http_status=None):
         return ResultadoPersistenciaMultiArquivo(
             status=status,
-            branch="main",
+            branch=dados.DATA_BRANCH,
             arquivos=(dados.ARQ_ATESTADOS, dados.ARQ_ATESTADOS_SERVICOS),
             erro=erro,
             http_status=http_status,
@@ -109,7 +112,7 @@ class TestExclusaoCompostaAtestados(unittest.TestCase):
         alteracoes, token, repo, branch, mensagem = publicar.call_args.args
         self.assertEqual(token, "token-teste")
         self.assertEqual(repo, "repo-teste")
-        self.assertEqual(branch, "main")
+        self.assertEqual(branch, dados.DATA_BRANCH)
         self.assertEqual(mensagem, "Excluir atestado e serviços vinculados")
         self.assertEqual(
             [alteracao.arquivo for alteracao in alteracoes],
@@ -178,6 +181,23 @@ class TestExclusaoCompostaAtestados(unittest.TestCase):
         )
         self.assertNotIn(
             "salvar_github(df_servicos, ARQ_ATESTADOS_SERVICOS, TOKEN, REPO)",
+            fonte,
+        )
+
+    def test_snapshot_e_publicacao_nao_possuem_fallback_para_main(self):
+        fonte = inspect.getsource(dados)
+
+        self.assertEqual(dados.DATA_BRANCH, "data-operacional")
+        self.assertIn(
+            "resolver_snapshot_branch(TOKEN, REPO, DATA_BRANCH)",
+            fonte,
+        )
+        self.assertNotIn(
+            'resolver_snapshot_branch(TOKEN, REPO, "main")',
+            fonte,
+        )
+        self.assertNotIn(
+            '\n        "main",\n        "Excluir atestado e serviços vinculados"',
             fonte,
         )
 
