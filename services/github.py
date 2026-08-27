@@ -10,6 +10,11 @@ import requests
 
 
 DEFAULT_REQUEST_TIMEOUT = (5, 20)
+OPERATIONAL_DATA_BRANCH = "data-operacional"
+OPERATIONAL_ROUTED_FILES = {
+    "data/ferias.csv",
+    "data/folgas.csv",
+}
 
 
 class StatusLeitura(str, Enum):
@@ -81,7 +86,6 @@ class ResultadoEscritaCSV:
         }
 
 
-
 def _resultado_leitura(
     *,
     status,
@@ -137,7 +141,6 @@ def status_temporariamente_indisponivel(status):
     }
 
 
-
 def _resultado_escrita(
     *,
     status,
@@ -155,7 +158,6 @@ def _resultado_escrita(
     )
 
 
-
 def ler_csv_github(
     arquivo,
     token,
@@ -169,6 +171,8 @@ def ler_csv_github(
     migração gradual dos chamadores que precisam distinguir arquivo vazio de
     falha de leitura e preservar o SHA observado para escrita concorrente.
     """
+    if ref is None and arquivo in OPERATIONAL_ROUTED_FILES:
+        ref = OPERATIONAL_DATA_BRANCH
 
     url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
     headers = {"Authorization": f"token {token}"}
@@ -227,8 +231,11 @@ def ler_csv_github(
             status = StatusLeitura.NAO_AUTORIZADO
             erro = "Leitura não autorizada pelo GitHub."
         return _resultado_leitura(
-            status=status, arquivo=arquivo, http_status=http_status,
-            erro=erro, **metadados_rate_limit,
+            status=status,
+            arquivo=arquivo,
+            http_status=http_status,
+            erro=erro,
+            **metadados_rate_limit,
         )
 
     if http_status == 429:
@@ -294,7 +301,6 @@ def ler_csv_github(
                 http_status=http_status,
                 sha=sha,
             )
-
         return _resultado_leitura(
             status=StatusLeitura.CONTEUDO_INVALIDO,
             arquivo=arquivo,
@@ -343,12 +349,7 @@ def ler_csv_github(
             erro=f"Erro inesperado ao interpretar o CSV: {exc.__class__.__name__}",
         )
 
-    status = (
-        StatusLeitura.SUCESSO_VAZIO
-        if dados.empty
-        else StatusLeitura.SUCESSO_COM_DADOS
-    )
-
+    status = StatusLeitura.SUCESSO_VAZIO if dados.empty else StatusLeitura.SUCESSO_COM_DADOS
     return _resultado_leitura(
         status=status,
         arquivo=arquivo,
@@ -356,7 +357,6 @@ def ler_csv_github(
         http_status=http_status,
         sha=sha,
     )
-
 
 
 def salvar_csv_github(
@@ -375,7 +375,6 @@ def salvar_csv_github(
     Atualizações exigem ``sha_esperado``. Criações exigem ``criar=True`` e não
     aceitam SHA. A função não executa GET para descobrir a versão remota.
     """
-
     if criar and sha_esperado:
         return _resultado_escrita(
             status=StatusEscrita.REQUISICAO_INVALIDA,
@@ -392,25 +391,19 @@ def salvar_csv_github(
 
     url = f"https://api.github.com/repos/{repo}/contents/{arquivo}"
     headers = {"Authorization": f"token {token}"}
-
     csv_string = df.to_csv(index=False)
     content = base64.b64encode(csv_string.encode("utf-8")).decode("ascii")
-
     data = {
         "message": mensagem or (f"Create {arquivo}" if criar else f"Update {arquivo}"),
         "content": content,
     }
-
+    if arquivo in OPERATIONAL_ROUTED_FILES:
+        data["branch"] = OPERATIONAL_DATA_BRANCH
     if sha_esperado:
         data["sha"] = sha_esperado
 
     try:
-        response = requests.put(
-            url,
-            headers=headers,
-            json=data,
-            timeout=timeout,
-        )
+        response = requests.put(url, headers=headers, json=data, timeout=timeout)
     except (requests.Timeout, requests.ConnectionError) as exc:
         return _resultado_escrita(
             status=StatusEscrita.FALHA_TEMPORARIA,
@@ -431,7 +424,6 @@ def salvar_csv_github(
         )
 
     http_status = response.status_code
-
     if http_status in (200, 201):
         sha_resultante = None
         try:
@@ -442,13 +434,8 @@ def salvar_csv_github(
                     sha_resultante = conteudo.get("sha")
         except ValueError:
             pass
-
         return _resultado_escrita(
-            status=(
-                StatusEscrita.SUCESSO_CRIADO
-                if http_status == 201
-                else StatusEscrita.SUCESSO_ATUALIZADO
-            ),
+            status=(StatusEscrita.SUCESSO_CRIADO if http_status == 201 else StatusEscrita.SUCESSO_ATUALIZADO),
             arquivo=arquivo,
             http_status=http_status,
             sha=sha_resultante,
@@ -461,7 +448,6 @@ def salvar_csv_github(
             http_status=http_status,
             erro="Escrita não autorizada pelo GitHub.",
         )
-
     if http_status == 409:
         return _resultado_escrita(
             status=StatusEscrita.CONFLITO,
@@ -469,7 +455,6 @@ def salvar_csv_github(
             http_status=http_status,
             erro="O arquivo foi alterado desde a leitura confirmada.",
         )
-
     if http_status in (422, 429):
         return _resultado_escrita(
             status=StatusEscrita.LIMITE_OU_VALIDACAO,
@@ -477,7 +462,6 @@ def salvar_csv_github(
             http_status=http_status,
             erro="O GitHub recusou a escrita por validação ou limite.",
         )
-
     if 500 <= http_status <= 599:
         return _resultado_escrita(
             status=StatusEscrita.FALHA_TEMPORARIA,
@@ -485,7 +469,6 @@ def salvar_csv_github(
             http_status=http_status,
             erro="O GitHub está temporariamente indisponível para esta escrita.",
         )
-
     return _resultado_escrita(
         status=StatusEscrita.ERRO_DESCONHECIDO,
         arquivo=arquivo,
@@ -590,20 +573,14 @@ def carregar_arquivo_github(arquivo, token, repo):
         return None
 
     dados = response.json()
-
-    # Caminho mais confiável para imagem/PDF:
-    # baixa o arquivo bruto pelo download_url.
     download_url = dados.get("download_url")
 
     if download_url:
         raw_response = requests.get(download_url, headers=headers)
-
         if raw_response.status_code == 200:
             return raw_response.content
 
-    # Fallback: usa o conteúdo base64 retornado pela API.
     content = dados.get("content")
-
     if content:
         return base64.b64decode(content)
 
