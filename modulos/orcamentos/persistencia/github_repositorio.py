@@ -10,6 +10,7 @@ from modulos.orcamentos.persistencia.indice import (
     atualizar_resumo, desserializar_indice, resumo_de, serializar_indice,
 )
 from modulos.orcamentos.persistencia.serializacao import desserializar_versao, serializar_versao
+from services.dados_operacionais import DATA_BRANCH
 from services.github import DEFAULT_REQUEST_TIMEOUT
 from services.autorizacao import pode
 from services.persistencia_multi_arquivo import (
@@ -18,6 +19,7 @@ from services.persistencia_multi_arquivo import (
 
 RAIZ = "data/orcamentos_v2"
 CAMINHO_INDICE = f"{RAIZ}/indice.csv"
+ORCAMENTOS_BRANCH = DATA_BRANCH
 
 
 def caminho_versao(orcamento_id: str, versao_id: str) -> str:
@@ -25,8 +27,9 @@ def caminho_versao(orcamento_id: str, versao_id: str) -> str:
 
 
 class RepositorioOrcamentosGitHub:
-    def __init__(self, token: str, repo: str, branch: str = "main", *, timeout=DEFAULT_REQUEST_TIMEOUT):
-        self.token, self.repo, self.branch, self.timeout = token, repo, branch, timeout
+    def __init__(self, token: str, repo: str, *, timeout=DEFAULT_REQUEST_TIMEOUT):
+        self.token, self.repo = token, repo
+        self.branch, self.timeout = ORCAMENTOS_BRANCH, timeout
 
     def carregar_snapshot(self):
         """Captura a cabeça da branch somente quando uma edição vai começar."""
