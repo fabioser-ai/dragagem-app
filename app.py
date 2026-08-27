@@ -1,6 +1,7 @@
 import streamlit as st
 
 from services.auth import processar_log_pendente, verificar_login
+from services.loading_fos import processar_carregamento_pendente
 from services.ui import aplicar_estilo_global
 
 
@@ -12,6 +13,10 @@ if not verificar_login():
 
 
 aplicar_estilo_global()
+
+# Uma transição já preparada tem prioridade sobre a renderização do módulo.
+if processar_carregamento_pendente():
+    st.stop()
 
 from services.autorizacao import iniciar_execucao_autorizacao, pode_acessar_rota
 
@@ -29,6 +34,34 @@ if not pode_acessar_rota(tela):
     st.session_state.tela = "menu"
     st.error("Você não possui permissão para acessar esta área.")
     st.stop()
+
+# Detecta genericamente a saída do menu para qualquer módulo. Assim todos os
+# cards atuais e futuros recebem a mesma transição sem duplicar lógica no menu.
+_rotulos_loading = {
+    "dados": "Dados",
+    "administracao": "Administração",
+    "ferias": "Férias e Folgas",
+    "prestacao_contas": "Prestação de Contas",
+    "medicoes": "Medições",
+    "carregando_medicoes": "Medições",
+    "crm": "CRM",
+    "uniformes_epis": "Uniformes e EPIs",
+    "novo_orcamento": "Novo Sistema de Orçamentos",
+    "obras": "Obras",
+    "orcamento": "Orçamento",
+    "orcamento_lista": "Orçamento",
+}
+_tela_anterior = st.session_state.get("_fos_tela_anterior")
+if _tela_anterior == "menu" and tela != "menu" and tela in _rotulos_loading:
+    destino = "medicoes" if tela == "carregando_medicoes" else tela
+    st.session_state["carregamento_fos"] = {
+        "destino": destino,
+        "rotulo": _rotulos_loading[tela],
+    }
+    st.session_state["_fos_tela_anterior"] = destino
+    st.rerun()
+
+st.session_state["_fos_tela_anterior"] = tela
 
 if tela == "menu":
     from pages import menu
@@ -56,26 +89,10 @@ elif tela == "prestacao_contas":
     prestacao_contas.render()
 
 elif tela == "carregando_medicoes":
-    st.markdown(
-        """
-        <div style="
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #334155 100%);
-            border-radius: 24px;
-            padding: 2.5rem 2rem;
-            margin-top: 1rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.20);
-        ">
-            <h1 style="color: white; margin-bottom: 0.7rem;">Carregando Medições</h1>
-            <p style="color: #dbeafe; font-size: 1.05rem; margin: 0;">
-                Preparando obras, BMs, frentes, memórias de cálculo e resumo financeiro.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.session_state.tela = "medicoes"
+    # Compatibilidade defensiva; a transição genérica acima normalmente
+    # converte esta rota antiga diretamente para Medições.
+    st.session_state["carregamento_fos"] = {"destino": "medicoes", "rotulo": "Medições"}
+    st.session_state["_fos_tela_anterior"] = "medicoes"
     st.rerun()
 
 elif tela == "medicoes":
