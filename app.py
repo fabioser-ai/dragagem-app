@@ -3,7 +3,7 @@ import streamlit.components.v1 as components
 
 from services.auth import processar_log_pendente, verificar_login
 from services.loading_fos import _LOGO_FOS, processar_carregamento_pendente
-from services.ui import aplicar_estilo_global
+from services.ui import aplicar_estilo_global, renderizar_login_fos
 
 
 st.set_page_config(layout="wide")
@@ -172,8 +172,17 @@ def _sinalizar_modulo_pronto_loading():
     )
 
 
+autenticado_antes = bool(st.session_state.get("autenticado"))
+if not autenticado_antes:
+    renderizar_login_fos()
+
 if not verificar_login():
     st.stop()
+
+# O login foi confirmado no mesmo ciclo em que o CSS de login foi injetado.
+# Reinicia a execução para que a aplicação autenticada nasça sem esse CSS.
+if not autenticado_antes and st.session_state.get("autenticado"):
+    st.rerun()
 
 
 aplicar_estilo_global()
