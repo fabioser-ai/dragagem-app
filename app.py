@@ -54,6 +54,7 @@ def _instalar_overlay_loading_menu():
             removeOverlay();
             const overlay = d.createElement("div");
             overlay.id = "fos-loading-overlay";
+            overlay.dataset.startedAt = String(Date.now());
             overlay.innerHTML = `
               <div class="fos-loading-client-card">
                 <img src="{_LOGO_FOS}" alt="FOS Engenharia" />
@@ -119,9 +120,16 @@ def _remover_overlay_loading_cliente():
         (() => {
           const p = window.parent;
           const d = p.document;
-          if (p.__fosRemoveLoadingOverlay) p.__fosRemoveLoadingOverlay();
           const overlay = d.getElementById("fos-loading-overlay");
-          if (overlay) overlay.remove();
+          if (!overlay) return;
+
+          const minimoMs = 3000;
+          const inicio = Number(overlay.dataset.startedAt || Date.now());
+          const restante = Math.max(0, minimoMs - (Date.now() - inicio));
+          window.setTimeout(() => {
+            const atual = d.getElementById("fos-loading-overlay");
+            if (atual === overlay) overlay.remove();
+          }, restante);
         })();
         </script>
         """,
@@ -295,8 +303,8 @@ else:
     st.error("Rota indisponível.")
     st.stop()
 
-# Quando o módulo terminou de renderizar, o overlay cliente pode sair. No menu,
-# a instalação acima já remove qualquer overlay antigo antes de armar o listener.
+# Quando o módulo terminou de renderizar, pedimos a saída do overlay cliente.
+# O navegador respeita o tempo mínimo visual antes de removê-lo.
 if tela != "menu":
     _remover_overlay_loading_cliente()
 
