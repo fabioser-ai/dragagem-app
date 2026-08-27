@@ -16,8 +16,10 @@ class LoginFosFullscreenTests(unittest.TestCase):
         self.assertNotIn("st.text_input(", self.source)
         self.assertNotIn("def verificar_login", self.source)
 
-    def test_fullscreen_e_ancorado_no_password_real(self):
-        self.assertIn('[data-testid="stAppViewContainer"]:has(input[type="password"])', self.source)
+    def test_fullscreen_e_ativado_deterministicamente_pelo_estado_deslogado(self):
+        self.assertIn('if st.session_state.get("autenticado"):', self.source)
+        self.assertNotIn(':has(input[type="password"])', self.source)
+        self.assertIn('[data-testid="stAppViewContainer"]', self.source)
         self.assertIn("position:fixed", self.source)
         self.assertIn("min-height:100vh", self.source)
         self.assertIn("Acesso ao <strong>APP FOS</strong>", self.source)
