@@ -8,11 +8,12 @@ import streamlit as st
 
 from services.auth import exigir_admin
 from services.autorizacao import pode, possui_perfil, possui_privilegio_administrativo
-from services.github import (
-    carregar_github,
-    salvar_github,
-    salvar_arquivo_github,
-    carregar_arquivo_github,
+from services.github import carregar_github
+from services.prestacao_contas_operacional import (
+    carregar_arquivo as carregar_arquivo_github,
+    carregar_csv as carregar_csv_operacional,
+    salvar_arquivo as salvar_arquivo_github,
+    salvar_csv as salvar_github,
 )
 
 
@@ -116,12 +117,12 @@ def preparar_exibicao(df):
 
 
 def carregar_tipos():
-    df = carregar_github(ARQ_TIPOS, TOKEN, REPO)
+    df = carregar_csv_operacional(ARQ_TIPOS, TOKEN, REPO)
     return normalizar_dataframe(df, COLUNAS_TIPOS)
 
 
 def carregar_despesas():
-    df = carregar_github(ARQ_DESPESAS, TOKEN, REPO)
+    df = carregar_csv_operacional(ARQ_DESPESAS, TOKEN, REPO)
     return normalizar_dataframe(df, COLUNAS_DESPESAS)
 
 
