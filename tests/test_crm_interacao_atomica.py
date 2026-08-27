@@ -42,7 +42,7 @@ def resultado_leitura(status, arquivo, dados):
 class TestInteracaoAtomicaCRM(unittest.TestCase):
     def setUp(self):
         repositorio.pode = Mock(return_value=True)
-        self.snapshot = SnapshotBranch("main", "commit-base", "tree-base")
+        self.snapshot = SnapshotBranch(repositorio.DATA_BRANCH, "commit-base", "tree-base")
         self.clientes = pd.DataFrame(
             [
                 {
@@ -102,7 +102,7 @@ class TestInteracaoAtomicaCRM(unittest.TestCase):
     def resultado_publicacao(self, status, *, erro=None, http_status=None):
         return ResultadoPersistenciaMultiArquivo(
             status=status,
-            branch="main",
+            branch=repositorio.DATA_BRANCH,
             arquivos=(repositorio.ARQ_INTERACOES, repositorio.ARQ_CLIENTES),
             erro=erro,
             http_status=http_status,
@@ -177,7 +177,7 @@ class TestInteracaoAtomicaCRM(unittest.TestCase):
         alteracoes, token, repo, branch, mensagem = publicar.call_args.args
         self.assertEqual(token, "token-teste")
         self.assertEqual(repo, "repo-teste")
-        self.assertEqual(branch, "main")
+        self.assertEqual(branch, repositorio.DATA_BRANCH)
         self.assertEqual(mensagem, "Registrar interação CRM e atualizar cliente")
         self.assertEqual(
             [alteracao.arquivo for alteracao in alteracoes],
@@ -245,6 +245,12 @@ class TestInteracaoAtomicaCRM(unittest.TestCase):
         self.assertIn("def atualizar_cliente(", fonte)
         self.assertIn("def cadastrar_contato(", fonte)
         self.assertIn("def atualizar_contato(", fonte)
+
+    def test_crm_nao_persiste_na_main(self):
+        fonte = Path("pages/crm/repositorio.py").read_text()
+        self.assertIn("DATA_BRANCH", fonte)
+        self.assertNotIn('resolver_snapshot_branch(token, repo, "main")', fonte)
+        self.assertNotIn('\n        "main",\n        "Registrar interação CRM', fonte)
 
 
 if __name__ == "__main__":
