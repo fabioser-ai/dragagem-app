@@ -37,7 +37,7 @@ def _recursos_visiveis():
     }
 
 
-def _salvar(df, cfg, leitura, acao):
+def _salvar(df, cfg, leitura, acao, *, rerun=True):
     recurso = cfg["recurso"]
     if not _permitido(recurso, acao):
         st.error("Operação não autorizada.")
@@ -52,7 +52,8 @@ def _salvar(df, cfg, leitura, acao):
     )
     if resultado.sucesso:
         st.success("Alteração salva com sucesso.")
-        st.rerun()
+        if rerun:
+            st.rerun()
         return True
     st.error(resultado.erro or "Não foi possível salvar a alteração.")
     return False
@@ -62,6 +63,125 @@ def _normalizar_para_edicao(df, colunas):
     normalizado = df[colunas].copy()
     normalizado = normalizado.where(pd.notna(normalizado), "")
     return normalizado.astype(str)
+
+
+def _parse_valor_brl(valor):
+    texto = str(valor or "").strip()
+    if not texto:
+        raise ValueError("Informe o valor do salário.")
+    texto = texto.replace("R$", "").replace(" ", "")
+    if "," in texto:
+        texto = texto.replace(".", "").replace(",", ".")
+    numero = float(texto)
+    if numero < 0:
+        raise ValueError("O valor não pode ser negativo.")
+    return f"{numero:.2f}"
+
+
+def _formatar_brl(valor):
+    try:
+        numero = float(str(valor).replace(",", "."))
+    except (TypeError, ValueError):
+        return str(valor or "")
+    formatado = f"{numero:,.2f}"
+    formatado = formatado.replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"R$ {formatado}"
+
+
+def _salarios_para_display(df):
+    exibicao = df.copy()
+    if "Valor_Hora" in exibicao.columns:
+        exibicao["Valor_Hora"] = exibicao["Valor_Hora"].map(_formatar_brl)
+    return exibicao.rename(columns={"Posicao": "Posição", "Valor_Hora": "Valor/hora"})
+
+
+def _render_salarios(cfg):
+    recurso = cfg["recurso"]
+    if not _permitido(recurso, "visualizar"):
+        st.error("Você não possui permissão para visualizar este conteúdo.")
+        return
+
+    leitura = carregar_cadastro_resultado(cfg["arquivo"], cfg["colunas"], TOKEN, REPO)
+    if not leitura.leitura_confirmada and leitura.status != StatusLeitura.ARQUIVO_INEXISTENTE:
+        st.error("Não foi possível confirmar a leitura desta base.")
+        return
+
+    df = leitura.dados.copy()
+    for coluna in cfg["colunas"]:
+        if coluna not in df.columns:
+            df[coluna] = ""
+    df = _normalizar_para_edicao(df, cfg["colunas"])
+
+    st.subheader("Salários")
+    st.caption("Valores exibidos no padrão brasileiro. Selecione uma ação somente quando precisar alterar a base.")
+    st.dataframe(_salarios_para_display(df), use_container_width=True, hide_index=True)
+
+    pode_criar = _permitido(recurso, "criar")
+    pode_editar = _permitido(recurso, "editar")
+
+    if not (pode_criar or pode_editar):
+        return
+
+    st.divider()
+    col_novo, col_editar = st.columns(2)
+    with col_novo:
+        if pode_criar and st.button("➕ Nova entrada", key="sal_acao_nova", use_container_width=True):
+            st.session_state.dados_salario_acao = "novo"
+            st.rerun()
+    with col_editar:
+        if pode_editar and st.button("✏️ Atualizar dado existente", key="sal_acao_editar", use_container_width=True):
+            st.session_state.dados_salario_acao = "editar"
+            st.rerun()
+
+    acao = st.session_state.get("dados_salario_acao")
+
+    if acao == "novo" and pode_criar:
+        st.markdown("#### Nova entrada")
+        posicao = st.text_input("Posição", key="sal_novo_posicao")
+        valor = st.text_input("Valor/hora (R$)", placeholder="Ex.: 25,50", key="sal_novo_valor")
+        col_salvar, col_cancelar = st.columns(2)
+        with col_salvar:
+            if st.button("Salvar nova entrada", key="sal_novo_salvar", use_container_width=True):
+                try:
+                    valor_canonico = _parse_valor_brl(valor)
+                except ValueError as exc:
+                    st.error(str(exc))
+                else:
+                    if not posicao.strip():
+                        st.error("Informe a posição.")
+                    else:
+                        novo = {"Posicao": posicao.strip(), "Valor_Hora": valor_canonico}
+                        candidato = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
+                        if _salvar(candidato, cfg, leitura, "criar", rerun=False):
+                            st.session_state.pop("dados_salario_acao", None)
+        with col_cancelar:
+            if st.button("Cancelar", key="sal_novo_cancelar", use_container_width=True):
+                st.session_state.pop("dados_salario_acao", None)
+                st.rerun()
+
+    elif acao == "editar" and pode_editar and not df.empty:
+        st.markdown("#### Atualizar dado existente")
+        opcoes = [str(v) for v in df["Posicao"].tolist()]
+        posicao_escolhida = st.selectbox("Posição", opcoes, key="sal_editar_posicao")
+        indice = df.index[df["Posicao"].astype(str) == str(posicao_escolhida)][0]
+        valor_atual = str(df.at[indice, "Valor_Hora"]).replace(".", ",")
+        valor = st.text_input("Valor/hora (R$)", value=valor_atual, key="sal_editar_valor")
+        col_salvar, col_cancelar = st.columns(2)
+        with col_salvar:
+            if st.button("Salvar alteração", key="sal_editar_salvar", use_container_width=True):
+                try:
+                    valor_canonico = _parse_valor_brl(valor)
+                except ValueError as exc:
+                    st.error(str(exc))
+                else:
+                    candidato = df.copy()
+                    candidato.at[indice, "Valor_Hora"] = valor_canonico
+                    if _salvar(candidato, cfg, leitura, "editar", rerun=False):
+                        st.session_state.pop("dados_salario_acao", None)
+        with col_cancelar:
+            if st.button("Cancelar", key="sal_editar_cancelar", use_container_width=True):
+                st.session_state.pop("dados_salario_acao", None)
+                st.rerun()
 
 
 def _render_crud(cfg, chave):
@@ -171,12 +291,15 @@ def _render_recurso(chave):
             _render_atestados_somente_leitura()
     elif chave == "locais":
         render_locais_trabalho()
+    elif chave == "sal":
+        _render_salarios(cfg)
     else:
         _render_crud(cfg, chave)
 
     st.divider()
     if st.button("← Voltar para Dados", key="dados_hub_voltar_recursos"):
         st.session_state.pop("dados_recurso", None)
+        st.session_state.pop("dados_salario_acao", None)
         st.rerun()
 
 
@@ -190,6 +313,7 @@ def render():
         return
 
     st.session_state.pop("dados_recurso", None)
+    st.session_state.pop("dados_salario_acao", None)
     st.caption("Selecione uma área. Somente recursos autorizados para sua função são exibidos.")
 
     if not visiveis:
