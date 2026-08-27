@@ -5,9 +5,36 @@ from services.github import (
     ResultadoLeituraCSV,
     StatusEscrita,
     StatusLeitura,
-    ler_csv_github,
-    salvar_csv_github,
 )
+from services.dados_operacionais import ler_csv_operacional, salvar_csv_operacional
+
+
+# Compatibilidade de testabilidade: preserva os nomes históricos usados pelos
+# testes/mocks, mas a implementação real continua apontando para a branch
+# operacional separada da main.
+def ler_csv_github(arquivo, token, repo):
+    return ler_csv_operacional(arquivo, token, repo)
+
+
+def salvar_csv_github(
+    df,
+    arquivo,
+    token,
+    repo,
+    *,
+    sha_esperado=None,
+    criar=False,
+    mensagem=None,
+):
+    return salvar_csv_operacional(
+        df,
+        arquivo,
+        token,
+        repo,
+        sha_esperado=sha_esperado,
+        criar=criar,
+        mensagem=mensagem,
+    )
 
 
 def normalizar_dataframe(df, colunas):
@@ -39,6 +66,10 @@ def carregar_cadastro_resultado(arquivo, colunas, token, repo):
         http_status=resultado.http_status,
         sha=resultado.sha,
         erro=resultado.erro,
+        rate_limit_limit=resultado.rate_limit_limit,
+        rate_limit_remaining=resultado.rate_limit_remaining,
+        rate_limit_reset=resultado.rate_limit_reset,
+        retry_after=resultado.retry_after,
     )
 
 
