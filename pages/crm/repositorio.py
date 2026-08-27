@@ -8,11 +8,11 @@ from pages.crm.config import (
     COLUNAS_INTERACOES,
 )
 from pages.crm.utils import gerar_id, agora_iso, dataframe_vazio
-from services.github import (
-    ResultadoLeituraCSV,
-    carregar_github,
-    ler_csv_github,
-    salvar_github,
+from services.github import ResultadoLeituraCSV, StatusLeitura
+from services.dados_operacionais import (
+    DATA_BRANCH,
+    ler_csv_operacional,
+    salvar_csv_operacional,
 )
 from services.persistencia_multi_arquivo import (
     AlteracaoArquivoCSV,
@@ -37,12 +37,12 @@ def get_github_config():
 
 def carregar_csv_github(caminho: str, colunas: list[str]) -> pd.DataFrame:
     token, repo = get_github_config()
-    try:
-        df = carregar_github(caminho, token, repo)
-    except Exception as e:
-        st.error(f"Erro ao carregar arquivo do GitHub: {caminho}")
-        st.exception(e)
+    resultado = ler_csv_operacional(caminho, token, repo)
+    if not resultado.leitura_confirmada:
+        detalhe = resultado.erro or resultado.status.value
+        st.error(f"Erro ao carregar arquivo do GitHub: {caminho}. Detalhe: {detalhe}")
         return dataframe_vazio(colunas)
+    df = resultado.dados
     if df is None or df.empty:
         df = dataframe_vazio(colunas)
     for coluna in colunas:
@@ -64,20 +64,34 @@ def salvar_csv_github(
             df[coluna] = ""
     df = df[colunas].fillna("").astype(str)
 
-    try:
-        salvar_github(
+    leitura = ler_csv_operacional(caminho, token, repo)
+    if leitura.status in {StatusLeitura.SUCESSO_COM_DADOS, StatusLeitura.SUCESSO_VAZIO}:
+        resultado = salvar_csv_operacional(
             df,
             caminho,
             token,
             repo,
-            mensagem_commit=f"Atualiza CRM: {caminho}",
+            sha_esperado=leitura.sha,
+            mensagem=f"Atualiza CRM: {caminho}",
         )
-    except TypeError:
-        salvar_github(df, caminho, token, repo)
-    except Exception as e:
-        st.error(f"Erro ao salvar arquivo no GitHub: {caminho}")
-        st.exception(e)
-        raise e
+    elif leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE:
+        resultado = salvar_csv_operacional(
+            df,
+            caminho,
+            token,
+            repo,
+            criar=True,
+            mensagem=f"Cria CRM: {caminho}",
+        )
+    else:
+        detalhe = leitura.erro or leitura.status.value
+        st.error(f"Não foi possível confirmar a leitura de {caminho}. Detalhe: {detalhe}")
+        return False
+
+    if not resultado.sucesso:
+        detalhe = resultado.erro or resultado.status.value
+        st.error(f"Erro ao salvar arquivo no GitHub: {caminho}. Detalhe: {detalhe}")
+        return False
     return True
 
 
@@ -117,7 +131,7 @@ def _normalizar_dataframe_crm(df: pd.DataFrame, colunas: list[str]) -> pd.DataFr
 
 def carregar_csv_github_resultado(caminho: str, colunas: list[str]) -> ResultadoLeituraCSV:
     token, repo = get_github_config()
-    resultado = ler_csv_github(caminho, token, repo)
+    resultado = ler_csv_operacional(caminho, token, repo)
     dados = (
         _normalizar_dataframe_crm(resultado.dados, colunas)
         if resultado.leitura_confirmada
@@ -130,6 +144,10 @@ def carregar_csv_github_resultado(caminho: str, colunas: list[str]) -> Resultado
         http_status=resultado.http_status,
         sha=resultado.sha,
         erro=resultado.erro,
+        rate_limit_limit=resultado.rate_limit_limit,
+        rate_limit_remaining=resultado.rate_limit_remaining,
+        rate_limit_reset=resultado.rate_limit_reset,
+        retry_after=resultado.retry_after,
     )
 
 
@@ -139,7 +157,7 @@ def carregar_contexto_interacao_resultado():
     snapshot_comum = None
     if resultado_clientes.pode_sobrescrever and resultado_interacoes.pode_sobrescrever:
         token, repo = get_github_config()
-        snapshot_comum = resolver_snapshot_branch(token, repo, "main")
+        snapshot_comum = resolver_snapshot_branch(token, repo, DATA_BRANCH)
     return resultado_clientes, resultado_interacoes, snapshot_comum
 
 
@@ -154,7 +172,7 @@ def cadastro_interacao_liberado(resultado_clientes, resultado_interacoes, snapsh
 def _resultado_interacao_invalida(erro):
     return ResultadoPersistenciaMultiArquivo(
         status=StatusPersistenciaMultiArquivo.REQUISICAO_INVALIDA,
-        branch="main",
+        branch=DATA_BRANCH,
         arquivos=(ARQ_INTERACOES, ARQ_CLIENTES),
         erro=erro,
     )
@@ -192,7 +210,7 @@ def cadastrar_interacao_composta(dados: dict, resultado_clientes: ResultadoLeitu
         [AlteracaoArquivoCSV(ARQ_INTERACOES, interacoes), AlteracaoArquivoCSV(ARQ_CLIENTES, clientes)],
         token,
         repo,
-        "main",
+        DATA_BRANCH,
         "Registrar interação CRM e atualizar cliente",
     )
 
