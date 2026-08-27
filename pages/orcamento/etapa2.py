@@ -2,7 +2,7 @@ import json
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from services.github import carregar_github, salvar_github
+from services.orcamentos_legado_operacional import carregar_github, salvar_github
 from services.autorizacao import pode
 
 ARQ_SAL = "data/salarios.csv"
