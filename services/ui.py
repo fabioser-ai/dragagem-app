@@ -3,15 +3,12 @@ import streamlit as st
 from services.loading_fos import _LOGO_FOS
 
 
-def _renderizar_marca_login():
+def renderizar_login_fos():
     """Renderiza somente a identidade visual do login, sem tocar na autenticação."""
-    if st.session_state.get("autenticado"):
-        return
-
     st.markdown(
         f"""
         <style>
-        /* LOGIN FOS FULL-SCREEN: ativado deterministicamente pelo estado deslogado. */
+        /* LOGIN FOS FULL-SCREEN: injetado explicitamente apenas no fluxo deslogado. */
         [data-testid="stAppViewContainer"] {{
             position:relative;
             min-height:100vh;
@@ -90,9 +87,6 @@ def _renderizar_marca_login():
         """,
         unsafe_allow_html=True,
     )
-
-
-_renderizar_marca_login()
 
 
 def aplicar_estilo_global():
