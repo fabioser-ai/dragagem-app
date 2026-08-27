@@ -5,9 +5,8 @@ from services.github import (
     ResultadoLeituraCSV,
     StatusEscrita,
     StatusLeitura,
-    ler_csv_github,
-    salvar_csv_github,
 )
+from services.dados_operacionais import ler_csv_operacional, salvar_csv_operacional
 
 
 def normalizar_dataframe(df, colunas):
@@ -24,7 +23,7 @@ def normalizar_dataframe(df, colunas):
 
 
 def carregar_cadastro_resultado(arquivo, colunas, token, repo):
-    resultado = ler_csv_github(arquivo, token, repo)
+    resultado = ler_csv_operacional(arquivo, token, repo)
 
     dados = (
         normalizar_dataframe(resultado.dados, colunas)
@@ -39,6 +38,10 @@ def carregar_cadastro_resultado(arquivo, colunas, token, repo):
         http_status=resultado.http_status,
         sha=resultado.sha,
         erro=resultado.erro,
+        rate_limit_limit=resultado.rate_limit_limit,
+        rate_limit_remaining=resultado.rate_limit_remaining,
+        rate_limit_reset=resultado.rate_limit_reset,
+        retry_after=resultado.retry_after,
     )
 
 
@@ -58,7 +61,7 @@ def salvar_cadastro_seguro(
         StatusLeitura.SUCESSO_COM_DADOS,
         StatusLeitura.SUCESSO_VAZIO,
     }:
-        return salvar_csv_github(
+        return salvar_csv_operacional(
             dados,
             arquivo,
             token,
@@ -68,7 +71,7 @@ def salvar_cadastro_seguro(
         )
 
     if resultado_leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE:
-        return salvar_csv_github(
+        return salvar_csv_operacional(
             dados,
             arquivo,
             token,
