@@ -9,6 +9,34 @@ from services.github import (
 from services.dados_operacionais import ler_csv_operacional, salvar_csv_operacional
 
 
+# Compatibilidade de testabilidade: preserva os nomes históricos usados pelos
+# testes/mocks, mas a implementação real continua apontando para a branch
+# operacional separada da main.
+def ler_csv_github(arquivo, token, repo):
+    return ler_csv_operacional(arquivo, token, repo)
+
+
+def salvar_csv_github(
+    df,
+    arquivo,
+    token,
+    repo,
+    *,
+    sha_esperado=None,
+    criar=False,
+    mensagem=None,
+):
+    return salvar_csv_operacional(
+        df,
+        arquivo,
+        token,
+        repo,
+        sha_esperado=sha_esperado,
+        criar=criar,
+        mensagem=mensagem,
+    )
+
+
 def normalizar_dataframe(df, colunas):
     if df is None:
         df = pd.DataFrame(columns=colunas)
@@ -23,7 +51,7 @@ def normalizar_dataframe(df, colunas):
 
 
 def carregar_cadastro_resultado(arquivo, colunas, token, repo):
-    resultado = ler_csv_operacional(arquivo, token, repo)
+    resultado = ler_csv_github(arquivo, token, repo)
 
     dados = (
         normalizar_dataframe(resultado.dados, colunas)
@@ -61,7 +89,7 @@ def salvar_cadastro_seguro(
         StatusLeitura.SUCESSO_COM_DADOS,
         StatusLeitura.SUCESSO_VAZIO,
     }:
-        return salvar_csv_operacional(
+        return salvar_csv_github(
             dados,
             arquivo,
             token,
@@ -71,7 +99,7 @@ def salvar_cadastro_seguro(
         )
 
     if resultado_leitura.status == StatusLeitura.ARQUIVO_INEXISTENTE:
-        return salvar_csv_operacional(
+        return salvar_csv_github(
             dados,
             arquivo,
             token,
