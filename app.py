@@ -1,6 +1,7 @@
 import streamlit as st
 
 from services.auth import processar_log_pendente, verificar_login
+from services.loading_fos import processar_carregamento_pendente
 from services.ui import aplicar_estilo_global
 
 
@@ -12,6 +13,11 @@ if not verificar_login():
 
 
 aplicar_estilo_global()
+
+# Exibe uma tela neutra da FOS entre o menu e o módulo de destino, evitando
+# que o conteúdo anterior permaneça visível durante a troca de contexto.
+if processar_carregamento_pendente():
+    st.stop()
 
 from services.autorizacao import iniciar_execucao_autorizacao, pode_acessar_rota
 
@@ -56,26 +62,9 @@ elif tela == "prestacao_contas":
     prestacao_contas.render()
 
 elif tela == "carregando_medicoes":
-    st.markdown(
-        """
-        <div style="
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #334155 100%);
-            border-radius: 24px;
-            padding: 2.5rem 2rem;
-            margin-top: 1rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.20);
-        ">
-            <h1 style="color: white; margin-bottom: 0.7rem;">Carregando Medições</h1>
-            <p style="color: #dbeafe; font-size: 1.05rem; margin: 0;">
-                Preparando obras, BMs, frentes, memórias de cálculo e resumo financeiro.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.session_state.tela = "medicoes"
+    # Compatibilidade com sessões antigas que ainda possam conter esta rota.
+    st.session_state["carregamento_fos"] = {"destino": "medicoes", "rotulo": "Medições"}
+    st.session_state.tela = "menu"
     st.rerun()
 
 elif tela == "medicoes":
