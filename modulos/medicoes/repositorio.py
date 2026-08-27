@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from services.github import (
+from modulos.medicoes.persistencia import (
     carregar_github,
     salvar_github,
     salvar_arquivo_github,

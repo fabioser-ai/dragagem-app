@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-from services.github import carregar_github, salvar_github
+from modulos.medicoes.persistencia import carregar_github, salvar_github
 
 from modulos.medicoes.lancamentos.config import (
     ARQ_LANCAMENTOS_PRODUCAO,
