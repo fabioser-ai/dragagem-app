@@ -101,7 +101,7 @@ elif tela == "novo_orcamento":
 elif tela == "obras":
     import pandas as pd
 
-    from services.github import carregar_github
+    from services.orcamentos_legado_operacional import carregar_github
 
     st.title("📊 Obras")
     try:

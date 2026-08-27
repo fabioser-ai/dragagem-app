@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from services.github import carregar_github
+from services.orcamentos_legado_operacional import carregar_github
 
 ARQ_OBRAS = "data/orcamentos.csv"
 TOKEN = st.secrets["GITHUB_TOKEN"]
