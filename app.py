@@ -1,11 +1,133 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 from services.auth import processar_log_pendente, verificar_login
-from services.loading_fos import processar_carregamento_pendente
+from services.loading_fos import _LOGO_FOS, processar_carregamento_pendente
 from services.ui import aplicar_estilo_global
 
 
 st.set_page_config(layout="wide")
+
+
+def _instalar_overlay_loading_menu():
+    """Instala no navegador um overlay imediato para os botões de módulos do menu."""
+    components.html(
+        f"""
+        <script>
+        (() => {{
+          const p = window.parent;
+          const d = p.document;
+          const labels = {{
+            "ABRIR ORÇAMENTO": "Orçamento",
+            "ABRIR NOVO SISTEMA": "Novo Sistema de Orçamentos",
+            "ABRIR FÉRIAS E FOLGAS": "Férias e Folgas",
+            "ABRIR PRESTAÇÃO DE CONTAS": "Prestação de Contas",
+            "ABRIR CRM": "CRM",
+            "ABRIR UNIFORMES E EPIs": "Uniformes e EPIs",
+            "ABRIR OBRAS": "Obras",
+            "ABRIR DADOS": "Dados",
+            "ABRIR MEDIÇÕES": "Medições",
+            "ABRIR ADMINISTRAÇÃO": "Administração"
+          }};
+
+          const removeOverlay = () => {{
+            const old = d.getElementById("fos-loading-overlay");
+            if (old) old.remove();
+          }};
+          p.__fosRemoveLoadingOverlay = removeOverlay;
+          removeOverlay();
+
+          if (p.__fosLoadingOverlayInstalled) return;
+          p.__fosLoadingOverlayInstalled = true;
+
+          d.addEventListener("click", (event) => {{
+            const button = event.target && event.target.closest
+              ? event.target.closest('[data-testid="stButton"] button')
+              : null;
+            if (!button) return;
+
+            const text = (button.innerText || button.textContent || "")
+              .trim().replace(/\s+/g, " ");
+            const rotulo = labels[text];
+            if (!rotulo) return;
+
+            removeOverlay();
+            const overlay = d.createElement("div");
+            overlay.id = "fos-loading-overlay";
+            overlay.innerHTML = `
+              <div class="fos-loading-client-card">
+                <img src="{_LOGO_FOS}" alt="FOS Engenharia" />
+                <div class="fos-loading-client-title">Carregando ${{rotulo}}...</div>
+                <div class="fos-loading-client-subtitle">Aguarde enquanto preparamos as informações para você.</div>
+                <div class="fos-loading-client-dots">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>`;
+
+            const style = d.createElement("style");
+            style.id = "fos-loading-overlay-style";
+            style.textContent = `
+              #fos-loading-overlay {{
+                position: fixed; inset: 0; z-index: 2147483647;
+                display: flex; align-items: center; justify-content: center;
+                background: rgba(255,255,255,.985);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              }}
+              #fos-loading-overlay .fos-loading-client-card {{
+                display:flex; flex-direction:column; align-items:center; justify-content:center;
+                text-align:center; padding: 2rem; min-width: 320px;
+              }}
+              #fos-loading-overlay img {{ width: 190px; max-width: 42vw; margin-bottom: 1.8rem; }}
+              #fos-loading-overlay .fos-loading-client-title {{
+                color:#263445; font-size:2rem; line-height:1.2; font-weight:750; margin-bottom:.7rem;
+              }}
+              #fos-loading-overlay .fos-loading-client-subtitle {{
+                color:#718096; font-size:1rem; margin-bottom:1.45rem;
+              }}
+              #fos-loading-overlay .fos-loading-client-dots {{ display:flex; gap:12px; }}
+              #fos-loading-overlay .fos-loading-client-dots span {{
+                width:12px; height:12px; border-radius:50%; background:#d7d7d7;
+                animation:fosClientPulse 1.15s infinite ease-in-out;
+              }}
+              #fos-loading-overlay .fos-loading-client-dots span:nth-child(1) {{ background:#a95035; }}
+              #fos-loading-overlay .fos-loading-client-dots span:nth-child(2) {{ animation-delay:.14s; }}
+              #fos-loading-overlay .fos-loading-client-dots span:nth-child(3) {{ animation-delay:.28s; }}
+              #fos-loading-overlay .fos-loading-client-dots span:nth-child(4) {{ animation-delay:.42s; }}
+              #fos-loading-overlay .fos-loading-client-dots span:nth-child(5) {{ animation-delay:.56s; }}
+              @keyframes fosClientPulse {{
+                0%,80%,100% {{ opacity:.32; transform:scale(.82); }}
+                40% {{ opacity:1; transform:scale(1.12); }}
+              }}
+            `;
+            const oldStyle = d.getElementById("fos-loading-overlay-style");
+            if (oldStyle) oldStyle.remove();
+            d.head.appendChild(style);
+            d.body.appendChild(overlay);
+          }}, true);
+        }})();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
+def _remover_overlay_loading_cliente():
+    components.html(
+        """
+        <script>
+        (() => {
+          const p = window.parent;
+          const d = p.document;
+          if (p.__fosRemoveLoadingOverlay) p.__fosRemoveLoadingOverlay();
+          const overlay = d.getElementById("fos-loading-overlay");
+          if (overlay) overlay.remove();
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 if not verificar_login():
@@ -66,6 +188,9 @@ st.session_state["_fos_tela_anterior"] = tela
 if tela == "menu":
     from pages import menu
 
+    # O listener roda no browser e cobre a tela no próprio clique, antes do
+    # primeiro rerun chegar ao servidor. Isso elimina o "menu fantasma".
+    _instalar_overlay_loading_menu()
     menu.render()
 
 elif tela == "dados":
@@ -170,6 +295,10 @@ else:
     st.error("Rota indisponível.")
     st.stop()
 
+# Quando o módulo terminou de renderizar, o overlay cliente pode sair. No menu,
+# a instalação acima já remove qualquer overlay antigo antes de armar o listener.
+if tela != "menu":
+    _remover_overlay_loading_cliente()
 
 # O menu já foi enviado ao navegador antes da escrita remota do log.
 processar_log_pendente()
