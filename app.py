@@ -30,12 +30,32 @@ def _instalar_overlay_loading_menu():
             "ABRIR ADMINISTRAÇÃO": "Administração"
           }};
 
-          const removeOverlay = () => {{
+          const minimoMs = 3000;
+          const removeOverlay = (force = false) => {{
             const old = d.getElementById("fos-loading-overlay");
-            if (old) old.remove();
+            if (!old) return;
+
+            if (!force) {{
+              const inicio = Number(old.dataset.startedAt || Date.now());
+              const restante = Math.max(0, minimoMs - (Date.now() - inicio));
+              if (restante > 0) {{
+                if (!old.dataset.removalScheduled) {{
+                  old.dataset.removalScheduled = "1";
+                  p.setTimeout(() => {{
+                    const atual = d.getElementById("fos-loading-overlay");
+                    if (atual === old) old.remove();
+                  }}, restante);
+                }}
+                return;
+              }}
+            }}
+
+            old.remove();
           }};
           p.__fosRemoveLoadingOverlay = removeOverlay;
-          removeOverlay();
+          // Em reruns do próprio menu, preserve um overlay recém-criado até
+          // completar o tempo mínimo. Isso evita o "flash" de menos de 3 s.
+          removeOverlay(false);
 
           if (p.__fosLoadingOverlayInstalled) return;
           p.__fosLoadingOverlayInstalled = true;
@@ -51,7 +71,8 @@ def _instalar_overlay_loading_menu():
             const rotulo = labels[text];
             if (!rotulo) return;
 
-            removeOverlay();
+            // Um novo clique deve substituir qualquer overlay antigo.
+            removeOverlay(true);
             const overlay = d.createElement("div");
             overlay.id = "fos-loading-overlay";
             overlay.dataset.startedAt = String(Date.now());
@@ -123,10 +144,17 @@ def _remover_overlay_loading_cliente():
           const overlay = d.getElementById("fos-loading-overlay");
           if (!overlay) return;
 
+          // Usa timer do window.parent para sobreviver à remoção deste iframe
+          // pelo Streamlit durante reruns. A função também respeita 3 s mínimos.
+          if (p.__fosRemoveLoadingOverlay) {
+            p.__fosRemoveLoadingOverlay(false);
+            return;
+          }
+
           const minimoMs = 3000;
           const inicio = Number(overlay.dataset.startedAt || Date.now());
           const restante = Math.max(0, minimoMs - (Date.now() - inicio));
-          window.setTimeout(() => {
+          p.setTimeout(() => {
             const atual = d.getElementById("fos-loading-overlay");
             if (atual === overlay) overlay.remove();
           }, restante);
