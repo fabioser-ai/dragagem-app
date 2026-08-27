@@ -23,6 +23,11 @@ from services.persistencia_multi_arquivo import (
     resolver_snapshot_branch,
 )
 
+# Alias de compatibilidade para testes/integrações legadas que ainda injetam
+# a função histórica do módulo. A implementação continua escrevendo somente
+# na branch operacional por meio de salvar_csv_operacional.
+salvar_github = salvar_csv_operacional
+
 
 ARQ_CLIENTES = "data/crm/clientes.csv"
 ARQ_CONTATOS = "data/crm/contatos.csv"
