@@ -10,13 +10,14 @@ st.set_page_config(layout="wide")
 
 
 def _instalar_overlay_loading_menu():
-    """Instala no navegador um overlay imediato para os botões de módulos do menu."""
+    """Instala um loading reentrante no navegador para cada clique de módulo."""
     components.html(
         f"""
         <script>
         (() => {{
           const p = window.parent;
           const d = p.document;
+          const minimoMs = 3000;
           const labels = {{
             "ABRIR ORÇAMENTO": "Orçamento",
             "ABRIR NOVO SISTEMA": "Novo Sistema de Orçamentos",
@@ -30,37 +31,48 @@ def _instalar_overlay_loading_menu():
             "ABRIR ADMINISTRAÇÃO": "Administração"
           }};
 
-          const minimoMs = 3000;
-          const removeOverlay = (force = false) => {{
-            const old = d.getElementById("fos-loading-overlay");
-            if (!old) return;
-
-            if (!force) {{
-              const inicio = Number(old.dataset.startedAt || Date.now());
-              const restante = Math.max(0, minimoMs - (Date.now() - inicio));
-              if (restante > 0) {{
-                if (!old.dataset.removalScheduled) {{
-                  old.dataset.removalScheduled = "1";
-                  p.setTimeout(() => {{
-                    const atual = d.getElementById("fos-loading-overlay");
-                    if (atual === old) old.remove();
-                  }}, restante);
-                }}
-                return;
-              }}
-            }}
-
-            old.remove();
+          const limparTransicao = (state) => {{
+            if (!state) return;
+            if (state.timer) p.clearTimeout(state.timer);
+            const overlay = d.getElementById("fos-loading-overlay");
+            if (overlay && overlay.dataset.transitionId === state.id) overlay.remove();
+            if (p.__fosLoadingState === state) p.__fosLoadingState = null;
           }};
-          p.__fosRemoveLoadingOverlay = removeOverlay;
-          // Em reruns do próprio menu, preserve um overlay recém-criado até
-          // completar o tempo mínimo. Isso evita o "flash" de menos de 3 s.
-          removeOverlay(false);
 
-          if (p.__fosLoadingOverlayInstalled) return;
-          p.__fosLoadingOverlayInstalled = true;
+          const finalizarQuandoPronto = (state) => {{
+            if (!state || !state.ready || p.__fosLoadingState !== state) return;
+            const decorrido = Date.now() - state.startedAt;
+            const restante = Math.max(0, minimoMs - decorrido);
 
-          d.addEventListener("click", (event) => {{
+            const finalizar = () => {{
+              if (p.__fosLoadingState !== state || !state.ready) return;
+              p.requestAnimationFrame(() => {{
+                p.requestAnimationFrame(() => limparTransicao(state));
+              }});
+            }};
+
+            if (restante > 0) {{
+              if (state.timer) p.clearTimeout(state.timer);
+              state.timer = p.setTimeout(finalizar, restante);
+            }} else {{
+              finalizar();
+            }}
+          }};
+
+          p.__fosMarkLoadingReady = () => {{
+            const state = p.__fosLoadingState;
+            if (!state) return;
+            const overlay = d.getElementById("fos-loading-overlay");
+            if (!overlay || overlay.dataset.transitionId !== state.id) return;
+            state.ready = true;
+            finalizarQuandoPronto(state);
+          }};
+
+          if (p.__fosLoadingClickHandler) {{
+            d.removeEventListener("click", p.__fosLoadingClickHandler, true);
+          }}
+
+          const clickHandler = (event) => {{
             const button = event.target && event.target.closest
               ? event.target.closest('[data-testid="stButton"] button')
               : null;
@@ -71,11 +83,20 @@ def _instalar_overlay_loading_menu():
             const rotulo = labels[text];
             if (!rotulo) return;
 
-            // Um novo clique deve substituir qualquer overlay antigo.
-            removeOverlay(true);
+            limparTransicao(p.__fosLoadingState);
+
+            const transitionId = `${{Date.now()}}-${{Math.random().toString(36).slice(2)}}`;
+            const state = {{
+              id: transitionId,
+              startedAt: Date.now(),
+              ready: false,
+              timer: null,
+            }};
+            p.__fosLoadingState = state;
+
             const overlay = d.createElement("div");
             overlay.id = "fos-loading-overlay";
-            overlay.dataset.startedAt = String(Date.now());
+            overlay.dataset.transitionId = transitionId;
             overlay.innerHTML = `
               <div class="fos-loading-client-card">
                 <img src="{_LOGO_FOS}" alt="FOS Engenharia" />
@@ -125,7 +146,10 @@ def _instalar_overlay_loading_menu():
             if (oldStyle) oldStyle.remove();
             d.head.appendChild(style);
             d.body.appendChild(overlay);
-          }}, true);
+          }};
+
+          p.__fosLoadingClickHandler = clickHandler;
+          d.addEventListener("click", clickHandler, true);
         }})();
         </script>
         """,
@@ -134,30 +158,14 @@ def _instalar_overlay_loading_menu():
     )
 
 
-def _remover_overlay_loading_cliente():
+def _sinalizar_modulo_pronto_loading():
+    """Libera o overlay somente após renderização do módulo e 3 s mínimos."""
     components.html(
         """
         <script>
         (() => {
           const p = window.parent;
-          const d = p.document;
-          const overlay = d.getElementById("fos-loading-overlay");
-          if (!overlay) return;
-
-          // Usa timer do window.parent para sobreviver à remoção deste iframe
-          // pelo Streamlit durante reruns. A função também respeita 3 s mínimos.
-          if (p.__fosRemoveLoadingOverlay) {
-            p.__fosRemoveLoadingOverlay(false);
-            return;
-          }
-
-          const minimoMs = 3000;
-          const inicio = Number(overlay.dataset.startedAt || Date.now());
-          const restante = Math.max(0, minimoMs - (Date.now() - inicio));
-          p.setTimeout(() => {
-            const atual = d.getElementById("fos-loading-overlay");
-            if (atual === overlay) overlay.remove();
-          }, restante);
+          if (p.__fosMarkLoadingReady) p.__fosMarkLoadingReady();
         })();
         </script>
         """,
@@ -224,8 +232,6 @@ st.session_state["_fos_tela_anterior"] = tela
 if tela == "menu":
     from pages import menu
 
-    # O listener roda no browser e cobre a tela no próprio clique, antes do
-    # primeiro rerun chegar ao servidor. Isso elimina o "menu fantasma".
     _instalar_overlay_loading_menu()
     menu.render()
 
@@ -250,8 +256,6 @@ elif tela == "prestacao_contas":
     prestacao_contas.render()
 
 elif tela == "carregando_medicoes":
-    # Compatibilidade defensiva; a transição genérica acima normalmente
-    # converte esta rota antiga diretamente para Medições.
     st.session_state["carregamento_fos"] = {"destino": "medicoes", "rotulo": "Medições"}
     st.session_state["_fos_tela_anterior"] = "medicoes"
     st.rerun()
@@ -327,14 +331,13 @@ elif tela == "orcamento3":
     etapa3()
 
 else:
-    # Toda rota conhecida está declarada na fronteira central e no roteador.
     st.error("Rota indisponível.")
     st.stop()
 
-# Quando o módulo terminou de renderizar, pedimos a saída do overlay cliente.
-# O navegador respeita o tempo mínimo visual antes de removê-lo.
+# Só sinalizamos "pronto" depois que o módulo de destino terminou de renderizar.
+# O navegador ainda exige os 3 segundos mínimos antes de remover o overlay.
 if tela != "menu":
-    _remover_overlay_loading_cliente()
+    _sinalizar_modulo_pronto_loading()
 
 # O menu já foi enviado ao navegador antes da escrita remota do log.
 processar_log_pendente()
