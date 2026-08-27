@@ -17,7 +17,6 @@ def _instalar_overlay_loading_menu():
         (() => {{
           const p = window.parent;
           const d = p.document;
-          const minimoMs = 3000;
           const labels = {{
             "ABRIR ORÇAMENTO": "Orçamento",
             "ABRIR NOVO SISTEMA": "Novo Sistema de Orçamentos",
@@ -31,41 +30,13 @@ def _instalar_overlay_loading_menu():
             "ABRIR ADMINISTRAÇÃO": "Administração"
           }};
 
-          const limparTransicao = (state) => {{
-            if (!state) return;
-            if (state.timer) p.clearTimeout(state.timer);
+          const limparOverlayAtual = () => {{
             const overlay = d.getElementById("fos-loading-overlay");
-            if (overlay && overlay.dataset.transitionId === state.id) overlay.remove();
-            if (p.__fosLoadingState === state) p.__fosLoadingState = null;
-          }};
-
-          const finalizarQuandoPronto = (state) => {{
-            if (!state || !state.ready || p.__fosLoadingState !== state) return;
-            const decorrido = Date.now() - state.startedAt;
-            const restante = Math.max(0, minimoMs - decorrido);
-
-            const finalizar = () => {{
-              if (p.__fosLoadingState !== state || !state.ready) return;
-              p.requestAnimationFrame(() => {{
-                p.requestAnimationFrame(() => limparTransicao(state));
-              }});
-            }};
-
-            if (restante > 0) {{
-              if (state.timer) p.clearTimeout(state.timer);
-              state.timer = p.setTimeout(finalizar, restante);
-            }} else {{
-              finalizar();
+            if (overlay) overlay.remove();
+            if (p.__fosLoadingFailsafe) {{
+              p.clearTimeout(p.__fosLoadingFailsafe);
+              p.__fosLoadingFailsafe = null;
             }}
-          }};
-
-          p.__fosMarkLoadingReady = () => {{
-            const state = p.__fosLoadingState;
-            if (!state) return;
-            const overlay = d.getElementById("fos-loading-overlay");
-            if (!overlay || overlay.dataset.transitionId !== state.id) return;
-            state.ready = true;
-            finalizarQuandoPronto(state);
           }};
 
           if (p.__fosLoadingClickHandler) {{
@@ -83,20 +54,13 @@ def _instalar_overlay_loading_menu():
             const rotulo = labels[text];
             if (!rotulo) return;
 
-            limparTransicao(p.__fosLoadingState);
+            limparOverlayAtual();
 
             const transitionId = `${{Date.now()}}-${{Math.random().toString(36).slice(2)}}`;
-            const state = {{
-              id: transitionId,
-              startedAt: Date.now(),
-              ready: false,
-              timer: null,
-            }};
-            p.__fosLoadingState = state;
-
             const overlay = d.createElement("div");
             overlay.id = "fos-loading-overlay";
             overlay.dataset.transitionId = transitionId;
+            overlay.dataset.startedAt = String(Date.now());
             overlay.innerHTML = `
               <div class="fos-loading-client-card">
                 <img src="{_LOGO_FOS}" alt="FOS Engenharia" />
@@ -146,6 +110,14 @@ def _instalar_overlay_loading_menu():
             if (oldStyle) oldStyle.remove();
             d.head.appendChild(style);
             d.body.appendChild(overlay);
+
+            // Segurança defensiva: nunca permitir overlay eterno caso o sinal
+            // de módulo pronto se perca por qualquer razão do navegador.
+            p.__fosLoadingFailsafe = p.setTimeout(() => {{
+              const atual = d.getElementById("fos-loading-overlay");
+              if (atual && atual.dataset.transitionId === transitionId) atual.remove();
+              p.__fosLoadingFailsafe = null;
+            }}, 30000);
           }};
 
           p.__fosLoadingClickHandler = clickHandler;
@@ -159,13 +131,39 @@ def _instalar_overlay_loading_menu():
 
 
 def _sinalizar_modulo_pronto_loading():
-    """Libera o overlay somente após renderização do módulo e 3 s mínimos."""
+    """Remove o overlay após o módulo renderizar e após 3 s mínimos."""
     components.html(
         """
         <script>
         (() => {
           const p = window.parent;
-          if (p.__fosMarkLoadingReady) p.__fosMarkLoadingReady();
+          const d = p.document;
+          const overlay = d.getElementById("fos-loading-overlay");
+          if (!overlay) return;
+
+          const transitionId = overlay.dataset.transitionId;
+          const inicio = Number(overlay.dataset.startedAt || Date.now());
+          const restante = Math.max(0, 3000 - (Date.now() - inicio));
+
+          const finalizar = () => {
+            const atual = d.getElementById("fos-loading-overlay");
+            if (!atual || atual.dataset.transitionId !== transitionId) return;
+            p.requestAnimationFrame(() => {
+              p.requestAnimationFrame(() => {
+                const finalOverlay = d.getElementById("fos-loading-overlay");
+                if (finalOverlay && finalOverlay.dataset.transitionId === transitionId) {
+                  finalOverlay.remove();
+                }
+                if (p.__fosLoadingFailsafe) {
+                  p.clearTimeout(p.__fosLoadingFailsafe);
+                  p.__fosLoadingFailsafe = null;
+                }
+              });
+            });
+          };
+
+          if (restante > 0) p.setTimeout(finalizar, restante);
+          else finalizar();
         })();
         </script>
         """,
