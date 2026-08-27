@@ -14,8 +14,7 @@ if not verificar_login():
 
 aplicar_estilo_global()
 
-# Exibe uma tela neutra da FOS entre o menu e o módulo de destino, evitando
-# que o conteúdo anterior permaneça visível durante a troca de contexto.
+# Uma transição já preparada tem prioridade sobre a renderização do módulo.
 if processar_carregamento_pendente():
     st.stop()
 
@@ -35,6 +34,34 @@ if not pode_acessar_rota(tela):
     st.session_state.tela = "menu"
     st.error("Você não possui permissão para acessar esta área.")
     st.stop()
+
+# Detecta genericamente a saída do menu para qualquer módulo. Assim todos os
+# cards atuais e futuros recebem a mesma transição sem duplicar lógica no menu.
+_rotulos_loading = {
+    "dados": "Dados",
+    "administracao": "Administração",
+    "ferias": "Férias e Folgas",
+    "prestacao_contas": "Prestação de Contas",
+    "medicoes": "Medições",
+    "carregando_medicoes": "Medições",
+    "crm": "CRM",
+    "uniformes_epis": "Uniformes e EPIs",
+    "novo_orcamento": "Novo Sistema de Orçamentos",
+    "obras": "Obras",
+    "orcamento": "Orçamento",
+    "orcamento_lista": "Orçamento",
+}
+_tela_anterior = st.session_state.get("_fos_tela_anterior")
+if _tela_anterior == "menu" and tela != "menu" and tela in _rotulos_loading:
+    destino = "medicoes" if tela == "carregando_medicoes" else tela
+    st.session_state["carregamento_fos"] = {
+        "destino": destino,
+        "rotulo": _rotulos_loading[tela],
+    }
+    st.session_state["_fos_tela_anterior"] = destino
+    st.rerun()
+
+st.session_state["_fos_tela_anterior"] = tela
 
 if tela == "menu":
     from pages import menu
@@ -62,9 +89,10 @@ elif tela == "prestacao_contas":
     prestacao_contas.render()
 
 elif tela == "carregando_medicoes":
-    # Compatibilidade com sessões antigas que ainda possam conter esta rota.
+    # Compatibilidade defensiva; a transição genérica acima normalmente
+    # converte esta rota antiga diretamente para Medições.
     st.session_state["carregamento_fos"] = {"destino": "medicoes", "rotulo": "Medições"}
-    st.session_state.tela = "menu"
+    st.session_state["_fos_tela_anterior"] = "medicoes"
     st.rerun()
 
 elif tela == "medicoes":
