@@ -88,8 +88,16 @@ def _formatar_brl(valor):
     return f"R$ {formatado}"
 
 
+def _ordenar_salarios(df):
+    if df.empty or "Posicao" not in df.columns:
+        return df.copy()
+    ordenado = df.copy()
+    ordenado["__ordem_posicao"] = ordenado["Posicao"].astype(str).str.strip().str.casefold()
+    return ordenado.sort_values("__ordem_posicao", kind="stable").drop(columns=["__ordem_posicao"]).reset_index(drop=True)
+
+
 def _salarios_para_display(df):
-    exibicao = df.copy()
+    exibicao = _ordenar_salarios(df)
     if "Valor_Hora" in exibicao.columns:
         exibicao["Valor_Hora"] = exibicao["Valor_Hora"].map(_formatar_brl)
     return exibicao.rename(columns={"Posicao": "Posição", "Valor_Hora": "Valor/hora"})
@@ -113,7 +121,7 @@ def _render_salarios(cfg):
     df = _normalizar_para_edicao(df, cfg["colunas"])
 
     st.subheader("Salários")
-    st.caption("Valores exibidos no padrão brasileiro. Selecione uma ação somente quando precisar alterar a base.")
+    st.caption("Valores exibidos no padrão brasileiro e posições em ordem alfabética. Selecione uma ação somente quando precisar alterar a base.")
     st.dataframe(_salarios_para_display(df), use_container_width=True, hide_index=True)
 
     pode_criar = _permitido(recurso, "criar")
@@ -152,6 +160,7 @@ def _render_salarios(cfg):
                     else:
                         novo = {"Posicao": posicao.strip(), "Valor_Hora": valor_canonico}
                         candidato = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
+                        candidato = _ordenar_salarios(candidato)
                         if _salvar(candidato, cfg, leitura, "criar", rerun=False):
                             st.session_state.pop("dados_salario_acao", None)
         with col_cancelar:
@@ -161,7 +170,7 @@ def _render_salarios(cfg):
 
     elif acao == "editar" and pode_editar and not df.empty:
         st.markdown("#### Atualizar dado existente")
-        opcoes = [str(v) for v in df["Posicao"].tolist()]
+        opcoes = [str(v) for v in _ordenar_salarios(df)["Posicao"].tolist()]
         posicao_escolhida = st.selectbox("Posição", opcoes, key="sal_editar_posicao")
         indice = df.index[df["Posicao"].astype(str) == str(posicao_escolhida)][0]
         valor_atual = str(df.at[indice, "Valor_Hora"]).replace(".", ",")
@@ -176,6 +185,7 @@ def _render_salarios(cfg):
                 else:
                     candidato = df.copy()
                     candidato.at[indice, "Valor_Hora"] = valor_canonico
+                    candidato = _ordenar_salarios(candidato)
                     if _salvar(candidato, cfg, leitura, "editar", rerun=False):
                         st.session_state.pop("dados_salario_acao", None)
         with col_cancelar:
