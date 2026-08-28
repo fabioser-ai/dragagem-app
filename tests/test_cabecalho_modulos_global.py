@@ -34,9 +34,10 @@ class CabecalhoModulosGlobalTests(unittest.TestCase):
     def test_modulos_principais_usam_componente_padrao(self):
         arquivos = {
             "pages/prestacao_contas_hub.py": "Prestação de Contas",
-            "pages/medicoes.py": "Medições",
+            "pages/medicoes_hub.py": "Medições",
             "pages/uniformes_epis_hub.py": "Uniformes e EPIs",
             "pages/administracao_hub.py": "Administração",
+            "pages/obras_hub.py": "Obras",
             "pages/orcamento/dashboard.py": "Orçamentos",
         }
         for caminho, titulo in arquivos.items():
@@ -47,9 +48,15 @@ class CabecalhoModulosGlobalTests(unittest.TestCase):
 
     def test_app_roteia_modulos_grandes_pelos_hubs(self):
         app = fonte("app.py")
-        self.assertIn("from pages import administracao_hub", app)
-        self.assertIn("from pages import prestacao_contas_hub", app)
-        self.assertIn("from pages import uniformes_epis_hub", app)
+        for importacao in (
+            "from pages import administracao_hub",
+            "from pages import prestacao_contas_hub",
+            "from pages import uniformes_epis_hub",
+            "from pages import medicoes_hub",
+            "from pages import obras_hub",
+        ):
+            with self.subTest(importacao=importacao):
+                self.assertIn(importacao, app)
 
 
 if __name__ == "__main__":
