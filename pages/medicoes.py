@@ -31,7 +31,7 @@ def _voltar_inicio_medicoes():
     st.rerun()
 
 
-def _cabecalho_medicoes():
+def _cabecalho_medicoes(perfil_medicao):
     fluxo = st.session_state.get("fluxo_medicoes", "inicio")
     if fluxo == "gestao":
         etapa = st.session_state.get("etapa_medicoes", "obra")
@@ -43,12 +43,20 @@ def _cabecalho_medicoes():
             key="medicoes_header_gestao",
         )
     elif fluxo == "lancamento":
-        renderizar_cabecalho_modulo(
-            "Lançamentos",
-            "← MEDIÇÕES",
-            _voltar_inicio_medicoes,
-            key="medicoes_header_lancamentos",
-        )
+        if perfil_medicao == "funcionario":
+            renderizar_cabecalho_modulo(
+                "Lançamentos",
+                "← TELA INICIAL",
+                _voltar_menu,
+                key="medicoes_header_lancamentos_funcionario",
+            )
+        else:
+            renderizar_cabecalho_modulo(
+                "Lançamentos",
+                "← MEDIÇÕES",
+                _voltar_inicio_medicoes,
+                key="medicoes_header_lancamentos",
+            )
     elif fluxo == "aprovacao":
         renderizar_cabecalho_modulo(
             "Aprovação de Lançamentos",
@@ -89,7 +97,7 @@ def medicoes():
         st.session_state["fluxo_medicoes"] = "inicio"
         st.warning("Seu perfil não possui acesso à criação ou gestão de medições.")
 
-    _cabecalho_medicoes()
+    _cabecalho_medicoes(perfil_medicao)
     st.caption("Controle técnico, operacional e financeiro de medições.")
 
     navegacao()
