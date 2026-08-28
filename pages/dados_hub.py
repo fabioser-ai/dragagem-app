@@ -200,7 +200,8 @@ def _render_crud(cfg, chave):
         novos = {coluna: st.text_input(coluna, value=str(df.at[indice, coluna]), key=f"{chave}_editar_{coluna}") for coluna in cfg["colunas"]}
         if st.button("Salvar alterações", key=f"{chave}_salvar"):
             candidato = df.copy()
-            for coluna, valor in novos.items(): candidato.at[indice, coluna] = valor
+            for coluna, valor in novos.items():
+                candidato.at[indice, coluna] = valor
             _salvar(candidato, cfg, leitura, "editar")
     if pode_excluir and not df.empty:
         st.divider(); st.markdown("#### Excluir")
@@ -221,7 +222,8 @@ def _render_atestados_somente_leitura():
     busca = st.text_input("Buscar por palavra-chave", key="dados_hub_busca_atestado")
     filtrados = dados_legado.filtrar_atestados_por_busca(df_atestados, df_servicos, busca)
     if filtrados.empty:
-        st.info("Nenhum atestado encontrado."); return
+        st.info("Nenhum atestado encontrado.")
+        return
     colunas = ["cliente", "contrato", "obra", "local", "ano", "data_inicio", "data_fim"]
     st.dataframe(filtrados[colunas], use_container_width=True, hide_index=True)
     opcoes = {f"{row['cliente']} | {row['obra']} | {row['contrato']}": row["id_atestado"] for _, row in filtrados.iterrows()}
@@ -231,8 +233,10 @@ def _render_atestados_somente_leitura():
         st.write(f"**{rotulo}:**", linha[coluna])
     servicos = df_servicos[df_servicos["id_atestado"] == linha["id_atestado"]]
     st.markdown("#### Serviços vinculados")
-    if servicos.empty: st.info("Nenhum serviço vinculado.")
-    else: st.dataframe(servicos[["servico", "unidade", "quantidade", "observacoes"]], use_container_width=True, hide_index=True)
+    if servicos.empty:
+        st.info("Nenhum serviço vinculado.")
+    else:
+        st.dataframe(servicos[["servico", "unidade", "quantidade", "observacoes"]], use_container_width=True, hide_index=True)
 
 
 def _voltar_dados():
@@ -255,11 +259,16 @@ def _render_recurso(chave):
         return
     renderizar_cabecalho_modulo("Dados", "← DADOS", _voltar_dados, key="dados_header_voltar")
     if chave == "atestados":
-        if any(_permitido("atestado", acao) for acao in ("criar", "editar", "excluir")): dados_legado.render_atestados()
-        else: _render_atestados_somente_leitura()
-    elif chave == "locais": render_locais_trabalho()
-    elif chave == "sal": _render_salarios(cfg)
-    else: _render_crud(cfg, chave)
+        if any(_permitido("atestado", acao) for acao in ("criar", "editar", "excluir")):
+            dados_legado.render_atestados()
+        else:
+            _render_atestados_somente_leitura()
+    elif chave == "locais":
+        render_locais_trabalho()
+    elif chave == "sal":
+        _render_salarios(cfg)
+    else:
+        _render_crud(cfg, chave)
 
 
 def render():
