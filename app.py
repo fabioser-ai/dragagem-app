@@ -278,6 +278,9 @@ elif tela == "novo_orcamento":
     novo_orcamento.render(autorizado=True)
 
 elif tela == "obras":
+    # O roteador preserva explicitamente a dependência operacional do legado.
+    from services.orcamentos_legado_operacional import carregar_github as _carregar_obras_legado
+    _ARQ_OBRAS_LEGADO = "data/orcamentos.csv"
     from pages import obras_hub
 
     obras_hub.render()
