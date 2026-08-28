@@ -76,7 +76,7 @@ def render():
         """
         <style>
             .main-header {
-                background: linear-gradient(135deg, #0f172a 0%, #c45d35 55%, #334155 100%);
+                background: linear-gradient(135deg, #0f172a 0%, #8f4229 58%, #c45d35 100%);
                 border: 1px solid rgba(148, 163, 184, 0.25);
                 border-radius: 24px;
                 padding: 2.5rem 2rem;
@@ -95,7 +95,7 @@ def render():
             }
 
             .main-header p {
-                color: #dbeafe !important;
+                color: #f4e8e2 !important;
                 margin-top: 0.9rem;
                 margin-bottom: 0;
                 font-size: 1.08rem;
