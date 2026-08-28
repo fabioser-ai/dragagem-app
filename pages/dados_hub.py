@@ -4,6 +4,7 @@ import pandas as pd
 from services.autorizacao import pode
 from services.github import StatusLeitura
 from services.dados_persistencia import carregar_cadastro_resultado, salvar_cadastro_seguro
+from services.ui import renderizar_cabecalho_modulo
 from pages import dados as dados_legado
 from pages.dados_detalhados.locais_trabalho import render_locais_trabalho
 
@@ -31,10 +32,7 @@ def _permitido(recurso, acao):
 
 
 def _recursos_visiveis():
-    return {
-        chave: cfg for chave, cfg in RECURSOS.items()
-        if _permitido(cfg["recurso"], "visualizar")
-    }
+    return {chave: cfg for chave, cfg in RECURSOS.items() if _permitido(cfg["recurso"], "visualizar")}
 
 
 def _salvar(df, cfg, leitura, acao, *, rerun=True):
@@ -42,14 +40,7 @@ def _salvar(df, cfg, leitura, acao, *, rerun=True):
     if not _permitido(recurso, acao):
         st.error("Operação não autorizada.")
         return False
-    resultado = salvar_cadastro_seguro(
-        df,
-        cfg["arquivo"],
-        cfg["colunas"],
-        TOKEN,
-        REPO,
-        resultado_leitura=leitura,
-    )
+    resultado = salvar_cadastro_seguro(df, cfg["arquivo"], cfg["colunas"], TOKEN, REPO, resultado_leitura=leitura)
     if resultado.sucesso:
         st.success("Alteração salva com sucesso.")
         if rerun:
@@ -83,8 +74,7 @@ def _formatar_brl(valor):
         numero = float(str(valor).replace(",", "."))
     except (TypeError, ValueError):
         return str(valor or "")
-    formatado = f"{numero:,.2f}"
-    formatado = formatado.replace(",", "X").replace(".", ",").replace("X", ".")
+    formatado = f"{numero:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     return f"R$ {formatado}"
 
 
@@ -108,28 +98,22 @@ def _render_salarios(cfg):
     if not _permitido(recurso, "visualizar"):
         st.error("Você não possui permissão para visualizar este conteúdo.")
         return
-
     leitura = carregar_cadastro_resultado(cfg["arquivo"], cfg["colunas"], TOKEN, REPO)
     if not leitura.leitura_confirmada and leitura.status != StatusLeitura.ARQUIVO_INEXISTENTE:
         st.error("Não foi possível confirmar a leitura desta base.")
         return
-
     df = leitura.dados.copy()
     for coluna in cfg["colunas"]:
         if coluna not in df.columns:
             df[coluna] = ""
     df = _normalizar_para_edicao(df, cfg["colunas"])
-
     st.subheader("Salários")
     st.caption("Valores exibidos no padrão brasileiro e posições em ordem alfabética. Selecione uma ação somente quando precisar alterar a base.")
     st.dataframe(_salarios_para_display(df), use_container_width=True, hide_index=True)
-
     pode_criar = _permitido(recurso, "criar")
     pode_editar = _permitido(recurso, "editar")
-
     if not (pode_criar or pode_editar):
         return
-
     st.divider()
     col_novo, col_editar = st.columns(2)
     with col_novo:
@@ -140,9 +124,7 @@ def _render_salarios(cfg):
         if pode_editar and st.button("✏️ Atualizar dado existente", key="sal_acao_editar", use_container_width=True):
             st.session_state.dados_salario_acao = "editar"
             st.rerun()
-
     acao = st.session_state.get("dados_salario_acao")
-
     if acao == "novo" and pode_criar:
         st.markdown("#### Nova entrada")
         posicao = st.text_input("Posição", key="sal_novo_posicao")
@@ -167,7 +149,6 @@ def _render_salarios(cfg):
             if st.button("Cancelar", key="sal_novo_cancelar", use_container_width=True):
                 st.session_state.pop("dados_salario_acao", None)
                 st.rerun()
-
     elif acao == "editar" and pode_editar and not df.empty:
         st.markdown("#### Atualizar dado existente")
         opcoes = [str(v) for v in _ordenar_salarios(df)["Posicao"].tolist()]
@@ -199,60 +180,40 @@ def _render_crud(cfg, chave):
     if not _permitido(recurso, "visualizar"):
         st.error("Você não possui permissão para visualizar este conteúdo.")
         return
-
     leitura = carregar_cadastro_resultado(cfg["arquivo"], cfg["colunas"], TOKEN, REPO)
     if not leitura.leitura_confirmada and leitura.status != StatusLeitura.ARQUIVO_INEXISTENTE:
         st.error("Não foi possível confirmar a leitura desta base.")
         return
-
     df = leitura.dados.copy()
     for coluna in cfg["colunas"]:
         if coluna not in df.columns:
             df[coluna] = ""
     df = _normalizar_para_edicao(df, cfg["colunas"])
-
     st.subheader(cfg["titulo"])
     st.dataframe(df, use_container_width=True, hide_index=True)
-
     pode_criar = _permitido(recurso, "criar")
     pode_editar = _permitido(recurso, "editar")
     pode_excluir = _permitido(recurso, "excluir")
-
     if pode_editar and not df.empty:
-        st.divider()
-        st.markdown("#### Editar")
+        st.divider(); st.markdown("#### Editar")
         indice = st.selectbox("Selecionar registro", df.index, key=f"{chave}_editar_idx")
-        novos = {}
-        for coluna in cfg["colunas"]:
-            novos[coluna] = st.text_input(
-                coluna,
-                value=str(df.at[indice, coluna]),
-                key=f"{chave}_editar_{coluna}",
-            )
+        novos = {coluna: st.text_input(coluna, value=str(df.at[indice, coluna]), key=f"{chave}_editar_{coluna}") for coluna in cfg["colunas"]}
         if st.button("Salvar alterações", key=f"{chave}_salvar"):
             candidato = df.copy()
             for coluna, valor in novos.items():
                 candidato.at[indice, coluna] = valor
             _salvar(candidato, cfg, leitura, "editar")
-
     if pode_excluir and not df.empty:
-        st.divider()
-        st.markdown("#### Excluir")
+        st.divider(); st.markdown("#### Excluir")
         indice_excluir = st.selectbox("Selecionar para excluir", df.index, key=f"{chave}_excluir_idx")
         confirmar = st.checkbox("Confirmo a exclusão.", key=f"{chave}_excluir_confirmar")
         if st.button("Excluir registro", key=f"{chave}_excluir", disabled=not confirmar):
-            candidato = df.drop(indice_excluir).reset_index(drop=True)
-            _salvar(candidato, cfg, leitura, "excluir")
-
+            _salvar(df.drop(indice_excluir).reset_index(drop=True), cfg, leitura, "excluir")
     if pode_criar:
-        st.divider()
-        st.markdown("#### Adicionar novo")
-        novo = {}
-        for coluna in cfg["colunas"]:
-            novo[coluna] = st.text_input(coluna, key=f"{chave}_novo_{coluna}")
+        st.divider(); st.markdown("#### Adicionar novo")
+        novo = {coluna: st.text_input(coluna, key=f"{chave}_novo_{coluna}") for coluna in cfg["colunas"]}
         if st.button("Adicionar", key=f"{chave}_adicionar"):
-            candidato = pd.concat([df, pd.DataFrame([novo])], ignore_index=True)
-            _salvar(candidato, cfg, leitura, "criar")
+            _salvar(pd.concat([df, pd.DataFrame([novo])], ignore_index=True), cfg, leitura, "criar")
 
 
 def _render_atestados_somente_leitura():
@@ -265,25 +226,28 @@ def _render_atestados_somente_leitura():
         return
     colunas = ["cliente", "contrato", "obra", "local", "ano", "data_inicio", "data_fim"]
     st.dataframe(filtrados[colunas], use_container_width=True, hide_index=True)
-    opcoes = {
-        f"{row['cliente']} | {row['obra']} | {row['contrato']}": row["id_atestado"]
-        for _, row in filtrados.iterrows()
-    }
+    opcoes = {f"{row['cliente']} | {row['obra']} | {row['contrato']}": row["id_atestado"] for _, row in filtrados.iterrows()}
     escolha = st.selectbox("Selecionar atestado", list(opcoes), key="dados_hub_sel_atestado")
-    atestado_id = opcoes[escolha]
-    linha = df_atestados[df_atestados["id_atestado"] == atestado_id].iloc[0]
-    for rotulo, coluna in [
-        ("Cliente", "cliente"), ("Contrato", "contrato"), ("Obra", "obra"),
-        ("Local", "local"), ("Ano", "ano"), ("Data início", "data_inicio"),
-        ("Data fim", "data_fim"), ("Descrição", "descricao"), ("Observações", "observacoes"),
-    ]:
+    linha = df_atestados[df_atestados["id_atestado"] == opcoes[escolha]].iloc[0]
+    for rotulo, coluna in [("Cliente", "cliente"), ("Contrato", "contrato"), ("Obra", "obra"), ("Local", "local"), ("Ano", "ano"), ("Data início", "data_inicio"), ("Data fim", "data_fim"), ("Descrição", "descricao"), ("Observações", "observacoes")]:
         st.write(f"**{rotulo}:**", linha[coluna])
-    servicos = df_servicos[df_servicos["id_atestado"] == atestado_id]
+    servicos = df_servicos[df_servicos["id_atestado"] == linha["id_atestado"]]
     st.markdown("#### Serviços vinculados")
     if servicos.empty:
         st.info("Nenhum serviço vinculado.")
     else:
         st.dataframe(servicos[["servico", "unidade", "quantidade", "observacoes"]], use_container_width=True, hide_index=True)
+
+
+def _voltar_dados():
+    st.session_state.pop("dados_recurso", None)
+    st.session_state.pop("dados_salario_acao", None)
+    st.rerun()
+
+
+def _voltar_menu():
+    st.session_state.tela = "menu"
+    st.rerun()
 
 
 def _render_recurso(chave):
@@ -293,7 +257,7 @@ def _render_recurso(chave):
         st.session_state.pop("dados_recurso", None)
         st.error("Você não possui permissão para visualizar este recurso.")
         return
-
+    renderizar_cabecalho_modulo("Dados", "← DADOS", _voltar_dados, key="dados_header_voltar")
     if chave == "atestados":
         if any(_permitido("atestado", acao) for acao in ("criar", "editar", "excluir")):
             dados_legado.render_atestados()
@@ -306,26 +270,17 @@ def _render_recurso(chave):
     else:
         _render_crud(cfg, chave)
 
-    st.divider()
-    if st.button("← Voltar para Dados", key="dados_hub_voltar_recursos"):
-        st.session_state.pop("dados_recurso", None)
-        st.session_state.pop("dados_salario_acao", None)
-        st.rerun()
-
 
 def render():
-    st.title("Dados")
     visiveis = _recursos_visiveis()
     recurso_atual = st.session_state.get("dados_recurso")
-
     if recurso_atual in visiveis:
         _render_recurso(recurso_atual)
         return
-
     st.session_state.pop("dados_recurso", None)
     st.session_state.pop("dados_salario_acao", None)
+    renderizar_cabecalho_modulo("Dados", "← TELA INICIAL", _voltar_menu, key="dados_header_menu")
     st.caption("Selecione uma área. Somente recursos autorizados para sua função são exibidos.")
-
     if not visiveis:
         st.info("Nenhum recurso de Dados disponível para seu usuário.")
     else:
@@ -341,8 +296,3 @@ def render():
                     if st.button("Abrir", key=f"dados_hub_abrir_{chave}", use_container_width=True):
                         st.session_state.dados_recurso = chave
                         st.rerun()
-
-    st.divider()
-    if st.button("← Voltar ao menu", key="dados_hub_voltar_menu", use_container_width=True):
-        st.session_state.tela = "menu"
-        st.rerun()
