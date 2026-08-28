@@ -13,24 +13,22 @@ def renderizar_login_fos():
             position:relative;
             min-height:100vh;
             overflow:hidden;
-            background:
-                radial-gradient(circle at 17% 15%, rgba(255,255,255,.98) 0 10%, rgba(255,255,255,0) 35%),
-                radial-gradient(circle at 86% 76%, rgba(198,81,39,.12) 0 3%, rgba(198,81,39,0) 35%),
-                linear-gradient(132deg, #fcfaf8 0%, #f3ece7 52%, #fbf7f4 100%) !important;
+            background:linear-gradient(132deg, #fcfaf8 0%, #f3ece7 52%, #fbf7f4 100%) !important;
         }}
         [data-testid="stAppViewContainer"]::before {{
             content:""; position:fixed; inset:-8vh -6vw; z-index:0; pointer-events:none;
             background-image:url("{_LOGO_FOS}"); background-repeat:no-repeat; background-position:center;
             background-size:min(94vw, 1500px) auto; opacity:.62; mix-blend-mode:multiply;
+            image-rendering:auto;
             filter:sepia(.2) saturate(1.08) contrast(1.04) drop-shadow(0 35px 50px rgba(116,54,31,.08));
             transform:translate3d(0,0,0) scale(1.04);
             animation:fosLoginBackground 20s cubic-bezier(.45,.05,.55,.95) infinite alternate;
         }}
         [data-testid="stAppViewContainer"]::after {{
-            content:""; position:fixed; inset:-12vh -12vw; z-index:1; pointer-events:none; opacity:.55;
-            background:repeating-radial-gradient(ellipse at 49% 66%, rgba(218,117,74,.12) 0 1px, rgba(255,255,255,0) 3px 24px),
-                linear-gradient(120deg, transparent 0 40%, rgba(255,255,255,.75) 44%, transparent 48%),
-                linear-gradient(154deg, transparent 0 58%, rgba(207,102,59,.10) 61%, transparent 64%);
+            content:""; position:fixed; inset:-12vh -12vw; z-index:1; pointer-events:none; opacity:.42;
+            background:
+                linear-gradient(120deg, transparent 0 40%, rgba(255,255,255,.72) 44%, transparent 48%),
+                linear-gradient(154deg, transparent 0 58%, rgba(207,102,59,.08) 61%, transparent 64%);
             mask-image:linear-gradient(120deg, transparent 5%, #000 35%, #000 82%, transparent 98%);
             -webkit-mask-image:linear-gradient(120deg, transparent 5%, #000 35%, #000 82%, transparent 98%);
             animation:fosLoginLight 17s ease-in-out infinite alternate;
@@ -63,7 +61,7 @@ def renderizar_login_fos():
         [data-testid="stAlert"] {{ position:relative; z-index:4; border-radius:10px !important; margin-top:.7rem; }}
         @keyframes fosLoginCardEnter {{ from {{ opacity:0; transform:translate(-50%, calc(-50% + 18px)) scale(.985); }} to {{ opacity:1; transform:translate(-50%, -50%) scale(1); }} }}
         @keyframes fosLoginBackground {{ 0% {{ transform:translate3d(-1.2%, .8%, 0) scale(1.035); }} 100% {{ transform:translate3d(1.2%, -.8%, 0) scale(1.075); }} }}
-        @keyframes fosLoginLight {{ 0% {{ transform:translate3d(-1.5%, 1%, 0); opacity:.43; }} 100% {{ transform:translate3d(1.5%, -1%, 0); opacity:.62; }} }}
+        @keyframes fosLoginLight {{ 0% {{ transform:translate3d(-1.5%, 1%, 0); opacity:.34; }} 100% {{ transform:translate3d(1.5%, -1%, 0); opacity:.48; }} }}
         @media (max-width: 640px) {{
             [data-testid="stAppViewContainer"]::before {{ background-size:auto 72vh; opacity:.38; }}
             .block-container {{ width:calc(100vw - 1.5rem) !important; max-width:430px !important; padding:1.6rem 1.35rem 1.45rem !important; border-radius:20px; }}
