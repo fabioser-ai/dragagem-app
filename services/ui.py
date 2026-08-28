@@ -88,6 +88,40 @@ def renderizar_login_fos():
     )
 
 
+def renderizar_cabecalho_modulo(titulo, rotulo_retorno, ao_retornar, *, key):
+    """Renderiza o cabeçalho interno padronizado e mantém o retorno no topo direito."""
+    st.markdown("""
+    <style>
+    .fos_module_header {
+        background: #ffffff;
+        border: 1px solid #dbe2e8;
+        border-radius: 14px;
+        min-height: 64px;
+        padding: 0.72rem 1rem;
+        box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
+        display: flex;
+        align-items: center;
+    }
+    .fos_module_header_title {
+        color: #0f172a;
+        font-size: 1.65rem;
+        line-height: 1.15;
+        font-weight: 760;
+        letter-spacing: -0.02em;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    col_titulo, col_retorno = st.columns([5, 1], vertical_alignment="center")
+    with col_titulo:
+        st.markdown(
+            f'<div class="fos_module_header"><div class="fos_module_header_title">{titulo}</div></div>',
+            unsafe_allow_html=True,
+        )
+    with col_retorno:
+        if st.button(rotulo_retorno, key=key, use_container_width=True):
+            ao_retornar()
+
+
 def aplicar_estilo_global():
     st.markdown("""
     <style>
