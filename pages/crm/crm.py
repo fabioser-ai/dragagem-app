@@ -1,11 +1,12 @@
 import streamlit as st
 
+from services.ui import renderizar_cabecalho_modulo
 from pages.crm.repositorio import (
     carregar_clientes,
     carregar_contatos,
     carregar_interacoes,
 )
-from pages.crm.navegacao import render_fluxo, render_landing
+from pages.crm.navegacao import FLUXOS, render_fluxo, render_landing
 from pages.crm.fluxos_tarefa import (
     novo_cliente,
     novo_contato,
@@ -105,33 +106,68 @@ def _render_pagina_por_fluxo(fluxo, pagina):
             atualizar_contato_tela()
 
 
+def _voltar_menu():
+    st.session_state.crm_fluxo = None
+    st.session_state.crm_pagina = None
+    st.session_state.tela = "menu"
+    st.rerun()
+
+
+def _voltar_crm():
+    st.session_state.crm_fluxo = None
+    st.session_state.crm_pagina = None
+    st.rerun()
+
+
+def _voltar_fluxo():
+    st.session_state.crm_pagina = None
+    st.rerun()
+
+
+def _titulo_pagina(fluxo, pagina):
+    for rotulo, chave, _recurso, _acao in FLUXOS[fluxo]["opcoes"]:
+        if chave == pagina:
+            return rotulo
+    return FLUXOS[fluxo]["titulo"]
+
+
 def crm():
-    col1, col2 = st.columns([6, 1])
-
-    with col1:
-        st.title("CRM FOS")
-        st.caption("Relacionamento comercial, prospecção e histórico de contatos.")
-
-    with col2:
-        st.write("")
-        st.write("")
-        if st.button("⬅ MENU", use_container_width=True):
-            st.session_state.crm_fluxo = None
-            st.session_state.crm_pagina = None
-            st.session_state.tela = "menu"
-            st.rerun()
-
-    st.markdown("---")
-
     if "crm_fluxo" not in st.session_state:
         st.session_state.crm_fluxo = None
     if "crm_pagina" not in st.session_state:
         st.session_state.crm_pagina = None
 
     fluxo = st.session_state.crm_fluxo
+    pagina = st.session_state.crm_pagina
+
     if not fluxo:
+        titulo_cabecalho = "CRM"
+        renderizar_cabecalho_modulo(
+            titulo_cabecalho,
+            "← TELA INICIAL",
+            _voltar_menu,
+            key="crm_header_menu",
+        )
+        st.caption("Relacionamento comercial, prospecção e histórico de contatos.")
         render_landing()
         return
+
+    if pagina:
+        titulo_cabecalho = _titulo_pagina(fluxo, pagina)
+        renderizar_cabecalho_modulo(
+            titulo_cabecalho,
+            f"← {FLUXOS[fluxo]['titulo'].upper()}",
+            _voltar_fluxo,
+            key="crm_header_pagina",
+        )
+    else:
+        titulo_cabecalho = FLUXOS[fluxo]["titulo"]
+        renderizar_cabecalho_modulo(
+            titulo_cabecalho,
+            "← CRM",
+            _voltar_crm,
+            key="crm_header_fluxo",
+        )
 
     pagina = render_fluxo(fluxo)
     if not pagina:

@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from services.orcamentos_legado_operacional import carregar_github
+from services.ui import renderizar_cabecalho_modulo
 
 ARQ_OBRAS = "data/orcamentos.csv"
 TOKEN = st.secrets["GITHUB_TOKEN"]
@@ -33,18 +34,35 @@ def abrir_orcamento(linha):
     st.rerun()
 
 
-def dashboard_orcamento():
-    st.title("Gestão de Orçamentos")
+def _voltar_menu():
+    st.session_state.tela = "menu"
+    st.session_state.modo_orcamento = "inicio"
+    st.rerun()
 
+
+def _voltar_orcamentos():
+    st.session_state.modo_orcamento = "inicio"
+    st.rerun()
+
+
+def dashboard_orcamento():
     if "modo_orcamento" not in st.session_state:
         st.session_state.modo_orcamento = "inicio"
 
-    if st.button("⬅ Voltar ao menu", key="orc_voltar_menu"):
-        st.session_state.tela = "menu"
-        st.session_state.modo_orcamento = "inicio"
-        st.rerun()
-
-    st.divider()
+    if st.session_state.modo_orcamento == "continuar":
+        renderizar_cabecalho_modulo(
+            "Continuar Orçamento",
+            "← ORÇAMENTOS",
+            _voltar_orcamentos,
+            key="orc_header_continuar",
+        )
+    else:
+        renderizar_cabecalho_modulo(
+            "Orçamentos",
+            "← TELA INICIAL",
+            _voltar_menu,
+            key="orc_header_menu",
+        )
 
     if st.session_state.modo_orcamento == "inicio":
         col1, col2 = st.columns(2)
@@ -76,12 +94,6 @@ def dashboard_orcamento():
         return
 
     if st.session_state.modo_orcamento == "continuar":
-        st.subheader("Continuar orçamento existente")
-
-        if st.button("⬅ Voltar", key="orc_voltar_inicio"):
-            st.session_state.modo_orcamento = "inicio"
-            st.rerun()
-
         df = carregar_orcamentos()
 
         if df.empty:
