@@ -2,6 +2,7 @@ import streamlit as st
 
 from services.autorizacao import pode, pode_acessar
 from services.ferias_regras import normalizar_ciclo_vida_dataframe, recalcular_status_dataframe
+from services.ui import renderizar_cabecalho_modulo
 from pages import ferias as legado
 
 
@@ -9,9 +10,6 @@ FLUXO_KEY = "ferias_folgas_fluxo"
 
 
 def _pode_visualizar(recurso: str) -> bool:
-    # A leitura de Férias e Folgas é canonicamente representada por
-    # ferias/registro/visualizar. As ações específicas continuam segregadas
-    # em ferias/ferias/* e ferias/folga/*.
     return pode(modulo="ferias", recurso="registro", acao="visualizar")
 
 
@@ -65,7 +63,9 @@ def _carregar_base_ferias():
 
 
 def _render_landing():
-    st.title("Férias e Folgas")
+    renderizar_cabecalho_modulo(
+        "Férias e Folgas", "← TELA INICIAL", _voltar_menu, key="ferias_header_menu"
+    )
     st.caption("Escolha a área que deseja consultar ou administrar.")
 
     pode_ferias = _pode_visualizar("ferias")
@@ -94,24 +94,16 @@ def _render_landing():
     if not pode_ferias and not pode_folga:
         st.warning("Nenhuma área de Férias e Folgas está disponível para seu usuário.")
 
-    st.divider()
-    if st.button("⬅ Voltar ao menu", use_container_width=True, key="ferias_hub_menu"):
-        _voltar_menu()
-
 
 def _render_ferias():
     if not _pode_visualizar("ferias"):
         st.error("Você não possui permissão para visualizar Férias.")
         return
 
-    col_titulo, col_voltar = st.columns([5, 1])
-    with col_titulo:
-        st.title("Férias")
-        st.caption("Consulta, programação e gestão do ciclo de férias.")
-    with col_voltar:
-        st.write("")
-        if st.button("⬅ ÁREAS", use_container_width=True, key="ferias_voltar_landing"):
-            _voltar_landing()
+    renderizar_cabecalho_modulo(
+        "Férias", "← FÉRIAS E FOLGAS", _voltar_landing, key="ferias_header_areas"
+    )
+    st.caption("Consulta, programação e gestão do ciclo de férias.")
 
     df_ferias, sha_ferias = _carregar_base_ferias()
     if df_ferias is None:
@@ -130,14 +122,10 @@ def _render_folgas():
         st.error("Você não possui permissão para visualizar Folgas.")
         return
 
-    col_titulo, col_voltar = st.columns([5, 1])
-    with col_titulo:
-        st.title("Folgas")
-        st.caption("Programação, acompanhamento e histórico de folgas.")
-    with col_voltar:
-        st.write("")
-        if st.button("⬅ ÁREAS", use_container_width=True, key="folgas_voltar_landing"):
-            _voltar_landing()
+    renderizar_cabecalho_modulo(
+        "Folgas", "← FÉRIAS E FOLGAS", _voltar_landing, key="folgas_header_areas"
+    )
+    st.caption("Programação, acompanhamento e histórico de folgas.")
 
     df_ferias, _ = _carregar_base_ferias()
     if df_ferias is None:
