@@ -1,6 +1,7 @@
 import streamlit as st
 
 from services.loading_fos import _LOGO_FOS
+from services.login_visual import FOS_LOGIN_BACKGROUND
 
 
 def renderizar_login_fos():
@@ -17,11 +18,11 @@ def renderizar_login_fos():
         }}
         [data-testid="stAppViewContainer"]::before {{
             content:""; position:fixed; inset:-8vh -6vw; z-index:0; pointer-events:none;
-            background-image:url("{_LOGO_FOS}"); background-repeat:no-repeat; background-position:center;
-            background-size:min(94vw, 1500px) auto; opacity:.62; mix-blend-mode:multiply;
+            background-image:url("{FOS_LOGIN_BACKGROUND}"); background-repeat:no-repeat; background-position:center;
+            background-size:min(82vw, 1280px) auto; opacity:.66;
             image-rendering:auto;
-            filter:sepia(.2) saturate(1.08) contrast(1.04) drop-shadow(0 35px 50px rgba(116,54,31,.08));
-            transform:translate3d(0,0,0) scale(1.04);
+            filter:drop-shadow(0 35px 50px rgba(116,54,31,.08));
+            transform:translate3d(0,0,0) scale(1.01);
             animation:fosLoginBackground 20s cubic-bezier(.45,.05,.55,.95) infinite alternate;
         }}
         [data-testid="stAppViewContainer"]::after {{
@@ -60,7 +61,7 @@ def renderizar_login_fos():
         .block-container .stButton > button p, .block-container .stButton > button span, .block-container .stButton > button div {{ color:#fff !important; }}
         [data-testid="stAlert"] {{ position:relative; z-index:4; border-radius:10px !important; margin-top:.7rem; }}
         @keyframes fosLoginCardEnter {{ from {{ opacity:0; transform:translate(-50%, calc(-50% + 18px)) scale(.985); }} to {{ opacity:1; transform:translate(-50%, -50%) scale(1); }} }}
-        @keyframes fosLoginBackground {{ 0% {{ transform:translate3d(-1.2%, .8%, 0) scale(1.035); }} 100% {{ transform:translate3d(1.2%, -.8%, 0) scale(1.075); }} }}
+        @keyframes fosLoginBackground {{ 0% {{ transform:translate3d(-.5%, .35%, 0) scale(1.005); }} 100% {{ transform:translate3d(.5%, -.35%, 0) scale(1.018); }} }}
         @keyframes fosLoginLight {{ 0% {{ transform:translate3d(-1.5%, 1%, 0); opacity:.34; }} 100% {{ transform:translate3d(1.5%, -1%, 0); opacity:.48; }} }}
         @media (max-width: 640px) {{
             [data-testid="stAppViewContainer"]::before {{ background-size:auto 72vh; opacity:.38; }}
