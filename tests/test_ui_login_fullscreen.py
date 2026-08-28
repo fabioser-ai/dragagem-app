@@ -5,6 +5,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 UI = ROOT / "services" / "ui.py"
 APP = ROOT / "app.py"
+HD_BACKGROUND = ROOT / "assets" / "fos_logo_login_hd.webp"
 
 
 class LoginFosFullscreenTests(unittest.TestCase):
@@ -40,6 +41,13 @@ class LoginFosFullscreenTests(unittest.TestCase):
         self.assertIn("min-height:100vh", self.ui_source)
         self.assertIn("Acesso ao <strong>APP FOS</strong>", self.ui_source)
         self.assertIn("Entre com suas credenciais para continuar", self.ui_source)
+
+    def test_fundo_usa_asset_hd_dedicado_sem_aneis(self):
+        self.assertTrue(HD_BACKGROUND.exists())
+        self.assertGreater(HD_BACKGROUND.stat().st_size, 100_000)
+        self.assertIn("fos_logo_login_hd.webp", self.ui_source)
+        self.assertIn("background-size:cover", self.ui_source)
+        self.assertNotIn("repeating-radial-gradient", self.ui_source)
 
     def test_background_nao_bloqueia_widgets(self):
         self.assertIn("pointer-events:none", self.ui_source)
