@@ -38,8 +38,9 @@ class MenuPaletaCobreTests(unittest.TestCase):
     def test_neutros_globais_sao_preservados(self):
         self.assertIn("#0f172a", self.ui_source)
         self.assertIn("#334155", self.ui_source)
-        self.assertIn("#64748b", self.ui_source)
         self.assertIn("#cbd5e1", self.ui_source)
+        self.assertIn("#f1f5f9", self.ui_source)
+        self.assertIn("#64748b", self.source)
 
 
 if __name__ == "__main__":
