@@ -257,7 +257,7 @@ def _render_recurso(chave):
         st.session_state.pop("dados_recurso", None)
         st.error("Você não possui permissão para visualizar este recurso.")
         return
-    renderizar_cabecalho_modulo("Dados", "← DADOS", _voltar_dados, key="dados_header_voltar")
+    renderizar_cabecalho_modulo(cfg["titulo"], "← DADOS", _voltar_dados, key="dados_header_voltar")
     if chave == "atestados":
         if any(_permitido("atestado", acao) for acao in ("criar", "editar", "excluir")):
             dados_legado.render_atestados()
