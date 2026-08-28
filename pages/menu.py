@@ -15,56 +15,30 @@ def _rotulo_funcao_usuario():
     perfil = str(st.session_state.get("perfil", "") or "").strip().casefold()
     if perfil in {"admin", "superadmin"}:
         return "Administrador do sistema"
-
     usuario = str(st.session_state.get("usuario", "") or "").strip()
     if not usuario:
         return "Nenhuma função atribuída"
-
     try:
         permissoes = listar_permissoes(usuario=usuario)
     except Exception:
         permissoes = []
-
-    roles = sorted({
-        str(item.get("role", "") or "").strip()
-        for item in permissoes
-        if str(item.get("role", "") or "").strip()
-    })
+    roles = sorted({str(item.get("role", "") or "").strip() for item in permissoes if str(item.get("role", "") or "").strip()})
     if not roles:
         return "Nenhuma função atribuída"
-
     nomes = [codigo.replace("_", " ").title() for codigo in roles]
     prefixo = "Função" if len(nomes) == 1 else "Funções"
     return f"{prefixo}: {', '.join(nomes)}"
 
 
 def render_card(titulo, descricao, botao, tela_destino):
-    st.markdown(
-        f"""
-        <div class="module-card">
-            <h3>{titulo}</h3>
-            <p>{descricao}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.markdown(f"""<div class="module-card"><h3>{titulo}</h3><p>{descricao}</p></div>""", unsafe_allow_html=True)
     if st.button(botao, use_container_width=True, key=f"btn_{tela_destino}"):
         st.session_state.tela = tela_destino
         st.rerun()
 
 
 def render_card_medicoes():
-    st.markdown(
-        """
-        <div class="module-card">
-            <h3>Medições</h3>
-            <p>Controle de boletins de medição, lançamentos de campo, aprovações e totais por obra.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.markdown("""<div class="module-card"><h3>Medições</h3><p>Controle de boletins de medição, lançamentos de campo, aprovações e totais por obra.</p></div>""", unsafe_allow_html=True)
     if st.button("ABRIR MEDIÇÕES", use_container_width=True, key="btn_medicoes"):
         st.session_state.tela = "carregando_medicoes"
         st.session_state.pop("medicoes_carregadas", None)
@@ -100,7 +74,6 @@ def render():
         """,
         unsafe_allow_html=True,
     )
-
     st.markdown("""<div class="main-header"><h1>FOS ENGENHARIA LTDA</h1><p>Plataforma interna de gestão operacional, orçamentária e administrativa</p></div>""", unsafe_allow_html=True)
     col_user, col_logout = st.columns([4, 1])
     with col_user:
@@ -108,7 +81,6 @@ def render():
     with col_logout:
         if st.button("SAIR", use_container_width=True, key="btn_sair"):
             logout()
-
     st.markdown('<div class="section-title">Módulos disponíveis</div>', unsafe_allow_html=True)
     modulos_renderizados = 0
     pode_orcamento = pode_acessar("orcamento")
@@ -129,7 +101,7 @@ def render():
             render_card("CRM", "Cadastro de clientes, contatos, histórico comercial e prospecção de oportunidades.", "ABRIR CRM", "crm")
             modulos_renderizados += 1
         if pode_acessar("uniformes_epis"):
-            render_card("Uniformes e EPIs", "Controle de compras, valores, estoques e localização física nas obras.", "ABRIR UNIFORMES e EPIs", "uniformes_epis")
+            render_card("Uniformes e EPIs", "Controle de compras, valores, estoques e localização física nas obras.", "ABRIR UNIFORMES E EPIs", "uniformes_epis")
             modulos_renderizados += 1
     with col2:
         if pode_acessar("obras"):
