@@ -111,8 +111,6 @@ def _instalar_overlay_loading_menu():
             d.head.appendChild(style);
             d.body.appendChild(overlay);
 
-            // Segurança defensiva: nunca permitir overlay eterno caso o sinal
-            // de módulo pronto se perca por qualquer razão do navegador.
             p.__fosLoadingFailsafe = p.setTimeout(() => {{
               const atual = d.getElementById("fos-loading-overlay");
               if (atual && atual.dataset.transitionId === transitionId) atual.remove();
@@ -179,22 +177,17 @@ if not autenticado_antes:
 if not verificar_login():
     st.stop()
 
-# O login foi confirmado no mesmo ciclo em que o CSS de login foi injetado.
-# Reinicia a execução para que a aplicação autenticada nasça sem esse CSS.
 if not autenticado_antes and st.session_state.get("autenticado"):
     st.rerun()
 
 
 aplicar_estilo_global()
 
-# Uma transição já preparada tem prioridade sobre a renderização do módulo.
 if processar_carregamento_pendente():
     st.stop()
 
 from services.autorizacao import iniciar_execucao_autorizacao, pode_acessar_rota
 
-# Cada execução/rerun recebe fontes RBAC novas; todas as decisões feitas abaixo
-# compartilham esse único snapshot consistente.
 iniciar_execucao_autorizacao()
 
 if "tela" not in st.session_state:
@@ -208,8 +201,6 @@ if not pode_acessar_rota(tela):
     st.error("Você não possui permissão para acessar esta área.")
     st.stop()
 
-# Detecta genericamente a saída do menu para qualquer módulo. Assim todos os
-# cards atuais e futuros recebem a mesma transição sem duplicar lógica no menu.
 _rotulos_loading = {
     "dados": "Dados",
     "administracao": "Administração",
@@ -248,9 +239,9 @@ elif tela == "dados":
     dados_hub.render()
 
 elif tela == "administracao":
-    from pages import administracao
+    from pages import administracao_hub
 
-    administracao.render()
+    administracao_hub.render()
 
 elif tela == "ferias":
     from pages import ferias_hub
@@ -258,9 +249,9 @@ elif tela == "ferias":
     ferias_hub.render()
 
 elif tela == "prestacao_contas":
-    from pages import prestacao_contas
+    from pages import prestacao_contas_hub
 
-    prestacao_contas.render()
+    prestacao_contas_hub.render()
 
 elif tela == "carregando_medicoes":
     st.session_state["carregamento_fos"] = {"destino": "medicoes", "rotulo": "Medições"}
@@ -278,9 +269,9 @@ elif tela == "crm":
     crm()
 
 elif tela == "uniformes_epis":
-    from pages import uniformes_epis
+    from pages import uniformes_epis_hub
 
-    uniformes_epis.render()
+    uniformes_epis_hub.render()
 
 elif tela == "novo_orcamento":
     from modulos.orcamentos.apresentacao import entrada as novo_orcamento
@@ -341,10 +332,7 @@ else:
     st.error("Rota indisponível.")
     st.stop()
 
-# Só sinalizamos "pronto" depois que o módulo de destino terminou de renderizar.
-# O navegador ainda exige os 3 segundos mínimos antes de remover o overlay.
 if tela != "menu":
     _sinalizar_modulo_pronto_loading()
 
-# O menu já foi enviado ao navegador antes da escrita remota do log.
 processar_log_pendente()
