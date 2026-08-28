@@ -75,15 +75,7 @@ def render_fluxo(fluxo):
     dados = FLUXOS[fluxo]
     opcoes = _opcoes_autorizadas(fluxo)
 
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        if st.button("⬅ CRM", use_container_width=True):
-            st.session_state.crm_fluxo = None
-            st.session_state.crm_pagina = None
-            st.rerun()
-    with col2:
-        st.subheader(dados["titulo"])
-        st.caption(dados["descricao"])
+    st.caption(dados["descricao"])
 
     if not opcoes:
         st.warning("Nenhuma atividade disponível para seu acesso.")
