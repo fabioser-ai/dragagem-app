@@ -76,7 +76,7 @@ def render():
         """
         <style>
             .main-header {
-                background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #334155 100%);
+                background: linear-gradient(135deg, #0f172a 0%, #c45d35 55%, #334155 100%);
                 border: 1px solid rgba(148, 163, 184, 0.25);
                 border-radius: 24px;
                 padding: 2.5rem 2rem;
@@ -156,7 +156,7 @@ def render():
                 width: 100%;
                 border-radius: 18px !important;
                 border: none !important;
-                background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%) !important;
+                background: linear-gradient(135deg, #c45d35 0%, #ab4527 100%) !important;
                 color: #ffffff !important;
                 font-size: 1rem;
                 font-weight: 800;
@@ -167,7 +167,7 @@ def render():
 
             .stButton > button:hover {
                 transform: translateY(-2px);
-                background: linear-gradient(135deg, #2c5282 0%, #3b82f6 100%) !important;
+                background: linear-gradient(135deg, #ab4527 0%, #c45d35 100%) !important;
                 color: #ffffff !important;
                 box-shadow: 0 18px 30px rgba(15, 23, 42, 0.20);
             }
