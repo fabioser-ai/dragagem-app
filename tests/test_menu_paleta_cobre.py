@@ -13,12 +13,13 @@ class MenuPaletaCobreTests(unittest.TestCase):
         cls.source = MENU.read_text(encoding="utf-8")
         cls.ui_source = UI.read_text(encoding="utf-8")
 
-    def test_header_tem_gradiente_unidirecional_escuro_para_cobre(self):
-        self.assertIn(
+    def test_header_usa_cobre_solido_com_moldura_preta(self):
+        self.assertIn("background: #c45d35", self.source)
+        self.assertIn("border: 2px solid #000000", self.source)
+        self.assertNotIn(
             "linear-gradient(135deg, #0f172a 0%, #8f4229 58%, #c45d35 100%)",
             self.source,
         )
-        self.assertNotIn("#334155 100%", self.source)
 
     def test_botoes_do_menu_usam_cobre_sem_azul_de_destaque(self):
         self.assertIn("linear-gradient(135deg, #c45d35 0%, #ab4527 100%)", self.source)
