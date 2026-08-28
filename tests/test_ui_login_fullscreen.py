@@ -41,6 +41,12 @@ class LoginFosFullscreenTests(unittest.TestCase):
         self.assertIn("Acesso ao <strong>APP FOS</strong>", self.ui_source)
         self.assertIn("Entre com suas credenciais para continuar", self.ui_source)
 
+    def test_fundo_prioriza_nitidez_sem_aneis(self):
+        self.assertNotIn("repeating-radial-gradient", self.ui_source)
+        self.assertIn("image-rendering:auto", self.ui_source)
+        self.assertIn("background-size:min(82vw, 1280px) auto", self.ui_source)
+        self.assertNotIn("filter:sepia(.2) saturate(1.08) contrast(1.04)", self.ui_source)
+
     def test_background_nao_bloqueia_widgets(self):
         self.assertIn("pointer-events:none", self.ui_source)
         self.assertIn("z-index:3", self.ui_source)
