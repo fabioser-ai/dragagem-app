@@ -180,7 +180,6 @@ if not verificar_login():
 if not autenticado_antes and st.session_state.get("autenticado"):
     st.rerun()
 
-
 aplicar_estilo_global()
 
 if processar_carregamento_pendente():
@@ -259,9 +258,9 @@ elif tela == "carregando_medicoes":
     st.rerun()
 
 elif tela == "medicoes":
-    from pages import medicoes
+    from pages import medicoes_hub
 
-    medicoes.medicoes()
+    medicoes_hub.render()
 
 elif tela == "crm":
     from pages.crm.crm import crm
@@ -279,29 +278,9 @@ elif tela == "novo_orcamento":
     novo_orcamento.render(autorizado=True)
 
 elif tela == "obras":
-    import pandas as pd
+    from pages import obras_hub
 
-    from services.orcamentos_legado_operacional import carregar_github
-
-    st.title("📊 Obras")
-    try:
-        df = carregar_github(
-            "data/orcamentos.csv",
-            st.secrets["GITHUB_TOKEN"],
-            st.secrets["REPO"],
-        )
-    except Exception:
-        df = pd.DataFrame()
-
-    if df.empty:
-        st.warning("Nenhuma obra cadastrada ainda.")
-    else:
-        st.subheader("Lista de Obras")
-        st.dataframe(df, use_container_width=True)
-
-    if st.button("⬅ Voltar", key="voltar_obras"):
-        st.session_state.tela = "menu"
-        st.rerun()
+    obras_hub.render()
 
 elif tela in {"orcamento", "orcamento_lista"}:
     from pages.orcamento.dashboard import dashboard_orcamento
