@@ -76,8 +76,8 @@ def render():
         """
         <style>
             .main-header {
-                background: linear-gradient(135deg, #0f172a 0%, #8f4229 58%, #c45d35 100%);
-                border: 1px solid rgba(148, 163, 184, 0.25);
+                background: #c45d35;
+                border: 2px solid #000000;
                 border-radius: 24px;
                 padding: 2.5rem 2rem;
                 margin-top: 0.5rem;
