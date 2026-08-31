@@ -61,11 +61,23 @@ Deve existir um marco explícito ao final da elaboração: **Fechar Proposta**. 
 
 Até esse marco, o conteúdo permanece editável. No fechamento, o sistema deve gerar um snapshot integral da configuração adotada.
 
+**Decisão adicional confirmada:** **Fechar Proposta e enviar ao cliente pertencem ao mesmo marco de negócio.** A formalização não depende de um segundo evento de envio. Ao fechar, a proposta já é considerada final para fins de versionamento; o envio é consequência operacional desse fechamento.
+
+Portanto, o clique em **Fechar Proposta** deve imediatamente:
+
+- congelar o snapshot completo;
+- criar a versão formal;
+- torná-la a versão vigente da cadeia;
+- impedir edição direta dessa versão;
+- deixá-la pronta para geração/saída e envio ao cliente.
+
+Não deve existir um estado de negócio intermediário do tipo `fechada, mas ainda não formal`. Se houver qualquer alteração após o fechamento, ela deverá ocorrer em nova elaboração/revisão derivada da versão formal vigente.
+
 ### 3.6 Versão formal e imutabilidade
 
 **CONFIRMADO POR FABIO**
 
-A versão formal nasce quando a proposta é fechada para envio ao cliente. Uma versão formal deve ser imutável. A preservação é necessária também para comparação futura entre versões.
+A versão formal nasce no ato de **Fechar Proposta**. Uma versão formal deve ser imutável. A preservação é necessária também para comparação futura entre versões.
 
 Alterações posteriores devem ocorrer em nova elaboração derivada da versão anterior, nunca pela sobrescrita da versão já formalizada.
 
@@ -93,8 +105,8 @@ O novo sistema deve distinguir informação técnica, custo e decisão comercial
 4. Refinamento de premissas, produção, recursos, custos e condições.
 5. Exercícios econômicos/comerciais internos, quando necessários.
 6. Escolha da configuração a apresentar.
-7. **FECHAR PROPOSTA**.
-8. Snapshot integral.
+7. **FECHAR PROPOSTA** — marco formal; envio é consequência operacional.
+8. Snapshot integral + criação da **Versão Formal V1**.
 9. **Versão Formal V1** — imutável e vigente.
 10. Se houver nova rodada: nova elaboração derivada da versão vigente.
 11. **FECHAR PROPOSTA** novamente.
@@ -110,9 +122,9 @@ Após a entrevista de domínio, essa sequência **não deve ser homologada liter
 
 Hipótese refinada atual:
 
-`Orçamento → Cenário → Elaboração técnico-financeira → Fechamento → Versão Formal`
+`Orçamento → Cenário → Elaboração técnico-financeira → Fechar Proposta / Versão Formal`
 
-Histórico de edição, simulações e exercícios econômicos podem existir dentro da elaboração, mas não devem ser confundidos com versões formais. A numeração formal representa propostas efetivamente fechadas para envio.
+Histórico de edição, simulações e exercícios econômicos podem existir dentro da elaboração, mas não devem ser confundidos com versões formais. A numeração formal representa propostas efetivamente fechadas. O envio ao cliente não cria uma nova etapa de versionamento: é consequência do fechamento.
 
 ## 6. Regras candidatas de implementação futura — ainda não especificação técnica
 
@@ -122,6 +134,7 @@ Histórico de edição, simulações e exercícios econômicos podem existir den
 - Permitir múltiplas simulações econômicas internas sem criar versões formais.
 - Disponibilizar ação explícita **Fechar Proposta**.
 - No fechamento, congelar snapshot completo: blocos, campos, valores, unidades, fórmulas/dependências, proveniência, preços, condições e documento/saída aplicável.
+- O próprio fechamento cria a versão formal; não exigir confirmação posterior de envio para formalizá-la.
 - Impedir edição direta de versão formal.
 - Criar revisão por derivação/cópia controlada da versão vigente.
 - Manter somente uma versão formal vigente por cadeia de revisão; anteriores ficam históricas/legacy.
@@ -131,15 +144,19 @@ Histórico de edição, simulações e exercícios econômicos podem existir den
 
 ## 7. Pontos ainda pendentes / gray areas
 
+- **Fronteira Orçamento × Cenário:** definir exatamente quais dados pertencem ao orçamento como identidade/necessidade comum e quais podem variar por cenário.
 - Nomenclatura final e fronteiras dos blocos funcionais do catálogo.
 - Quais blocos serão núcleo obrigatório e quais serão opcionais/instanciáveis.
 - Como representar formalmente os motivos/restrições de um cenário.
 - Granularidade do histórico de edição/autosave durante a elaboração.
 - Regras exatas para comparação V1 × V2 e quais diferenças destacar.
-- Relação entre **Fechar Proposta** e registro do envio efetivo ao cliente: mesmo evento ou eventos distintos.
 - Tratamento de múltiplos documentos emitidos associados à mesma versão formal, caso necessário.
-- Governança de quem pode fechar/reabrir/criar revisão e quais aprovações internas serão necessárias.
+- Governança de quem pode fechar/criar revisão e quais aprovações internas serão necessárias.
 - Nomenclatura final para preço calculado, preço comercial adotado, desconto/override e preço apresentado.
+
+### Gray area encerrada nesta rodada
+
+- ~~Relação entre **Fechar Proposta** e envio efetivo ao cliente.~~ **ENCERRADA:** são o mesmo marco de negócio. O fechamento cria a versão formal; o envio é consequência operacional.
 
 ## 8. Decisões que não devem ser tomadas ainda
 
