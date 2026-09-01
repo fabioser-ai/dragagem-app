@@ -170,6 +170,32 @@ Um orçamento deve aceitar N instâncias independentes do mesmo bloco. Cada inst
 
 Essa estrutura deve permitir atender particularidades futuras sem multiplicar desnecessariamente os tipos de bloco no catálogo.
 
+### 3.14 Diretriz de UX para a V1
+
+**CONFIRMADO POR FABIO**
+
+A V1 deve priorizar adoção, familiaridade e baixa carga cognitiva. Os usuários de orçamento são profissionais experientes, habituados à forma atual de trabalhar no Excel; portanto, o novo módulo não deve exigir que aprendam uma nova metodologia de orçamento ao mesmo tempo em que aprendem uma nova ferramenta.
+
+A estrutura interna de cada bloco funcional deve partir do que foi capturado pelo Work nas abas históricas correspondentes. O objetivo inicial é converter células, abas, fórmulas e parâmetros em dados estruturados no APP, preservando a lógica funcional conhecida.
+
+Regra de decisão da V1:
+
+> **Quando houver dúvida entre uma solução mais sofisticada e uma solução mais familiar ao Excel atual, deve prevalecer a solução mais familiar, desde que ela não comprometa a arquitetura futura.**
+
+Princípio complementar:
+
+> **A arquitetura pode ser nova sem a experiência parecer nova.**
+
+O critério de sucesso é que um engenheiro habituado aos Excel atuais consiga elaborar um orçamento no APP com pouca ou nenhuma explicação adicional.
+
+A evolução deve ser progressiva:
+
+- **V1:** adoção e equivalência funcional;
+- **V2:** simplificação e automação;
+- **V3:** inteligência, sugestões e otimização baseadas no histórico e no uso real.
+
+Essa diretriz é detalhada em `DIRETRIZ_UX_V1_ORCAMENTOS.md`.
+
 ## 4. Fluxo conceitual refinado
 
 1. **Novo Orçamento**.
@@ -224,41 +250,46 @@ Histórico de edição, simulações e exercícios econômicos podem existir den
 - Impedir edição direta de versão formal.
 - Criar revisão por derivação/cópia controlada da versão vigente.
 - Manter somente uma versão formal vigente por cadeia de revisão; anteriores ficam históricas/legacy.
-- Permitir comparação entre versões, idealmente mostrando alterações técnicas, quantitativas, econômicas e comerciais.
-- Não alterar premissas técnicas apenas para forçar a composição a coincidir com decisão comercial.
+- Preservar na V1 a linguagem, a sequência mental e a anatomia funcional reconhecível dos Excel atuais.
+- Derivar a anatomia inicial dos blocos da mineração histórica já executada pelo Work.
+- Evitar redesenho conceitual ou de UX que não seja necessário para a V1.
+- Permitir evolução posterior sem obrigar ruptura de uso na primeira versão.
 
 ## 7. Pontos ainda pendentes / gray areas
 
-- Identidade administrativa mínima exigida para criar/localizar um novo orçamento.
-- Nomenclatura final e fronteiras dos blocos funcionais iniciais do catálogo.
-- Estrutura interna de cada bloco: quais parâmetros são comuns, específicos, derivados, históricos ou provenientes de cadastro mestre.
-- Relação entre componentes internos do bloco e cadastros mestres de equipamentos, insumos, mão de obra, serviços e demais dados.
+- Nomenclatura final e fronteiras dos blocos funcionais do catálogo.
+- Quais blocos serão núcleo obrigatório e quais serão opcionais/instanciáveis.
+- Responsabilidades e estados explícitos por componente: FOS, cliente, terceiro, opcional, não aplicável, zero etc.
 - Granularidade do histórico de edição/autosave durante a elaboração.
 - Regras exatas para comparação V1 × V2 e quais diferenças destacar.
 - Tratamento de múltiplos documentos emitidos associados à mesma versão formal, caso necessário.
-- Governança de quem pode administrar catálogo, fechar proposta e criar revisão.
+- Governança de quem pode fechar/criar revisão e quais aprovações internas serão necessárias.
 - Nomenclatura final para preço calculado, preço comercial adotado, desconto/override e preço apresentado.
 
-### Gray areas encerradas
+### Gray areas encerradas nesta rodada
 
 - ~~Relação entre **Fechar Proposta** e envio efetivo ao cliente.~~ **ENCERRADA:** são o mesmo marco de negócio. O fechamento cria a versão formal; o envio é consequência operacional.
-- ~~Fronteira Orçamento × Cenário.~~ **ENCERRADA:** alternativas são orçamentos independentes; cenário não precisa ser entidade estrutural filha do orçamento.
-- ~~Relacionamento entre alternativas semelhantes.~~ **ENCERRADA:** não há vínculo de domínio obrigatório; duplicação serve apenas para copiar conteúdo e economizar tempo.
-- ~~Granularidade do menu inicial.~~ **ENCERRADA:** cardápio de blocos funcionais macro, inspirado nos conceitos das grandes abas/etapas atuais.
-- ~~Exclusão de blocos históricos.~~ **ENCERRADA:** bloco utilizado deve ser inativado, não apagado.
-- ~~Uso repetido do mesmo bloco.~~ **ENCERRADA:** o mesmo bloco de catálogo pode gerar N instâncias independentes dentro de um orçamento.
+- ~~Fronteira estrutural **Orçamento × Cenário**.~~ **ENCERRADA:** não há entidade cenário filha; alternativas estudadas separadamente são orçamentos independentes.
+- ~~Granularidade do cardápio inicial.~~ **ENCERRADA:** blocos funcionais macro equivalentes conceitualmente às grandes abas/etapas atuais.
+- ~~Exclusão de blocos já utilizados.~~ **ENCERRADA:** inativar para preservar histórico.
+- ~~Múltiplas ocorrências do mesmo bloco.~~ **ENCERRADA:** o mesmo bloco de catálogo pode gerar N instâncias independentes dentro de um orçamento.
+- ~~Anatomia inicial dos blocos e ruptura de UX na V1.~~ **ENCERRADA:** partir das abas históricas capturadas pelo Work e preservar forte familiaridade com o Excel atual.
 
 ## 8. Decisões que não devem ser tomadas ainda
 
-- Não homologar ainda a lista final de blocos somente com base no primeiro lote histórico.
-- Não transformar automaticamente todo nome de aba histórica em entidade definitiva.
+- Não homologar a taxonomia dos blocos com base apenas no primeiro lote histórico.
+- Não copiar cegamente nomes de abas históricas como entidades definitivas; usá-las como referência funcional para a V1.
 - Não criar workflow rígido de `aprovar técnica → liberar comercial`.
 - Não tratar cada edição interna como revisão formal.
-- Não criar estrutura artificial de orçamento-pai/cenários-filhos.
+- Não assumir que proposta mais barata é automaticamente a escolhida.
+- Não reinventar a metodologia de orçamento na V1.
+- Não antecipar automações ou inteligência de V2/V3 se isso aumentar a carga cognitiva da V1.
 - Não iniciar implementação antes de consolidar as gray areas que afetam o modelo de dados e o fluxo principal.
 
 ## 9. Estado deste registro
 
-Este documento consolida as decisões discutidas após o Checkpoint 1 até 01/09/2026. Deve permanecer separado do relatório de mineração histórica. Novas decisões de domínio devem ser acrescentadas de forma rastreável, sem reescrever silenciosamente as evidências originais.
+Este documento consolida as decisões discutidas após o Checkpoint 1 até este momento. Deve permanecer separado do relatório de mineração histórica. Novas decisões de domínio devem ser acrescentadas de forma rastreável, sem reescrever silenciosamente as evidências originais.
 
-**Status:** DECISÕES PARCIAIS CONSOLIDADAS — CONTINUAR ENTREVISTA DE DOMÍNIO ANTES DE HOMOLOGAR O MODELO.
+A diretriz de UX da V1 está formalizada em documento próprio para servir de critério de produto e orientar a próxima missão do Work.
+
+**Status:** DECISÕES PARCIAIS CONSOLIDADAS — PRONTO PARA NOVA MISSÃO DIRIGIDA DO WORK, SEM IMPLEMENTAÇÃO AINDA.
