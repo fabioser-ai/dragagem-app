@@ -6,7 +6,7 @@
 
 ## 1. Objetivo
 
-Este documento transforma as evidências das 12 unidades auditadas em uma proposta conservadora de catálogo e anatomia de blocos para a V1. Estão homologados: **Bombeamento integra Dragagem**; **Mobilização e Desmobilização são blocos independentes**; **Batimetria é bloco independente**; e **Laboratório / Análises de Material é outro bloco independente**. O catálogo contém onze entradas: quatro blocos homologados e sete candidatos. As demais fronteiras, anatomias e normalizações continuam pendentes até decisão explícita de Fabio/Merlin.
+Este documento transforma as evidências das 12 unidades auditadas em uma proposta conservadora de catálogo e anatomia de blocos para a V1. Estão homologados: **Bombeamento integra Dragagem**; **Mobilização e Desmobilização são blocos independentes**; **Batimetria é bloco independente**; **Laboratório / Análises de Material é outro bloco independente**; e **Medição é bloco próprio, opcional e selecionável**. O catálogo contém doze entradas: cinco blocos homologados e sete candidatos. As demais fronteiras, anatomias e normalizações continuam pendentes até decisão explícita de Fabio/Merlin.
 
 Um **bloco** é uma etapa ou serviço macro que o engenheiro pode incluir, ordenar, repetir e parametrizar em um orçamento. Abas históricas não viram automaticamente blocos. Componentes internos, memórias de cálculo, consolidações e documentos de saída são mapeados, mas não expostos como cartões independentes sem evidência funcional.
 
@@ -16,10 +16,11 @@ Regras vigentes usadas como restrições:
 
 - cada orçamento é independente; alternativas são orçamentos separados, criados inclusive por duplicação, sem vínculo vivo;
 - o sistema não escolhe a solução de engenharia;
-- o catálogo de blocos é administrável; blocos usados podem ser inativados, não apagados;
+- o catálogo de blocos é fluido e administrável; configuração, anatomia e componentes podem evoluir, e blocos usados podem ser inativados, não apagados;
 - um orçamento aceita várias instâncias do mesmo bloco, cada uma com rótulo operacional;
 - dados mestres aceleram o preenchimento, mas não bloqueiam ajuste contextual;
 - o fechamento da proposta cria versão formal, imutável e rastreável; revisão posterior deriva nova versão;
+- a evolução do catálogo não altera retroativamente os orçamentos: cada versão preserva a configuração e os valores efetivamente utilizados;
 - a V1 preserva familiaridade com Excel e equivalência funcional, sem reproduzir suas fragilidades.
 
 As conclusões se limitam a U01–U12. Não houve ampliação da amostra. Apenas os blocos e fronteiras expressamente indicados como homologados possuem esse status; os demais nomes continuam candidatos.
@@ -42,26 +43,27 @@ As conclusões se limitam a U01–U12. Não houve ampliação da amostra. Apenas
 
 ### 3.1 Evidência por obra
 
-Legenda: **P** presente; **I** presente como componente interno; **C** camada compartilhada; **—** sem evidência relevante. A matriz registra função observada, não homologa o catálogo.
+Legenda: **P** presente; **I** presente como componente interno; **C** camada compartilhada; **?** ocorrência histórica agrupada cuja função não pode ser separada com segurança; **—** sem evidência relevante. A matriz registra função observada, não homologa o catálogo.
 
-| Unidade oficial do Checkpoint 1 | Mobilização | Desmobilização | Canteiro | Dragagem¹ | Célula | Bags | Desag. mecânico | Batimetria² | Laboratório/análises³ | Transporte/destinação | Venda equipamento | Camadas compartilhadas |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| U01 International Paper 2017 | P | P | P | P | P | P | P | — | — | R | — | escopo, balanço, produção, preço, proposta |
-| U02 CAESB 2017 — venda FC-001 | — | — | — | — | — | — | — | — | — | R | P | escopo, preço, proposta |
-| U03 Vale Maravilhas I 2019 | P | P | P | P | P | — | — | ? | P | P | — | condições, balanço, produção, tributos, proposta |
-| U04 Mosaic 2020 — “só bombeamento” | P | P | P | P | — | — | — | P | — | — | — | escopo, produção, preço, proposta |
-| U05 Bosch 2021 — bags | P | P | P | P | P | P | — | ? | P | P | — | balanço, produção, BDI, proposta |
-| U06 Matinhos/CFF 2021 | P | P | P | P | — | — | — | ? | P | P | — | edital/CFF, produção, preço, proposta |
-| U07 Petrobras 2022 — DFP/PPU | P | P | P | P | — | — | P | ? | P | P | — | balanço, produção, preço, proposta |
-| U08 Suzano Aracruz 2023 | P | P | P | P | — | — | P | ? | P | R | — | escopo, balanço, produção, preço, proposta |
-| U09 Venda FC-001 2024 | — | — | — | — | — | — | — | — | — | R | P | configuração, preço, proposta |
-| U10 Suzano 2024 — Modelo 02 | P | P | P | P | — | — | P | ? | P | P | — | balanço, produção, ABC, tributos, proposta |
-| U11 Bracell 2025 — COM/SEM polímero | P | P | P | P | P | P | — | ? | P | — | — | balanço, produção, BDI, proposta |
-| U12 SK Confins 2026 — centrífuga | P | P | R | R | — | — | P | — | P | R | — | balanço, produção, BDI, proposta |
+| Unidade oficial do Checkpoint 1 | Mobilização | Desmobilização | Canteiro | Dragagem¹ | Célula | Bags | Desag. mecânico | Batimetria² | Laboratório/análises³ | Medição⁴ | Transporte/destinação | Venda equipamento | Camadas compartilhadas |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| U01 International Paper 2017 | P | P | P | P | P | P | P | — | — | — | R | — | escopo, balanço, produção, preço, proposta |
+| U02 CAESB 2017 — venda FC-001 | — | — | — | — | — | — | — | — | — | — | R | P | escopo, preço, proposta |
+| U03 Vale Maravilhas I 2019 | P | P | P | P | P | — | — | — | P | P | P | — | condições, balanço, produção, tributos, proposta |
+| U04 Mosaic 2020 — “só bombeamento” | P | P | P | P | — | — | — | P | — | P | — | — | escopo, produção, preço, proposta |
+| U05 Bosch 2021 — bags | P | P | P | P | P | P | — | — | P | P | P | — | balanço, produção, BDI, proposta |
+| U06 Matinhos/CFF 2021 | P | P | P | P | — | — | — | ? | P | ? | P | — | edital/CFF, produção, preço, proposta |
+| U07 Petrobras 2022 — DFP/PPU | P | P | P | P | — | — | P | ? | P | ? | P | — | balanço, produção, preço, proposta |
+| U08 Suzano Aracruz 2023 | P | P | P | P | — | — | P | ? | P | ? | R | — | escopo, balanço, produção, preço, proposta |
+| U09 Venda FC-001 2024 | — | — | — | — | — | — | — | — | — | — | R | P | configuração, preço, proposta |
+| U10 Suzano 2024 — Modelo 02 | P | P | P | P | — | — | P | ? | P | ? | P | — | balanço, produção, ABC, tributos, proposta |
+| U11 Bracell 2025 — COM/SEM polímero | P | P | P | P | P | P | — | — | P | P | — | — | balanço, produção, BDI, proposta |
+| U12 SK Confins 2026 — centrífuga | P | P | R | R | — | — | P | — | P | — | R | — | balanço, produção, BDI, proposta |
 
 ¹ A coluna Dragagem absorve as ocorrências históricas de bombeamento/recalque. **R** significa residual, zerado ou de responsabilidade de terceiro.  
-² O Checkpoint 1 agrupou “Batimetria/medição”. Apenas U04 possui batimetria explicitamente identificada no relatório consolidado disponível; **?** preserva a ocorrência agrupada sem transformá-la em Batimetria por inferência.  
+² O Checkpoint 1 agrupou “Batimetria/medição”. U04 possui Batimetria explicitamente identificada; U03, U05 e U11 possuem Medição explicitamente identificada. Em U06–U08 e U10, **?** preserva a ocorrência agrupada sem atribuí-la por inferência a apenas um dos blocos.  
 ³ A coluna reproduz as ocorrências de “Laboratório / análises de material” sustentadas pela matriz e decomposição do Checkpoint 1, retirando “qualidade/garantias” do agrupamento.
+⁴ Medição explícita em U03, U04, U05 e U11; a ocorrência consolidada de U06–U08 e U10 permanece **?** por insuficiência para decompor sua função específica.
 
 ### 3.2 Linhagem e divergências que condicionam o desenho
 
@@ -95,9 +97,9 @@ Legenda: **P** presente; **I** presente como componente interno; **C** camada co
 | `Prep Célula`, PEAD, Bidim, brita | m², m³, h, R$ | **Preparação de célula** | principal | U05–U08, U11 | alta. |
 | `Bags`, geotêxtil, dois níveis | un, m, m³, R$/m² | **Bags geotêxteis** | principal | U05–U08, U11 | alta; dimensionamento exige margem e conciliação. |
 | centrífuga, decanter, operação/manutenção | m³/h, % ST, tSS, R$/mês | **Desaguamento mecânico** | principal candidato | U01, U07–U08, U10, U12 | alta como família observada; fronteira/nome ainda candidatos. |
-| batimetria | campanha, mês, R$ | **Batimetria** | principal independente | U04 explícita; U03, U05–U08, U10–U11 permanecem inconclusivas por agrupamento histórico | **homologado como bloco independente**; não implica Medição nem Laboratório. |
+| batimetria | campanha, mês, R$ | **Batimetria** | principal independente | U04 explícita; U06–U08 e U10 permanecem inconclusivas por agrupamento histórico | **homologado como bloco independente**; não implica Medição nem Laboratório. |
 | amostra, análise de material, granulometria, teor de sólidos e ensaio | amostra, un/mês, %, índice, R$/un | **Laboratório / Análises de Material** | principal independente | U03, U05–U08, U10–U12 | **homologado como bloco independente**; campos limitados à evidência existente. |
-| medição, planilha contratual, controle, coleta/acompanhamento | mês, evento, dia, vb, R$ | **Sem posição no catálogo** | gray area | U03–U08, U10–U11 | o termo exerce funções distintas; não fundir com Batimetria nesta rodada. |
+| medição, planilha contratual, controle, coleta/acompanhamento | m³, t, tSS, mês, evento, dia, vb, R$ | **Medição** | principal independente | U03–U05 e U11 explícitas; U06–U08 e U10 inconclusivas no agrupamento histórico | **homologado como bloco próprio, opcional e selecionável**; métodos e bases variam por instância. |
 | transporte, frete, caçamba, destinação | t, m³, km, viagem, R$/t | **Transporte e destinação** | principal candidato | U03, U05–U07, U10; residual em U01–U02, U08–U09, U12 | média-alta; fronteira, responsabilidades e bases variam. |
 | venda FC-001, configuração técnica | un, R$, características | **Venda de equipamento** | principal especializado candidato | U02, U09 | alta para existência; média para fronteira com serviço. |
 | polímero, preparador, dosador, operação da planta | kg/tSS, kg, R$/kg | componente do bloco técnico | interno | U03, U05, U07, U11 | alta; cenário SEM de U11 ainda contém operação de apoio. |
@@ -113,16 +115,17 @@ Legenda: **P** presente; **I** presente como componente interno; **C** camada co
 | B01 | Mobilização | Mob., implantação, entrada | precificar logística, itens e equipes de entrada | evento, viagem, dia, pessoa, R$ | independente; sem dependência de domínio com B02 | sim, por frente/equipamento | alta; independência homologada | fronteira interna da composição. |
 | B02 | Desmobilização | DesMob., retirada, saída | precificar logística, itens e equipes de saída | evento, viagem, dia, pessoa, R$ | independente; sem dependência de domínio com B01 | sim, por frente/equipamento | alta; independência homologada | fronteira interna da composição. |
 | B03 | Canteiro e apoio local | canteiro, administração local, site, SSMA | infraestrutura temporária e suporte local | mês, un, vb, pessoa, R$ | independente e combinável, candidato | sim, por base/frente | alta | limite entre canteiro e administração central. |
-| B04 | Dragagem | draga, dragagem e recalque, sucção, “só bombeamento” | remover e recalcar material; pode configurar bombeamento direto/sem tratamento posterior | m³, t, h, m³/h, L/h, m, mca | pode combinar, conforme o escopo, com B05, B06, B07 e B10; B08/B09 permanecem independentes; bombeamento nunca é bloco separado | sim, por draga/frente | alta; fronteira bombeamento homologada | convenção para produção úmida, seca ou in situ. |
+| B04 | Dragagem | draga, dragagem e recalque, sucção, “só bombeamento” | remover e recalcar material; pode configurar bombeamento direto/sem tratamento posterior | m³, t, h, m³/h, L/h, m, mca | pode combinar, conforme o escopo, com B05, B06, B07 e B11; B08/B09/B10 permanecem independentes; bombeamento nunca é bloco separado | sim, por draga/frente | alta; fronteira bombeamento homologada | convenção para produção úmida, seca ou in situ. |
 | B05 | Preparação de célula | Prep Célula, PEAD/Bidim/brita | construir/preparar área receptora | m², m³, h, un | candidato independente; pode anteceder B06 | sim, por célula | alta | fronteira e impermeabilização. |
 | B06 | Bags geotêxteis | bags, geobags, tubos geotêxteis | dimensionar, fornecer e instalar bags | un, m, m², m³, R$ | candidato combinável com B04/B05 | sim, por célula/nível/modelo | alta | regra de margem e arredondamento. |
-| B07 | Desaguamento mecânico | centrífuga, decanter, centrifugação | separar sólidos por equipamento mecânico | m³/h, %ST, tSS, t/mês | candidato independente; pode combinar com B04/B10 | sim, por unidade/linha | alta | nome/fronteira e operação/manutenção. |
+| B07 | Desaguamento mecânico | centrífuga, decanter, centrifugação | separar sólidos por equipamento mecânico | m³/h, %ST, tSS, t/mês | candidato independente; pode combinar com B04/B11 | sim, por unidade/linha | alta | nome/fronteira e operação/manutenção. |
 | B08 | Batimetria | batimetria, levantamento batimétrico | executar serviço batimétrico conforme escopo | campanha, mês, vb, R$ | independente; não depende de outro bloco | sim, por local/campanha | **homologado** | anatomia inicial ainda limitada. |
 | B09 | Laboratório / Análises de Material | laboratório, análise, ensaio, caracterização | contratar/executar análises de material conforme escopo | amostra, análise, un/mês, %, R$/un | independente; não depende de outro bloco | sim, por material/conjunto de análises | **homologado** | catálogo de ensaios e resultados ainda incompleto. |
-| B10 | Transporte e destinação | frete, caçamba, bota-fora, disposição | remover e destinar material/resíduo | t, m³, km, viagem, R$/t | candidato; recebe saída de B04/B06/B07 | sim, por rota/destino | média-alta | fronteira, base de medição e licenças. |
-| B11 | Venda de equipamento | venda de draga, fornecimento de ativo | configurar e precificar transferência de ativo | un, R$, conjunto | candidato especializado; serviços podem combinar | sim, por equipamento | alta para a família | fluxo, opcionais, serviços e condição do ativo. |
+| B10 | Medição | medição, controle, acompanhamento, coleta | representar como serviços executados serão medidos, quantificados e/ou comprovados e seus custos | m³, t, tSS, %, dia, evento, vb, R$ | independente e opcional; pode referenciar resultados de outros blocos sem exigir nenhum | sim, por método/frente/serviço | **homologado** | métodos, instrumentos e conversões variam; anatomia inicial é evolutiva. |
+| B11 | Transporte e destinação | frete, caçamba, bota-fora, disposição | remover e destinar material/resíduo | t, m³, km, viagem, R$/t | candidato; recebe saída de B04/B06/B07 | sim, por rota/destino | média-alta | fronteira, base de medição e licenças. |
+| B12 | Venda de equipamento | venda de draga, fornecimento de ativo | configurar e precificar transferência de ativo | un, R$, conjunto | candidato especializado; serviços podem combinar | sim, por equipamento | alta para a família | fluxo, opcionais, serviços e condição do ativo. |
 
-**Status:** onze entradas no catálogo. B01 Mobilização, B02 Desmobilização, B08 Batimetria e B09 Laboratório / Análises de Material estão homologados como blocos independentes; as outras sete entradas continuam candidatas. Também está homologado que Bombeamento integra Dragagem, sem criar bloco próprio. A decisão anterior mantém Mão de obra como componente interno, não bloco global. Para Dados do orçamento, Balanço/Produção, Cronograma, Equipamentos de apoio, Combustível, Polímero, Manutenção/Depreciação, ABC, BDI/Tributos, Formação de preço e Proposta, o papel de cabeçalho, componente, motor ou saída permanece **hipótese de organização V1**, sujeito às gray areas registradas. Tubulação/Barrilete é componente da Dragagem nesta fronteira homologada.
+**Status:** doze entradas no catálogo. B01 Mobilização, B02 Desmobilização, B08 Batimetria, B09 Laboratório / Análises de Material e B10 Medição estão homologados como blocos independentes; as outras sete entradas continuam candidatas. A contagem aumentou porque Medição estava fora das onze entradas anteriores, registrada apenas como gray area; mantê-la em onze exigiria retirar ou fundir outro candidato sem decisão homologada. Também está homologado que Bombeamento integra Dragagem, sem criar bloco próprio. A decisão anterior mantém Mão de obra como componente interno, não bloco global. Para Dados do orçamento, Balanço/Produção, Cronograma, Equipamentos de apoio, Combustível, Polímero, Manutenção/Depreciação, ABC, BDI/Tributos, Formação de preço e Proposta, o papel de cabeçalho, componente, motor ou saída permanece **hipótese de organização V1**, sujeito às gray areas registradas. Tubulação/Barrilete é componente da Dragagem nesta fronteira homologada.
 
 ## 5. Anatomia detalhada de cada bloco
 
@@ -270,7 +273,29 @@ Não há evidência consolidada suficiente para homologar método, equipamento, 
 
 Pendências: o lote não sustenta catálogo fechado de ensaios, método de coleta, prazo de validade ou formato de laudo. “Qualidade/Garantias” não integra esta anatomia e permanece tratado somente pelas evidências da seção 11.2.
 
-#### 5.2.10 B10 — Transporte e destinação
+#### 5.2.10 B10 — Medição
+
+| Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
+|---|---|---|---|---|---:|---|---|---|---:|
+| objeto/serviço medido | o que será quantificado ou comprovado | texto/ID | escopo/contrato | C | sim | pode referenciar serviço ou instância sem criar dependência obrigatória | serviços/blocos | sempre | sim |
+| método/base física | forma adotada para determinar a quantidade | texto/enum candidato | contrato/plano de controle | C | sim | governa unidade, registros e eventual conversão | métodos, ainda incompleto | sempre | sim |
+| unidade e qualificador da base | grandeza medida sem perder seu significado físico | m³, m³ in situ, m³ desaguado, t úmida, t seca, tSS ou unidade contratual | contrato/engenharia | C | sim | não converter nem somar bases distintas sem regra explícita | unidades qualificadas | sempre | sim |
+| frequência/período | recorrência ou janela da medição | evento, dia, mês | contrato/plano de controle | C | sim | dimensiona coletas, equipe e itens recorrentes | — | quando aplicável | sim |
+| coleta/amostragem | pontos, quantidade e acompanhamento observados | coleta, amostra, evento | plano de controle/obra | C | sim | pode produzir insumo para B09 sem tornar B09 obrigatório | — | quando aplicável | sim |
+| equipamento/instrumento | recurso utilizado na medição | un, dia, vb | plano/cotação | M/C/H | sim | quantidade × período × preço; U05 comprova equipamentos, sem catálogo fechado de tipos | ativos/itens, ainda incompleto | quando aplicável | sim |
+| equipe de medição | funções, quantidade, jornada e dias | pessoa, h, dia | plano/RH | M/C/H | sim | quantidade × horas/dias × custo vigente | funções | quando aplicável | sim |
+| ensaio/resultado referenciado | resultado usado pela metodologia, quando houver | %, índice ou unidade do ensaio | B09/cliente/ensaio identificado | H/C | sim | referência explícita e versionada; Medição não exige Laboratório | análises | condicional | sim |
+| parâmetros de conversão | ST/concentração, densidade ou outro parâmetro efetivamente adotado | %, t/m³ | ensaio/premissa identificada | C/H | sim | depende da base de entrada e saída; não há fórmula universal homologada | — | condicional | sim |
+| método de cálculo | memória que transforma registros na quantidade medida | fórmula versionada/texto | contrato/engenharia | C/H | sim | exemplos históricos incluem `volume × ST` e `base seca ÷ ST desaguado`; aplicar somente quando compatível com a instância | fórmulas, ainda incompleto | condicional | sim |
+| quantidade medida | resultado quantificado/comprovado | unidade qualificada escolhida | cálculo/registro | D/H | não, salvo override justificado | soma de registros ou fórmula da instância, preservando base e dependências | — | resumo | sim |
+| itens e custo da medição | composição de equipe, dias, equipamentos, ensaios e serviços | dia, un, vb, R$ | plano/cotação | Híbrido/D | sim nos insumos | soma de itens e mão de obra; evidência explícita em U05 e U11 | itens/funções/cotações | detalhe | sim |
+| custo/preço total | consolidação própria e valor comercial quando aplicável | R$ | cálculo/cotação/negociação | D/H | override justificado | soma da composição; U04 observa custo × fator comercial | — | resumo | sim |
+
+As evidências sustentam variação, não um método padrão: U03 usa planilha contratual com medição mensal e total; U04 registra item comercial próprio; U05 compõe equipe, dias, equipamentos e ensaios; U11 registra coletas, acompanhamento e custo. Medidor de vazão e pesagem foram exemplos de domínio informados por Fabio, mas não foram localizados de forma suficientemente específica na mineração disponível para virarem campos ou componentes obrigatórios. Permanecem possibilidades de método a validar por instância, não taxonomia homologada.
+
+Pendências específicas da anatomia de Medição: catálogo de métodos/instrumentos; forma de registrar leituras brutas; cardinalidade da referência eventual a B09; critérios contratuais de aceite; fórmulas aplicáveis a pesagem, vazão e tonelada úmida; e propriedade das conversões quando a mesma memória também alimenta Produção/Balanço. Nenhuma dessas pendências cria dependência obrigatória.
+
+#### 5.2.11 B11 — Transporte e destinação
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -283,7 +308,7 @@ Pendências: o lote não sustenta catálogo fechado de ensaios, método de colet
 | tarifa transporte/destinação | preço | R$/t, R$/m³, R$/viagem | cotação | H | sim | conforme base contratual | cotações | detalhe | sim |
 | custo total | resultado | R$ | cálculo | D | não | quantidade × tarifa + taxas | — | resumo | sim |
 
-#### 5.2.11 B11 — Venda de equipamento
+#### 5.2.12 B12 — Venda de equipamento
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -322,17 +347,18 @@ Ao **Fechar Proposta**, registrar identidade, revisão, data, escopo, instância
 | Dados do orçamento | todos | cliente, local, material, unidades, responsabilidades | 1 orçamento → N blocos | alteração após formalização exige nova revisão. |
 | B01 Mobilização | — | não transfere composição, quantidade ou custo para B02 | instância independente | eventual duplicação é conveniência UX, não dependência. |
 | B02 Desmobilização | — | não deriva composição, quantidade ou custo de B01 | instância independente | não calcular como inversão ou percentual da Mobilização. |
-| B04 Dragagem | B05/B06/B07/B10 ou ponto de descarga | vazão/volume, material, origem/destino e características | configuração interna de recalque; vínculo entre instâncias é candidato | validar unidade/base; não criar bloco Bombeamento. |
+| B04 Dragagem | B05/B06/B07/B11 ou ponto de descarga | vazão/volume, material, origem/destino e características | configuração interna de recalque; vínculo entre instâncias é candidato | validar unidade/base; não criar bloco Bombeamento. |
 | B05 Célula | B06 Bags | área, geometria, restrições | hipótese: uma célula pode receber N conjuntos | alertar capacidade física; regra ainda não homologada. |
-| Balanço de massa | B06/B07/B10 | massa seca, volume desaguado | fórmula com ST e base; propriedade/UX em gray area | impedir mistura t, tSS e m³ sem conversão. |
-| B07 Desaguamento mecânico | B10 Transporte/destinação | produto desaguado | vínculo candidato entre instâncias | exigir ST/densidade se converter. |
-| B08 Batimetria | — | não exige nem cria automaticamente B09 | bloco independente | incluir somente quando fizer parte do escopo. |
-| B09 Laboratório / Análises | — | não exige nem deriva de B08 ou de outro bloco | bloco independente; resultados podem ser referenciados explicitamente | não criar associação automática por afinidade. |
+| Balanço de massa | B06/B07/B10/B11 | massa seca, volume desaguado ou parâmetros rastreáveis | fórmula com ST e base; referência a B10 é eventual e explícita | impedir mistura de m³ in situ, m³ desaguado, t úmida, t seca e tSS sem conversão. |
+| B07 Desaguamento mecânico | B11 Transporte/destinação | produto desaguado | vínculo candidato entre instâncias | exigir ST/densidade se converter. |
+| B08 Batimetria | — | não exige nem cria automaticamente B09 ou B10 | bloco independente | pode coexistir com ambos ou nenhum, conforme escopo. |
+| B09 Laboratório / Análises | B10 Medição, quando referenciado | resultado de análise com unidade, origem e versão | relação eventual; B09 continua independente e B10 não o exige | não criar associação automática por afinidade. |
+| B10 Medição | — | não exige nem deriva de B08, B09 ou outro bloco | bloco independente e opcional; pode referenciar serviços/resultados explicitamente | método, unidade e fórmula devem pertencer à instância e ao snapshot. |
 | Cronograma | B01/B02/B03/todos | fases e duração | cada bloco mantém composição/custo próprios | mostrar diferença prazo matemático/comercial sem vincular B01 a B02. |
 | Todos os blocos | Formação de preço | custos por instância e unidade | soma rastreável | não aceitar referência quebrada. |
 | Formação de preço | Versão formal | preço, condições, escopo | fechamento cria snapshot imutável | negociação manual exige justificativa. |
 
-As dependências acima são **candidatas**, exceto pelas regras homologadas: bombeamento/recalque integra B04 Dragagem; B01 e B02 não possuem dependência entre si; B08 Batimetria e B09 Laboratório / Análises são independentes entre si e dos demais blocos. Elas não autorizam o sistema a escolher a solução de engenharia.
+As dependências acima são **candidatas**, exceto pelas regras homologadas: bombeamento/recalque integra B04 Dragagem; B01 e B02 não possuem dependência entre si; B08 Batimetria, B09 Laboratório / Análises e B10 Medição são blocos independentes e opcionalmente selecionáveis. A referência eventual de um resultado de B09 em B10 não funde os blocos nem cria obrigatoriedade. Elas não autorizam o sistema a escolher a solução de engenharia.
 
 ## 8. Relação com cadastros mestres
 
@@ -343,6 +369,7 @@ As dependências acima são **candidatas**, exceto pelas regras homologadas: bom
 | funções, kits, regras e benefícios de referência | efetivo, turnos, adicionais aplicáveis | salários/encargos com vigência no snapshot. |
 | insumos e serviços cadastrados | fornecedor, cotação, responsabilidade e quantidade | preço sempre histórico, nunca “atual” retroativo. |
 | tipos de análise e serviços cadastrados, ainda incompletos | análise solicitada, material, fornecedor e quantidade | preservar origem e valor usado; catálogo aguarda evidência adicional. |
+| métodos, instrumentos, unidades qualificadas e fórmulas de medição, ainda incompletos | método, base física, recursos e conversões adotados na instância | preservar configuração, fórmula, origem e valores usados; evolução do catálogo não reescreve o orçamento. |
 | tipos de bloco e campos configurados | instâncias, rótulos, ordem e escopo | inativação não afeta versões existentes. |
 
 A evidência classifica tributos, salários, preços, valores de ativos, taxas de capital, BDI e benchmarks como históricos com vigência, ainda que administrados em catálogos. A forma de cadastro e override permanece candidata.
@@ -375,8 +402,9 @@ Salvo a experiência homologada para Dragagem/bombeamento direto, esta seção �
 | B07 Desaguamento mecânico | equipamento, ST, vazão e jornada no topo; produção seca/desaguada imediatamente abaixo; periféricos, polímero, equipe e manutenção em composições. |
 | B08 Batimetria | composição própria por local/campanha, com frequência, quantidade, cotação, preço unitário e total; sem campos de Laboratório ou de “Medição” presumidos. |
 | B09 Laboratório/Análises | grade própria por material/amostra e análise solicitada, com quantidade/frequência, resultado/unidade, fornecedor, preço e total; sem dependência de outro bloco. |
-| B10 Transporte/destinação | uma grade de rotas: origem, destino, material, base, distância, veículo, viagens, tarifa e total; conversões ficam abertas ao lado. |
-| B11 Venda de equipamento | ficha técnica à esquerda e composição comercial à direita/abaixo, com componentes, opcionais, serviços e preço final. |
+| B10 Medição | o engenheiro inclui somente quando o escopo exigir e escolhe objeto, método, unidade física qualificada, frequência, recursos, registros e fórmula. Coletas ou resultados de B09 podem ser referenciados sem fundir os blocos. |
+| B11 Transporte/destinação | uma grade de rotas: origem, destino, material, base, distância, veículo, viagens, tarifa e total; conversões ficam abertas ao lado. |
+| B12 Venda de equipamento | ficha técnica à esquerda e composição comercial à direita/abaixo, com componentes, opcionais, serviços e preço final. |
 
 Defaults só podem vir de cadastro com origem visível; valores próprios da obra permanecem de digitação direta. Nenhum bloco esconde a memória que hoje o engenheiro consegue inspecionar no Excel.
 
@@ -386,12 +414,13 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 |---|---|---|---|
 | copiar pasta/aba com dados de outra obra | todos | duplicação continua disponível | identidade única; alerta de cliente/local divergente; origem por campo. |
 | `#REF!`, links externos e células quebradas | todos + preço | fórmulas configuráveis/versionadas | nenhum fechamento com erro ou dependência ausente. |
-| duas fontes de produção | B04, B06, B07, B10 | engenheiro ajusta premissas | candidato: uma cadeia vigente por instância; propriedade segue em gray area. |
+| duas fontes de produção | B04, B06, B07, B10, B11 | engenheiro ajusta premissas | candidato: uma cadeia vigente por instância; referências usadas por Medição devem ser explícitas e snapshotadas; propriedade segue em gray area. |
 | nome de aba tratado como verdade | B04 e aliases | nomes familiares continuam visíveis | “só bombeamento” é alias; funcionalmente continua Dragagem. |
-| mistura m³, t e tSS | B04, B06, B07, B10 | qualquer base pode ser escolhida | candidato: base explícita e conversão rastreável; UX segue aberta. |
-| agrupamento por afinidade sem evidência | catálogo, especialmente B08/B09 | engenheiro pode selecionar ambos quando o escopo exigir | manter blocos independentes; não criar inclusão/dependência automática. |
+| mistura m³ in situ, m³ desaguado, t úmida, t seca e tSS | B04, B06, B07, B10, B11 | qualquer base compatível com o escopo pode ser escolhida | qualificador físico obrigatório; conversão rastreável com parâmetros, fórmula e origem; nunca tratar como unidades intercambiáveis. |
+| agrupamento por afinidade sem evidência | catálogo, especialmente B08/B09/B10 | engenheiro pode selecionar qualquer combinação exigida pelo escopo | manter blocos independentes; não criar inclusão/dependência automática. |
+| catálogo alterado após uso de Medição | B10 + versão formal | métodos e componentes podem evoluir ou ser inativados | snapshot da configuração, unidade, fórmula, recursos, resultados referenciados e valores efetivamente usados. |
 | Mobilização usada para calcular Desmobilização | B01/B02 | UX pode copiar/preencher composição semelhante | composições, quantidades e custos permanecem independentes; nunca aplicar inversão ou percentual por regra de domínio. |
-| custo zero inferido como ausência | B01, B02, B03, B07, B10 | cliente/terceiro pode fornecer | candidato: distinguir ausente, residual, terceiro e zero; regra segue aberta. |
+| custo zero inferido como ausência | B01, B02, B03, B07, B11 | cliente/terceiro pode fornecer | candidato: distinguir ausente, residual, terceiro e zero; regra segue aberta. |
 | valor manual sobrescreve cálculo | todos + preço | negociação/ajuste permitido | guardar calculado e emitido; exigir justificativa curta. |
 | BDI/tributos com bases implícitas | preço | práticas atuais continuam possíveis | candidato: explicitar percentual, base, ordem e vigência; detalhes aguardam homologação. |
 | cenários tratados como sequência linear | orçamento/versão | duplicação livre | alternativas independentes e linhagem formal. |
@@ -411,17 +440,22 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 
 **Laboratório / Análises de Material:** é bloco independente e selecionável. Não é componente obrigatório de Batimetria e não fica subordinado a Dragagem, Bags, Centrífuga ou outro bloco.
 
+**Medição:** é bloco próprio, opcional e selecionável. Representa como serviços executados serão medidos, quantificados e/ou comprovados, incluindo recursos e custos necessários. Não depende obrigatoriamente de Batimetria, Laboratório / Análises ou qualquer outro bloco. Batimetria e Medição podem existir separadamente, juntas ou ambas ausentes. Uma metodologia de Medição pode referenciar análise de B09, de forma eventual e explícita, sem fundir ou subordinar os blocos.
+
+**Catálogo evolutivo:** configuração, anatomia e componentes de Medição podem mudar ou ser inativados conforme o uso real. Orçamentos e versões formais preservam por snapshot exatamente a configuração utilizada, sem alteração retroativa.
+
 **Regra de modelagem:** afinidade semântica, por si só, não agrupa conceitos nem cria dependência.
 
-### 11.2 Evidências preservadas sem promoção a bloco
+### 11.2 Evidências que sustentam Medição e pendências preservadas
 
 | Conceito | Unidade e origem já auditada | Contexto | Função observada / limite |
 |---|---|---|---|
-| Medição | U03, `0.FOS.xlsx`, planilha contratual | medição mensal e total contratual | consolidação/faturamento; não prova vínculo com Batimetria. |
-| Medição | U04, memória/planilha detalhada D_034 | item com custo R$ 48.000 e preço R$ 76.800; técnica cita batimetria mensal | item comercial associado naquele caso; não homologa identidade entre os conceitos. |
-| Medição | U05, aba S12 `Medição` | equipe, dias, equipamentos, ensaios e total | composição de controle/medição; fronteira funcional permanece aberta. |
-| Medição | U11, aba `3.4.Medição` | coletas e acompanhamento; custo observado de R$ 26.417,475 | acompanhamento do serviço; não é automaticamente Batimetria nem Laboratório. |
-| Medição | U06–U08 e U10, matriz consolidada do Checkpoint 1 | presença registrada no agrupamento histórico | a evidência consolidada não é suficiente para determinar uma única função. |
+| Medição | U03, `0.FOS.xlsx`, planilha contratual | medição mensal de R$ 3.718.234,154 e total contratual de R$ 29.834.404,924 | consolidação/faturamento por itens e períodos; sustenta base, recorrência e resultado, sem vínculo com Batimetria. |
+| Medição | U04, memória/planilha detalhada D_034 | item com custo R$ 48.000 e preço R$ 76.800; técnica também cita Batimetria mensal | composição comercial própria naquele caso; coexistência não homologa dependência entre os blocos. |
+| Medição | U05, aba S12 `Medição` | equipe, dias, equipamentos, ensaios e total | sustenta recursos humanos, instrumentos/itens, frequência operacional, ensaios e custo do bloco. |
+| Medição | U11, aba `3.4.Medição` | coletas e acompanhamento; custo observado de R$ 26.417,475 | sustenta coleta, acompanhamento, composição e custo; não torna Laboratório obrigatório. |
+| Medição/Batimetria | U06–U08 e U10, matriz consolidada do Checkpoint 1 | presença registrada no agrupamento histórico anterior | insuficiente para atribuir a ocorrência a um único bloco; preservada como `?` na matriz, sem ampliar anatomia. |
+| Bases e conversões | U03, U05, U10–U12, memórias já auditadas | m³, m³ in situ/desaguado, t úmida/seca, tSS, ST/concentração e densidade aparecem em cadeias distintas | sustenta qualificação explícita da unidade e snapshot da fórmula; não sustenta conversão universal. |
 | Garantias | U08, `Dragagem + Centrifuga.xlsx` versus proposta D_005_2023 | composição e proposta divergem em volume, unidade e garantias | compromisso técnico/comercial da proposta; permanece pendência, sem associação a B08 ou B09. |
 | Qualidade | nenhuma evidência funcional específica consolidada | a expressão apareceu apenas em agrupamento anterior e em nota editorial da auditoria | insuficiente para bloco, componente ou associação; retirada da proposta funcional. |
 
@@ -431,14 +465,13 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 |---|---|---|
 | Responsabilidade por item / fornecimento do cliente | o histórico distingue FOS, cliente, terceiro, residual e custo zero, mas não define uma única UX/regra. | Responsabilidade deve existir por bloco, por item ou em ambos? Item do cliente fica visível e zerado, excluído ou apenas marcado? |
 | Mão de obra interna | decisão anterior afasta bloco global, mas não fecha compartilhamento de equipes entre instâncias. | Como representar uma mesma equipe atendendo mais de um bloco sem duplicar custo? |
-| Medição | o termo representa consolidação contratual, item comercial, composição com equipe/equipamentos/ensaios e coletas/acompanhamento em casos diferentes. | É conceito próprio, componente de Batimetria, componente de outros serviços ou camada transversal? |
 | Transporte/destinação | é relevante em parte do lote; bases e licenças variam. | Transporte e destinação são um bloco, dois blocos ou fases da mesma instância? |
 | Operação/manutenção | aparecem como abas, porém ligadas a ativos técnicos. | Existe orçamento real de operação pura que exija cartão próprio na V1? |
 | Locação de equipamento | hipótese conceitual, não confirmada transversalmente. | Locação entra no primeiro catálogo ou aguarda evidência adicional? |
 | Venda de equipamento | U09 confirma a família; fronteira com serviços não está fechada. | Venda usa o mesmo fluxo dos serviços ou uma modalidade especializada com camadas comuns? |
 | Produção/balanço | parâmetros pertencem ao bloco; resultados alimentam vários blocos. | Qual tela é dona da edição: bloco produtor ou painel técnico compartilhado com vínculo explícito? |
 | BDI/tributos | fórmulas e bases variam entre obras. | Quais estratégias atuais precisam ser suportadas nominalmente na V1, sem normalização? |
-| Taxonomia/aliases | B01, B02, B08 e B09 estão homologados como blocos; as outras sete entradas e seus nomes continuam candidatos. | Quais das sete entradas candidatas devem ser promovidas, fundidas ou renomeadas após este checkpoint? |
+| Taxonomia/aliases | B01, B02, B08, B09 e B10 estão homologados como blocos; as outras sete entradas e seus nomes continuam candidatos. | Quais das sete entradas candidatas devem ser promovidas, fundidas ou renomeadas após este checkpoint? |
 
 ## 12. Itens candidatos a V2/V3
 
@@ -459,6 +492,6 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 
 ## 13. Conclusão e recomendação
 
-Resultado acumulado: o catálogo possui onze entradas. Mobilização, Desmobilização, Batimetria e Laboratório / Análises de Material estão homologados como blocos independentes; Bombeamento integra Dragagem como modalidade/configuração e não cria bloco próprio. As outras sete entradas continuam candidatas. Medição permanece gray area própria; Qualidade não possui evidência funcional suficiente; Garantias permanece somente como evidência técnico-comercial localizada em U08.
+Resultado acumulado: o catálogo possui doze entradas. Mobilização, Desmobilização, Batimetria, Laboratório / Análises de Material e Medição estão homologados como blocos independentes; Bombeamento integra Dragagem como modalidade/configuração e não cria bloco próprio. As outras sete entradas continuam candidatas. A contagem passou de onze para doze porque Medição não integrava a enumeração anterior; nenhuma entrada candidata foi removida ou fundida sem decisão. Qualidade não possui evidência funcional suficiente; Garantias permanece somente como evidência técnico-comercial localizada em U08.
 
 **Ponto de parada:** este documento conclui exclusivamente a missão de catálogo e anatomia sobre as 12 unidades já auditadas. Nenhuma outra obra foi analisada.
