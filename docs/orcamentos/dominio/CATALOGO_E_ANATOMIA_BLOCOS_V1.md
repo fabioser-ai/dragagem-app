@@ -6,7 +6,7 @@
 
 ## 1. Objetivo
 
-Este documento transforma as evidências das 12 unidades auditadas em uma proposta conservadora de catálogo e anatomia de blocos para a V1. Somente a fronteira **Bombeamento × Dragagem** está homologada nesta rodada. Os nove blocos, seus nomes, as demais fronteiras, anatomias e normalizações continuam candidatos até decisão explícita de Fabio/Merlin.
+Este documento transforma as evidências das 12 unidades auditadas em uma proposta conservadora de catálogo e anatomia de blocos para a V1. Duas decisões de domínio estão homologadas: **Bombeamento integra Dragagem** e **Mobilização e Desmobilização são blocos independentes**. O catálogo contém dez entradas: B01 Mobilização e B02 Desmobilização estão homologados como blocos; os outros oito blocos, seus nomes e as demais fronteiras, anatomias e normalizações continuam candidatos até decisão explícita de Fabio/Merlin.
 
 Um **bloco** é uma etapa ou serviço macro que o engenheiro pode incluir, ordenar, repetir e parametrizar em um orçamento. Abas históricas não viram automaticamente blocos. Componentes internos, memórias de cálculo, consolidações e documentos de saída são mapeados, mas não expostos como cartões independentes sem evidência funcional.
 
@@ -42,20 +42,20 @@ As conclusões se limitam a U01–U12. Não houve ampliação da amostra, e nenh
 
 Legenda: **P** presente; **I** presente como componente interno; **C** camada compartilhada; **—** sem evidência relevante. A matriz registra função observada, não homologa o catálogo.
 
-| Unidade oficial do Checkpoint 1 | Mobilização/desmob. | Canteiro | Dragagem¹ | Célula | Bags | Desag. mecânico | Batimetria/medição | Transporte/destinação | Venda equipamento | Camadas compartilhadas |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| U01 International Paper 2017 | P | P | P | P | P | P | — | R | — | escopo, balanço, produção, preço, proposta |
-| U02 CAESB 2017 — venda FC-001 | — | — | — | — | — | — | — | R | P | escopo, preço, proposta |
-| U03 Vale Maravilhas I 2019 | P | P | P | P | — | — | P | P | — | condições, balanço, produção, tributos, proposta |
-| U04 Mosaic 2020 — “só bombeamento” | P | P | P | — | — | — | P | — | — | escopo, produção, preço, proposta |
-| U05 Bosch 2021 — bags | P | P | P | P | P | — | P | P | — | balanço, produção, BDI, proposta |
-| U06 Matinhos/CFF 2021 | P | P | P | — | — | — | P | P | — | edital/CFF, produção, preço, proposta |
-| U07 Petrobras 2022 — DFP/PPU | P | P | P | — | — | P | P | P | — | balanço, produção, preço, proposta |
-| U08 Suzano Aracruz 2023 | P | P | P | — | — | P | P | R | — | escopo, balanço, produção, preço, proposta |
-| U09 Venda FC-001 2024 | — | — | — | — | — | — | — | R | P | configuração, preço, proposta |
-| U10 Suzano 2024 — Modelo 02 | P | P | P | — | — | P | P | P | — | balanço, produção, ABC, tributos, proposta |
-| U11 Bracell 2025 — COM/SEM polímero | P | P | P | P | P | — | P | — | — | balanço, produção, BDI, proposta |
-| U12 SK Confins 2026 — centrífuga | P | R | R | — | — | P | — | R | — | balanço, produção, BDI, proposta |
+| Unidade oficial do Checkpoint 1 | Mobilização | Desmobilização | Canteiro | Dragagem¹ | Célula | Bags | Desag. mecânico | Batimetria/medição | Transporte/destinação | Venda equipamento | Camadas compartilhadas |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| U01 International Paper 2017 | P | P | P | P | P | P | P | — | R | — | escopo, balanço, produção, preço, proposta |
+| U02 CAESB 2017 — venda FC-001 | — | — | — | — | — | — | — | — | R | P | escopo, preço, proposta |
+| U03 Vale Maravilhas I 2019 | P | P | P | P | P | — | — | P | P | — | condições, balanço, produção, tributos, proposta |
+| U04 Mosaic 2020 — “só bombeamento” | P | P | P | P | — | — | — | P | — | — | escopo, produção, preço, proposta |
+| U05 Bosch 2021 — bags | P | P | P | P | P | P | — | P | P | — | balanço, produção, BDI, proposta |
+| U06 Matinhos/CFF 2021 | P | P | P | P | — | — | — | P | P | — | edital/CFF, produção, preço, proposta |
+| U07 Petrobras 2022 — DFP/PPU | P | P | P | P | — | — | P | P | P | — | balanço, produção, preço, proposta |
+| U08 Suzano Aracruz 2023 | P | P | P | P | — | — | P | P | R | — | escopo, balanço, produção, preço, proposta |
+| U09 Venda FC-001 2024 | — | — | — | — | — | — | — | — | R | P | configuração, preço, proposta |
+| U10 Suzano 2024 — Modelo 02 | P | P | P | P | — | — | P | P | P | — | balanço, produção, ABC, tributos, proposta |
+| U11 Bracell 2025 — COM/SEM polímero | P | P | P | P | P | P | — | P | — | — | balanço, produção, BDI, proposta |
+| U12 SK Confins 2026 — centrífuga | P | P | R | R | — | — | P | — | R | — | balanço, produção, BDI, proposta |
 
 ¹ A coluna Dragagem absorve as ocorrências históricas de bombeamento/recalque. **R** significa residual, zerado ou de responsabilidade de terceiro, conforme a matriz original do Checkpoint 1; não significa bloco confirmado na taxonomia.
 
@@ -82,7 +82,8 @@ Legenda: **P** presente; **I** presente como componente interno; **C** camada co
 |---|---|---|---|---|---|
 | `Dados Obra`, dados básicos, objeto, condições | texto, m³, t, m, %, dias; definir escopo | **Camada Dados do orçamento** | compartilhada | U01–U12 | alta; unidades e bases devem ser explícitas. |
 | `Produção`, balanço, prazo, cronograma | m³/h, tSS/mês, meses | **Hipótese: motor técnico compartilhado + seção do bloco consumidor** | interno/compartilhado candidato | U01, U03–U08, U10–U12 | alta para a necessidade de reconciliação; propriedade e UX seguem em gray area. |
-| Mob. Draga, Mob. MO, Mob. Centrífuga, DesMob | R$/evento, viagens, dias, pessoas | **Mobilização e desmobilização** | principal | U03–U08, U10–U12 | alta; manter fases separadas dentro do bloco. |
+| Mob. Draga, Mob. MO, Mob. Centrífuga, implantação | R$/evento, viagens, dias, pessoas | **Mobilização** | principal | U01, U03–U08, U10–U12 | **homologado como bloco independente**; composição própria. |
+| DesMob. Draga, DesMob. Centrífuga, retirada | R$/evento, viagens, dias, pessoas | **Desmobilização** | principal | U01, U03–U08, U10–U12 | **homologado como bloco independente**; não deriva de Mobilização. |
 | `Canteiro`, administração local, site/SSMA | R$/mês, mês, vb | **Canteiro e apoio local** | principal | U03–U08, U10–U12 | alta; responsabilidades podem zerar itens sem eliminar o bloco. |
 | Draga, dragagem consolidada, custo mensal draga | m³/h, h, L/h, R$/mês | **Dragagem** | principal | U01, U03–U08, U10–U11 | alta. |
 | bombeamento, recalque, retorno de água, Pond 1→Pond 2 | m³/h, mca, m, kW | modalidade/configuração de **Dragagem** | interno | U03, U04, U06–U07, U10 | **homologado:** não é bloco macro independente; “só bombeamento” preserva-se como alias histórico. |
@@ -103,17 +104,18 @@ Legenda: **P** presente; **I** presente como componente interno; **C** camada co
 
 | ID candidato | Nome | Aliases históricos | Finalidade | Unidades de evidência | Combinação/independência | Múltiplas instâncias | Conf. | Não resolvido |
 |---|---|---|---|---|---|---:|---:|---|
-| B01 | Mobilização e desmobilização | Mob., DesMob., implantação, retirada | precificar logística e equipes de entrada/saída | evento, viagem, dia, pessoa, R$ | combina com qualquer serviço; pode existir isolado em revisão | sim, por frente/equipamento | alta | se comercialmente devem ser dois blocos ou duas fases. |
-| B02 | Canteiro e apoio local | canteiro, administração local, site, SSMA | infraestrutura temporária e suporte local | mês, un, vb, pessoa, R$ | independente e combinável | sim, por base/frente | alta | limite entre canteiro e administração central. |
-| B03 | Dragagem | draga, dragagem e recalque, sucção, “só bombeamento” | remover e recalcar material; pode configurar bombeamento direto/sem tratamento posterior | m³, t, h, m³/h, L/h, m, mca | combina potencialmente com B04–B08; bombeamento nunca é bloco separado | sim, por draga/frente | alta; fronteira bombeamento homologada | convenção para produção úmida, seca ou in situ. |
-| B04 | Preparação de célula | Prep Célula, PEAD/Bidim/brita | construir/preparar área receptora | m², m³, h, un | candidato independente; pode anteceder B05 | sim, por célula | alta | fronteira e impermeabilização. |
-| B05 | Bags geotêxteis | bags, geobags, tubos geotêxteis | dimensionar, fornecer e instalar bags | un, m, m², m³, R$ | candidato combinável com B03/B04 | sim, por célula/nível/modelo | alta | regra de margem e arredondamento. |
-| B06 | Desaguamento mecânico | centrífuga, decanter, centrifugação | separar sólidos por equipamento mecânico | m³/h, %ST, tSS, t/mês | candidato independente; pode combinar com B03/B08 | sim, por unidade/linha | alta | nome/fronteira e operação/manutenção. |
-| B07 | Batimetria e medição | medição, levantamento, coleta | medir volume, evolução e aceite | campanha, mês, ponto, amostra, m³, R$ | candidato independente ou associado | sim, por método/campanha | média-alta | laboratório/garantias. |
-| B08 | Transporte e destinação | frete, caçamba, bota-fora, disposição | remover e destinar material/resíduo | t, m³, km, viagem, R$/t | candidato; recebe saída de B03/B05/B06 | sim, por rota/destino | média-alta | fronteira, base de medição e licenças. |
-| B09 | Venda de equipamento | venda de draga, fornecimento de ativo | configurar e precificar transferência de ativo | un, R$, conjunto | candidato especializado; serviços podem combinar | sim, por equipamento | alta para a família | fluxo, opcionais, serviços e condição do ativo. |
+| B01 | Mobilização | Mob., implantação, entrada | precificar logística, itens e equipes de entrada | evento, viagem, dia, pessoa, R$ | independente; sem dependência de domínio com B02 | sim, por frente/equipamento | alta; independência homologada | fronteira interna da composição. |
+| B02 | Desmobilização | DesMob., retirada, saída | precificar logística, itens e equipes de saída | evento, viagem, dia, pessoa, R$ | independente; sem dependência de domínio com B01 | sim, por frente/equipamento | alta; independência homologada | fronteira interna da composição. |
+| B03 | Canteiro e apoio local | canteiro, administração local, site, SSMA | infraestrutura temporária e suporte local | mês, un, vb, pessoa, R$ | independente e combinável, candidato | sim, por base/frente | alta | limite entre canteiro e administração central. |
+| B04 | Dragagem | draga, dragagem e recalque, sucção, “só bombeamento” | remover e recalcar material; pode configurar bombeamento direto/sem tratamento posterior | m³, t, h, m³/h, L/h, m, mca | combina potencialmente com B05–B09; bombeamento nunca é bloco separado | sim, por draga/frente | alta; fronteira bombeamento homologada | convenção para produção úmida, seca ou in situ. |
+| B05 | Preparação de célula | Prep Célula, PEAD/Bidim/brita | construir/preparar área receptora | m², m³, h, un | candidato independente; pode anteceder B06 | sim, por célula | alta | fronteira e impermeabilização. |
+| B06 | Bags geotêxteis | bags, geobags, tubos geotêxteis | dimensionar, fornecer e instalar bags | un, m, m², m³, R$ | candidato combinável com B04/B05 | sim, por célula/nível/modelo | alta | regra de margem e arredondamento. |
+| B07 | Desaguamento mecânico | centrífuga, decanter, centrifugação | separar sólidos por equipamento mecânico | m³/h, %ST, tSS, t/mês | candidato independente; pode combinar com B04/B09 | sim, por unidade/linha | alta | nome/fronteira e operação/manutenção. |
+| B08 | Batimetria e medição | medição, levantamento, coleta | medir volume, evolução e aceite | campanha, mês, ponto, amostra, m³, R$ | candidato independente ou associado | sim, por método/campanha | média-alta | laboratório/garantias. |
+| B09 | Transporte e destinação | frete, caçamba, bota-fora, disposição | remover e destinar material/resíduo | t, m³, km, viagem, R$/t | candidato; recebe saída de B04/B06/B07 | sim, por rota/destino | média-alta | fronteira, base de medição e licenças. |
+| B10 | Venda de equipamento | venda de draga, fornecimento de ativo | configurar e precificar transferência de ativo | un, R$, conjunto | candidato especializado; serviços podem combinar | sim, por equipamento | alta para a família | fluxo, opcionais, serviços e condição do ativo. |
 
-**Status:** nove blocos candidatos. Apenas está homologado que Bombeamento não constitui o décimo bloco e integra Dragagem. A decisão anterior mantém Mão de obra como componente interno, não bloco global. Para Dados do orçamento, Balanço/Produção, Cronograma, Equipamentos de apoio, Combustível, Polímero, Manutenção/Depreciação, ABC, BDI/Tributos, Formação de preço e Proposta, o papel de cabeçalho, componente, motor ou saída permanece **hipótese de organização V1**, sujeito às gray areas registradas. Tubulação/Barrilete é componente da Dragagem nesta fronteira homologada.
+**Status:** dez entradas no catálogo. B01 Mobilização e B02 Desmobilização estão homologados como blocos independentes; as outras oito entradas continuam candidatas. Também está homologado que Bombeamento integra Dragagem, sem criar bloco próprio. A decisão anterior mantém Mão de obra como componente interno, não bloco global. Para Dados do orçamento, Balanço/Produção, Cronograma, Equipamentos de apoio, Combustível, Polímero, Manutenção/Depreciação, ABC, BDI/Tributos, Formação de preço e Proposta, o papel de cabeçalho, componente, motor ou saída permanece **hipótese de organização V1**, sujeito às gray areas registradas. Tubulação/Barrilete é componente da Dragagem nesta fronteira homologada.
 
 ## 5. Anatomia detalhada de cada bloco
 
@@ -137,20 +139,33 @@ Legenda: **P** presente; **I** presente como componente interno; **C** camada co
 
 As tabelas abaixo registram o núcleo mínimo. Todo campo contextual, histórico, híbrido e derivado que participe da proposta exige snapshot; campos mestre também exigem cópia quando sua alteração futura mudaria a versão emitida.
 
-#### 5.2.1 B01 — Mobilização e desmobilização
+#### 5.2.1 B01 — Mobilização
 
 | Campo histórico/sugerido | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
-| fase | entrada ou retirada | enum | projeto | C | sim | — | fases | sempre, abas internas | sim |
 | ativo/conjunto mobilizado | carga principal | ativo | cadastro | M/C | sim | determina veículos/içamento | ativos | sempre | sim |
 | origem/destino e distância | rota logística | local, km | projeto | C | sim | frete/viagens | locais | sempre | sim |
 | carretas/viagens | dimensionamento | un | plano logístico | C | sim | qtd × preço | transporte | sempre | sim |
 | guindaste/munck/rigging | içamento | dia/vb | cotação | Híbrido | sim | qtd × preço | serviços | condicional | sim |
-| equipe, dias e horas | montagem/desmontagem | pessoa, dia, h | projeto | C | sim | custo diário da equipe × dias | funções | detalhe | sim |
+| equipe, dias e horas | montagem/implantação | pessoa, dia, h | projeto | C | sim | custo diário da equipe × dias | funções | detalhe | sim |
 | ART, exames, treinamento | obrigações | un/vb | projeto/cotação | Híbrido | sim | qtd × preço | itens | condicional | sim |
-| custo/preço da fase | total | R$ | cálculo | D | não | soma dos itens; preço na camada comercial | — | resumo | sim |
+| custo/preço da mobilização | total próprio | R$ | cálculo | D | não | soma exclusiva dos itens desta instância; preço na camada comercial | — | resumo | sim |
 
-#### 5.2.2 B02 — Canteiro e apoio local
+#### 5.2.2 B02 — Desmobilização
+
+| Campo histórico/sugerido | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
+|---|---|---|---|---|---:|---|---|---|---:|
+| ativo/conjunto desmobilizado | carga de retirada | ativo | cadastro + projeto | M/C | sim | dimensiona veículos/içamento da saída | ativos | sempre | sim |
+| origem/destino e distância | rota logística de saída | local, km | projeto | C | sim | frete/viagens próprios | locais | sempre | sim |
+| carretas/viagens | dimensionamento de saída | un | plano logístico | C | sim | qtd × preço | transporte | sempre | sim |
+| guindaste/munck | içamento de retirada | dia/vb | cotação | Híbrido | sim | qtd × preço | serviços | condicional | sim |
+| equipe, dias e horas | desmontagem/retirada | pessoa, dia, h | projeto | C | sim | custo diário da equipe × dias | funções | detalhe | sim |
+| itens e serviços de retirada | composição própria observada | un/vb | projeto/cotação | Híbrido | sim | qtd × preço | itens/serviços | condicional | sim |
+| custo/preço da desmobilização | total próprio | R$ | cálculo | D | não | soma exclusiva dos itens desta instância; preço na camada comercial | — | resumo | sim |
+
+B01 e B02 não compartilham fórmula, quantidade ou total por definição de domínio. A UX pode oferecer duplicação ou preenchimento assistido entre composições semelhantes, mas o resultado copiado passa a ser editável e independente.
+
+#### 5.2.3 B03 — Canteiro e apoio local
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -161,7 +176,7 @@ As tabelas abaixo registram o núcleo mínimo. Todo campo contextual, histórico
 | responsabilidade por item **(candidato)** | quem fornece/paga | enum | contrato | C | sim | o histórico mostra item ativo, de terceiro, residual ou zerado; o comportamento V1 segue em gray area | responsáveis | condicional | sim |
 | custo mensal/total | consolidação | R$/mês, R$ | cálculo | D | não | recorrentes + eventos | — | resumo | sim |
 
-#### 5.2.3 B03 — Dragagem
+#### 5.2.4 B04 — Dragagem
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -184,7 +199,7 @@ As tabelas abaixo registram o núcleo mínimo. Todo campo contextual, histórico
 
 Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno e Linha de recalque/barrilete do Checkpoint 1. Não constituem um sub-bloco automático: aparecem somente quando a configuração da Dragagem os utiliza.
 
-#### 5.2.4 B04 — Preparação de célula
+#### 5.2.5 B05 — Preparação de célula
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -194,7 +209,7 @@ Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno 
 | materiais e preços | composição | m², m³, R$/un | cotação | H | sim | quantidade × preço | itens | tabela | sim |
 | custo total/unitário | resultado | R$, R$/m² | cálculo | D | não | soma; total ÷ área | — | resumo | sim |
 
-#### 5.2.5 B05 — Bags geotêxteis
+#### 5.2.6 B06 — Bags geotêxteis
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -207,7 +222,7 @@ Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno 
 | preço por bag/m² | cotação | R$/un, R$/m² | fornecedor/vigência | H | sim | perímetro × comprimento × preço/m², se aplicável | bags/cotações | detalhe | sim |
 | custo de fornecimento | total | R$ | cálculo | D | não | soma qtd × preço | — | resumo | sim |
 
-#### 5.2.6 B06 — Desaguamento mecânico
+#### 5.2.7 B07 — Desaguamento mecânico
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -221,7 +236,7 @@ Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno 
 | periféricos/energia/equipe | tanque, bombas, painéis e operação | un, kWh, pessoa | mestre + projeto | Híbrido | sim | composição | itens/ativos/funções | detalhe | sim |
 | manutenção | plano/custo | evento, %, R$ | política/cotação | H/D | sim premissas | horas/vida útil/valor | políticas | detalhe | sim |
 
-#### 5.2.7 B07 — Batimetria e medição
+#### 5.2.8 B08 — Batimetria e medição
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -233,7 +248,7 @@ Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno 
 | volume medido | resultado | m³/t | levantamento | H/D | não ou importado | método e campanha | — | por campanha | sim |
 | custo total | consolidação | R$ | cálculo | D | não | soma das campanhas | — | resumo | sim |
 
-#### 5.2.8 B08 — Transporte e destinação
+#### 5.2.9 B09 — Transporte e destinação
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -246,7 +261,7 @@ Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno 
 | tarifa transporte/destinação | preço | R$/t, R$/m³, R$/viagem | cotação | H | sim | conforme base contratual | cotações | detalhe | sim |
 | custo total | resultado | R$ | cálculo | D | não | quantidade × tarifa + taxas | — | resumo | sim |
 
-#### 5.2.9 B09 — Venda de equipamento
+#### 5.2.10 B10 — Venda de equipamento
 
 | Campo | Significado | Unidade | Origem | Classe | Editável | Fórmula/dependências | Catálogo | Uso/UX | Snapshot |
 |---|---|---|---|---|---:|---|---|---|---:|
@@ -255,7 +270,7 @@ Os campos absorvidos acima vêm da mineração de Dragagem, Bombeamento/retorno 
 | componentes incluídos | configuração entregue | un/texto | engenharia comercial | C | sim | custo/configuração | itens | tabela | sim |
 | preço-base/avaliação | referência | R$ | política/avaliação | H | sim | formação comercial | avaliações | detalhe | sim |
 | opcionais | itens/serviços adicionais | un, R$ | catálogo + projeto | Híbrido | sim | soma opcional | itens/serviços | condicional | sim |
-| instalação/treinamento/frete | serviços associados | evento/vb | projeto/cotação | Híbrido | sim | composição própria ou B01 | serviços | condicional | sim |
+| instalação/treinamento/frete | serviços associados | evento/vb | projeto/cotação | Híbrido | sim | composição própria ou instância independente de B01/B02, conforme escopo | serviços | condicional | sim |
 | garantia/condições | compromisso | texto/período | negociação | C/H | sim | versão da proposta | condições | sempre | sim |
 | preço final | total negociado | R$ | cálculo/negociação | D/H | override justificado | base + opcionais + serviços ± negociação | — | resumo | sim |
 
@@ -284,15 +299,17 @@ Ao **Fechar Proposta**, registrar identidade, revisão, data, escopo, instância
 | Origem | Destino | Dado transferido | Cardinalidade/regra | Bloqueio/alerta |
 |---|---|---|---|---|
 | Dados do orçamento | todos | cliente, local, material, unidades, responsabilidades | 1 orçamento → N blocos | alteração após formalização exige nova revisão. |
-| B03 Dragagem | B04/B05/B06/B08 ou ponto de descarga | vazão/volume, material, origem/destino e características | configuração interna de recalque; vínculo entre instâncias é candidato | validar unidade/base; não criar bloco Bombeamento. |
-| B04 Célula | B05 Bags | área, geometria, restrições | hipótese: uma célula pode receber N conjuntos | alertar capacidade física; regra ainda não homologada. |
-| Balanço de massa | B05/B06/B08 | massa seca, volume desaguado | fórmula com ST e base; propriedade/UX em gray area | impedir mistura t, tSS e m³ sem conversão. |
-| B06 Desaguamento mecânico | B08 Transporte/destinação | produto desaguado | vínculo candidato entre instâncias | exigir ST/densidade se converter. |
-| Cronograma | B01/B02/todos | fases e duração | derivado + ajustes explícitos | mostrar diferença prazo matemático/comercial. |
+| B01 Mobilização | — | não transfere composição, quantidade ou custo para B02 | instância independente | eventual duplicação é conveniência UX, não dependência. |
+| B02 Desmobilização | — | não deriva composição, quantidade ou custo de B01 | instância independente | não calcular como inversão ou percentual da Mobilização. |
+| B04 Dragagem | B05/B06/B07/B09 ou ponto de descarga | vazão/volume, material, origem/destino e características | configuração interna de recalque; vínculo entre instâncias é candidato | validar unidade/base; não criar bloco Bombeamento. |
+| B05 Célula | B06 Bags | área, geometria, restrições | hipótese: uma célula pode receber N conjuntos | alertar capacidade física; regra ainda não homologada. |
+| Balanço de massa | B06/B07/B09 | massa seca, volume desaguado | fórmula com ST e base; propriedade/UX em gray area | impedir mistura t, tSS e m³ sem conversão. |
+| B07 Desaguamento mecânico | B09 Transporte/destinação | produto desaguado | vínculo candidato entre instâncias | exigir ST/densidade se converter. |
+| Cronograma | B01/B02/B03/todos | fases e duração | cada bloco mantém composição/custo próprios | mostrar diferença prazo matemático/comercial sem vincular B01 a B02. |
 | Todos os blocos | Formação de preço | custos por instância e unidade | soma rastreável | não aceitar referência quebrada. |
 | Formação de preço | Versão formal | preço, condições, escopo | fechamento cria snapshot imutável | negociação manual exige justificativa. |
 
-As dependências acima são **candidatas**, salvo a incorporação do bombeamento/recalque em B03 Dragagem. Elas descrevem transferências observadas e não autorizam o sistema a escolher a solução de engenharia.
+As dependências acima são **candidatas**, exceto por duas regras homologadas: bombeamento/recalque integra B04 Dragagem; B01 Mobilização e B02 Desmobilização não possuem dependência de domínio entre si. Elas não autorizam o sistema a escolher a solução de engenharia.
 
 ## 8. Relação com cadastros mestres
 
@@ -326,15 +343,16 @@ Salvo a experiência homologada para Dragagem/bombeamento direto, esta seção �
 
 | Bloco | Tradução conservadora da aba histórica |
 |---|---|
-| B01 Mobilização/desmobilização | uma tela com duas subabas, Entrada e Saída, cada qual com a grade conhecida de equipe, frete, içamento, quantidade, preço unitário e total. |
-| B02 Canteiro | a composição mensal continua em linhas; prazo e responsabilidades ficam acima, e total mensal/total do período aparece ao lado. |
-| B03 Dragagem | o engenheiro escolhe somente Dragagem e configura nela como o material será dragado/recalcado. “Bombeamento direto / sem tratamento posterior” pode ser uma configuração familiar; origem, destino, distância, linha, bombas auxiliares, produção e custos ficam na mesma tela/composição. |
-| B04 Preparação de célula | geometria primeiro; depois a tabela PEAD/Bidim/brita/equipamentos com coeficiente, quantidade, preço e total, equivalente à aba atual. |
-| B05 Bags | catálogo selecionável e grade por nível/modelo; demanda, capacidade e margem aparecem juntas antes do custo de fornecimento. |
-| B06 Desaguamento mecânico | equipamento, ST, vazão e jornada no topo; produção seca/desaguada imediatamente abaixo; periféricos, polímero, equipe e manutenção em composições. |
-| B07 Batimetria/medição | método e critério de aceite primeiro; campanhas em linhas com data, área/pontos, equipe/terceiro, resultado e custo. |
-| B08 Transporte/destinação | uma grade de rotas: origem, destino, material, base, distância, veículo, viagens, tarifa e total; conversões ficam abertas ao lado. |
-| B09 Venda de equipamento | ficha técnica à esquerda e composição comercial à direita/abaixo, com componentes, opcionais, serviços, garantia e preço final. |
+| B01 Mobilização | grade própria de entrada com ativo/conjunto, rota, equipe, frete, içamento, itens, quantidades, preços e total. Pode iniciar vazia ou receber cópia assistida, sem vínculo posterior. |
+| B02 Desmobilização | grade própria de saída com ativo/conjunto, rota, equipe, frete, içamento, itens, quantidades, preços e total. Não é preenchida automaticamente por fórmula baseada em B01. |
+| B03 Canteiro | a composição mensal continua em linhas; prazo e responsabilidades ficam acima, e total mensal/total do período aparece ao lado. |
+| B04 Dragagem | o engenheiro escolhe somente Dragagem e configura nela como o material será dragado/recalcado. “Bombeamento direto / sem tratamento posterior” pode ser uma configuração familiar; origem, destino, distância, linha, bombas auxiliares, produção e custos ficam na mesma tela/composição. |
+| B05 Preparação de célula | geometria primeiro; depois a tabela PEAD/Bidim/brita/equipamentos com coeficiente, quantidade, preço e total, equivalente à aba atual. |
+| B06 Bags | catálogo selecionável e grade por nível/modelo; demanda, capacidade e margem aparecem juntas antes do custo de fornecimento. |
+| B07 Desaguamento mecânico | equipamento, ST, vazão e jornada no topo; produção seca/desaguada imediatamente abaixo; periféricos, polímero, equipe e manutenção em composições. |
+| B08 Batimetria/medição | método e critério de aceite primeiro; campanhas em linhas com data, área/pontos, equipe/terceiro, resultado e custo. |
+| B09 Transporte/destinação | uma grade de rotas: origem, destino, material, base, distância, veículo, viagens, tarifa e total; conversões ficam abertas ao lado. |
+| B10 Venda de equipamento | ficha técnica à esquerda e composição comercial à direita/abaixo, com componentes, opcionais, serviços, garantia e preço final. |
 
 Defaults só podem vir de cadastro com origem visível; valores próprios da obra permanecem de digitação direta. Nenhum bloco esconde a memória que hoje o engenheiro consegue inspecionar no Excel.
 
@@ -344,28 +362,30 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 |---|---|---|---|
 | copiar pasta/aba com dados de outra obra | todos | duplicação continua disponível | identidade única; alerta de cliente/local divergente; origem por campo. |
 | `#REF!`, links externos e células quebradas | todos + preço | fórmulas configuráveis/versionadas | nenhum fechamento com erro ou dependência ausente. |
-| duas fontes de produção | B03, B05, B06, B08 | engenheiro ajusta premissas | candidato: uma cadeia vigente por instância; propriedade segue em gray area. |
-| nome de aba tratado como verdade | B03 e aliases | nomes familiares continuam visíveis | “só bombeamento” é alias; funcionalmente continua Dragagem. |
-| mistura m³, t e tSS | B03, B05, B06, B08 | qualquer base pode ser escolhida | candidato: base explícita e conversão rastreável; UX segue aberta. |
-| custo zero inferido como ausência | B01, B02, B06, B08 | cliente/terceiro pode fornecer | candidato: distinguir ausente, residual, terceiro e zero; regra segue aberta. |
+| duas fontes de produção | B04, B06, B07, B09 | engenheiro ajusta premissas | candidato: uma cadeia vigente por instância; propriedade segue em gray area. |
+| nome de aba tratado como verdade | B04 e aliases | nomes familiares continuam visíveis | “só bombeamento” é alias; funcionalmente continua Dragagem. |
+| mistura m³, t e tSS | B04, B06, B07, B09 | qualquer base pode ser escolhida | candidato: base explícita e conversão rastreável; UX segue aberta. |
+| Mobilização usada para calcular Desmobilização | B01/B02 | UX pode copiar/preencher composição semelhante | composições, quantidades e custos permanecem independentes; nunca aplicar inversão ou percentual por regra de domínio. |
+| custo zero inferido como ausência | B01, B02, B03, B07, B09 | cliente/terceiro pode fornecer | candidato: distinguir ausente, residual, terceiro e zero; regra segue aberta. |
 | valor manual sobrescreve cálculo | todos + preço | negociação/ajuste permitido | guardar calculado e emitido; exigir justificativa curta. |
 | BDI/tributos com bases implícitas | preço | práticas atuais continuam possíveis | candidato: explicitar percentual, base, ordem e vigência; detalhes aguardam homologação. |
 | cenários tratados como sequência linear | orçamento/versão | duplicação livre | alternativas independentes e linhagem formal. |
-| bags sem margem/conciliação | B05 | engenheiro define margem/arranjo | candidato: mostrar capacidade/demanda e alertar; intensidade segue aberta. |
-| premissa “chute” sem qualificação | B03/B06 | estimativa continua possível | candidato: mostrar confiança e origem; obrigatoriedade segue aberta. |
+| bags sem margem/conciliação | B06 | engenheiro define margem/arranjo | candidato: mostrar capacidade/demanda e alertar; intensidade segue aberta. |
+| premissa “chute” sem qualificação | B04/B07 | estimativa continua possível | candidato: mostrar confiança e origem; obrigatoriedade segue aberta. |
 | mestre alterado retroativamente | todos | mestre continua administrável | snapshot integral no fechamento. |
 
 ## 11. Gray areas ainda abertas
 
-### 11.1 Decisão homologada nesta rodada
+### 11.1 Decisões homologadas
 
 **Bombeamento × Dragagem:** Bombeamento não existe como bloco macro independente na V1. Quando há bombeamento de material neste contexto, houve Dragagem. “Bombeamento direto / sem tratamento posterior” é modalidade/configuração interna de Dragagem. Nomes históricos como “só bombeamento” permanecem como aliases para rastreabilidade e jamais significam ausência de dragagem.
+
+**Mobilização × Desmobilização:** são conceitos e blocos independentes na V1. Cada um possui composição, itens, quantidades e custos próprios e pode ser incluído/configurado separadamente. Desmobilização não é cópia, inversão ou percentual de Mobilização. Similaridades podem alimentar duplicação ou preenchimento assistido, sem criar vínculo ou atualização entre as instâncias.
 
 ### 11.2 Demais gray areas — sem resposta nesta rodada
 
 | Gray area | Observado / insuficiência | Pergunta para Fabio/Merlin |
 |---|---|---|
-| Mobilização × desmobilização | são itens separados nas ofertas, mas simétricos na composição. | Um bloco com duas fases atende, ou inclusão/ordenação independentes são obrigatórias? |
 | Responsabilidade por item / fornecimento do cliente | o histórico distingue FOS, cliente, terceiro, residual e custo zero, mas não define uma única UX/regra. | Responsabilidade deve existir por bloco, por item ou em ambos? Item do cliente fica visível e zerado, excluído ou apenas marcado? |
 | Mão de obra interna | decisão anterior afasta bloco global, mas não fecha compartilhamento de equipes entre instâncias. | Como representar uma mesma equipe atendendo mais de um bloco sem duplicar custo? |
 | Batimetria/medição × laboratório/garantias | domínio aparece, mas laboratório não tem recorrência suficiente como macroetapa. | Laboratório/qualidade deve ser bloco selecionável ou composição da medição/serviço técnico? |
@@ -375,7 +395,7 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 | Venda de equipamento | U09 confirma a família; fronteira com serviços não está fechada. | Venda usa o mesmo fluxo dos serviços ou uma modalidade especializada com camadas comuns? |
 | Produção/balanço | parâmetros pertencem ao bloco; resultados alimentam vários blocos. | Qual tela é dona da edição: bloco produtor ou painel técnico compartilhado com vínculo explícito? |
 | BDI/tributos | fórmulas e bases variam entre obras. | Quais estratégias atuais precisam ser suportadas nominalmente na V1, sem normalização? |
-| Taxonomia/aliases | nove nomes são candidatos; apenas a inexistência de Bombeamento como bloco está homologada. | Quais dos nove nomes devem ser promovidos, fundidos ou renomeados após este checkpoint? |
+| Taxonomia/aliases | B01 Mobilização e B02 Desmobilização estão homologados como blocos; as outras oito entradas e seus nomes continuam candidatos. | Quais das oito entradas candidatas devem ser promovidas, fundidas ou renomeadas após este checkpoint? |
 
 ## 12. Itens candidatos a V2/V3
 
@@ -396,6 +416,6 @@ Defaults só podem vir de cadastro com origem visível; valores próprios da obr
 
 ## 13. Conclusão e recomendação
 
-Resultado desta rodada: nove blocos continuam candidatos e uma única fronteira foi homologada — Bombeamento integra Dragagem como modalidade/configuração. O restante do catálogo só deve avançar mediante tratamento individual das gray areas, reconciliação das unidades e fórmulas críticas, validação de engenharia/custos/comercial e registro explícito das decisões de Fabio/Merlin.
+Resultado acumulado: o catálogo possui dez entradas. Mobilização e Desmobilização estão homologados como blocos independentes, sem dependência de domínio; Bombeamento integra Dragagem como modalidade/configuração e não cria bloco próprio. As outras oito entradas continuam candidatas e só devem avançar mediante tratamento individual das gray areas, reconciliação das unidades e fórmulas críticas, validação de engenharia/custos/comercial e registro explícito das decisões de Fabio/Merlin.
 
 **Ponto de parada:** este documento conclui exclusivamente a missão de catálogo e anatomia sobre as 12 unidades já auditadas. Nenhuma outra obra foi analisada.
