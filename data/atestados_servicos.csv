@@ -1076,11 +1076,11 @@ a8ccc874-783,c7670a16-0c7,Mobilização de equipamentos,vb,,Quantidade não info
 ece8e9cb-42b,c7670a16-0c7,Aterro hidráulico com distância de recalque entre 1 301 DMT 2.000m,m3,"56.602,00",Distância transcrita conforme a grafia do documento: entre 1 301 DMT 2.000m.
 632419be-c57,c7670a16-0c7,Fornecimento e instalação de placas de recalque,un,"40,00",
 85df9df3-c68,c7670a16-0c7,Trator sobre esteiras com lâmina,hs,50,
-5e2005ea-cc9,09428f7e-b58,"Desmatamento, destocamento e limpeza de terreno =",m2,"28.405,00",
-c0707996-81f,09428f7e-b58,Diques de contenção tipo paliçada =,m2,"593,30",
-3ff964dc-2f3,09428f7e-b58,Diques de contenção tipo aterro =,m2,"639,33",
-1ea9c9d9-3e2,09428f7e-b58,"Aterro Hidraulico ( com distancia de recalque de 501 DTM ) = 42.660,34 m3",m,1.000,
-d6a7c0dd-800,09428f7e-b58,Fornecimento e instalaçao de placas de recalque =,un,"34,00",
+5e2005ea-cc9,09428f7e-b58,"Desmatamento, destocamento e limpeza de terreno",m2,"28.405,00",
+c0707996-81f,09428f7e-b58,Diques de contenção: tipo paliçada,m2,"593,30",
+3ff964dc-2f3,09428f7e-b58,Diques de contenção: tipo aterro,m2,"639,33",
+1ea9c9d9-3e2,09428f7e-b58,aterro hidráulico (com distância de recalque de 501 DTM 1.000m),m3,"42.660,34",Distância transcrita conforme documento: 501 DTM 1.000m.
+d6a7c0dd-800,09428f7e-b58,Fornecimento e instalação de placas de recalque,unidades,34,
 62df21c5-575,cd25745b-3f8,Abrigo provisório com 1 pavimento,m2,"15,00",
 179fe95c-d85,cd25745b-3f8,Placas indicativas de obras,m2,"16,00",
 0abdafe8-838,cd25745b-3f8,Raspagem e limpeza do terreno,m2,"9.000,00",
