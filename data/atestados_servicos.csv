@@ -1209,10 +1209,10 @@ b905c0b0-27d,51b8d914-134,"construção de sarjetas de concreto, inclusive lastr
 ee7780a5-df6,d837e554-cb2,Escavação de material de 1a. categoria com drag-line simples,m³,49.308.72,Item 2. período de 01/12/86 à 22/12/86. Quantidade transcrita com pontos conforme original: 49.308.72.
 f45e6037-75a,d837e554-cb2,"Transporte de material de 1a. categoria, incluindo carga e descarga",m⁴ Km.,"98.617,44","Item 3. período de 01/12/86 à 22/12/86. Unidade grafada no documento com expoente 4: m⁴ Km.; mantida literalmente, sem conversão presumida para m³ x km."
 d3502e6d-ab7,d837e554-cb2,Espalhamento de material de 1a. categoria em bota-fora,m³,"49.308,72",Item 4. período de 01/12/86 à 22/12/86.
-6d2e696b-3fe,e1388522-d67,Desmatamento,m2,"70.863,30",
-952d3a99-89d,e1388522-d67,Escavação do canal de drenagem de material de 1a clase com escavadeira a cabo com estiva: 3,m,"4.400,07",
-d4c7d4a4-237,e1388522-d67,Dique de contenção tipo paliçada: l,m,"1.333,80",
-70e2fc6a-84b,e1388522-d67,"Aterro hidraulico atraves de dragagem com draga de sucção e recalque até l:  101.593,82 m3",m,1.500,
+6d2e696b-3fe,e1388522-d67,Desmatamento,m²,"70.863,30",Item 1.
+952d3a99-89d,e1388522-d67,Escavação do canal de drenagem de material de 1ª classe com escavadeira a cabo com estiva,m³,"4.400,07",Item 2.
+d4c7d4a4-237,e1388522-d67,Dique de contenção tipo paliçada,m/l,"1.333,80",Item 3. Unidade m/l preservada conforme documento.
+70e2fc6a-84b,e1388522-d67,Aterro hidráulico através de dragagem com draga de sucção e recalque até 1.500 m/l,m³,"101.593,82","Item 4. Distância descrita como até 1.500 m/l, conforme documento."
 54a5c7de-b67,9a720da9-95c,"Dragagem e desassoreamento da bacia do Mercado, com a utilização de uma draga flutuante de sucção e recalque de 6"" com linha de mar e linha de terra, de cerca de 3 de material desassoreamento , comporto de areia e lodo",m,3.000,
 2269ccbd-6a5,9a720da9-95c,"Dragagem e desassoreamento das partes descobertas do canal de navegaçao, de cerca de 3 de material de assoreamento, com a utilizaçao de escavadeira hidraulica",m,750,
 6cf3db91-0b1,9a720da9-95c,Carga ransporte e descarga de todo material dragado até o lixao da Alemoa,t,",",
