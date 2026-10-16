@@ -1220,11 +1220,11 @@ d4c7d4a4-237,e1388522-d67,Dique de contenção tipo paliçada,m/l,"1.333,80",Ite
 0f5ad206-5d4,452c25f4-8c5,"Escavação de material de primeira categoria por Draga de Sucção e Recalque, incluso lançamento do material escavado até 1.500 m.",m³,"39.495,00","TOTAL DA ESCAVAÇÃO, conforme documento."
 4df15001-931,b6c201bf-d8a,"serviços de extração e remoção de areia e cascalho com drag-line (47.000 m³), no Rio Mogi, Município de Cubatão, incluindo o transporte e espalhamento do material em várias ruas do Município de Cubatão.",m³,47.000,Descrição integral do escopo documentado. Volume de 47.000 m³ indicado junto à extração e remoção com drag-line.
 9886f41a-3fb,b6c201bf-d8a,transporte e espalhamento do material em várias ruas do Município de Cubatão.,,,Atividade incluída no mesmo escopo da extração e remoção. Sem unidade e quantidade próprias informadas; não duplicar o volume de 47.000 m³.
-5a460d0e-4da,173b892e-eb6,Dragagem lagoa de Emergencia : 3,m,23.000,
-f6eeb023-339,173b892e-eb6,Dragagem lagoa de Homogeneizaçao: 3,m,8.000,
-ebf5a00c-094,173b892e-eb6,Dragagem lagoa de Sobrenadantes: 3,m,40.000,
-c30d6c6c-cb9,173b892e-eb6,Dragagem lagoa de Aeraçao: 3,m,84.574,
-37146e2c-fc4,173b892e-eb6,Total: 3,m,155.574,
+5a460d0e-4da,173b892e-eb6,Lagoa de emergência,m³,23.000,"Grupo documental: Volume. Serviço comum às lagoas: dragagem e desassoreamento das Lagoas da ETE em Suzano-SP., com a utilização de uma draga com diâmetro de 8"" (oito polegadas) com desagregador."
+f6eeb023-339,173b892e-eb6,Lagoa de Homogeneização,m³,8.000,"Grupo documental: Volume. Serviço comum às lagoas: dragagem e desassoreamento das Lagoas da ETE em Suzano-SP., com a utilização de uma draga com diâmetro de 8"" (oito polegadas) com desagregador."
+ebf5a00c-094,173b892e-eb6,Lagoa de Sobrenadantes,m³,40.000,"Grupo documental: Volume. Serviço comum às lagoas: dragagem e desassoreamento das Lagoas da ETE em Suzano-SP., com a utilização de uma draga com diâmetro de 8"" (oito polegadas) com desagregador."
+c30d6c6c-cb9,173b892e-eb6,Lagoa de Aeração,m³,84.574,"Grupo documental: Volume. Serviço comum às lagoas: dragagem e desassoreamento das Lagoas da ETE em Suzano-SP., com a utilização de uma draga com diâmetro de 8"" (oito polegadas) com desagregador."
+37146e2c-fc4,173b892e-eb6,VOLUME TOTAL,m³,155.574,Total documental das quatro lagoas acima; não representa serviço adicional. Não somar novamente aos volumes discriminados.
 5d6fc1f7-b82,6dd9f466-733,"Escavaçãoransporte até 1.500 ml, e descarga em bota-for a, de material de 1a categaria, com 2 (duas) dragas flutuantes de sucçao e recalque, serviços estes incluindo a construçao dos dique do bota-for a : 125.982,00 m3",t,",",
 67afb388-59d,6dd9f466-733,Escavação de material de 1a categoria com dragline simples: 3,m,"20.756,03",
 95745b8a-d44,6dd9f466-733,"Transporte de material de 1a categoria incluindo carga e descarga até 2km : 41.512,06",,,
