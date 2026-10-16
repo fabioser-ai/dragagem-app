@@ -1231,8 +1231,8 @@ c30d6c6c-cb9,173b892e-eb6,Lagoa de Aeração,m³,84.574,"Grupo documental: Volum
 620079f7-a96,6dd9f466-733,Espalhamento de material de 1a categoria em bota-fora:,m3,"20.756,03",Item 4.
 b812e45f-5cc,b83a790d-9e5,serviços de dragagem com dragas de sucção e recalque em trechos do Rio Mogi no Município de Cubatão ( SP ),m³,140.000,"O volume total dragado foi de 140.000 m³, conforme atestado."
 890d1ba6-ac0,fa1f03a0-b2c,"dragagem, para aprofundamento do Canal de Acesso ao Terminal Marítimo da Companhia Siderúrgica Paulista - COSIPA, recalcando o material dragado até 3.000 metros, para simultânea execução de aterro hidráulico.",metros cúbicos,43.500,Recalque até 3.000 metros conforme descrição original. Quantidade no atestado: 43.500 metros cúbicos.
-98f157c0-190,40663e85-915,Limpeza dos canais 01 e 04 de santos utilizando-se draga de sucçao e recalque e um sistema de recipientes de decantaçao interligados entre si = on,t,"1.372,53",
-d5a30bdc-69b,40663e85-915,Transporte de material até aterro controlado da Alemoa através de poliguindastes = on,t,"1372,53",
+98f157c0-190,40663e85-915,"serviços de limpeza do canal 1, no trecho a montante da Rua Francisco de Souza Dantas, e no canal 4, nas proximidades da Av. Afonso Pena, na cidade de Santos. A limpeza foi realizada utilizando-se draga de sucção e recalque e um sistema de recipientes de decantação interligados entre si.",toneladas,"1.372,53",Massa do material conforme atestado. Mesmo material do serviço de transporte; não somar as quantidades dos dois serviços.
+d5a30bdc-69b,40663e85-915,"O material depositado nos recipientes, foi transportado para o aterro controlado da Alemoa, através de caminhões Poliguindaste e somaram 1.372,53 toneladas.",toneladas,"1.372,53",Mesmo material do serviço de limpeza; não somar as quantidades dos dois serviços.
 a5f64b60-694,59d936b6-2f4,Lagoa de Decantaçao 1: Dragagem e retirada dos sedimentos: 3,m,"15.295,00",
 d65a303b-029,59d936b6-2f4,Lagoa de Decantaçao 1: Transporte de materiais escavados: 3,m,"15.295,00",
 18e60549-6cb,59d936b6-2f4,"Lagoa de Decantaçao 2: Escavação Mecânica em Campo Aberto até prof. : 20.050,00 m3",m,"2,50",
