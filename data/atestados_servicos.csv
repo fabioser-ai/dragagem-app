@@ -1233,17 +1233,17 @@ b812e45f-5cc,b83a790d-9e5,serviços de dragagem com dragas de sucção e recalqu
 890d1ba6-ac0,fa1f03a0-b2c,"dragagem, para aprofundamento do Canal de Acesso ao Terminal Marítimo da Companhia Siderúrgica Paulista - COSIPA, recalcando o material dragado até 3.000 metros, para simultânea execução de aterro hidráulico.",metros cúbicos,43.500,Recalque até 3.000 metros conforme descrição original. Quantidade no atestado: 43.500 metros cúbicos.
 98f157c0-190,40663e85-915,"serviços de limpeza do canal 1, no trecho a montante da Rua Francisco de Souza Dantas, e no canal 4, nas proximidades da Av. Afonso Pena, na cidade de Santos. A limpeza foi realizada utilizando-se draga de sucção e recalque e um sistema de recipientes de decantação interligados entre si.",toneladas,"1.372,53",Massa do material conforme atestado. Mesmo material do serviço de transporte; não somar as quantidades dos dois serviços.
 d5a30bdc-69b,40663e85-915,"O material depositado nos recipientes, foi transportado para o aterro controlado da Alemoa, através de caminhões Poliguindaste e somaram 1.372,53 toneladas.",toneladas,"1.372,53",Mesmo material do serviço de limpeza; não somar as quantidades dos dois serviços.
-a5f64b60-694,59d936b6-2f4,Lagoa de Decantaçao 1: Dragagem e retirada dos sedimentos: 3,m,"15.295,00",
-d65a303b-029,59d936b6-2f4,Lagoa de Decantaçao 1: Transporte de materiais escavados: 3,m,"15.295,00",
-18e60549-6cb,59d936b6-2f4,"Lagoa de Decantaçao 2: Escavação Mecânica em Campo Aberto até prof. : 20.050,00 m3",m,"2,50",
-3d196b5d-3a9,59d936b6-2f4,Lagoa de Decantaçao 2: Transporte de materiais escavados: 3,m,"20.050,00",
-3f19f88e-54f,59d936b6-2f4,Lagoa de Decantaçao 2: Regularizaçao taludes laterais: oras,h,"8,00",
-2c9a1425-231,59d936b6-2f4,Lagoa de Aeração: Dragagem e retirarda dos sedimentos: 3,m,"7.664,50",
-2296ec20-773,59d936b6-2f4,Lagoa de Aeração: Transporte de materiais escavados: 3,m,"7.664,50",
-7fefb259-540,59d936b6-2f4,Lagoa de Aeraçao: Regularizaçao dos taludes laterais: oras,h,20,
-68301543-8ae,59d936b6-2f4,Lagoa de Estabilização: Dragagem e retirada dos sedimentos: 3,m,"12.125,00",
-b70a5b1d-c8c,59d936b6-2f4,Lagoa de Estabilização: Transporte de materiais escavados: 3,m,"12.125,00",
-32d296f4-0b5,59d936b6-2f4,Lagoa de Estabilização: Regularização dos taludes laterais: oras,h,40,
+a5f64b60-694,59d936b6-2f4,dragagem e retirada dos sedimentos:,m³,"15.295,00",Grupo: Lagoa de Decantação 1
+d65a303b-029,59d936b6-2f4,transporte de materiais escavados:,m³,"15.295,00",Grupo: Lagoa de Decantação 1
+18e60549-6cb,59d936b6-2f4,"escavação mecânica em campo aberto até prof. 2,50m:",m³,"20.050,00",Grupo: Lagoa de Decantação 2
+3d196b5d-3a9,59d936b6-2f4,transporte de materiais escavados:,m³,"20.050,00",Grupo: Lagoa de Decantação 2
+3f19f88e-54f,59d936b6-2f4,regularização taludes laterais:,hs,"8,00",Grupo: Lagoa de Decantação 2
+2c9a1425-231,59d936b6-2f4,dragagem e retirada dos sedimentos:,m³,"7.664,50",Grupo: Lagoa de Aeração
+2296ec20-773,59d936b6-2f4,transporte de materiais escavados:,m³,"7.664,50",Grupo: Lagoa de Aeração
+7fefb259-540,59d936b6-2f4,regularização dos taludes laterais:,hs,"20,00",Grupo: Lagoa de Aeração
+68301543-8ae,59d936b6-2f4,dragagem e retirada dos sedimentos:,m³,"12.125,00",Grupo: Lagoa de Estabilização
+b70a5b1d-c8c,59d936b6-2f4,transporte de materiais escavados:,m³,"12.125,00",Grupo: Lagoa de Estabilização
+32d296f4-0b5,59d936b6-2f4,regularização dos taludes laterais:,hs,"40,00",Grupo: Lagoa de Estabilização
 062f886b-d2c,ed34264d-c0b,Limpeza de dois decantadores e um tanque de aeraçao na estaçao de tratamento de esgoto Humaitá : 3,m,830,
 8c5be4a8-26e,b71144c8-a7a,"Prestou serviço de dragagem para remoçao parcial do lodo atraves de uma linha de recalque de 8"" x  : (Nao esta definido no atestado mas seriam aproximadamente 80.000 m3)",m,2.000,
 136ce01b-3ef,b71144c8-a7a,Desaguamento em bateria de 32 Geotubes; oneladas,t,"16.229,00",
