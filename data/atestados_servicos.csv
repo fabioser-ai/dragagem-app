@@ -1175,19 +1175,19 @@ ddfccfc9-20d,87f33b3f-06c,Emboço,m²,"73,28",Item 10.5 | Grupo documental: 10 -
 4dd43edc-cc6,87f33b3f-06c,"Fornecimento e assentamento de tubo de concreto armado diâmetro 0,80m",m,"189,50",Item 1 | Grupo documental: ADITAMENTO - ADM - 042/94.
 976a464b-0ad,87f33b3f-06c,"Fornecimento e assent. de tubo de concreto armado Ø 1,00m.",m,"293,15",Item 2 | Grupo documental: ADITAMENTO - ADM - 042/94.
 8384b057-408,87f33b3f-06c,"Remoção, limpeza, empilhamento e rejunte de lajotas sext. contr.",m²,"394,03",Item 3 | Grupo documental: ADITAMENTO - ADM - 042/94.
-bb53cee6-592,70cff261-132,"Barracão m2 30,00",,,
-c8cad5c6-50f,70cff261-132,Ligação de luz e força vb 1,,,
-d52f5ba7-f44,70cff261-132,Ligaçao de agua e sanitário: 1 vb,,,
-c18f225d-a31,70cff261-132,Placa de obra,un,03,
-630e7f2b-810,70cff261-132,Mobilizaçao de Equipamento: 1 vb,,,
-47924b3f-56b,70cff261-132,"Desmatamento , destocamento e limpeza",m2,"205.043,28",
-64392154-888,70cff261-132,Dique de contenção tipo paliçada,m,"2.180,46",
-b284e84b-c3e,70cff261-132,Aterro Hidraulico incluindo testes laboratorios Distancia recalque de 500 a 1000: 3,m,"7144,00",
-f02a2eb8-4aa,70cff261-132,Distancia de recalque de 1001 a 1300: 3,m,"81.591,20",
-53d01b4d-231,70cff261-132,Escavação mecanizada: 3,m,"1.096,30",
-24d86e93-376,70cff261-132,Fornecimento e instalaçao de placas de recalque =,un,"90,00",
-562fbe5c-9b7,70cff261-132,Trator sobre esteiras com lamina = s,h,"136,5",
-77f37874-bc7,70cff261-132,"Transporte material remanescente inclusive carga descarga e espalhamento no local de lançamento até uma distancia maxima de 5 km : 59,61",,,
+bb53cee6-592,70cff261-132,Barracão,m²,"30,00",Item 1.1 | Grupo documental: INSTALAÇÃO DA OBRA
+c8cad5c6-50f,70cff261-132,Ligação de luz e força,vb,"1,00",Item 1.2 | Grupo documental: INSTALAÇÃO DA OBRA
+d52f5ba7-f44,70cff261-132,Ligação de água e sanitário,vb,"1,00",Item 1.3 | Grupo documental: INSTALAÇÃO DA OBRA
+c18f225d-a31,70cff261-132,Placa da obra,un,03,Item 1.4 | Grupo documental: INSTALAÇÃO DA OBRA
+630e7f2b-810,70cff261-132,MOBILIZAÇÃO DE EQUIPAMENTO,vb,"1,00",Item 02
+47924b3f-56b,70cff261-132,"DESMATAMENTO, DESTOCAMENTO E LIMPEZA",m²,"205.043,28",Item 03
+64392154-888,70cff261-132,Tipo paliçada,m,"2.180,46",Item 4.2 | Grupo documental: 04 DIQUES DE CONTENÇÃO
+b284e84b-c3e,70cff261-132,Distancia recalque de 500 à 1000,m³,"7.144,00",Grupo documental: 05 ATERRO HIDRÁULICO INCLUINDO TESTES LABORATÓRIOS
+f02a2eb8-4aa,70cff261-132,Distância recalque de 1001 a 1300,m³,"81.591,20",Item 5.3 | Grupo documental: 05 ATERRO HIDRÁULICO INCLUINDO TESTES LABORATÓRIOS
+53d01b4d-231,70cff261-132,Escavação mecanizada,m³,"1.096,30",Item 6.1 | Grupo documental: 06 - SERVIÇOS COMPLEMENTARES
+24d86e93-376,70cff261-132,Fornec. e inst. placa recalque,un,90,Item 6.2 | Grupo documental: 06 - SERVIÇOS COMPLEMENTARES
+562fbe5c-9b7,70cff261-132,Trator sobre esteira c/lâmina,h,"136,50",Item 6.3 | Grupo documental: 06 - SERVIÇOS COMPLEMENTARES
+77f37874-bc7,70cff261-132,"Transp. material remanescente, incl. carga, descarga e espalhamento até 5,0 km",m³,"59,61",Item 6.4 | Grupo documental: 06 - SERVIÇOS COMPLEMENTARES
 e127c19d-a05,51b8d914-134,Escavação manual de valas: 3,m,771,
 deb5c15c-4de,51b8d914-134,Escavaçao Mecanizada: 3,m,6060,
 d54d2b5e-76a,51b8d914-134,Esgotamento com bomba: 3,m,21.447,
