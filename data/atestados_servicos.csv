@@ -1218,8 +1218,8 @@ d4c7d4a4-237,e1388522-d67,Dique de contenção tipo paliçada,m/l,"1.333,80",Ite
 6cf3db91-0b1,9a720da9-95c,"Carga, transporte e descarga de todo material dragado até o lixão da Alemoa;",,,Item 3. Unidade e quantidade não informadas no documento; volume não inferido por soma dos outros serviços.
 621db981-b20,e7994c59-10f,Dragagem do canal de água bruta-1060 m3 de material retirado.,m3,1060,Item a). Texto documental completo: Dragagem do canal de água bruta-1060 m3 de material retirado. Grupo: 02- QUANTIDADES.
 0f5ad206-5d4,452c25f4-8c5,"Escavação de material de primeira categoria por Draga de Sucção e Recalque, incluso lançamento do material escavado até 1.500 m.",m³,"39.495,00","TOTAL DA ESCAVAÇÃO, conforme documento."
-4df15001-931,b6c201bf-d8a,Extração e remoção de areia e cascalho com drag-line: 3,m,47.000,
-9886f41a-3fb,b6c201bf-d8a,Transporte e Espalhamento do Material em várias ruas do Municipio de Cubatao,,,
+4df15001-931,b6c201bf-d8a,"serviços de extração e remoção de areia e cascalho com drag-line (47.000 m³), no Rio Mogi, Município de Cubatão, incluindo o transporte e espalhamento do material em várias ruas do Município de Cubatão.",m³,47.000,Descrição integral do escopo documentado. Volume de 47.000 m³ indicado junto à extração e remoção com drag-line.
+9886f41a-3fb,b6c201bf-d8a,transporte e espalhamento do material em várias ruas do Município de Cubatão.,,,Atividade incluída no mesmo escopo da extração e remoção. Sem unidade e quantidade próprias informadas; não duplicar o volume de 47.000 m³.
 5a460d0e-4da,173b892e-eb6,Dragagem lagoa de Emergencia : 3,m,23.000,
 f6eeb023-339,173b892e-eb6,Dragagem lagoa de Homogeneizaçao: 3,m,8.000,
 ebf5a00c-094,173b892e-eb6,Dragagem lagoa de Sobrenadantes: 3,m,40.000,
