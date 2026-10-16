@@ -1225,10 +1225,10 @@ f6eeb023-339,173b892e-eb6,Lagoa de Homogeneização,m³,8.000,"Grupo documental:
 ebf5a00c-094,173b892e-eb6,Lagoa de Sobrenadantes,m³,40.000,"Grupo documental: Volume. Serviço comum às lagoas: dragagem e desassoreamento das Lagoas da ETE em Suzano-SP., com a utilização de uma draga com diâmetro de 8"" (oito polegadas) com desagregador."
 c30d6c6c-cb9,173b892e-eb6,Lagoa de Aeração,m³,84.574,"Grupo documental: Volume. Serviço comum às lagoas: dragagem e desassoreamento das Lagoas da ETE em Suzano-SP., com a utilização de uma draga com diâmetro de 8"" (oito polegadas) com desagregador."
 37146e2c-fc4,173b892e-eb6,VOLUME TOTAL,m³,155.574,Total documental das quatro lagoas acima; não representa serviço adicional. Não somar novamente aos volumes discriminados.
-5d6fc1f7-b82,6dd9f466-733,"Escavaçãoransporte até 1.500 ml, e descarga em bota-for a, de material de 1a categaria, com 2 (duas) dragas flutuantes de sucçao e recalque, serviços estes incluindo a construçao dos dique do bota-for a : 125.982,00 m3",t,",",
-67afb388-59d,6dd9f466-733,Escavação de material de 1a categoria com dragline simples: 3,m,"20.756,03",
-95745b8a-d44,6dd9f466-733,"Transporte de material de 1a categoria incluindo carga e descarga até 2km : 41.512,06",,,
-620079f7-a96,6dd9f466-733,Espalhamento de material de 1a Categoria em bota-fora : 3,m,"20.756,03",
+5d6fc1f7-b82,6dd9f466-733,"Escavação, transporte até 1.500 (hum mil e quinhentos) ml, e descarga em bota-fora, de material de 1a categoria, com 2 (duas) dragas flutuantes de sucção e recalque, serviços êstes incluindo a construção dos diques do bota-fora",m3,"125.982,00",Item 1.
+67afb388-59d,6dd9f466-733,Escavação de material de 1a categoria com dragaline simples:,m3,"20.756,03",Item 2. Grafia dragaline preservada conforme atestado.
+95745b8a-d44,6dd9f466-733,Transporte de material de 1a categoria incluindo carga e descarga até 2 Km:,m3,"41.512,06","Item 3. Unidade m3 preservada conforme atestado, sem introduzir km na unidade."
+620079f7-a96,6dd9f466-733,Espalhamento de material de 1a categoria em bota-fora:,m3,"20.756,03",Item 4.
 b812e45f-5cc,b83a790d-9e5,Dragagem de 3,m,140.000,
 890d1ba6-ac0,fa1f03a0-b2c,Dragagem de aprofundamento do canal de acesso ao terminal maritimo da Cosipa recalcando o material dragado até etros para simultanea execuçao de aterro hidraulico : 43.500 metros,m,3.000,
 98f157c0-190,40663e85-915,Limpeza dos canais 01 e 04 de santos utilizando-se draga de sucçao e recalque e um sistema de recipientes de decantaçao interligados entre si = on,t,"1.372,53",
