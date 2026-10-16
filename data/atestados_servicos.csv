@@ -1205,10 +1205,10 @@ f4f3601c-1a5,51b8d914-134,"boca de lobo com ralo de concreto, inclusive lastros,
 b905c0b0-27d,51b8d914-134,"construção de sarjetas de concreto, inclusive lastros, de acordo com as especificações",m,3176,
 2f5ad731-48a,51b8d914-134,de fornecimento e assentamento de guias,m,122,
 7fbe3ebb-6c6,51b8d914-134,de assentamento de guias de concreto,m,3054,
-00047203-bf7,d837e554-cb2,"Escavação de material de 1a. Categoria por dragas de sucçao e recalque, num volume total de 3",m,"347.164,13",
-ee7780a5-df6,d837e554-cb2,Escavaçao de material de 1a. Catetegoria com drag-line simples: 3,m,"49.308,72",
-f45e6037-75a,d837e554-cb2,"Transporte de material de 1a. Categoria, incluindo carga e descarga: 3 /km",m,"98.617,44",
-d3502e6d-ab7,d837e554-cb2,Espalhamento de material de 1a Categoria em bota-fora : 3,m,"49.308,72",
+00047203-bf7,d837e554-cb2,Escavação de material de 1a. categoria por dragas de sucção e recalque,m³,"347.164,13","Item 1. Volume total conforme documento. Discriminação: período de 22/09/86 à 30/09/86 - 72.993,23 m³; período de 01/10/86 à 30/10/86 - 170.277,58 m³; período de 01/11/86 à 30/11/86 - 87.225,12 m³; período de 01/12/86 à 22/12/86 - 16.668.20 m³. Última quantidade com pontos conforme original, sem alteração da grafia."
+ee7780a5-df6,d837e554-cb2,Escavação de material de 1a. categoria com drag-line simples,m³,49.308.72,Item 2. período de 01/12/86 à 22/12/86. Quantidade transcrita com pontos conforme original: 49.308.72.
+f45e6037-75a,d837e554-cb2,"Transporte de material de 1a. categoria, incluindo carga e descarga",m⁴ Km.,"98.617,44","Item 3. período de 01/12/86 à 22/12/86. Unidade grafada no documento com expoente 4: m⁴ Km.; mantida literalmente, sem conversão presumida para m³ x km."
+d3502e6d-ab7,d837e554-cb2,Espalhamento de material de 1a. categoria em bota-fora,m³,"49.308,72",Item 4. período de 01/12/86 à 22/12/86.
 6d2e696b-3fe,e1388522-d67,Desmatamento,m2,"70.863,30",
 952d3a99-89d,e1388522-d67,Escavação do canal de drenagem de material de 1a clase com escavadeira a cabo com estiva: 3,m,"4.400,07",
 d4c7d4a4-237,e1388522-d67,Dique de contenção tipo paliçada: l,m,"1.333,80",
