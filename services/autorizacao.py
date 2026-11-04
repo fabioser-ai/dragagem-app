@@ -340,3 +340,22 @@ def pode_acessar_rota(tela):
         return False
 
     return pode_acessar(modulo)
+
+
+# Consultas estritamente necessárias à composição, sem abrir acesso às telas
+# ou às operações de edição de CRM/Dados. Uma concessão explícita de Orçamento
+# é obrigatória; o módulo de origem não é liberado por esta função.
+FONTES_LEITURA_COMPOSICAO = frozenset({
+    "clientes", "contatos", "materiais", "horarios", "regimes",
+})
+
+
+def pode_consultar_fonte_composicao(fonte):
+    """Autoriza somente catálogos aprovados para o fluxo de orçamento.
+
+    A decisão é reavaliada pelo RBAC/legado vigente. Não há fallback em caso
+    de erro ou modo inválido e não concede acesso ao CRM/Dados fora deste fluxo.
+    """
+    if fonte not in FONTES_LEITURA_COMPOSICAO:
+        return False
+    return pode_acessar("orcamento")

@@ -8,6 +8,8 @@ from datetime import date
 
 import streamlit as st
 from services.ui import renderizar_cabecalho_modulo
+from services.autorizacao import pode_consultar_fonte_composicao
+from services.composicao_fontes import consultar_catalogo, listar_opcoes, contatos_do_cliente
 
 
 SECOES = (
@@ -83,6 +85,97 @@ def _renderizar_guia_etapas():
     )
 
 
+def _fontes_autorizadas():
+    """Permissão de leitura restrita ao fluxo de composição de orçamento."""
+    return {fonte: pode_consultar_fonte_composicao(fonte)
+            for fonte in ("clientes", "contatos", "materiais", "horarios", "regimes")}
+
+
+def _carregar_fontes():
+    autorizadas = _fontes_autorizadas()
+    try:
+        token, repo = st.secrets["GITHUB_TOKEN"], st.secrets["REPO"]
+    except (KeyError, AttributeError):
+        st.error("Configuração de consulta indisponível.")
+        return {}
+    leituras = {}
+    for fonte, permitido in autorizadas.items():
+        if not permitido:
+            st.warning(f"Sem permissão de leitura para o cadastro: {fonte}.")
+            continue
+        try:
+            resultado = consultar_catalogo(fonte, token, repo)
+        except Exception:
+            st.warning(f"Não foi possível consultar o cadastro {fonte}.")
+            continue
+        if not resultado.disponivel:
+            st.warning(f"Cadastro {fonte} indisponível: {resultado.erro}")
+        else:
+            leituras[fonte] = resultado
+    return leituras
+
+
+def _selecionar_catalogo(rotulo, fonte, coluna, leituras, valor_anterior, chave):
+    catalogo = leituras.get(fonte)
+    if catalogo is None:
+        st.text_input(rotulo, value=str(valor_anterior or ""), disabled=True,
+                      help="Cadastro indisponível ou sem autorização.")
+        return str(valor_anterior or "")
+    opcoes = listar_opcoes(catalogo, coluna)
+    if valor_anterior and valor_anterior not in opcoes:
+        st.warning(f"{rotulo}: valor anterior não está mais no cadastro. Revise antes de salvar.")
+        opcoes = [valor_anterior] + opcoes
+    opcoes = [""] + [v for v in opcoes if v]
+    return st.selectbox(rotulo, opcoes,
+                        index=opcoes.index(valor_anterior) if valor_anterior in opcoes else 0,
+                        format_func=lambda v: v or "Selecione...")
+
+
+def _selecionar_cliente_contato(leituras, anterior):
+    clientes, contatos = leituras.get("clientes"), leituras.get("contatos")
+    if clientes is None:
+        st.text_input("Cliente (CRM)", value=str(anterior.get("cliente", "")), disabled=True)
+        st.text_input("Contato (CRM)", value=str(anterior.get("contato", "")), disabled=True)
+        return {"cliente": anterior.get("cliente", ""), "contato": anterior.get("contato", ""),
+                "id_cliente": anterior.get("id_cliente", ""), "id_contato": anterior.get("id_contato", "")}, False
+    df = clientes.dados
+    ids = [str(v).strip() for v in df["id_cliente"]]
+    if not all(ids) or len(ids) != len(set(ids)):
+        st.error("CRM com IDs de cliente vazios ou duplicados. Corrija o cadastro antes de selecionar.")
+        return {}, False
+    nomes = dict(zip(ids, df["nome_empresa"].astype(str)))
+    selecionados = [""] + sorted(ids, key=lambda v: nomes[v].casefold())
+    id_anterior = str(anterior.get("id_cliente", ""))
+    if id_anterior and id_anterior not in selecionados:
+        st.error("Cliente do rascunho não está mais disponível no CRM.")
+        return {}, False
+    id_cliente = st.selectbox("Cliente (CRM oficial)", selecionados,
+        index=selecionados.index(id_anterior), format_func=lambda v: nomes.get(v, "Selecione..."),
+         )
+    id_contato, nome_contato = "", ""
+    if id_cliente and contatos is not None:
+        df_contatos = contatos_do_cliente(clientes, contatos, id_cliente)
+        contato_ids = [str(v).strip() for v in df_contatos["id_contato"]]
+        if not all(contato_ids) or len(contato_ids) != len(set(contato_ids)):
+            st.error("CRM com IDs de contato vazios ou duplicados.")
+            return {}, False
+        nomes_contatos = dict(zip(contato_ids, df_contatos["nome_contato"].astype(str)))
+        opcoes = [""] + sorted(contato_ids, key=lambda v: nomes_contatos[v].casefold())
+        anterior_contato = str(anterior.get("id_contato", ""))
+        # Troca de cliente limpa o contato anterior, sem reutilizar contato de outra empresa.
+        if anterior_contato not in opcoes:
+            anterior_contato = ""
+        id_contato = st.selectbox("Contato (CRM)", opcoes,
+            index=opcoes.index(anterior_contato),
+            format_func=lambda v: nomes_contatos.get(v, "Sem contato selecionado"),
+             )
+        nome_contato = nomes_contatos.get(id_contato, "")
+    else:
+        st.caption("Selecione o cliente para consultar seus contatos.")
+    return {"cliente": nomes.get(id_cliente, ""), "contato": nome_contato,
+            "id_cliente": id_cliente, "id_contato": id_contato}, bool(id_cliente)
+
+
 def render():
     renderizar_cabecalho_modulo(
         "Composição de Orçamento",
@@ -96,6 +189,9 @@ def render():
         "sessão do navegador; ainda não são gravados no banco operacional."
     )
     anterior = st.session_state.get(CHAVE_RASCUNHO, {})
+    leituras = _carregar_fontes()
+    st.markdown("### Cliente e contato — CRM")
+    dados_crm, cliente_valido = _selecionar_cliente_contato(leituras, anterior)
     st.markdown(
         "<style>div[data-testid='stForm'] {max-width: 760px;}"
         "div[data-testid='stForm'] label {font-size: 1.05rem;}"
@@ -103,11 +199,30 @@ def render():
         unsafe_allow_html=True,
     )
     with st.form("composicao_etapa1_formulario"):
-        valores = {}
+        valores = dict(dados_crm)
         for titulo, campos in SECOES:
             st.markdown(f"### {titulo}")
             for chave, rotulo, tipo in campos:
-                if tipo == "data":
+                if chave in {"cliente", "contato"}:
+                    continue
+                if chave == "tipo_material":
+                    valores[chave] = _selecionar_catalogo(rotulo, "materiais", "Material", leituras,
+                        anterior.get(chave, ""), "composicao_material")
+                elif chave == "horario_trabalho":
+                    horarios = leituras.get("horarios")
+                    if horarios is not None:
+                        opcoes_horario = [f"{linha.Inicio} - {linha.Fim}" for linha in horarios.dados.itertuples(index=False)]
+                        opcoes_horario = sorted(set(opcoes_horario))
+                        anterior_horario = str(anterior.get(chave, ""))
+                        if anterior_horario and anterior_horario not in opcoes_horario:
+                            opcoes_horario.insert(0, anterior_horario)
+                        opcoes_horario = [""] + opcoes_horario
+                        valores[chave] = st.selectbox(rotulo, opcoes_horario,
+                            index=opcoes_horario.index(anterior_horario) if anterior_horario in opcoes_horario else 0,
+                             )
+                    else:
+                        valores[chave] = st.text_input(rotulo, value=str(anterior.get(chave, "")), disabled=True)
+                elif tipo == "data":
                     valores[chave] = st.date_input(
                         rotulo,
                         value=date.fromisoformat(anterior["data_composicao"])
@@ -127,6 +242,10 @@ def render():
                         value=float(anterior.get(chave, 0.0)),
                         step=1.0, format="%.2f",
                     )
+            if titulo.startswith("5."):
+                valores["regime_trabalho"] = _selecionar_catalogo(
+                    "Regime de trabalho", "regimes", "Descricao", leituras,
+                    anterior.get("regime_trabalho", ""), "composicao_regime")
             if titulo.startswith("3."):
                 recalque_total = (
                     valores["recalque_terra"] + valores["recalque_flutuante"]
@@ -136,7 +255,10 @@ def render():
         salvar = st.form_submit_button(
             "Guardar rascunho nesta sessão", use_container_width=True
         )
-    if salvar:
+    if salvar and not cliente_valido:
+        st.error("Selecione um cliente válido do CRM antes de guardar o rascunho.")
+    elif salvar:
+        valores["origem_cliente"] = "crm"
         valores["data_composicao"] = valores["data_composicao"].isoformat()
         valores["distancia_recalque_total"] = recalque_total
         st.session_state[CHAVE_RASCUNHO] = valores
