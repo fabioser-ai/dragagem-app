@@ -358,6 +358,4 @@ def pode_consultar_fonte_composicao(fonte):
     """
     if fonte not in FONTES_LEITURA_COMPOSICAO:
         return False
-    return pode_acessar("orcamento") and pode(
-        modulo="orcamento", recurso="todos", acao="todos"
-    )
+    return pode_acessar("orcamento")
