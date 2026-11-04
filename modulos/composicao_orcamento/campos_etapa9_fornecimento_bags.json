@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 9,
+  "id": "fornecimento_bags",
+  "titulo": "Fornecimento de Bags (Geobags)",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "moeda": "BRL",
+  "dimensionamento": {
+    "entradas": [
+      {
+        "id": "volume_material",
+        "unidade": "m3",
+        "exemplo": 4650
+      },
+      {
+        "id": "solidos_in_situ_percentual",
+        "exemplo": 12
+      },
+      {
+        "id": "solidos_apos_desaguamento_percentual",
+        "exemplo": 25
+      },
+      {
+        "id": "area_disponivel",
+        "unidade": "m2",
+        "origem": "informacao_do_local_ou_cliente",
+        "editavel": true
+      },
+      {
+        "id": "restricoes_geometricas",
+        "tipo": "observacoes_e_dimensoes",
+        "editavel": true
+      }
+    ],
+    "formula_referencia": "volume_material * (solidos_in_situ_percentual/100) / (solidos_apos_desaguamento_percentual/100)",
+    "exemplo_volume_acomodar_m3": 2232,
+    "alerta_tecnico": "O exemplo chama 558 de toneladas secas, mas a conversão entre volume e massa e a base dos percentuais não estão especificadas; validar densidades e natureza das concentrações antes de ativar o cálculo como físico.",
+    "referencia_solidosecos": 558
+  },
+  "catalogo_bags": {
+    "unidade": "pç",
+    "modelos_exemplo": [
+      {
+        "dimensoes_m": "8 x 10",
+        "capacidade_referencia_m3": 150,
+        "preco_exemplo": 8550
+      },
+      {
+        "dimensoes_m": "8 x 13",
+        "capacidade_referencia_m3": 190,
+        "preco_exemplo": 10830
+      },
+      {
+        "dimensoes_m": "8 x 14",
+        "capacidade_referencia_m3": 200,
+        "preco_exemplo": 11400
+      },
+      {
+        "dimensoes_m": "8 x 15",
+        "capacidade_referencia_m3": 225,
+        "preco_exemplo": 16875
+      },
+      {
+        "dimensoes_m": "8 x 20",
+        "capacidade_referencia_m3": 300,
+        "preco_exemplo": 17100
+      },
+      {
+        "dimensoes_m": "6 x 15",
+        "capacidade_referencia_m3": 160,
+        "preco_exemplo": 9120
+      },
+      {
+        "dimensoes_m": "8 x 25",
+        "capacidade_referencia_m3": 375,
+        "preco_exemplo": 19500
+      },
+      {
+        "dimensoes_m": "8 x 30",
+        "capacidade_referencia_m3": 440,
+        "preco_exemplo": 37777
+      },
+      {
+        "dimensoes_m": "6 x 30",
+        "capacidade_referencia_m3": 340,
+        "preco_exemplo": 0
+      },
+      {
+        "dimensoes_m": "6 x 50",
+        "capacidade_referencia_m3": 550,
+        "preco_exemplo": null
+      },
+      {
+        "dimensoes_m": "18 x 13",
+        "capacidade_referencia_m3": null,
+        "preco_exemplo": null
+      }
+    ],
+    "observacao": "Preços e capacidades são referências históricas da planilha, não cotações atuais nem especificações técnicas validadas. Modelos sem preço não devem ser tratados como gratuitos."
+  },
+  "selecao": {
+    "permite_multiplos_modelos": true,
+    "permite_quantidades_variaveis": true,
+    "criterios": [
+      "volume_necessario",
+      "area_disponivel",
+      "geometria_local",
+      "restricoes_cliente",
+      "disposicao_bags",
+      "espacamento_operacional"
+    ],
+    "campos_por_linha": [
+      "modelo",
+      "quantidade",
+      "capacidade_unitaria_m3",
+      "preco_unitario",
+      "area_ocupada_m2",
+      "celula_destino",
+      "observacoes"
+    ],
+    "capacidade_total": "soma(quantidade * capacidade_unitaria_m3)",
+    "comparacao": "capacidade_total - volume_a_acomodar",
+    "regra": "Capacidade volumétrica suficiente não comprova que os bags caibam na área; disposição e espaçamento precisam de verificação específica.",
+    "permite_ajustes_manuais_com_alerta": true,
+    "relacao_etapa8": "Avaliar necessidade de novas células ou repetições de preparo conforme disposição selecionada.",
+    "exemplo_planilha": {
+      "modelo": "8 x 30",
+      "quantidade": 10,
+      "capacidade_unitaria_m3": 440,
+      "capacidade_total_m3": 4400,
+      "volume_a_acomodar_m3": 2232,
+      "observacao": "Exemplo de seleção acima do volume estimado, sem classificar automaticamente como erro."
+    }
+  },
+  "instalacao": {
+    "equipe": {
+      "campos": [
+        "funcao",
+        "numero_funcionarios",
+        "valor_hora",
+        "horas_dia",
+        "encargos_sociais_percentual"
+      ],
+      "origem_preferencial_salarios": "tabelas_existentes_do_fos_app",
+      "fonte_exata": "pendente_identificacao",
+      "formula_linha": "numero_funcionarios * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)",
+      "despesas_diarias": [
+        "refeicoes",
+        "transporte"
+      ],
+      "custo_diario_exemplo": 2403.42
+    },
+    "itens_exemplo": [
+      {
+        "descricao": "Frete dos bags",
+        "unidade": "un",
+        "quantidade": 1,
+        "preco_unitario": 5000
+      },
+      {
+        "descricao": "Munck para descarregamento",
+        "unidade": "dia",
+        "quantidade": 1,
+        "preco_unitario": 2000
+      },
+      {
+        "descricao": "Mão de obra para instalação",
+        "unidade": "dia",
+        "quantidade": 3,
+        "preco_unitario_referencia": 2403.42,
+        "preco_total_planilha": 7210.25,
+        "derivado_da_equipe": true
+      }
+    ],
+    "evitar_dupla_contagem": "Equipe derivada deve entrar uma vez como custo de instalação; não somar novamente a equipe separadamente."
+  },
+  "precificacao": {
+    "origem_preferencial": "etapa2.cotacoes",
+    "preco_unitario_por_modelo_e_servico": true,
+    "custo_aquisicao": "soma(quantidade_modelo * preco_unitario_modelo)",
+    "custo_servicos": "soma(itens_instalacao_e_logistica)",
+    "custo_base": "custo_aquisicao + custo_servicos",
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "editavel": true,
+      "valor_inicial": 0
+    },
+    "preco_final": "custo_base * (1 + bdi_percentual/100)",
+    "exemplo_planilha": {
+      "quantidades_aquisicao_bags": 0,
+      "custo_bags": 0,
+      "custo_logistica_instalacao": 14210.25,
+      "preco_final": 14210.25,
+      "observacao": "Exemplo não inclui compra de bags; não representa custo completo de fornecimento."
+    }
+  },
+  "rastreabilidade": {
+    "entrada_manual_permitida": true,
+    "tipos_alerta": [
+      "preco_sem_cotacao",
+      "preco_vinculado_sobrescrito",
+      "quantidade_sugerida_sobrescrita",
+      "capacidade_referencia_sobrescrita",
+      "restricao_area_nao_validada",
+      "divergencia_volume_capacidade"
+    ],
+    "regra": "Exceções manuais são permitidas, não são erros por si sós; preservar origem, valor calculado ou cotado, valor usado, diferença e observação no histórico.",
+    "snapshot_orcamento_concluido": true
+  },
+  "pendencias": [
+    "Validar cálculo físico do volume de sólidos e densidades antes de implementação operacional.",
+    "Definir método de verificação de implantação dos bags na área, inclusive afastamentos, camadas e reinícios de célula.",
+    "Localizar tabela salarial existente do FOS App.",
+    "Definir política de arredondamento para custo diário e instalação.",
+    "Implementar interface, persistência, cotações e alertas operacionais."
+  ]
+}
