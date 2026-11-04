@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 14,
+  "id": "desmobilizacao_draga",
+  "titulo": "Desmobilização da Draga",
+  "status": "especificacao_declarativa_sem_interface_ou_calculos_ativos",
+  "principios": [
+    "Desmobilização da draga e desmobilização do sistema de polímero são SEMPRE composições de custo independentes.",
+    "A equipe e os custos da desmobilização da draga não incluem automaticamente técnico, desmontagem ou fretes do sistema de polímero.",
+    "Mobilização da draga (Etapa 5) e desmobilização da draga (Etapa 14) são composições independentes, sem cópia automática de custos.",
+    "Composições independentes podem ser apresentadas como itens separados ou incorporadas ao preço global, sem dupla contagem.",
+    "Custos não aplicáveis permanecem zerados."
+  ],
+  "composicao_equipe": {
+    "campos": [
+      "funcao",
+      "quantidade",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual",
+      "refeicoes",
+      "transporte_pessoal",
+      "dias_desmontagem"
+    ],
+    "formula_funcao_dia": "quantidade * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)",
+    "formula_custo_diario": "soma(custos_funcoes) + refeicoes + transporte_pessoal",
+    "formula_custo_equipe": "custo_diario * dias_desmontagem",
+    "origem_preferencial_salarios": "tabelas_salariais_existentes_fos_app",
+    "localizacao_fonte": "pendente_identificacao",
+    "funcoes_referencia_nao_obrigatorias": [
+      "operador_draga",
+      "ajudante_geral",
+      "tecnico_operacao_polimero"
+    ],
+    "nota": "A presença de técnico de polímero no exemplo histórico não determina sua inclusão automática na desmobilização da draga."
+  },
+  "itens": [
+    {
+      "id": "protecao_e_cobertura",
+      "descricao": "Proteção e cobertura do equipamento",
+      "unidades": [
+        "vb",
+        "un"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "frete_transporte_draga",
+      "descricao": "Transporte de retorno da draga",
+      "unidades": [
+        "vb",
+        "viagem",
+        "km"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "mao_obra_desmontagem",
+      "descricao": "Equipe de desmontagem e carregamento",
+      "unidades": [
+        "dia"
+      ],
+      "preco_preferencial": "composicao_equipe"
+    },
+    {
+      "id": "guindaste_diarias",
+      "descricao": "Diárias do guindaste para desmontagem e carregamento",
+      "unidades": [
+        "dia",
+        "h"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "guindaste_frete_deslocamento",
+      "descricao": "Frete/mobilização e retorno do guindaste",
+      "unidades": [
+        "vb",
+        "viagem"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "fretes_adicionais",
+      "descricao": "Fretes adicionais com finalidade identificada",
+      "unidades": [
+        "vb",
+        "viagem",
+        "dia"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "servicos_adicionais",
+      "descricao": "Serviços adicionais de desmobilização da draga",
+      "unidades": [
+        "vb",
+        "dia",
+        "h",
+        "un"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    }
+  ],
+  "campos_item": [
+    "descricao",
+    "finalidade",
+    "unidade",
+    "quantidade",
+    "preco_unitario",
+    "preco_total",
+    "origem_cotacao",
+    "fornecedor",
+    "observacao_livre"
+  ],
+  "formula_item": "quantidade * preco_unitario",
+  "regra_fretes": "Diária do guindaste, frete de deslocamento do guindaste e frete de transporte da draga são custos independentes. Fretes com descrições semelhantes não são automaticamente duplicados; registrar finalidade para prevenir dupla contagem real.",
+  "cotacoes": {
+    "origem_preferencial": "etapa2",
+    "entrada_manual_permitida": true,
+    "alerta_quando_preco_sem_fonte": true,
+    "condicoes_por_cotacao": [
+      "distancia",
+      "localizacao",
+      "tipo_e_capacidade_equipamento",
+      "escopo",
+      "data",
+      "unidade"
+    ]
+  },
+  "exemplo_historico_nao_padrao": {
+    "custo_diario_equipe": 2403.42,
+    "dias_desmontagem": 3,
+    "custo_equipe_planilha": 7210.25,
+    "frete_equipamento_2_vezes_2500": 5000,
+    "guindaste_1_dia": 10000,
+    "frete_adicional_2_vezes_2000": 4000,
+    "cobertura_equipamento": 0,
+    "total": 26210.25,
+    "bdi_percentual": 0,
+    "preco_final": 26210.25,
+    "observacoes": [
+      "A linha de R$ 4.000 é denominada 'Frete para mobilização do equipamento' na planilha original; não assumir que seja necessariamente frete do guindaste sem confirmação.",
+      "R$ 2.403,42 × 3 = R$ 7.210,26 usando valores exibidos, versus R$ 7.210,25 na planilha: diferença de arredondamento a preservar e validar.",
+      "A equipe histórica inclui referência a técnico de polímero; não converter isso em regra para todos os contratos."
+    ]
+  },
+  "bdi": {
+    "percentual_editavel": true,
+    "formula_preco_final": "soma(precos_itens) * (1 + bdi_percentual/100)"
+  },
+  "separacao_obrigatoria": {
+    "desmobilizacao_draga": {
+      "id": "etapa14",
+      "custo_independente": true
+    },
+    "desmobilizacao_sistema_polimero": {
+      "id": "composicao_independente_a_definir",
+      "custo_independente": true
+    },
+    "regra": "Não fundir custos, equipes, itens ou bases de cálculo dessas desmobilizações; apresentação comercial agregada não altera segregação analítica."
+  },
+  "medicao_e_apresentacao": {
+    "modalidades": [
+      "item_separado",
+      "incorporado_preco_global"
+    ],
+    "escolha_por_orcamento": true,
+    "sem_dupla_contagem": true
+  },
+  "rastreabilidade": {
+    "observacoes_por_item_especificas_da_proposta": true,
+    "nao_transformar_comentarios_historicos_em_regras_globais": true,
+    "alertas": [
+      "preco_manual_sem_cotacao",
+      "preco_cotado_sobrescrito",
+      "possivel_duplicidade_real_de_escopo"
+    ],
+    "preservar": [
+      "valor_original",
+      "valor_utilizado",
+      "fonte",
+      "diferenca",
+      "observacao",
+      "versao"
+    ],
+    "snapshot_conclusao": true
+  },
+  "pendencias": [
+    "Definir a composição independente da desmobilização do sistema de polímero em etapa própria.",
+    "Identificar fonte salarial existente do FOS App.",
+    "Definir política de arredondamento.",
+    "Implementar interface, cálculos, persistência e validações; este arquivo é apenas declarativo."
+  ]
+}
