@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 13,
+  "id": "carga_transporte",
+  "titulo": "Carga e Transporte de Material Desaguado",
+  "status": "especificacao_declarativa_sem_interface_ou_calculo_ativo",
+  "obrigatoriedade": "opcional",
+  "regra_ativacao": "A etapa permanece disponível em todos os orçamentos; itens não utilizados ficam com quantidade e total zerados, sem impactar a consolidação.",
+  "volume": {
+    "referencia_preferencial": "volume_de_material_desaguado",
+    "nao_utilizar_automaticamente": "volume_dragado",
+    "origem_possivel": "dimensionamento_geobags_etapa9",
+    "quantidade_transportada_editavel": true,
+    "distincoes": [
+      "volume_desaguado",
+      "volume_retirado_dos_bags",
+      "volume_transportado",
+      "volume_recebido_no_destino"
+    ],
+    "nota": "A medição do terceiro segue a unidade e o evento contratados; volumes podem diferir."
+  },
+  "itens": [
+    {
+      "id": "carga_material_desaguado",
+      "descricao": "Carga de material desaguado",
+      "unidades_possiveis": [
+        "m3",
+        "t",
+        "h",
+        "dia"
+      ],
+      "origem_preco": "etapa2.cotacoes"
+    },
+    {
+      "id": "transporte",
+      "descricao": "Transporte de material",
+      "unidades_possiveis": [
+        "m3",
+        "t",
+        "viagem"
+      ],
+      "origem_preco": "etapa2.cotacoes"
+    },
+    {
+      "id": "caminhoes",
+      "descricao": "Caminhões próprios ou contratados",
+      "unidades_possiveis": [
+        "h",
+        "dia",
+        "viagem",
+        "mes"
+      ],
+      "origem_preco": "etapa2.cotacoes"
+    },
+    {
+      "id": "equipamento_carregamento",
+      "descricao": "Equipamento de carregamento",
+      "unidades_possiveis": [
+        "h",
+        "dia",
+        "mes"
+      ],
+      "origem_preco": "etapa2.cotacoes"
+    },
+    {
+      "id": "destinacao_bota_fora",
+      "descricao": "Recebimento e disposição no bota-fora",
+      "unidades_possiveis": [
+        "m3",
+        "t",
+        "viagem"
+      ],
+      "origem_preco": "etapa2.cotacoes"
+    },
+    {
+      "id": "acompanhamento_fos",
+      "descricao": "Acompanhamento pela FOS",
+      "unidades_possiveis": [
+        "dia",
+        "h",
+        "mes"
+      ],
+      "origem_preco_preferencial": "etapa2.cotacoes",
+      "alternativa": "composicao_de_custo_interno_com_salarios_existentes"
+    },
+    {
+      "id": "servicos_adicionais",
+      "descricao": "Serviços adicionais",
+      "unidade": "configuravel",
+      "origem_preco": "etapa2.cotacoes"
+    }
+  ],
+  "campos_item": [
+    "descricao",
+    "unidade",
+    "quantidade",
+    "preco_unitario",
+    "preco_total",
+    "cotacao_origem",
+    "observacao_livre",
+    "escopo_incluso",
+    "responsavel_execucao",
+    "modalidade_medicao"
+  ],
+  "formula_preco_total": "quantidade * preco_unitario",
+  "valores_iniciais": {
+    "quantidade": 0,
+    "preco_total": 0
+  },
+  "precos": {
+    "origem_preferencial": "etapa2.cotacoes_para_todos_os_itens",
+    "manual_permitido": true,
+    "alerta_sem_cotacao": true,
+    "snapshot_ao_concluir": true
+  },
+  "condicoes_cotacao": {
+    "campos": [
+      "distancia_km",
+      "tipo_material",
+      "condicao_material",
+      "unidade_cobranca",
+      "escopo_incluso",
+      "local_destino",
+      "data_cotacao",
+      "fornecedor"
+    ],
+    "regra": "Não extrapolar preço linearmente pela distância; mudança de distância, material ou escopo exige nova cotação ou ajuste manual com alerta."
+  },
+  "modalidades_execucao": [
+    {
+      "id": "servico_completo",
+      "descricao": "Terceiro executa carga, transporte e eventualmente destinação com preço unitário agregado"
+    },
+    {
+      "id": "servicos_separados",
+      "descricao": "FOS contrata ou disponibiliza carga, frota, transporte e bota-fora separadamente"
+    }
+  ],
+  "regra_sem_duplicidade": "Não somar serviço completo e componentes separados que representem o mesmo escopo.",
+  "medicao": {
+    "criterios_possiveis": [
+      "m3_transportado",
+      "m3_recebido_bota_fora",
+      "tonelada",
+      "viagem",
+      "hora",
+      "dia",
+      "outro"
+    ],
+    "criterio_definido_por_contrato": true,
+    "referencia_preferencial": "volume_desaguado_sem_presumir_igualdade_com_volume_transportado"
+  },
+  "equipe_auxiliar": {
+    "uso": "somente_quando_houver_acompanhamento_proprio_ou_operacao_propria",
+    "campos": [
+      "funcao",
+      "quantidade",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual",
+      "refeicoes",
+      "transporte_pessoal"
+    ],
+    "origem_preferencial": "tabelas_salariais_existentes_fos_app",
+    "fonte_exata": "pendente_identificacao",
+    "exemplo_historico_nao_padrao": {
+      "operador_draga": 2,
+      "ajudante_geral": 5,
+      "horas_dia": 9,
+      "encargos_sociais_percentual": 110,
+      "custo_diario_equipe": 1606.78
+    }
+  },
+  "integracoes": {
+    "etapa2": "cotacoes_de_todos_os_servicos",
+    "etapa9": "referencia_de_volume_desaguado",
+    "etapa11": "evitar_duplicidade_de_apoio_e_custos",
+    "etapa12": "evitar_duplicidade_de_batimetria_e_acompanhamento"
+  },
+  "batimetria": {
+    "inclusao_automatica": false,
+    "regra": "Não adicionar segunda batimetria; somente incluir serviço adicional quando houver escopo comprovadamente distinto."
+  },
+  "bdi": {
+    "percentual_editavel": true,
+    "exemplo_historico": 0,
+    "preco_final": "soma(precos_itens_incluidos) * (1 + bdi_percentual/100)"
+  },
+  "exemplo_historico_nao_padrao": {
+    "distancia_km": 6,
+    "preco_transporte_m3": 32,
+    "quantidade_transportada": null,
+    "preco_total_transporte": 0,
+    "batimetria_total": 0,
+    "acompanhamento_dias": null,
+    "custo_diario_equipe": 1606.78,
+    "preco_total_etapa": 0,
+    "nota": "Valores e observações do exemplo são específicos da proposta, não parâmetros globais."
+  },
+  "rastreabilidade": {
+    "observacoes_livres_por_item": true,
+    "observacoes_especificas_da_proposta_nao_criam_regras_globais": true,
+    "alertas": [
+      "preco_manual_sem_cotacao",
+      "cotacao_condicoes_divergentes",
+      "valor_cotado_sobrescrito",
+      "duplicidade_escopo",
+      "quantidade_transportada_ajustada"
+    ],
+    "preservar": [
+      "valor_origem",
+      "valor_utilizado",
+      "diferenca",
+      "fonte",
+      "observacao",
+      "versao_orcamento"
+    ],
+    "snapshot_versao_concluida": true
+  },
+  "pendencias": [
+    "Identificar fonte salarial existente do FOS App.",
+    "Definir regras de arredondamento e interface para escopo completo versus componentes.",
+    "Implementar formulários, cálculos, validações e persistência; JSON apenas declarativo."
+  ]
+}
