@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 16,
+  "id": "planilha_detalhada_custo_venda",
+  "titulo": "Planilha Detalhada de Preços de Custo e Venda",
+  "status": "especificacao_declarativa_sem_interface_calculos_ou_persistencia_ativos",
+  "objetivos": [
+    "Consolidar custos das composições anteriores em itens comerciais.",
+    "Calcular preços de venda com BDI individual livremente definido pelo orçamentista para CADA item.",
+    "Guardar histórico auditável dos BDIs aplicados para benchmark por tipo de obra e serviço."
+  ],
+  "bdi": {
+    "regra_principal": "Cada item possui BDI individual definido pelo orçamentista, sem BDI geral automático ou propagação entre itens.",
+    "campo": "bdi_percentual_item",
+    "editavel": true,
+    "limite_ou_recomendacao_automatica": false,
+    "benchmark_apenas_informativo": true,
+    "formula_preco_unitario": "custo_unitario * (1 + bdi_percentual_item/100)",
+    "formula_preco_total": "custo_total_item * (1 + bdi_percentual_item/100)",
+    "nota": "BDI não equivale diretamente a margem de lucro nem a resultado realizado."
+  },
+  "campos_item": [
+    "numero_item",
+    "descricao_servico",
+    "composicoes_origem",
+    "custo_total",
+    "quantidade",
+    "unidade",
+    "custo_unitario",
+    "bdi_percentual_item",
+    "preco_unitario_venda",
+    "preco_total_venda",
+    "criterio_medicao",
+    "observacoes",
+    "ajustes_manuais",
+    "fonte_dados"
+  ],
+  "formulas": {
+    "custo_unitario": "custo_total / quantidade, somente se quantidade > 0",
+    "preco_unitario": "custo_unitario * (1 + bdi_percentual_item/100)",
+    "preco_total": "custo_total * (1 + bdi_percentual_item/100)",
+    "custo_global": "soma(custo_total de cada item comercial incluído)",
+    "venda_global": "soma(preco_total_venda de cada item comercial incluído)",
+    "regra_arredondamento": "A definir na implementação, com precisão intermediária preservada e valores finais auditáveis."
+  },
+  "consolidacao": {
+    "fontes": "etapas anteriores do orçamento",
+    "permitir_agrupar_multiplas_composicoes_em_item_comercial": true,
+    "permitir_itens_independentes": true,
+    "evitar_dupla_contagem": true,
+    "exemplo": "Dragagem e operação do sistema de polímero podem aparecer juntas na proposta mantendo composições analíticas separadas.",
+    "regra": "Custo total e preço total usam o mesmo conjunto de itens efetivamente incluídos; ajustes manuais não podem ocultar divergências."
+  },
+  "validacoes_e_alertas": [
+    "custo_total_diferente_soma_itens",
+    "venda_total_diferente_soma_itens",
+    "quantidade_zero_com_custo_positivo",
+    "composicao_duplicada_em_itens_comerciais",
+    "composicao_sem_custo_ou_fonte",
+    "ajuste_manual_de_custo_preco_ou_quantidade",
+    "preco_unitario_inconsistente_com_total",
+    "diferenca_de_arredondamento"
+  ],
+  "historico_bdi": {
+    "unidade_registro": "BDI individual por item comercial de versão concluída da proposta",
+    "dimensoes": [
+      "tipo_obra",
+      "tipo_servico",
+      "cliente",
+      "localizacao",
+      "data",
+      "numero_proposta",
+      "versao_orcamento",
+      "status_comercial",
+      "valor_custo",
+      "valor_venda",
+      "bdi_percentual_item"
+    ],
+    "indicadores": [
+      "quantidade_propostas",
+      "quantidade_itens",
+      "media",
+      "mediana",
+      "minimo",
+      "maximo"
+    ],
+    "filtros": [
+      "tipo_obra",
+      "tipo_servico",
+      "periodo",
+      "status_comercial",
+      "cliente",
+      "localizacao"
+    ],
+    "propostas_ganhas_perdidas": "quando status disponível",
+    "sem_predefinir_bdi": true,
+    "nao_alterar_orcamentos_concluidos": true,
+    "alerta_amostra_pequena": true
+  },
+  "rastreabilidade": {
+    "origem_custos_por_etapa": true,
+    "snapshot_cotacoes_e_composicoes_ao_concluir": true,
+    "historico_alteracoes_bdi_por_item": true,
+    "override_manual_permitido": true,
+    "preservar": [
+      "valor_calculado",
+      "valor_utilizado",
+      "diferenca",
+      "justificativa",
+      "autor_quando_disponivel",
+      "data_quando_disponivel",
+      "versao_orcamento"
+    ],
+    "observacoes_especificas_nao_criam_padroes_globais": true
+  },
+  "exemplo_historico_nao_padrao": {
+    "itens": [
+      {
+        "item": 1,
+        "descricao": "Mobilização e Montagem da Draga",
+        "custo_total": 19661.72,
+        "quantidade": 1,
+        "unidade": "un",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 31458.75
+      },
+      {
+        "item": 2,
+        "descricao": "Mobilização e Montagem Equipto Polímero e Barrilete",
+        "custo_total": 42925.08,
+        "quantidade": 1,
+        "unidade": "un",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 68680.13
+      },
+      {
+        "item": 3,
+        "descricao": "Preparo de Célula",
+        "custo_total": 153944.3,
+        "quantidade": 1800,
+        "unidade": "m2",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 246310.89
+      },
+      {
+        "item": 6,
+        "descricao": "Dragagem e Operação do Sistema de Polímero (incluindo fornecimento do polímero)",
+        "custo_total": 333611.54,
+        "quantidade": 2232,
+        "unidade": "m3",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 533778.47
+      },
+      {
+        "item": 7,
+        "descricao": "Medição",
+        "custo_total": 24094.23,
+        "quantidade": 1,
+        "unidade": "un",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 38550.77
+      },
+      {
+        "item": 9,
+        "descricao": "Desmobilização Draga",
+        "custo_total": 26210.25,
+        "quantidade": 1,
+        "unidade": "un",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 41936.39
+      },
+      {
+        "item": 10,
+        "descricao": "Desmobilização do Equipamento Polímero",
+        "custo_total": 6808.91,
+        "quantidade": 1,
+        "unidade": "un",
+        "bdi_percentual": 60,
+        "preco_total_exibido": 10894.26
+      }
+    ],
+    "custo_total_informado_planilha": 587594.32,
+    "custo_total_somado_itens": 607256.03,
+    "diferenca_custo": 19661.71,
+    "preco_venda_total_informado": 971609.66,
+    "preco_venda_somado_itens": 971609.66,
+    "diagnostico": "O total de custo informado não inclui aparentemente o custo da mobilização da draga; diferença de R$ 19.661,71, próxima de R$ 19.661,72, a verificar contra fórmulas originais.",
+    "nota": "Percentuais de 60% e valores deste exemplo são históricos desta proposta, nunca defaults. Valores exibidos podem apresentar diferenças por precisão intermediária."
+  },
+  "pendencias": [
+    "Definir política de arredondamento e de tratamento de valores unitários versus totais.",
+    "Implementar interface, motor de cálculo, validações, histórico e persistência; JSON é somente declarativo.",
+    "Validar fórmula de custo total do Excel histórico."
+  ]
+}
