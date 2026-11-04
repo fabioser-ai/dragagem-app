@@ -1,4 +1,0 @@
-streamlit
-pandas
-requests
-bcrypt>=4.2,<6

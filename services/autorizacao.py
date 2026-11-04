@@ -28,6 +28,7 @@ ROTAS_POR_MODULO = {
     "crm": "crm",
     "uniformes_epis": "uniformes_epis",
     "novo_orcamento": "orcamento",
+    "composicao_orcamento": "orcamento",
     "obras": "obras",
     "orcamento": "orcamento",
     "orcamento_lista": "orcamento",

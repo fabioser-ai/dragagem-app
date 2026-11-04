@@ -239,6 +239,14 @@ def render():
             )
             modulos_renderizados += 1
 
+            render_card(
+                "Composição de Orçamento",
+                "Nova experiência de composição orçamentária em desenvolvimento paralelo.",
+                "ABRIR COMPOSIÇÃO DE ORÇAMENTO",
+                "composicao_orcamento",
+            )
+            modulos_renderizados += 1
+
         if pode_acessar("ferias"):
             render_card(
                 "Férias e Folgas",
