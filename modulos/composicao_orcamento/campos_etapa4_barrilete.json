@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "calculo_barrilete",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "descricao": "Composição editável do barrilete, separando apropriação de componentes e custo integral da montagem.",
+  "componentes": {
+    "campos": [
+      {
+        "id": "descricao",
+        "tipo": "text"
+      },
+      {
+        "id": "unidade",
+        "tipo": "text"
+      },
+      {
+        "id": "quantidade",
+        "tipo": "decimal"
+      },
+      {
+        "id": "preco_unitario",
+        "tipo": "decimal",
+        "moeda": "BRL"
+      },
+      {
+        "id": "preco_total",
+        "tipo": "decimal",
+        "calculado": "quantidade * preco_unitario"
+      },
+      {
+        "id": "fator_apropriacao",
+        "tipo": "decimal",
+        "valor_inicial": 0.2,
+        "observacao": "Fator de apropriação por obra, editável; tratamento de itens comprados exclusivamente para a obra será definido posteriormente."
+      }
+    ],
+    "permite_adicionar_remover_editar": true,
+    "subtotal": "soma(preco_total)",
+    "custo_apropriado": "soma(preco_total * fator_apropriacao)"
+  },
+  "montagem": {
+    "equipe": {
+      "campos": [
+        {
+          "id": "descricao",
+          "tipo": "text"
+        },
+        {
+          "id": "numero_funcionarios",
+          "tipo": "decimal"
+        },
+        {
+          "id": "custo_hora",
+          "tipo": "decimal",
+          "moeda": "BRL"
+        },
+        {
+          "id": "horas_dia",
+          "tipo": "decimal"
+        },
+        {
+          "id": "encargos_sociais_percentual",
+          "tipo": "decimal"
+        }
+      ],
+      "custo_linha": "numero_funcionarios * custo_hora * horas_dia * (1 + encargos_sociais_percentual / 100)"
+    },
+    "despesas_diarias": {
+      "campos": [
+        {
+          "id": "descricao",
+          "tipo": "text"
+        },
+        {
+          "id": "quantidade",
+          "tipo": "decimal"
+        },
+        {
+          "id": "preco_unitario",
+          "tipo": "decimal",
+          "moeda": "BRL"
+        }
+      ],
+      "exemplos": [
+        "refeições",
+        "transporte"
+      ],
+      "custo_linha": "quantidade * preco_unitario"
+    },
+    "dias_montagem": {
+      "tipo": "decimal",
+      "valor_inicial": 1
+    },
+    "custo_diario": "soma(custo_linha_equipe) + soma(custo_linha_despesas_diarias)",
+    "custo_total": "custo_diario * dias_montagem",
+    "apropriacao": 1
+  },
+  "resumo": {
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "valor_inicial": 0
+    },
+    "custo_base": "componentes.custo_apropriado + montagem.custo_total",
+    "preco_final": "custo_base * (1 + bdi_percentual / 100)"
+  },
+  "exemplo_conferido": {
+    "componentes_total": 28209.4,
+    "fator_apropriacao": 0.2,
+    "montagem_total": 1407.4,
+    "bdi_percentual": 0,
+    "custo_base": 7049.28,
+    "preco_final": 7049.28
+  },
+  "integracoes_futuras": [
+    "Permitir referência a fornecedores e preços históricos da Etapa 2 sem obrigar o vínculo.",
+    "Definir tratamento específico de componentes adquiridos exclusivamente para a obra."
+  ],
+  "restricoes": [
+    "Mão de obra de montagem é custo integral, não sofre fator de apropriação de componentes.",
+    "Itens de materiais/equipamentos são editáveis; não fixar lista da planilha como obrigatória.",
+    "Não alterar módulos existentes nem ativar cálculos antes da interface e persistência serem definidas."
+  ]
+}
