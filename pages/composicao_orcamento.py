@@ -8,7 +8,7 @@ from datetime import date
 
 import streamlit as st
 from services.ui import renderizar_cabecalho_modulo
-from services.autorizacao import pode, pode_acessar
+from services.autorizacao import pode_consultar_fonte_composicao
 from services.composicao_fontes import consultar_catalogo, listar_opcoes, contatos_do_cliente
 
 
@@ -86,14 +86,9 @@ def _renderizar_guia_etapas():
 
 
 def _fontes_autorizadas():
-    """Não eleva permissões de Orçamento a CRM ou Dados."""
-    return {
-        "clientes": pode_acessar("crm") and pode(modulo="crm", recurso="cliente", acao="visualizar"),
-        "contatos": pode_acessar("crm") and pode(modulo="crm", recurso="contato", acao="visualizar"),
-        "materiais": pode_acessar("dados") and pode(modulo="dados", recurso="cadastro", acao="visualizar"),
-        "horarios": pode_acessar("dados") and pode(modulo="dados", recurso="cadastro", acao="visualizar"),
-        "regimes": pode_acessar("dados") and pode(modulo="dados", recurso="cadastro", acao="visualizar"),
-    }
+    """Permissão de leitura restrita ao fluxo de composição de orçamento."""
+    return {fonte: pode_consultar_fonte_composicao(fonte)
+            for fonte in ("clientes", "contatos", "materiais", "horarios", "regimes")}
 
 
 def _carregar_fontes():
@@ -108,7 +103,11 @@ def _carregar_fontes():
         if not permitido:
             st.warning(f"Sem permissão de leitura para o cadastro: {fonte}.")
             continue
-        resultado = consultar_catalogo(fonte, token, repo)
+        try:
+            resultado = consultar_catalogo(fonte, token, repo)
+        except Exception:
+            st.warning(f"Não foi possível consultar o cadastro {fonte}.")
+            continue
         if not resultado.disponivel:
             st.warning(f"Cadastro {fonte} indisponível: {resultado.erro}")
         else:
@@ -129,7 +128,7 @@ def _selecionar_catalogo(rotulo, fonte, coluna, leituras, valor_anterior, chave)
     opcoes = [""] + [v for v in opcoes if v]
     return st.selectbox(rotulo, opcoes,
                         index=opcoes.index(valor_anterior) if valor_anterior in opcoes else 0,
-                        key=chave, format_func=lambda v: v or "Selecione...")
+                        format_func=lambda v: v or "Selecione...")
 
 
 def _selecionar_cliente_contato(leituras, anterior):
@@ -152,7 +151,7 @@ def _selecionar_cliente_contato(leituras, anterior):
         return {}, False
     id_cliente = st.selectbox("Cliente (CRM oficial)", selecionados,
         index=selecionados.index(id_anterior), format_func=lambda v: nomes.get(v, "Selecione..."),
-        key="composicao_cliente_id")
+         )
     id_contato, nome_contato = "", ""
     if id_cliente and contatos is not None:
         df_contatos = contatos_do_cliente(clientes, contatos, id_cliente)
@@ -169,7 +168,7 @@ def _selecionar_cliente_contato(leituras, anterior):
         id_contato = st.selectbox("Contato (CRM)", opcoes,
             index=opcoes.index(anterior_contato),
             format_func=lambda v: nomes_contatos.get(v, "Sem contato selecionado"),
-            key=f"composicao_contato_{id_cliente}")
+             )
         nome_contato = nomes_contatos.get(id_contato, "")
     else:
         st.caption("Selecione o cliente para consultar seus contatos.")
@@ -220,7 +219,7 @@ def render():
                         opcoes_horario = [""] + opcoes_horario
                         valores[chave] = st.selectbox(rotulo, opcoes_horario,
                             index=opcoes_horario.index(anterior_horario) if anterior_horario in opcoes_horario else 0,
-                            key="composicao_horario")
+                             )
                     else:
                         valores[chave] = st.text_input(rotulo, value=str(anterior.get(chave, "")), disabled=True)
                 elif tipo == "data":
