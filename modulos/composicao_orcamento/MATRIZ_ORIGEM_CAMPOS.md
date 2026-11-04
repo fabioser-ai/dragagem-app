@@ -1,12 +1,12 @@
 # Composição de Orçamento — matriz de origem dos campos (v1)
 
-**Estado:** análise documental, sem integração ativa nem migração de dados.  
+**Estado:** análise documental com decisões de origem homologadas pelo responsável; sem integração ativa nem migração de dados.  
 **Escopo:** 19 campos da Etapa 1 e fontes candidatas para as demais etapas.  
 **Base verificada:** código do repositório, não conteúdo dos CSVs operacionais. Uma fonte identificada não implica que tenha registros válidos.
 
 ## Regras de integração
 
-1. CRM é a fonte preferencial de **identidade do cliente e contato**, vinculados por `id_cliente` e `id_contato`. Não reconciliar automaticamente nomes do cadastro legado.
+1. CRM é a **única base oficial de identidade do cliente e contato**, vinculados por `id_cliente` e `id_contato`. O cadastro do orçamento legado não é fonte alternativa nem fallback; seus dados podem ser consultados somente como histórico, sem alimentar automaticamente a identificação.
 2. Dados é a fonte preferencial de **catálogos técnicos e salários**; copiar para a proposta os valores efetivamente usados e registrar origem, data e eventual ajuste.
 3. Dados específicos da obra permanecem editáveis. Não confundir endereço do cliente com local da execução.
 4. Se a leitura de uma fonte falhar, **não** tratá-la como cadastro vazio nem substituir silenciosamente o valor anterior.
@@ -20,7 +20,7 @@
 |---|---|---|---|---|
 | `data_composicao` | Sistema | Data atual | Inicializar com data atual; editável; congelar na versão | Definido |
 | `numero_proposta` | Orçamento legado `data/orcamentos.csv` | `Codigo` (formato `D_NNN_AAAA`) | **Não reutilizar como sequência nova** sem decisão; verificar unicidade e concorrência | Pendente |
-| `cliente` | CRM `data/crm/clientes.csv`; legado `data/clientes.csv` | `id_cliente`, `nome_empresa`; legado `Cliente` | Seleção pelo ID do CRM; manter nome fotografado; reconciliar legado manualmente | Fonte confirmada |
+| `cliente` | CRM `data/crm/clientes.csv`; legado `data/clientes.csv` | `id_cliente`, `nome_empresa`; legado `Cliente` | Seleção exclusivamente pelo ID do CRM; manter nome fotografado; legado apenas como referência histórica, sem seleção ou sincronização | Fonte confirmada |
 | `contato` | CRM `data/crm/contatos.csv` | `id_contato`, `id_cliente`, `nome_contato` | Filtrar contatos por `id_cliente`; permitir ausência de contato; guardar ID e nome | Fonte confirmada |
 | `objeto_obra` | Proposta | Texto específico | Manual; não inferir de `necessidade_cliente` do CRM | Manual |
 | `local` | Proposta; CRM como sugestão | `cidade`, `estado`, `endereco_local` | Endereço do CRM é da empresa, **não** necessariamente da obra; confirmação manual | Sugestão condicionada |
@@ -36,7 +36,7 @@
 | `canteiro_obra` | Proposta | Sem correspondência comprovada | Manual; não confundir com `locais_trabalho` de RH | Pendente |
 | `mobilizacao` | Proposta | Sem correspondência comprovada | Manual; especificar natureza/unidade antes de automatizar | Pendente |
 | `horario_trabalho` | Dados `data/horarios.csv` | `Inicio`, `Fim` | Seleção de faixa; guardar horários estruturados; validar turno noturno e intervalo | Fonte confirmada |
-| `dias_trabalho` | Dados `data/dias.csv` | `Descricao` | **Incompatibilidade de tipo:** cadastro é regime textual, Etapa 1 define número decimal. Separar regime e dias/mês efetivos | Exige decisão |
+| `dias_trabalho` | Dados `data/dias.csv` | `Descricao` | **Decisão homologada:** usar `Descricao` para o novo campo `regime_trabalho`; manter `dias_trabalho` como quantidade numérica efetiva, informada/validada no orçamento; não converter descrição automaticamente em número | Exige decisão |
 
 ## Fontes e estrutura confirmadas no código
 
@@ -77,8 +77,8 @@ O exemplo é ilustrativo, **não** é um salário real confirmado. Para CRM, arm
 
 ## Riscos e testes antes de codificar integrações
 
-1. **Duas bases de clientes:** levantar sobreposição, homônimos, nomes divergentes e política de migração; sem atualização automática.
-2. **Regime de dias versus quantidade:** decidir se `dias_trabalho` será quantidade calculada, editável, e se novo `regime_trabalho` será incluído.
+1. **CRM oficial:** não utilizar `data/clientes.csv` como fonte de seleção, fallback ou atualização. Histórico legado pode permanecer acessível para consulta isolada; sem migração automática.
+2. **Regime versus quantidade — decisão homologada:** acrescentar `regime_trabalho` como seleção do cadastro `data/dias.csv` (`Descricao`); manter `dias_trabalho` numérico e editável, com validação de coerência com o regime; não inferir dias automaticamente.
 3. **Valores sem identidade estável:** catálogos por nome podem sofrer renomeação e gerar vínculos quebrados.
 4. **Falha de leitura:** distinguir indisponibilidade, ausência real de arquivo e cadastro vazio.
 5. **RBAC:** definir consulta controlada de CRM/Dados pelo orçamentista.
@@ -88,8 +88,8 @@ O exemplo é ilustrativo, **não** é um salário real confirmado. Para CRM, arm
 
 ## Sequência sugerida
 
-1. Homologar esta matriz e resolver `dias_trabalho` e numeração de propostas.
-2. Implementar adaptadores **somente leitura**, isolados e testados, para clientes/contatos e materiais/horários/dias.
+1. Decisões homologadas: CRM é base oficial; regime de trabalho é distinto de quantidade de dias. Ainda falta definir a numeração de propostas.
+2. Implementar adaptadores **somente leitura**, isolados e testados, para clientes/contatos exclusivamente do CRM e materiais/horários/regimes de Dados.
 3. Evoluir a tela Etapa 1 com seletores e valores fotografados; manter fallback manual explícito.
 4. Adicionar persistência versionada somente depois de revisar formato, RBAC e branch.
 5. Expandir adaptadores a salários/equipamentos/cotações, sem atualização silenciosa de preços.
