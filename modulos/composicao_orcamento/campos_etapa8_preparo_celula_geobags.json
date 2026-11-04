@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "preparo_celula_geobags",
+  "titulo": "Preparo de Célula — Manta PEAD",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "moeda": "BRL",
+  "entradas": {
+    "area_celula_m2": {
+      "tipo": "decimal",
+      "exemplo": 1800
+    },
+    "numero_repeticoes": {
+      "tipo": "decimal",
+      "valor_inicial": 1,
+      "editavel": true
+    },
+    "coeficientes_tecnicos": [
+      {
+        "insumo": "manta_pead",
+        "coeficiente": 1.196,
+        "unidade": "m²/m² de célula",
+        "quantidade_exemplo": 2152.8
+      },
+      {
+        "insumo": "bidim_rt14",
+        "coeficiente": 1.48,
+        "unidade": "m²/m² de célula",
+        "quantidade_exemplo": 2664
+      },
+      {
+        "insumo": "brita",
+        "coeficiente": 0.15,
+        "unidade": "m³/m² de célula",
+        "quantidade_exemplo": 270
+      },
+      {
+        "insumo": "retroescavadeira",
+        "coeficiente": 0.023,
+        "unidade": "h/m² de célula",
+        "quantidade_exemplo": 41.4
+      },
+      {
+        "insumo": "mao_de_obra",
+        "coeficiente": 0.023,
+        "unidade": "h/m² de célula",
+        "quantidade_exemplo": 41.4
+      }
+    ]
+  },
+  "quantitativos": {
+    "formula_base": "area_celula_m2 * coeficiente_tecnico",
+    "permite_sobrescrita_manual": true,
+    "quantidade_utilizada": "sobrescrita_manual_se_presente_senao_quantidade_calculada",
+    "rastreabilidade": {
+      "preservar_quantidade_calculada": true,
+      "preservar_quantidade_utilizada": true,
+      "registrar_diferenca_absoluta_e_percentual": true,
+      "alerta_visual": true,
+      "observacao_no_historico": true,
+      "ajuste_manual_nao_e_erro": true
+    },
+    "exemplo_brita": {
+      "calculado_m3": 270,
+      "utilizado_m3": 310.5,
+      "diferenca_m3": 40.5,
+      "diferenca_percentual": 15
+    }
+  },
+  "equipe": {
+    "campos": [
+      "funcao",
+      "numero_funcionarios",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual"
+    ],
+    "origem_preferencial_salarios": "tabelas_existentes_do_fos_app",
+    "fonte_exata": "pendente_identificacao",
+    "formula_linha": "numero_funcionarios * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)",
+    "despesas_diarias": [
+      "refeicoes",
+      "transporte"
+    ],
+    "permite_valor_manual_com_alerta": true
+  },
+  "servicos_e_insumos": {
+    "campos": [
+      "descricao",
+      "unidade",
+      "quantidade",
+      "preco_unitario",
+      "preco_total",
+      "origem_preco",
+      "referencia_origem"
+    ],
+    "formula_preco_total": "quantidade_utilizada * preco_unitario",
+    "permite_adicionar_editar_remover": true,
+    "origem_preferencial_precos": "etapa2.cotacoes",
+    "itens_exemplo": [
+      "Preparo terreno - patrola/trator de esteira",
+      "Mobilização de patrola",
+      "Aluguel de retroescavadeira",
+      "Mobilização/desmobilização de retroescavadeira",
+      "Regularização manual",
+      "Manta PEAD",
+      "Instalação PEAD",
+      "Mobilização equipe PEAD",
+      "Bidim RT14",
+      "Brita 2",
+      "Retroescavadeira para espalhamento brita",
+      "Instalação Bidim e brita"
+    ]
+  },
+  "resumo": {
+    "custo_por_celula": "soma(preco_total_dos_itens)",
+    "custo_total_repeticoes": "custo_por_celula * numero_repeticoes",
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "editavel": true,
+      "valor_inicial": 0
+    },
+    "preco_final": "custo_total_repeticoes * (1 + bdi_percentual/100)",
+    "exemplo_planilha": {
+      "total_por_celula": 153944.3,
+      "repeticoes": 1,
+      "total": 153944.3
+    }
+  },
+  "alertas": {
+    "tipos": [
+      "preco_sem_fonte_vinculada",
+      "preco_vinculado_sobrescrito",
+      "quantitativo_calculado_sobrescrito",
+      "prazo_ou_horas_sobrescritos"
+    ],
+    "regra": "Não bloquear orçamento; destacar alterações manuais e preservar cálculo original, valor utilizado, diferença, origem e observação no histórico de cada versão.",
+    "snapshot_orcamento_concluido": true
+  },
+  "pendencias": [
+    "Identificar tabelas salariais existentes no aplicativo antes de implementar integração.",
+    "Conciliar coeficiente de 0,023 h/m², 41,40 horas, 4,14 dias indicados e jornada de 9 horas/dia da equipe.",
+    "Definir política de arredondamento e como evitar dupla contagem de equipe nos serviços.",
+    "Implementar interface, persistência e alertas operacionais."
+  ]
+}
