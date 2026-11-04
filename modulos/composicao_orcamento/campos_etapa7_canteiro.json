@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "canteiro_de_obras",
+  "categoria": "subitem_dragagem",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "moeda": "BRL",
+  "equipe": {
+    "campos": [
+      {
+        "id": "funcao",
+        "tipo": "text"
+      },
+      {
+        "id": "numero_funcionarios",
+        "tipo": "decimal"
+      },
+      {
+        "id": "valor_hora",
+        "tipo": "decimal",
+        "origem_preferencial": "tabela_salarial_existente_fos_app",
+        "fonte_exata": "pendente_identificacao"
+      },
+      {
+        "id": "horas_dia",
+        "tipo": "decimal"
+      },
+      {
+        "id": "encargos_sociais_percentual",
+        "tipo": "decimal"
+      }
+    ],
+    "formula_custo_diario_linha": "numero_funcionarios * valor_hora * horas_dia * (1 + encargos_sociais_percentual / 100)",
+    "despesas_diarias": {
+      "campos": [
+        "descricao",
+        "quantidade",
+        "preco_unitario"
+      ],
+      "formula": "quantidade * preco_unitario",
+      "exemplos": [
+        "refeições",
+        "transporte"
+      ]
+    },
+    "custo_diario": "soma(custo_diario_linha) + soma(despesas_diarias)"
+  },
+  "itens": {
+    "campos": [
+      "descricao",
+      "unidade",
+      "quantidade",
+      "preco_unitario",
+      "preco_total",
+      "origem_preco",
+      "referencia_origem"
+    ],
+    "formula_preco_total": "quantidade * preco_unitario",
+    "permite_adicionar_editar_remover": true,
+    "exemplos_nao_obrigatorios": [
+      "Container almoxarifado",
+      "Container sanitário/vestiário",
+      "Container escritório",
+      "Frete de containers",
+      "PPRA + PCMSO + LTCAT",
+      "ART principal e co-responsáveis",
+      "Placa de obra",
+      "Vigilância",
+      "Água potável",
+      "Material de escritório",
+      "Banheiro químico",
+      "Exames médicos",
+      "Mão de obra de integração"
+    ],
+    "origem_preferencial_precos": "etapa2.cotacoes",
+    "observacao": "Itens mensais usam quantidade de meses explicitamente; não multiplicar novamente pelo prazo na consolidação."
+  },
+  "integracao_equipe": {
+    "custo_integracao": "equipe.custo_diario * dias_integracao",
+    "dias_integracao": {
+      "tipo": "decimal",
+      "editavel": true
+    },
+    "regra": "Custo de integração incluído uma vez no total; não duplicar linha derivada de mão de obra."
+  },
+  "prazo": {
+    "id": "prazo_canteiro_meses",
+    "tipo": "decimal",
+    "origem_padrao": "etapa3.prazo_execucao",
+    "permite_ajuste_manual": true,
+    "alerta_quando_sobrescrito": true,
+    "regra": "Alterar prazo do canteiro não modifica prazo de execução da dragagem."
+  },
+  "resumo": {
+    "custo_total": "soma(itens.preco_total) + custo_integracao (se não estiver representado como item derivado)",
+    "custo_mensal": "custo_total / prazo_canteiro_meses",
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "editavel": true,
+      "valor_inicial": 0
+    },
+    "preco_venda_mensal": "custo_mensal * (1 + bdi_percentual / 100)",
+    "preco_venda_total": "preco_venda_mensal * prazo_canteiro_meses",
+    "observacao": "BDI é percentual; na planilha de referência 1% de 10.448,52 equivale a R$ 104,49."
+  },
+  "rastreabilidade": {
+    "entrada_manual_permitida": true,
+    "alerta_visual_para_valor_manual": true,
+    "alerta_para_prazo_sobrescrito": true,
+    "preservar_origem_e_observacoes_por_versao": true
+  },
+  "exemplo_planilha": {
+    "custo_total": 20897.03,
+    "prazo_meses": 2,
+    "custo_mensal_aproximado": 10448.52,
+    "bdi_percentual": 1,
+    "preco_mensal_aproximado": 10553,
+    "observacao": "Valores arredondados da planilha; definir política de arredondamento antes de ativar."
+  },
+  "pendencias": [
+    "Identificar caminho e contrato da tabela salarial existente do FOS App antes de implementar leitura.",
+    "Definir arredondamento monetário e prazo fracionário.",
+    "Validar se custo de integração é linha derivada ou componente da equipe, sem dupla contagem.",
+    "Definir persistência, interface e vínculos operacionais."
+  ]
+}
