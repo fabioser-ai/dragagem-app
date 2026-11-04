@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 17,
+  "id": "apresentacao_comercial_consolidada",
+  "titulo": "Apresentação Comercial Consolidada",
+  "status": "especificacao_declarativa_sem_interface_calculos_ou_persistencia_ativos",
+  "natureza": "Camada de apresentação e agrupamento comercial, sem recálculo dos custos, preços de venda ou BDIs definidos na Etapa 16.",
+  "objetivo": "Permitir ao orçamentista montar livremente a planilha simplificada entregue ao cliente, preservando integralmente o orçamento analítico e a rastreabilidade.",
+  "liberdade_orcamentista": {
+    "criar_grupos_sem_limite_fixo": true,
+    "editar_titulos_e_descricoes": true,
+    "reordenar_grupos": true,
+    "definir_unidade_e_quantidade_comercial_por_grupo": true,
+    "atribuir_itens_da_etapa16_a_grupos": true,
+    "permitir_grupo_com_um_ou_varios_itens": true,
+    "permitir_divisao_de_um_item_analitico_entre_grupos": true,
+    "sem_grupos_obrigatorios": true,
+    "sem_agrupar_automaticamente_por_tipo_de_servico": true
+  },
+  "campos_grupo": [
+    "id_grupo",
+    "ordem_exibicao",
+    "descricao_comercial",
+    "unidade_comercial",
+    "quantidade_comercial",
+    "itens_analiticos_vinculados",
+    "preco_total_grupo",
+    "preco_unitario_comercial",
+    "observacoes"
+  ],
+  "vinculacao_itens": {
+    "origem": "itens_comerciais_precificados_na_etapa16",
+    "campos_parcela": [
+      "id_item_origem",
+      "id_grupo_destino",
+      "percentual_alocado",
+      "valor_alocado",
+      "observacao"
+    ],
+    "regra_alocacao": "Cada item da Etapa 16 deve ter exatamente 100% de seu valor alocado entre grupos para uma proposta completa; divisão em múltiplos grupos é permitida com controle de parcelas.",
+    "nao_duplicar": "Uma parcela não pode ser contabilizada duas vezes; soma das parcelas de cada item deve igualar o preço aprovado do item de origem.",
+    "itens_nao_alocados": "Bloquear finalização ou exigir exclusão explícita e auditável do escopo comercial, com reconciliação de totais."
+  },
+  "calculos": {
+    "preco_total_grupo": "soma(valores_alocados_dos_itens_etapa16)",
+    "preco_unitario_comercial": "preco_total_grupo / quantidade_comercial, quando quantidade_comercial > 0",
+    "preco_total_apresentacao": "soma(preco_total_grupo)",
+    "preco_total_base": "soma(precos_venda_dos_itens_etapa16_incluidos)",
+    "regra_conciliacao": "preco_total_apresentacao deve igualar preco_total_base; divergências por arredondamento devem ser explicitadas e conciliadas, nunca ocultadas.",
+    "nao_recalcular_bdi": true,
+    "nao_alterar_preco_aprovado": true,
+    "precisao": "Preservar valores internos com precisão suficiente; arredondar exibição de preço unitário sem recalcular total a partir do unitário exibido."
+  },
+  "regras_apresentacao": {
+    "composicoes_analiticas_permanecem_separadas": true,
+    "exemplo": "Mobilização da draga e do polímero podem ser apresentadas como um único item; desmobilizações da draga e do polímero também podem aparecer agregadas ao cliente, mantendo custos internos independentes.",
+    "quantidades_e_unidades_comerciais_podem_diferir_das_analiticas": true,
+    "sem_bdi_adicional": true,
+    "duas_saidas": [
+      "planilha_analitica_interna",
+      "planilha_comercial_simplificada_cliente"
+    ],
+    "ambas_do_mesmo_orcamento": true
+  },
+  "validacoes": [
+    "item_sem_alocacao",
+    "item_com_alocacao_acima_de_100_porcento",
+    "item_com_alocacao_abaixo_de_100_porcento",
+    "parcela_duplicada",
+    "quantidade_comercial_zero_com_preco_total_positivo",
+    "diferenca_total_etapa16_vs_etapa17",
+    "arredondamento_preco_unitario_vs_total",
+    "exclusao_de_escopo_sem_justificativa"
+  ],
+  "rastreabilidade": {
+    "registrar_agrupamentos_e_parcelas": true,
+    "registrar_alteracoes_e_justificativas": true,
+    "snapshot_de_grupos_e_vinculos_por_versao_concluida": true,
+    "manter_origem_dos_precos_etapa16": true,
+    "nao_alterar_versoes_concluidas": true
+  },
+  "exemplo_historico_nao_padrao": {
+    "itens": [
+      {
+        "descricao": "Mobilização e Montagem dos Equipamentos",
+        "unidade": "vb",
+        "quantidade": 1,
+        "preco_unitario_exibido": 100138.88,
+        "preco_total_exibido": 100138.88
+      },
+      {
+        "descricao": "Preparo de Célula de Desaguamento dos Bags, incluindo impermeabilização com manta PEAD, bidim e camada drenante",
+        "unidade": "m2",
+        "quantidade": 1800,
+        "preco_unitario_exibido": 156.32,
+        "preco_total_exibido": 281376
+      },
+      {
+        "descricao": "Dragagem e desaguamento de sedimentos através de Geobags de alta resistência",
+        "unidade": "m3 desaguado (volume dentro do bag)",
+        "quantidade": 2200,
+        "preco_unitario_exibido": 256.42,
+        "preco_total_exibido": 564123.81
+      },
+      {
+        "descricao": "Desmobilização dos Equipamentos",
+        "unidade": "vb",
+        "quantidade": 1,
+        "preco_unitario_exibido": 52830.65,
+        "preco_total_exibido": 52830.65
+      }
+    ],
+    "total_geral_informado": 998469.33,
+    "soma_totais_itens_exibidos": 998469.34,
+    "diferenca_total_exibido": 0.01,
+    "nota": "No item de dragagem, 2.200 × R$ 256,42 exibidos = R$ 564.124,00, diferente do total histórico R$ 564.123,81; provável precisão interna maior, ainda não verificada. A soma dos quatro totais exibidos é R$ 998.469,34, um centavo acima do total geral informado. Não corrigir silenciosamente."
+  },
+  "pendencias": [
+    "Definir arredondamento e distribuição de centavos entre parcelas comerciais.",
+    "Implementar editor de agrupamentos e divisão de itens, validações, exportação e persistência; JSON apenas declarativo."
+  ]
+}
