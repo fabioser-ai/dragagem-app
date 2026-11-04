@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "mobilizacao_draga",
+  "modelo": "mobilizacao",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "moeda": "BRL",
+  "equipe": {
+    "campos": [
+      "funcao",
+      "numero_funcionarios",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual"
+    ],
+    "formula_linha": "numero_funcionarios * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)",
+    "despesas_diarias": {
+      "campos": [
+        "descricao",
+        "quantidade",
+        "preco_unitario"
+      ],
+      "formula": "quantidade * preco_unitario"
+    },
+    "custo_diario": "soma(linhas_equipe) + soma(despesas_diarias)",
+    "dias_montagem": {
+      "tipo": "decimal",
+      "editavel": true
+    },
+    "custo_total": "custo_diario * dias_montagem"
+  },
+  "itens": {
+    "campos": [
+      "descricao",
+      "unidade",
+      "quantidade",
+      "preco_unitario",
+      "origem_preco",
+      "referencia_origem",
+      "observacao_origem"
+    ],
+    "formula_linha": "quantidade * preco_unitario",
+    "permite_adicionar_editar_remover": true
+  },
+  "rastreabilidade": {
+    "origens_permitidas": [
+      "cotacao_etapa2",
+      "cadastro_mao_de_obra",
+      "composicao_auxiliar",
+      "manual"
+    ],
+    "regra": "Entrada manual permitida com alerta visual e observacao persistente no historico da versao.",
+    "alteracao_manual_de_preco_vinculado": "registrar_substituicao_e_gerar_alerta",
+    "preco_vinculado": "preservar_snapshot_do_valor_unidade_e_referencia_utilizados"
+  },
+  "resumo": {
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "editavel": true,
+      "valor_inicial": 0
+    },
+    "custo_base": "soma(itens.preco_total) + equipe.custo_total",
+    "preco_final": "custo_base * (1 + bdi_percentual/100)"
+  },
+  "pendencias": [
+    "Definir interface, persistencia operacional e regras de finalizacao.",
+    "Definir cadastro de custos de mao de obra e comportamento dos alertas em detalhe.",
+    "Confirmar politica de arredondamento monetario e bases de BDI."
+  ],
+  "descricao": "Mobilização da draga com equipe, refeições/transporte, serviços e equipamentos contratados.",
+  "itens_exemplo_nao_obrigatorios": [
+    "Guindaste para carregamento",
+    "Treinamentos",
+    "Mobiliário canteiro",
+    "Carreta carga seca para draga",
+    "Guindaste para descarregamento e montagem",
+    "Frete",
+    "Trator para lançar draga na água"
+  ],
+  "integracoes": [
+    {
+      "origem": "etapa2.cotacoes",
+      "destino": "itens.preco_unitario",
+      "modo": "preferencial_com_entrada_manual_alertada"
+    },
+    {
+      "origem": "cadastro_mao_de_obra_futuro",
+      "destino": "equipe.valor_hora",
+      "modo": "preferencial_com_entrada_manual_alertada"
+    }
+  ],
+  "observacao": "Desmobilização será modelada separadamente, ainda não definida."
+}
