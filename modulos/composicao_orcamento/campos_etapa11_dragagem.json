@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 11,
+  "id": "dragagem_canteiro_desidratacao",
+  "titulo": "Custo de Dragagem, Canteiro e Operação do Sistema de Desidratação de Lodo",
+  "status": "especificacao_declarativa_sem_interface_ou_calculo_ativo",
+  "grupos": [
+    {
+      "id": "operacao",
+      "nome": "I - Operação",
+      "itens": [
+        "combustivel",
+        "filtros_lubrificantes",
+        "fretes_carretos",
+        "seguranca_uniformes"
+      ],
+      "parametros": [
+        "horas_mes",
+        "consumo_combustivel_hora",
+        "preco_combustivel",
+        "eficiencia_estimada"
+      ],
+      "formula_referencia_combustivel": "horas_mes * eficiencia_estimada * consumo_combustivel_hora * preco_combustivel",
+      "nota": "A fórmula é referência do exemplo, não universal; consumo parado e operacional devem ser separados."
+    },
+    {
+      "id": "pessoal",
+      "nome": "II - Pessoal",
+      "itens": [
+        "salarios_por_funcao",
+        "encargos_sociais",
+        "refeicoes",
+        "alojamento",
+        "viagens_folgas",
+        "premios_producao"
+      ],
+      "salarios_origem_preferencial": "tabelas_salariais_existentes_fos_app_localizacao_pendente",
+      "campos_funcao": [
+        "quantidade",
+        "funcao",
+        "valor_hora",
+        "horas_normais",
+        "horas_extras_70_percentual",
+        "horas_extras_100_percentual"
+      ],
+      "regras": "Horas remuneradas podem diferir das horas programadas e produtivas."
+    },
+    {
+      "id": "manutencao",
+      "nome": "III - Manutenção",
+      "itens": [
+        "pecas_acessorios",
+        "docagem",
+        "limpeza_pintura",
+        "mao_obra_terceiros"
+      ],
+      "criterios_editaveis": true
+    },
+    {
+      "id": "apoio",
+      "nome": "IV - Equipamentos de Apoio",
+      "itens": [
+        "linha_recalque",
+        "batimetria",
+        "pickup",
+        "medidor_vazao_densidade",
+        "automovel",
+        "maquina_solda",
+        "macarico",
+        "ferramentas",
+        "canteiro"
+      ],
+      "composicao_auxiliar_linha_recalque": {
+        "componentes": [
+          "tubulacao_terrestre",
+          "tubulacao_flutuante",
+          "acoplamentos"
+        ],
+        "campos": [
+          "quantidade",
+          "unidade",
+          "valor_unitario",
+          "valor_aquisicao",
+          "depreciacao_periodica",
+          "juros_capital_periodicos",
+          "custo_apropriado_periodo"
+        ],
+        "vinculo_preferencial": "etapa1.distancias",
+        "criterios_apropriacao_editaveis": true
+      },
+      "canteiro": {
+        "origem": "etapa7",
+        "modalidade_por_orcamento": [
+          "integrado_na_dragagem",
+          "item_separado_para_medicao_faturamento"
+        ],
+        "regra": "Quando integrado, entra no grupo IV e não é novamente somado na consolidação; quando separado, excluir do custo da dragagem e apresentar como item próprio."
+      }
+    },
+    {
+      "id": "administrativas",
+      "nome": "V - Administrativas",
+      "itens": [
+        "comissoes",
+        "viagens_inspecao",
+        "viagens_administrativas",
+        "comunicacoes",
+        "seguros_licenciamento"
+      ]
+    },
+    {
+      "id": "bdi_interno",
+      "nome": "VI - BDI",
+      "itens": [
+        "oficina",
+        "administracao",
+        "outros"
+      ],
+      "base_calculo": "despesas_diretas",
+      "percentuais_editaveis": true,
+      "regra": "Separar BDI interno de fator comercial; evitar dupla incidência."
+    },
+    {
+      "id": "financeiras",
+      "nome": "VII - Financeiras",
+      "itens": [
+        "depreciacao_equipamento",
+        "juros_capital",
+        "atrasos"
+      ],
+      "parametros": [
+        "valor_equipamento",
+        "vida_util_meses",
+        "taxa_juros_periodica",
+        "percentual_atrasos"
+      ],
+      "criterios_editaveis": true
+    }
+  ],
+  "integracoes": {
+    "etapa1": "distancias_linha_recalque_e_identificacao",
+    "etapa2": "cotacoes_de_precos",
+    "etapa3": "producao_prevista_e_prazo_referenciais",
+    "etapa7": "canteiro_integrado_ou_separado",
+    "etapa10": "custo_operacao_desidratacao",
+    "salarios": "tabelas_existentes_fos_app_fonte_pendente"
+  },
+  "premissas_tecnicas": {
+    "definidas_pelo_orcamentista_por_orcamento": true,
+    "sem_percentuais_padrao_obrigatorios": true,
+    "campos": [
+      "horas_programadas_mes",
+      "disponibilidade_estimada_percentual",
+      "eficiencia_produtiva_estimada_percentual",
+      "horas_produtivas_estimadas",
+      "horas_a_disposicao_estimadas",
+      "tecnologia",
+      "material",
+      "observacoes_tecnicas"
+    ],
+    "regras": [
+      "Disponibilidade mecânica e eficiência produtiva são conceitos distintos.",
+      "Horas programadas, disponíveis, trabalhadas, produtivas e remuneradas não são sinônimos.",
+      "Percentuais são estimativas do orçamentista segundo condições da obra; não inferir 90% e 60% como padrão.",
+      "Não assumir relação multiplicativa fixa entre disponibilidade e produtividade; definir base de cada percentual por orçamento.",
+      "Histórico futuro poderá comparar eficiência estimada e realizada, sem impor parâmetros."
+    ]
+  },
+  "modalidades_cobranca": {
+    "permitir_multiplas_por_proposta": true,
+    "tipos": [
+      "por_metro_cubico",
+      "por_hora_trabalhada",
+      "por_hora_a_disposicao"
+    ],
+    "hora_trabalhada": {
+      "custos": "fixos_mais_variaveis_efetivamente_operacionais",
+      "inclui_consumo_diesel_operacional": true
+    },
+    "hora_a_disposicao": {
+      "custos": "fixos_e_condicionais_da_disponibilidade",
+      "nao_inclui_automaticamente_diesel_de_dragagem": true,
+      "consumo_marcha_lenta_se_aplicavel": "parametro_editavel"
+    },
+    "itens_custo_classificacao_por_orcamento": [
+      "fixo",
+      "variavel_operacional",
+      "condicional"
+    ],
+    "regra": "Tarifas diferentes, com custos variáveis e fatores comerciais próprios; ratear custos fixos sem dupla recuperação; critérios de medição definidos pelo orçamentista."
+  },
+  "preco": {
+    "fator_comercial": {
+      "tipo": "decimal",
+      "editavel_por_orcamento": true,
+      "exemplo_historico": 1.6,
+      "sem_valor_padrao_obrigatorio": true,
+      "base_aplicacao_configuravel": true
+    },
+    "bdi_interno_separado": true,
+    "calculos_planejados": [
+      "despesas_diretas_mensais",
+      "custo_mensal_dragagem",
+      "custo_mensal_desidratacao",
+      "custo_mensal_combinado",
+      "custo_total_periodo",
+      "custo_por_m3",
+      "preco_venda_por_m3",
+      "preco_hora_trabalhada",
+      "preco_hora_disposicao"
+    ],
+    "regra": "Não aplicar fator comercial indiscriminadamente; respeitar modalidade e base contratual."
+  },
+  "exemplo_historico_nao_padrao": {
+    "cliente": "SABESP Cubatão",
+    "data": "2021-05-28",
+    "equipamento": "Draga 6 polegadas",
+    "valor_equipamento": 150000,
+    "horas_mes": 198,
+    "disponibilidade_referencia_percentual": 90,
+    "percentual_produtivo_referencia": 60,
+    "despesas_diretas_mensais": 58702.06,
+    "bdi_interno": 5870.21,
+    "financeiras": 4293.51,
+    "custo_mensal_dragagem": 68865.78,
+    "custo_mensal_desidratacao": 42338.07,
+    "custo_mensal_combinado": 111203.85,
+    "prazo_meses": 3,
+    "custo_total_combinado_planilha": 333611.54,
+    "producao_m3_mes": 1930.5,
+    "fator_comercial_referencia": 1.6,
+    "preco_hora_planilha": 1497.69,
+    "nota": "O preço horário do exemplo usa 118,8 horas (198×60%) como divisor, apesar da legenda hora à disposição; não reproduzir automaticamente essa nomenclatura no novo modelo. Conferir arredondamentos e a diferença entre eficiência de 90% e 60% antes da implementação."
+  },
+  "rastreabilidade": {
+    "valores_editaveis": true,
+    "alertas_para_sobrescrita_de_valores_calculados_ou_fontes": true,
+    "preservar": [
+      "valor_origem",
+      "valor_utilizado",
+      "diferenca",
+      "fonte",
+      "observacao",
+      "versao_orcamento"
+    ],
+    "observacoes_especificas_da_proposta_nao_sao_regras_globais": true,
+    "snapshot_ao_concluir": true
+  },
+  "pendencias_implementacao": [
+    "Validar detalhamento das fórmulas legadas, arredondamentos e base de cada eficiência.",
+    "Definir interface para modalidade de medição e critérios de rateio dos custos fixos.",
+    "Identificar tabelas salariais reais no app.",
+    "Implementar cálculos, validações, persistência e histórico; este arquivo é apenas declarativo."
+  ]
+}
