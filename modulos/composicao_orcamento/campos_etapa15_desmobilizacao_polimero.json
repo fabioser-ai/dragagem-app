@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 15,
+  "id": "desmobilizacao_equipamento_polimero",
+  "titulo": "Desmobilização do Equipamento de Polímero",
+  "status": "especificacao_declarativa_sem_interface_ou_calculos_ativos",
+  "regras_estruturais": [
+    "A desmobilização do sistema de polímero é sempre composição independente da desmobilização da draga (Etapa 14).",
+    "A equipe de desmontagem completa executa dentro das diárias contratadas a desconexão hidráulica e elétrica, desmontagem do barrilete, retirada de componentes e preparação para transporte.",
+    "Não lançar mão de obra adicional por atividade de desmontagem já coberta pelas diárias da equipe.",
+    "Brita e concreto não pertencem à composição de desmobilização do polímero e estão excluídos.",
+    "O barrilete pode ser desmontado pela equipe, mas não deve ter seu custo de fornecimento reaplicado na desmobilização.",
+    "Itens não utilizados permanecem zerados; sem dupla contagem entre etapas."
+  ],
+  "equipe_desmontagem": {
+    "campos": [
+      "funcao",
+      "quantidade",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual",
+      "quantidade_refeicoes",
+      "preco_refeicao",
+      "quantidade_transporte_pessoal",
+      "preco_transporte_pessoal",
+      "dias_trabalho"
+    ],
+    "funcoes_historicas": [
+      {
+        "descricao": "Operador de Draga + técnico operação polím.",
+        "quantidade": 2,
+        "valor_hora": 15.15,
+        "horas_dia": 9,
+        "encargos_sociais_percentual": 110,
+        "custo_dia_historico": 572.67
+      },
+      {
+        "descricao": "Ajudante Geral",
+        "quantidade": 5,
+        "valor_hora": 11.13,
+        "horas_dia": 9,
+        "encargos_sociais_percentual": 110,
+        "custo_dia_historico": 1051.79
+      }
+    ],
+    "refeicoes_historico": {
+      "quantidade": 7,
+      "preco_unitario": 30,
+      "custo_dia": 210
+    },
+    "transporte_pessoal_historico": {
+      "quantidade": 7,
+      "preco_unitario": 10,
+      "custo_dia": 70
+    },
+    "custo_diario_historico": 1904.46,
+    "dias_historico": 2,
+    "custo_equipe_historico": 3808.91,
+    "formula_custo_dia": "soma(quantidade * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)) + refeicoes + transporte_pessoal",
+    "formula_custo_equipe": "custo_dia * dias_trabalho",
+    "origem_preferencial_salarios": "tabelas_salariais_existentes_fos_app",
+    "fonte_exata": "pendente_identificacao",
+    "regra": "Ajustar dias ou dimensionamento da equipe conforme escopo e prazo; não duplicar mão de obra com itens separados para hidráulica, elétrica ou barrilete."
+  },
+  "itens": [
+    {
+      "id": "equipe_desmontagem_completa",
+      "descricao": "Diárias da equipe completa de desmontagem do sistema de polímero",
+      "unidade": "dia",
+      "preco_preferencial": "composicao_equipe"
+    },
+    {
+      "id": "frete_equipamento_polimero",
+      "descricao": "Frete para retirada e transporte do equipamento de polímero",
+      "unidades": [
+        "vb",
+        "viagem"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "guindaste_ou_munck_diarias",
+      "descricao": "Diárias de guindaste/Munck, somente quando necessário",
+      "unidades": [
+        "dia",
+        "h"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "guindaste_ou_munck_frete",
+      "descricao": "Frete de deslocamento de guindaste/Munck, quando necessário",
+      "unidades": [
+        "vb",
+        "viagem"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "cobertura_protecao",
+      "descricao": "Cobertura e proteção com despesa adicional efetiva",
+      "unidades": [
+        "vb",
+        "un"
+      ],
+      "preco_preferencial": "etapa2.cotacoes"
+    },
+    {
+      "id": "servicos_externos_excepcionais",
+      "descricao": "Serviços externos comprovadamente não cobertos pelas diárias da equipe",
+      "unidades": [
+        "vb",
+        "dia",
+        "h"
+      ],
+      "preco_preferencial": "etapa2.cotacoes",
+      "regra": "Exigir descrição e justificativa para evitar cobrança duplicada de desmontagem hidráulica, elétrica ou barrilete."
+    }
+  ],
+  "itens_excluidos": [
+    "brita_para_lastro",
+    "concreto_para_piso",
+    "recompra_ou_reapropriacao_do_barrilete",
+    "mao_de_obra_adicional_padrao_para_desmontagem_hidraulica",
+    "mao_de_obra_adicional_padrao_para_desmontagem_eletrica",
+    "mao_de_obra_adicional_padrao_para_desmontagem_barrilete"
+  ],
+  "campos_item": [
+    "descricao",
+    "finalidade",
+    "unidade",
+    "quantidade",
+    "preco_unitario",
+    "preco_total",
+    "origem_cotacao",
+    "fornecedor",
+    "observacoes"
+  ],
+  "formula_item": "quantidade * preco_unitario",
+  "valores_iniciais": {
+    "quantidade": 0,
+    "preco_total": 0
+  },
+  "cotacoes": {
+    "origem_preferencial": "etapa2",
+    "preco_manual_permitido": true,
+    "alerta_sem_cotacao": true,
+    "snapshot_ao_concluir": true
+  },
+  "exemplo_historico_nao_padrao": {
+    "frete_quantidade": 2,
+    "frete_preco_unitario": 1500,
+    "frete_total": 3000,
+    "equipe_dias": 2,
+    "equipe_custo_dia_exibido": 1904.46,
+    "equipe_total_historico": 3808.91,
+    "custo_total": 6808.91,
+    "bdi_percentual": 0,
+    "preco_final": 6808.91,
+    "linhas_da_planilha_nao_utilizadas": [
+      "Instalações hidráulicas",
+      "Instalações elétricas",
+      "Máquina Wap",
+      "Barrilete"
+    ],
+    "nota": "Linhas históricas de instalações e barrilete não devem se tornar mão de obra extra por padrão; o trabalho de desmontagem está nas diárias da equipe.",
+    "alerta_arredondamento": "R$ 1.904,46 × 2 = R$ 3.808,92 com números exibidos; planilha registra R$ 3.808,91. Preservar valor histórico e validar política de arredondamento."
+  },
+  "bdi": {
+    "percentual_editavel": true,
+    "formula_preco_final": "soma(precos_itens) * (1 + bdi_percentual/100)"
+  },
+  "apresentacao_comercial": {
+    "modalidades": [
+      "separado",
+      "incorporado_preco_global"
+    ],
+    "sem_fundir_com_etapa14": true,
+    "sem_dupla_contagem": true
+  },
+  "rastreabilidade": {
+    "observacoes_por_item": true,
+    "substituicao_manual_de_valores_permitida": true,
+    "alertas": [
+      "preco_manual_sem_cotacao",
+      "preco_cotado_sobrescrito",
+      "servico_ja_incluso_na_equipe",
+      "duplicidade_com_etapa14"
+    ],
+    "preservar": [
+      "valor_origem",
+      "valor_utilizado",
+      "diferenca",
+      "fonte",
+      "observacao",
+      "versao_orcamento"
+    ],
+    "snapshot_conclusao": true
+  },
+  "pendencias": [
+    "Identificar localização da tabela salarial existente no FOS App.",
+    "Definir política consistente de arredondamento.",
+    "Implementar interface, cálculos, persistência e validações; JSON apenas declarativo."
+  ]
+}
