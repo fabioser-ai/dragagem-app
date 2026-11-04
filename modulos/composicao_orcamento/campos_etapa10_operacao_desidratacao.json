@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 10,
+  "id": "operacao_sistema_desidratacao",
+  "titulo": "Operação do Sistema de Desidratação",
+  "categoria": "subitem_dragagem",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "moeda": "BRL",
+  "principios": [
+    "Comentários das células são observações específicas de cada proposta, não regras globais nem valores padrão.",
+    "A dosagem de polímero depende da técnica, do material e do orçamento; não usar valor fixo obrigatório.",
+    "Valores calculados e fontes preferenciais podem ser sobrescritos manualmente com alerta e histórico."
+  ],
+  "polimero": {
+    "massa_solidos_secos_t": {
+      "tipo": "decimal",
+      "origem_preferencial": "dimensionamento_etapa9",
+      "editavel": true
+    },
+    "dosagem_kg_por_tonelada_seca": {
+      "tipo": "decimal",
+      "editavel": true,
+      "sem_padrao_obrigatorio": true
+    },
+    "consumo_calculado_kg": "massa_solidos_secos_t * dosagem_kg_por_tonelada_seca",
+    "consumo_utilizado_kg": "sobrescrita_manual_se_presente_senao_consumo_calculado_kg",
+    "alerta_quando_consumo_calculado_sobrescrito": true,
+    "preco_unitario_kg": {
+      "tipo": "decimal",
+      "origem_preferencial": "etapa2.cotacoes",
+      "editavel": true
+    },
+    "custo_polimero": "consumo_utilizado_kg * preco_unitario_kg",
+    "observacao_item": {
+      "tipo": "texto_livre",
+      "escopo": "orcamento_e_versao"
+    }
+  },
+  "equipe": {
+    "campos": [
+      "funcao",
+      "numero_funcionarios",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual"
+    ],
+    "origem_preferencial_salarios": "tabelas_existentes_do_fos_app",
+    "fonte_exata": "pendente_identificacao",
+    "formula_custo_dia_linha": "numero_funcionarios * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)",
+    "despesas_diarias": [
+      "refeicoes",
+      "transporte"
+    ],
+    "custo_diario": "soma(custos_linhas) + soma(despesas_diarias)",
+    "dias_operacionais": {
+      "tipo": "decimal",
+      "editavel": true,
+      "independente_dos_meses": true
+    },
+    "custo_operacao_equipe": "custo_diario * dias_operacionais"
+  },
+  "itens": {
+    "campos": [
+      "descricao",
+      "unidade",
+      "quantidade",
+      "preco_unitario",
+      "preco_total",
+      "origem_preco",
+      "referencia_origem",
+      "observacao_livre"
+    ],
+    "formula_preco_total": "quantidade * preco_unitario",
+    "permite_adicionar_editar_remover": true,
+    "origem_preferencial": "etapa2.cotacoes",
+    "exemplos_nao_obrigatorios": [
+      "Equipamento de preparo e injeção de polímero",
+      "Polímero sobre base seca",
+      "Frete do polímero",
+      "Fornecimento de água para operação",
+      "Fornecimento de energia e diesel",
+      "Instalações hidráulicas",
+      "Máquina Wap",
+      "Mão de obra de operação"
+    ],
+    "observacao": "Responsabilidade contratual por água, energia e outros fornecimentos é atributo por item e orçamento, não regra fixa; valores zerados precisam de contexto explícito."
+  },
+  "equipamento": {
+    "modalidade_custo": {
+      "tipo": "selecao_futura",
+      "possibilidades": [
+        "locacao",
+        "equipamento_proprio_apropriado",
+        "aquisicao"
+      ],
+      "sem_padrao_definido": true
+    },
+    "criterio_apropriacao": {
+      "tipo": "a_definir_por_orcamento"
+    },
+    "evitar_confundir_valor_patrimonial_e_custo_apropriado": true
+  },
+  "prazo": {
+    "meses": {
+      "tipo": "decimal",
+      "origem_preferencial": "etapa3.prazo_execucao",
+      "editavel": true
+    },
+    "dias_operacionais": "equipe.dias_operacionais",
+    "regra": "Não presumir 30 dias operacionais por mês; permitir valores distintos."
+  },
+  "resumo": {
+    "custo_total": "soma(itens.preco_total) com custo de equipe e polímero incluídos uma única vez",
+    "custo_mensal": "custo_total / prazo.meses",
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "editavel": true,
+      "valor_inicial": 0
+    },
+    "preco_mensal": "custo_mensal * (1 + bdi_percentual/100)",
+    "preco_total": "custo_total * (1 + bdi_percentual/100)",
+    "exemplo_planilha": {
+      "custo_diario_equipe": 648.28,
+      "dias_operacionais": 90,
+      "custo_equipe_planilha": 58344.82,
+      "polimero_kg": 1757.7,
+      "preco_polimero_kg": 22,
+      "custo_polimero": 38669.4,
+      "custo_total": 127014.22,
+      "prazo_meses": 3,
+      "custo_mensal": 42338.07,
+      "observacao": "Exemplo histórico, não valor padrão; diferenças centesimais por arredondamento permanecem pendentes."
+    }
+  },
+  "rastreabilidade": {
+    "origens": [
+      "cotacao_etapa2",
+      "tabela_salarial_existente",
+      "dimensionamento_etapa9",
+      "calculo_da_composicao",
+      "manual"
+    ],
+    "alertas": [
+      "preco_manual",
+      "preco_vinculado_sobrescrito",
+      "consumo_calculado_sobrescrito",
+      "massa_solidos_secos_sobrescrita",
+      "prazo_sobrescrito"
+    ],
+    "regra": "Permitir exceções com alerta e preservação de origem, valor original, valor utilizado e observação na versão do orçamento.",
+    "observacoes": {
+      "por_item": true,
+      "livres": true,
+      "especificas_do_cliente_e_da_proposta": true,
+      "nao_geram_regras_ou_padrao_automaticamente": true
+    },
+    "snapshot_versao_concluida": true
+  },
+  "pendencias": [
+    "Validar base física e unidades de massa seca no dimensionamento da Etapa 9 antes de automatizar.",
+    "Definir política de custo e apropriação do equipamento de polímero.",
+    "Identificar fonte salarial existente do FOS App.",
+    "Definir arredondamento monetário e evitar dupla contagem de linhas derivadas.",
+    "Implementar interface, persistência operacional e alertas."
+  ]
+}
