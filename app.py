@@ -20,6 +20,7 @@ def _instalar_overlay_loading_menu():
           const labels = {{
             "ABRIR ORÇAMENTO": "Orçamento",
             "ABRIR NOVO SISTEMA": "Novo Sistema de Orçamentos",
+            "ABRIR COMPOSIÇÃO DE ORÇAMENTO": "Composição de Orçamento",
             "ABRIR FÉRIAS E FOLGAS": "Férias e Folgas",
             "ABRIR PRESTAÇÃO DE CONTAS": "Prestação de Contas",
             "ABRIR CRM": "CRM",
@@ -210,6 +211,7 @@ _rotulos_loading = {
     "crm": "CRM",
     "uniformes_epis": "Uniformes e EPIs",
     "novo_orcamento": "Novo Sistema de Orçamentos",
+    "composicao_orcamento": "Composição de Orçamento",
     "obras": "Obras",
     "orcamento": "Orçamento",
     "orcamento_lista": "Orçamento",
@@ -276,6 +278,11 @@ elif tela == "novo_orcamento":
     from modulos.orcamentos.apresentacao import entrada as novo_orcamento
 
     novo_orcamento.render(autorizado=True)
+
+elif tela == "composicao_orcamento":
+    from pages import composicao_orcamento
+
+    composicao_orcamento.render()
 
 elif tela == "obras":
     # O roteador preserva explicitamente a dependência operacional do legado.
