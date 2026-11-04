@@ -48,6 +48,41 @@ def _voltar_menu():
     st.rerun()
 
 
+def _renderizar_guia_etapas():
+    """Guia compacto: 17 etapas numa linha, sem simular etapas concluídas."""
+    numeros = "".join(
+        '<span class="fos-etapa fos-etapa-atual" aria-current="step" '
+        'title="Etapa 1: Identificação da obra">1</span>'
+        if numero == 1 else
+        f'<span class="fos-etapa fos-etapa-futura" '
+        f'title="Etapa {numero}: ainda não disponível">{numero}</span>'
+        for numero in range(1, 18)
+    )
+    st.markdown(
+        """
+        <style>
+        .fos-guia {max-width: 900px; margin: 0.5rem 0 1rem;}
+        .fos-etapas {display: flex; flex-wrap: nowrap; gap: 4px; width: 100%;}
+        .fos-etapa {flex: 1 1 0; min-width: 0; text-align: center;
+            border: 1px solid #c5cbd1; border-radius: 5px;
+            padding: 8px 0; font-size: 0.85rem; font-weight: 600;}
+        .fos-etapa-atual {background: #176a4d; color: white;
+            border-color: #176a4d;}
+        .fos-etapa-futura {background: transparent; color: inherit; opacity: .55;}
+        .fos-guia-legenda {margin-top: 8px; font-size: .95rem;}
+        </style>
+        <div class="fos-guia" aria-label="Progresso da composição de orçamento">
+          <div class="fos-etapas">
+        """ + numeros + """
+          </div>
+          <div class="fos-guia-legenda"><strong>Etapa 1 de 17 —
+          Identificação da obra</strong></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render():
     renderizar_cabecalho_modulo(
         "Composição de Orçamento",
@@ -55,7 +90,7 @@ def render():
         _voltar_menu,
         key="composicao_orcamento_voltar_menu",
     )
-    st.caption("Etapa 1 de 17 · Identificação da obra")
+    _renderizar_guia_etapas()
     st.info(
         "Primeira versão para validação. Os dados são mantidos somente nesta "
         "sessão do navegador; ainda não são gravados no banco operacional."
@@ -112,6 +147,14 @@ def render():
         st.caption(
             "Rascunho disponível nesta sessão. Fechar a sessão ou reiniciar "
             "o servidor pode eliminar os dados."
+        )
+    col_anterior, col_proxima = st.columns(2)
+    with col_anterior:
+        st.button("← Etapa anterior", disabled=True, use_container_width=True)
+    with col_proxima:
+        st.button(
+            "Próxima etapa →", disabled=True, use_container_width=True,
+            help="A Etapa 2 será habilitada quando sua interface estiver pronta.",
         )
     st.divider()
     st.caption(
