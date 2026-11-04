@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "produtividade_draga",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "escopo": "Somente draga; centrífuga em etapa futura.",
+  "campos": [
+    {
+      "id": "vazao",
+      "tipo": "decimal",
+      "unidade": "m3/h",
+      "origem": "entrada",
+      "observacao": "Poderá vir de cadastro de equipamentos no futuro."
+    },
+    {
+      "id": "eficiencia",
+      "tipo": "decimal",
+      "unidade": "percentual",
+      "origem": "entrada"
+    },
+    {
+      "id": "concentracao",
+      "tipo": "decimal",
+      "unidade": "percentual",
+      "origem": "entrada"
+    },
+    {
+      "id": "producao_horaria",
+      "tipo": "decimal",
+      "unidade": "m3/h",
+      "origem": "calculado",
+      "formula": "pendente_validacao_modelo_existente"
+    },
+    {
+      "id": "horas_dia",
+      "tipo": "decimal",
+      "unidade": "h/dia",
+      "origem": "entrada"
+    },
+    {
+      "id": "dias_mes",
+      "tipo": "decimal",
+      "unidade": "dias/mes",
+      "origem": "entrada"
+    },
+    {
+      "id": "horas_mes",
+      "tipo": "decimal",
+      "unidade": "h/mes",
+      "origem": "calculado",
+      "formula": "horas_dia * dias_mes"
+    },
+    {
+      "id": "producao_mensal",
+      "tipo": "decimal",
+      "unidade": "m3/mes",
+      "origem": "calculado",
+      "formula": "producao_horaria * horas_mes"
+    },
+    {
+      "id": "volume_total_dragagem",
+      "tipo": "decimal",
+      "unidade": "m3",
+      "origem": "referencia",
+      "referencia": "etapa1.volume_dragagem"
+    },
+    {
+      "id": "prazo_execucao",
+      "tipo": "decimal",
+      "unidade": "meses",
+      "origem": "calculado",
+      "formula": "volume_total_dragagem / producao_mensal",
+      "observacao": "Regra de arredondamento e prazo contratual a definir."
+    }
+  ],
+  "validacoes_pendentes": [
+    "Confirmar fórmula exata de produção horária, significado e escala de eficiência e concentração no modelo atual.",
+    "Confirmar se vazão é vazão de mistura em m³/h.",
+    "Definir arredondamento do prazo e tratamento de valores zero.",
+    "Avaliar cadastro de draga e vazões para futura seleção."
+  ],
+  "restricoes": [
+    "Não duplicar volume de dragagem da etapa 1.",
+    "Não incorporar centrífuga nesta etapa.",
+    "Não ativar cálculo horário sem validar fórmula existente."
+  ]
+}
