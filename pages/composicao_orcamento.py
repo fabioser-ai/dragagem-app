@@ -62,6 +62,7 @@ def _renderizar_guia_etapas(etapa=1):
         f'title="Etapa {numero}: ainda não disponível">{numero}</span>'
         for numero in range(1, 18)
     )
+    legenda = ("Identificação da obra" if etapa == 1 else "Cotações")
     st.markdown(
         """
         <style>
@@ -79,8 +80,8 @@ def _renderizar_guia_etapas(etapa=1):
           <div class="fos-etapas">
         """ + numeros + """
           </div>
-          <div class="fos-guia-legenda"><strong>Etapa 1 de 17 —
-          Identificação da obra</strong></div>
+          <div class="fos-guia-legenda"><strong>Etapa """ + str(etapa) + """ de 17 —
+          """ + legenda + """</strong></div>
         </div>
         """,
         unsafe_allow_html=True,
