@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "identificacao_obra",
+  "storage_branch": "data-operacional",
+  "storage_root": "data/composicao_orcamento",
+  "observacao": "Catálogo de campos; não cria registros nem opções de seleção. Modos de entrada a definir.",
+  "campos": [
+    {
+      "id": "data_composicao",
+      "rotulo": "Data da composição",
+      "tipo": "date",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "numero_proposta",
+      "rotulo": "Número da proposta",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "cliente",
+      "rotulo": "Cliente",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "contato",
+      "rotulo": "Contato",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "objeto_obra",
+      "rotulo": "Objeto da obra",
+      "tipo": "long_text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "local",
+      "rotulo": "Local",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "volume_dragagem",
+      "rotulo": "Volume de dragagem",
+      "tipo": "decimal",
+      "unidade": "m3",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "tipo_material",
+      "rotulo": "Tipo de material",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "distancia_recalque_total",
+      "rotulo": "Distância de recalque total",
+      "tipo": "decimal",
+      "unidade": "m",
+      "entrada": "a_definir",
+      "opcoes": [],
+      "calculado": true,
+      "formula": "recalque_terra + recalque_flutuante"
+    },
+    {
+      "id": "recalque_terra",
+      "rotulo": "Recalque linha de terra",
+      "tipo": "decimal",
+      "unidade": "m",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "recalque_flutuante",
+      "rotulo": "Recalque linha flutuante",
+      "tipo": "decimal",
+      "unidade": "m",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "profundidade_dragagem",
+      "rotulo": "Profundidade da dragagem",
+      "tipo": "decimal",
+      "unidade": "m",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "espessura_media",
+      "rotulo": "Espessura média do material",
+      "tipo": "decimal",
+      "unidade": "m",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "tipo_bota_fora",
+      "rotulo": "Tipo de bota-fora",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "sistema_medicao",
+      "rotulo": "Sistema de medição",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "canteiro_obra",
+      "rotulo": "Canteiro de obra",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "mobilizacao",
+      "rotulo": "Mobilização",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "horario_trabalho",
+      "rotulo": "Horário de trabalho",
+      "tipo": "text",
+      "entrada": "a_definir",
+      "opcoes": []
+    },
+    {
+      "id": "dias_trabalho",
+      "rotulo": "Dias de trabalho",
+      "tipo": "decimal",
+      "unidade": "dias",
+      "entrada": "a_definir",
+      "opcoes": []
+    }
+  ]
+}
