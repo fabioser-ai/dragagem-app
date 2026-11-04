@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": "cotacoes",
+  "storage_branch": "data-operacional",
+  "storage_root": "data/composicao_orcamento",
+  "status": "modelo_de_dados_sem_interface_ou_persistencia_ativa",
+  "entidades": [
+    {
+      "id": "fornecedor",
+      "descricao": "Cadastro reutilizável de empresas/fornecedores.",
+      "campos": [
+        {
+          "id": "fornecedor_id",
+          "tipo": "uuid",
+          "chave_primaria": true
+        },
+        {
+          "id": "nome",
+          "tipo": "text"
+        },
+        {
+          "id": "contato",
+          "tipo": "text"
+        },
+        {
+          "id": "telefone",
+          "tipo": "text"
+        }
+      ]
+    },
+    {
+      "id": "cotacao",
+      "descricao": "Cada preço cotado preserva seu contexto e pode ser reutilizado como referência histórica.",
+      "campos": [
+        {
+          "id": "cotacao_id",
+          "tipo": "uuid",
+          "chave_primaria": true
+        },
+        {
+          "id": "composicao_id",
+          "tipo": "uuid",
+          "relacao": "composicao_orcamento",
+          "observacao": "Identificador previsto para a composição, a definir nas próximas etapas."
+        },
+        {
+          "id": "fornecedor_id",
+          "tipo": "uuid",
+          "relacao": "fornecedor"
+        },
+        {
+          "id": "detalhe",
+          "tipo": "long_text"
+        },
+        {
+          "id": "valor_unitario",
+          "tipo": "decimal",
+          "moeda": "BRL"
+        },
+        {
+          "id": "unidade_referencia",
+          "tipo": "text",
+          "entrada": "livre_por_enquanto",
+          "exemplos_nao_restritivos": [
+            "mês",
+            "m³",
+            "m",
+            "hora",
+            "viagem"
+          ]
+        },
+        {
+          "id": "data_cotacao",
+          "tipo": "date",
+          "observacao": "Metadado histórico proposto; obrigatoriedade a definir."
+        }
+      ]
+    }
+  ],
+  "decisoes_pendentes": [
+    "Definir dropdowns e catálogos após mapear todas as etapas.",
+    "Definir obrigatoriedade, regras de conversão de unidades e vínculo com itens da composição.",
+    "Definir política de atualização e validade de preços históricos."
+  ],
+  "restricoes": [
+    "Não somar preços de unidades diferentes automaticamente.",
+    "Não sobrescrever preços históricos ao atualizar cadastro de fornecedor.",
+    "Não assumir que cotação histórica representa preço atual."
+  ]
+}
