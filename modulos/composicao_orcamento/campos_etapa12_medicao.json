@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "modulo": "composicao_orcamento",
+  "etapa": 12,
+  "id": "medicao",
+  "titulo": "Medição",
+  "status": "especificacao_declarativa_sem_interface_ou_calculo_ativo",
+  "objetivo": "Compor custos de coleta de amostras, batimetria e acompanhamento de coleta dos geobags, permitindo integração ou medição contratual separada sem duplicidade.",
+  "servicos": [
+    {
+      "id": "coleta_amostras",
+      "descricao": "Coleta de amostras",
+      "execucao_referencia": "equipe_propria_fos",
+      "execucao_editavel_por_orcamento": true,
+      "unidade_referencia": "un",
+      "quantidade_referencia": 90,
+      "preco_unitario_referencia": 60,
+      "custo_total_referencia": 5400,
+      "campos": [
+        "quantidade_amostras",
+        "custo_unitario",
+        "tipo_analise",
+        "equipe_propria",
+        "equipamentos",
+        "materiais",
+        "observacao_livre"
+      ],
+      "nota": "Coleta própria da FOS; análise laboratorial não necessariamente interna. Custos de laboratório externo podem ser incluídos se efetivamente aplicáveis."
+    },
+    {
+      "id": "batimetria",
+      "descricao": "Batimetria",
+      "execucao_referencia": "terceiro",
+      "execucao_editavel_por_orcamento": true,
+      "unidade_referencia": "dia",
+      "quantidade_referencia": 3,
+      "preco_unitario_planilha_referencia": 1438.02,
+      "custo_total_planilha_referencia": 4314.05,
+      "origem_preferencial_preco": "etapa2.cotacoes",
+      "campos": [
+        "escopo",
+        "quantidade_dias_ou_campanhas",
+        "unidade_contratada",
+        "preco_terceirizado",
+        "fornecedor",
+        "cotacao",
+        "custos_acompanhamento_fos_se_houver",
+        "observacao_livre"
+      ],
+      "nota": "A planilha histórica calcula batimetria usando custo diário de equipe própria, mas o usuário confirmou execução terceirizada. Não assumir R$ 1.438,02/dia como cotação de terceiro; preço real deve ser cotado ou informado manualmente."
+    },
+    {
+      "id": "acompanhamento_coleta_geobags",
+      "descricao": "Acompanhamento da coleta dos Geobags",
+      "execucao_referencia": "equipe_propria_fos",
+      "execucao_editavel_por_orcamento": true,
+      "unidade_referencia": "dia",
+      "quantidade_referencia": 10,
+      "preco_unitario_referencia": 1438.02,
+      "custo_total_referencia": 14380.18,
+      "campos": [
+        "quantidade_dias",
+        "composicao_equipe",
+        "custo_diario",
+        "equipamentos",
+        "materiais",
+        "observacao_livre"
+      ]
+    }
+  ],
+  "composicao_auxiliar_equipe": {
+    "descricao": "Custo diário de equipe própria, aplicável apenas aos serviços que realmente utilizem essa equipe",
+    "campos_por_funcao": [
+      "funcao",
+      "quantidade",
+      "valor_hora",
+      "horas_dia",
+      "encargos_sociais_percentual"
+    ],
+    "funcoes_referencia": [
+      "operador_lider",
+      "operador_draga",
+      "ajudante_geral"
+    ],
+    "despesas": [
+      "refeicoes",
+      "transporte"
+    ],
+    "formula_por_funcao": "quantidade * valor_hora * horas_dia * (1 + encargos_sociais_percentual/100)",
+    "formula_total_diario": "soma(custo_funcoes) + refeicoes + transporte",
+    "salarios_origem_preferencial": "tabelas_salariais_existentes_fos_app",
+    "localizacao_tabelas": "pendente_identificacao",
+    "exemplo_historico": {
+      "operador_lider_quantidade": null,
+      "operadores_draga": 2,
+      "ajudantes": 2,
+      "horas_dia": 9,
+      "encargos_sociais_percentual": 110,
+      "refeicoes_total_dia": 120,
+      "transporte_total_dia": 40,
+      "custo_diario_planilha": 1438.02
+    },
+    "nota": "Não atribuir custo de equipe própria automaticamente à batimetria executada por terceiro; eventual acompanhamento próprio é item adicional explícito."
+  },
+  "apropriacao_e_medicao": {
+    "modalidades_por_servico": [
+      "integrado_dragagem",
+      "integrado_outro_subitem",
+      "separado_para_medicao_faturamento"
+    ],
+    "configuravel_por_orcamento": true,
+    "regra": "Não contabilizar o mesmo serviço simultaneamente na Etapa 11 e na Etapa 12; distinguir batimetria final da Etapa 11 de batimetrias de acompanhamento, se forem escopos diferentes.",
+    "origem_contrato": "especifico_da_proposta"
+  },
+  "cotacoes": {
+    "preferencia": "etapa2",
+    "aplicacao": [
+      "batimetria_terceirizada",
+      "analises_laboratoriais_se_houver",
+      "materiais_e_servicos_externos"
+    ],
+    "entrada_manual_permitida": true,
+    "alertas_para_preco_sem_fonte": true
+  },
+  "calculos": {
+    "custo_servico": "quantidade * preco_unitario_ou_custo_apropriado",
+    "custo_total": "soma(custos_dos_servicos_efetivamente_incluidos)",
+    "bdi_percentual": {
+      "tipo": "decimal",
+      "editavel": true,
+      "exemplo_historico": 0
+    },
+    "preco_final": "custo_total * (1 + bdi_percentual/100)",
+    "precisao": "definir_regra_unica_de_arredondamento_antes_implementacao"
+  },
+  "exemplo_historico_nao_padrao": {
+    "amostras": 5400,
+    "batimetria": 4314.05,
+    "acompanhamento_geobags": 14380.18,
+    "custo_total": 24094.23,
+    "bdi_percentual": 0,
+    "preco_final": 24094.23,
+    "nota": "Valores da planilha original, não cotações comprovadas nem valores padrão; custo diário exibido soma R$ 1.438,01 nas parcelas arredondadas, enquanto a planilha mostra R$ 1.438,02. O total de batimetria é histórico e não deve ser tratado como custo efetivo de terceiro sem validação."
+  },
+  "rastreabilidade": {
+    "valores_editaveis": true,
+    "observacoes_livres_por_item": true,
+    "observacoes_especificas_do_cliente_nao_sao_regras_globais": true,
+    "alertas": [
+      "preco_manual_sem_cotacao",
+      "preco_cotado_sobrescrito",
+      "quantidade_calculada_sobrescrita",
+      "duplicidade_potencial_entre_etapas"
+    ],
+    "preservar": [
+      "origem",
+      "valor_original",
+      "valor_utilizado",
+      "diferenca",
+      "justificativa_ou_observacao",
+      "versao"
+    ],
+    "snapshot_versao_concluida": true
+  },
+  "pendencias": [
+    "Validar preço real de batimetria terceirizada no orçamento antes de usar os valores históricos.",
+    "Identificar tabelas salariais reais do FOS App.",
+    "Definir regras de arredondamento.",
+    "Implementar interface, cálculo, persistência e detecção de duplicidades; JSON apenas declarativo."
+  ]
+}
