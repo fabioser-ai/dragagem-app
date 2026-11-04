@@ -5,6 +5,7 @@ duplicação de propostas serão implementadas após validar o armazenamento.
 """
 
 from datetime import date
+from modulos.composicao_orcamento import cotacoes_etapa2
 
 import streamlit as st
 from services.ui import renderizar_cabecalho_modulo
@@ -43,6 +44,7 @@ SECOES = (
     )),
 )
 CHAVE_RASCUNHO = "_composicao_orcamento_etapa1_rascunho"
+CHAVE_ETAPA = "_composicao_orcamento_etapa_atual"
 
 
 def _voltar_menu():
@@ -50,16 +52,17 @@ def _voltar_menu():
     st.rerun()
 
 
-def _renderizar_guia_etapas():
+def _renderizar_guia_etapas(etapa=1):
     """Guia compacto: 17 etapas numa linha, sem simular etapas concluídas."""
     numeros = "".join(
         '<span class="fos-etapa fos-etapa-atual" aria-current="step" '
-        'title="Etapa 1: Identificação da obra">1</span>'
-        if numero == 1 else
+        f'title="Etapa {etapa}: atual">{etapa}</span>'
+        if numero == etapa else
         f'<span class="fos-etapa fos-etapa-futura" '
         f'title="Etapa {numero}: ainda não disponível">{numero}</span>'
         for numero in range(1, 18)
     )
+    legenda = ("Identificação da obra" if etapa == 1 else "Cotações")
     st.markdown(
         """
         <style>
@@ -77,8 +80,8 @@ def _renderizar_guia_etapas():
           <div class="fos-etapas">
         """ + numeros + """
           </div>
-          <div class="fos-guia-legenda"><strong>Etapa 1 de 17 —
-          Identificação da obra</strong></div>
+          <div class="fos-guia-legenda"><strong>Etapa """ + str(etapa) + """ de 17 —
+          """ + legenda + """</strong></div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -183,7 +186,14 @@ def render():
         _voltar_menu,
         key="composicao_orcamento_voltar_menu",
     )
-    _renderizar_guia_etapas()
+    etapa = st.session_state.get(CHAVE_ETAPA, 1)
+    _renderizar_guia_etapas(etapa)
+    if etapa == 2:
+        cotacoes_etapa2.render()
+        if st.button("← Voltar à Etapa 1", use_container_width=True):
+            st.session_state[CHAVE_ETAPA] = 1
+            st.rerun()
+        return
     st.info(
         "Primeira versão para validação. Os dados são mantidos somente nesta "
         "sessão do navegador; ainda não são gravados no banco operacional."
@@ -275,8 +285,10 @@ def render():
         st.button("← Etapa anterior", disabled=True, use_container_width=True)
     with col_proxima:
         st.button(
-            "Próxima etapa →", disabled=True, use_container_width=True,
-            help="A Etapa 2 será habilitada quando sua interface estiver pronta.",
+            "Próxima etapa →", disabled=not bool(st.session_state.get(CHAVE_RASCUNHO)),
+            on_click=lambda: st.session_state.__setitem__(CHAVE_ETAPA, 2),
+            use_container_width=True,
+            help="Guarde o rascunho da Etapa 1 para avançar.",
         )
     st.divider()
     st.caption(
